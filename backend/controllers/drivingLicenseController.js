@@ -1,0 +1,705 @@
+const Driving = require('../models/Driving')
+
+// Create new driving license application
+exports.createApplication = async (req, res) => {
+  try {
+    const applicationData = req.body
+
+    // Create new driving license application
+    const newApplication = new Driving(applicationData)
+    await newApplication.save()
+
+    res.status(201).json({
+      success: true,
+      message: 'Driving license application created successfully',
+      data: newApplication
+    })
+  } catch (error) {
+    console.error('Error creating application:', error)
+    res.status(400).json({
+      success: false,
+      message: 'Failed to create application',
+      error: error.message
+    })
+  }
+}
+
+// Get all driving license applications
+exports.getAllApplications = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      applicationStatus,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query
+
+    // Build query
+    const query = {}
+
+    // Search by name, license number, mobile, or email
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { drivingLicenseNumber: { $regex: search, $options: 'i' } },
+        { mobileNumber: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    // Filter by license class
+    if (req.query.licenseClass) {
+      query.licenseClass = req.query.licenseClass
+    }
+
+    // Filter by application status
+    if (applicationStatus) {
+      query.applicationStatus = applicationStatus
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    // Execute query
+    const applications = await Driving.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Driving.countDocuments(query)
+
+    res.status(200).json({
+      success: true,
+      data: applications,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching applications:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch applications',
+      error: error.message
+    })
+  }
+}
+
+// Get single driving license application by ID
+exports.getApplicationById = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const application = await Driving.findById(id)
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      data: application
+    })
+  } catch (error) {
+    console.error('Error fetching application:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch application',
+      error: error.message
+    })
+  }
+}
+
+// Update driving license application
+exports.updateApplication = async (req, res) => {
+  try {
+    const { id } = req.params
+    const updateData = req.body
+
+    const updatedApplication = await Driving.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    )
+
+    if (!updatedApplication) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Application updated successfully',
+      data: updatedApplication
+    })
+  } catch (error) {
+    console.error('Error updating application:', error)
+    res.status(400).json({
+      success: false,
+      message: 'Failed to update application',
+      error: error.message
+    })
+  }
+}
+
+// Delete driving license application
+exports.deleteApplication = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const deletedApplication = await Driving.findByIdAndDelete(id)
+
+    if (!deletedApplication) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Application deleted successfully',
+      data: deletedApplication
+    })
+  } catch (error) {
+    console.error('Error deleting application:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete application',
+      error: error.message
+    })
+  }
+}
+
+// Add payment to driving license application
+exports.addPayment = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { amount, paymentMethod, description, receiptNumber } = req.body
+
+    const application = await Driving.findById(id)
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      })
+    }
+
+    // Use the addPayment method from the model
+    await application.addPayment(amount, paymentMethod, description, receiptNumber)
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment added successfully',
+      data: application
+    })
+  } catch (error) {
+    console.error('Error adding payment:', error)
+    res.status(400).json({
+      success: false,
+      message: 'Failed to add payment',
+      error: error.message
+    })
+  }
+}
+
+// Update application status
+exports.updateApplicationStatus = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { applicationStatus, notes } = req.body
+
+    const application = await Driving.findById(id)
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      })
+    }
+
+    application.applicationStatus = applicationStatus
+    if (notes) {
+      application.notes = notes
+    }
+
+    await application.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Application status updated successfully',
+      data: application
+    })
+  } catch (error) {
+    console.error('Error updating application status:', error)
+    res.status(400).json({
+      success: false,
+      message: 'Failed to update application status',
+      error: error.message
+    })
+  }
+}
+
+// Update license status (learning to full)
+exports.updateLicenseStatus = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { licenseStatus, drivingLicenseNumber, drivingLicenseIssueDate, drivingLicenseExpiryDate } = req.body
+
+    const application = await Driving.findById(id)
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      })
+    }
+
+    application.licenseStatus = licenseStatus
+
+    // If upgrading to full license, add driving license details
+    if (licenseStatus === 'full') {
+      application.drivingLicenseNumber = drivingLicenseNumber
+      application.drivingLicenseIssueDate = drivingLicenseIssueDate
+      application.drivingLicenseExpiryDate = drivingLicenseExpiryDate
+    }
+
+    await application.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'License status updated successfully',
+      data: application
+    })
+  } catch (error) {
+    console.error('Error updating license status:', error)
+    res.status(400).json({
+      success: false,
+      message: 'Failed to update license status',
+      error: error.message
+    })
+  }
+}
+
+// Get statistics
+exports.getStatistics = async (req, res) => {
+  try {
+    const totalApplications = await Driving.countDocuments()
+    const pendingApplications = await Driving.countDocuments({ applicationStatus: 'pending' })
+    const approvedApplications = await Driving.countDocuments({ applicationStatus: 'approved' })
+    const rejectedApplications = await Driving.countDocuments({ applicationStatus: 'rejected' })
+    const underReviewApplications = await Driving.countDocuments({ applicationStatus: 'under_review' })
+
+    const mcwgLicenses = await Driving.countDocuments({ licenseClass: 'MCWG' })
+    const lmvLicenses = await Driving.countDocuments({ licenseClass: 'LMV' })
+    const bothLicenses = await Driving.countDocuments({ licenseClass: 'MCWG+LMV' })
+
+    const totalRevenue = await Driving.aggregate([
+      { $group: { _id: null, total: { $sum: '$paidAmount' } } }
+    ])
+
+    const pendingPayments = await Driving.aggregate([
+      { $group: { _id: null, total: { $sum: '$balanceAmount' } } }
+    ])
+
+    res.status(200).json({
+      success: true,
+      data: {
+        applications: {
+          total: totalApplications,
+          pending: pendingApplications,
+          approved: approvedApplications,
+          rejected: rejectedApplications,
+          underReview: underReviewApplications
+        },
+        licenses: {
+          mcwg: mcwgLicenses,
+          lmv: lmvLicenses,
+          both: bothLicenses
+        },
+        revenue: {
+          total: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
+          pending: pendingPayments.length > 0 ? pendingPayments[0].total : 0
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching statistics:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch statistics',
+      error: error.message
+    })
+  }
+}
+
+// Add demo data (15 driving licenses)
+exports.addDemoData = async (req, res) => {
+  try {
+    // Clear existing data (optional - comment out if you want to keep existing data)
+    // await Driving.deleteMany({})
+
+    const demoData = [
+      {
+        name: 'Rajesh Kumar Sharma',
+        dateOfBirth: new Date('1995-03-15'),
+        gender: 'Male',
+        bloodGroup: 'B+',
+        fatherName: 'Vijay Kumar Sharma',
+        motherName: 'Sunita Sharma',
+        mobileNumber: '9876543210',
+        email: 'rajesh.sharma@gmail.com',
+        address: '123, MG Road, Mumbai, Maharashtra - 400001',
+        applicationDate: '15-01-2024',
+        licenseClass: 'MCWG+LMV',
+        applicationStatus: 'approved',
+        drivingLicenseNumber: 'MH1220240001234',
+        drivingLicenseIssueDate: new Date('2024-01-20'),
+        drivingLicenseExpiryDate: new Date('2044-01-19'),
+        totalAmount: 1500,
+        paidAmount: 1500,
+        balanceAmount: 0,
+        qualification: '12th Pass',
+        aadharNumber: '1234-5678-9012'
+      },
+      {
+        name: 'Priya Singh',
+        dateOfBirth: new Date('1998-07-22'),
+        gender: 'Female',
+        bloodGroup: 'A+',
+        fatherName: 'Arun Singh',
+        motherName: 'Kavita Singh',
+        mobileNumber: '9876543211',
+        email: 'priya.singh@gmail.com',
+        address: '456, Park Street, Kolkata, West Bengal - 700016',
+        applicationDate: '20-01-2024',
+        licenseClass: 'LMV',
+        applicationStatus: 'approved',
+        drivingLicenseNumber: 'WB0720240002345',
+        drivingLicenseIssueDate: new Date('2024-01-25'),
+        drivingLicenseExpiryDate: new Date('2044-01-24'),
+        totalAmount: 1200,
+        paidAmount: 1200,
+        balanceAmount: 0,
+        qualification: 'Graduate',
+        aadharNumber: '2345-6789-0123'
+      },
+      {
+        name: 'Amit Patel',
+        dateOfBirth: new Date('1992-11-10'),
+        gender: 'Male',
+        bloodGroup: 'O+',
+        fatherName: 'Ramesh Patel',
+        motherName: 'Geeta Patel',
+        mobileNumber: '9876543212',
+        email: 'amit.patel@gmail.com',
+        address: '789, CG Road, Ahmedabad, Gujarat - 380009',
+        applicationDate: '10-02-2024',
+        licenseClass: 'MCWG',
+        applicationStatus: 'pending',
+        drivingLicenseNumber: 'GJ0120240003456',
+        drivingLicenseIssueDate: new Date('2024-02-15'),
+        drivingLicenseExpiryDate: new Date('2044-02-14'),
+        totalAmount: 800,
+        paidAmount: 800,
+        balanceAmount: 0,
+        qualification: '10th Pass',
+        aadharNumber: '3456-7890-1234'
+      },
+      {
+        name: 'Sneha Reddy',
+        dateOfBirth: new Date('2000-05-18'),
+        gender: 'Female',
+        bloodGroup: 'AB+',
+        fatherName: 'Venkat Reddy',
+        motherName: 'Lakshmi Reddy',
+        mobileNumber: '9876543213',
+        email: 'sneha.reddy@gmail.com',
+        address: '321, Banjara Hills, Hyderabad, Telangana - 500034',
+        applicationDate: '05-03-2024',
+        licenseClass: 'LMV',
+        applicationStatus: 'under_review',
+        drivingLicenseNumber: 'TS0920240004567',
+        drivingLicenseIssueDate: new Date('2024-03-10'),
+        drivingLicenseExpiryDate: new Date('2044-03-09'),
+        totalAmount: 1200,
+        paidAmount: 800,
+        balanceAmount: 400,
+        qualification: 'Graduate',
+        aadharNumber: '4567-8901-2345'
+      },
+      {
+        name: 'Vikas Verma',
+        dateOfBirth: new Date('1990-09-25'),
+        gender: 'Male',
+        bloodGroup: 'B-',
+        fatherName: 'Suresh Verma',
+        motherName: 'Meena Verma',
+        mobileNumber: '9876543214',
+        email: 'vikas.verma@gmail.com',
+        address: '654, Connaught Place, New Delhi - 110001',
+        applicationDate: '12-03-2024',
+        licenseClass: 'MCWG+LMV',
+        applicationStatus: 'approved',
+        drivingLicenseNumber: 'DL0120240005678',
+        drivingLicenseIssueDate: new Date('2024-03-18'),
+        drivingLicenseExpiryDate: new Date('2044-03-17'),
+        totalAmount: 1500,
+        paidAmount: 1500,
+        balanceAmount: 0,
+        qualification: 'Post Graduate',
+        aadharNumber: '5678-9012-3456'
+      },
+      {
+        name: 'Anjali Desai',
+        dateOfBirth: new Date('1997-12-30'),
+        gender: 'Female',
+        bloodGroup: 'A-',
+        fatherName: 'Kiran Desai',
+        motherName: 'Rupa Desai',
+        mobileNumber: '9876543215',
+        email: 'anjali.desai@gmail.com',
+        address: '987, FC Road, Pune, Maharashtra - 411005',
+        applicationDate: '20-03-2024',
+        licenseClass: 'MCWG',
+        applicationStatus: 'pending',
+        drivingLicenseNumber: 'MH1420240006789',
+        drivingLicenseIssueDate: new Date('2024-03-25'),
+        drivingLicenseExpiryDate: new Date('2044-03-24'),
+        totalAmount: 800,
+        paidAmount: 800,
+        balanceAmount: 0,
+        qualification: '12th Pass',
+        aadharNumber: '6789-0123-4567'
+      },
+      {
+        name: 'Rohit Mehta',
+        dateOfBirth: new Date('1993-06-08'),
+        gender: 'Male',
+        bloodGroup: 'O-',
+        fatherName: 'Prakash Mehta',
+        motherName: 'Shobha Mehta',
+        mobileNumber: '9876543216',
+        email: 'rohit.mehta@gmail.com',
+        address: '135, Brigade Road, Bangalore, Karnataka - 560001',
+        applicationDate: '01-04-2024',
+        licenseClass: 'LMV',
+        applicationStatus: 'approved',
+        drivingLicenseNumber: 'KA0320240007890',
+        drivingLicenseIssueDate: new Date('2024-04-05'),
+        drivingLicenseExpiryDate: new Date('2044-04-04'),
+        totalAmount: 1200,
+        paidAmount: 1200,
+        balanceAmount: 0,
+        qualification: 'Graduate',
+        aadharNumber: '7890-1234-5678'
+      },
+      {
+        name: 'Neha Gupta',
+        dateOfBirth: new Date('1999-02-14'),
+        gender: 'Female',
+        bloodGroup: 'AB-',
+        fatherName: 'Rajiv Gupta',
+        motherName: 'Pooja Gupta',
+        mobileNumber: '9876543217',
+        email: 'neha.gupta@gmail.com',
+        address: '246, Mall Road, Lucknow, Uttar Pradesh - 226001',
+        applicationDate: '15-04-2024',
+        licenseClass: 'MCWG+LMV',
+        applicationStatus: 'rejected',
+        drivingLicenseNumber: 'UP1420240008901',
+        drivingLicenseIssueDate: new Date('2024-04-20'),
+        drivingLicenseExpiryDate: new Date('2044-04-19'),
+        totalAmount: 1500,
+        paidAmount: 1000,
+        balanceAmount: 500,
+        qualification: 'Graduate',
+        aadharNumber: '8901-2345-6789'
+      },
+      {
+        name: 'Sanjay Yadav',
+        dateOfBirth: new Date('1991-08-19'),
+        gender: 'Male',
+        bloodGroup: 'B+',
+        fatherName: 'Ram Yadav',
+        motherName: 'Sarita Yadav',
+        mobileNumber: '9876543218',
+        email: 'sanjay.yadav@gmail.com',
+        address: '369, Station Road, Jaipur, Rajasthan - 302001',
+        applicationDate: '05-05-2024',
+        licenseClass: 'MCWG',
+        applicationStatus: 'pending',
+        drivingLicenseNumber: 'RJ1420240009012',
+        drivingLicenseIssueDate: new Date('2024-05-10'),
+        drivingLicenseExpiryDate: new Date('2044-05-09'),
+        totalAmount: 800,
+        paidAmount: 800,
+        balanceAmount: 0,
+        qualification: '10th Pass',
+        aadharNumber: '9012-3456-7890'
+      },
+      {
+        name: 'Divya Nair',
+        dateOfBirth: new Date('1996-04-27'),
+        gender: 'Female',
+        bloodGroup: 'A+',
+        fatherName: 'Sunil Nair',
+        motherName: 'Latha Nair',
+        mobileNumber: '9876543219',
+        email: 'divya.nair@gmail.com',
+        address: '741, MG Road, Kochi, Kerala - 682011',
+        applicationDate: '20-05-2024',
+        licenseClass: 'LMV',
+        applicationStatus: 'approved',
+        drivingLicenseNumber: 'KL0720240010123',
+        drivingLicenseIssueDate: new Date('2024-05-25'),
+        drivingLicenseExpiryDate: new Date('2044-05-24'),
+        totalAmount: 1200,
+        paidAmount: 1200,
+        balanceAmount: 0,
+        qualification: 'Post Graduate',
+        aadharNumber: '0123-4567-8901'
+      },
+      {
+        name: 'Arjun Iyer',
+        dateOfBirth: new Date('1994-10-12'),
+        gender: 'Male',
+        bloodGroup: 'O+',
+        fatherName: 'Krishnan Iyer',
+        motherName: 'Radha Iyer',
+        mobileNumber: '9876543220',
+        email: 'arjun.iyer@gmail.com',
+        address: '852, Anna Salai, Chennai, Tamil Nadu - 600002',
+        applicationDate: '01-06-2024',
+        licenseClass: 'MCWG+LMV',
+        applicationStatus: 'under_review',
+        drivingLicenseNumber: 'TN0120240011234',
+        drivingLicenseIssueDate: new Date('2024-06-05'),
+        drivingLicenseExpiryDate: new Date('2044-06-04'),
+        totalAmount: 1500,
+        paidAmount: 1500,
+        balanceAmount: 0,
+        qualification: 'Graduate',
+        aadharNumber: '1234-5678-9013'
+      },
+      {
+        name: 'Pooja Joshi',
+        dateOfBirth: new Date('2001-01-05'),
+        gender: 'Female',
+        bloodGroup: 'B-',
+        fatherName: 'Mukesh Joshi',
+        motherName: 'Anita Joshi',
+        mobileNumber: '9876543221',
+        email: 'pooja.joshi@gmail.com',
+        address: '963, Civil Lines, Nagpur, Maharashtra - 440001',
+        applicationDate: '15-06-2024',
+        licenseClass: 'MCWG',
+        applicationStatus: 'pending',
+        drivingLicenseNumber: 'MH3120240012345',
+        drivingLicenseIssueDate: new Date('2024-06-20'),
+        drivingLicenseExpiryDate: new Date('2044-06-19'),
+        totalAmount: 800,
+        paidAmount: 600,
+        balanceAmount: 200,
+        qualification: '12th Pass',
+        aadharNumber: '2345-6789-0124'
+      },
+      {
+        name: 'Karan Kapoor',
+        dateOfBirth: new Date('1989-03-21'),
+        gender: 'Male',
+        bloodGroup: 'AB+',
+        fatherName: 'Ravi Kapoor',
+        motherName: 'Seema Kapoor',
+        mobileNumber: '9876543222',
+        email: 'karan.kapoor@gmail.com',
+        address: '159, Mall Road, Chandigarh - 160001',
+        applicationDate: '01-07-2024',
+        licenseClass: 'LMV',
+        applicationStatus: 'approved',
+        drivingLicenseNumber: 'CH0120240013456',
+        drivingLicenseIssueDate: new Date('2024-07-05'),
+        drivingLicenseExpiryDate: new Date('2044-07-04'),
+        totalAmount: 1200,
+        paidAmount: 1200,
+        balanceAmount: 0,
+        qualification: 'Graduate',
+        aadharNumber: '3456-7890-1235'
+      },
+      {
+        name: 'Ritu Malhotra',
+        dateOfBirth: new Date('1998-09-16'),
+        gender: 'Female',
+        bloodGroup: 'A-',
+        fatherName: 'Sandeep Malhotra',
+        motherName: 'Nisha Malhotra',
+        mobileNumber: '9876543223',
+        email: 'ritu.malhotra@gmail.com',
+        address: '357, Sadar Bazaar, Indore, Madhya Pradesh - 452001',
+        applicationDate: '20-07-2024',
+        licenseClass: 'MCWG+LMV',
+        applicationStatus: 'approved',
+        drivingLicenseNumber: 'MP0920240014567',
+        drivingLicenseIssueDate: new Date('2024-07-25'),
+        drivingLicenseExpiryDate: new Date('2044-07-24'),
+        totalAmount: 1500,
+        paidAmount: 1500,
+        balanceAmount: 0,
+        qualification: 'Post Graduate',
+        aadharNumber: '4567-8901-2346'
+      },
+      {
+        name: 'Aditya Saxena',
+        dateOfBirth: new Date('1995-11-28'),
+        gender: 'Male',
+        bloodGroup: 'O+',
+        fatherName: 'Deepak Saxena',
+        motherName: 'Rekha Saxena',
+        mobileNumber: '9876543224',
+        email: 'aditya.saxena@gmail.com',
+        address: '753, Hazratganj, Lucknow, Uttar Pradesh - 226001',
+        applicationDate: '10-08-2024',
+        licenseClass: 'MCWG',
+        applicationStatus: 'under_review',
+        drivingLicenseNumber: 'UP1420240015678',
+        drivingLicenseIssueDate: new Date('2024-08-15'),
+        drivingLicenseExpiryDate: new Date('2044-08-14'),
+        totalAmount: 800,
+        paidAmount: 800,
+        balanceAmount: 0,
+        qualification: '12th Pass',
+        aadharNumber: '5678-9012-3457'
+      }
+    ]
+
+    // Insert all demo data
+    const insertedData = await Driving.insertMany(demoData)
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully added ${insertedData.length} demo driving licenses`,
+      data: insertedData,
+      count: insertedData.length
+    })
+  } catch (error) {
+    console.error('Error adding demo data:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add demo data',
+      error: error.message
+    })
+  }
+}

@@ -1,0 +1,74 @@
+const express = require('express')
+const mongoose = require('mongoose')
+
+const app = express()
+const PORT = process.env.PORT || 5000
+
+// Middleware
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+// CORS middleware (allow admin panel to connect)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200)
+  }
+  next()
+})
+
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/rto'
+
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('MongoDB connected successfully'))
+  .catch((err) => console.error('MongoDB connection error:', err))
+
+// Import Routes
+const drivingLicenseRoutes = require('./routes/drivingLicense')
+const nationalPermitRoutes = require('./routes/nationalPermit')
+const cgPermitRoutes = require('./routes/cgPermit')
+const temporaryPermitRoutes = require('./routes/temporaryPermit')
+const vehicleRegistrationRoutes = require('./routes/vehicleRegistration')
+const fitnessRoutes = require('./routes/fitness')
+
+// Use Routes
+app.use('/api/driving-licenses', drivingLicenseRoutes)
+app.use('/api/national-permits', nationalPermitRoutes)
+app.use('/api/cg-permits', cgPermitRoutes)
+app.use('/api/temporary-permits', temporaryPermitRoutes)
+app.use('/api/vehicle-registrations', vehicleRegistrationRoutes)
+app.use('/api/fitness', fitnessRoutes)
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'RTO Management System API',
+    version: '1.0.0',
+    endpoints: {
+      drivingLicenses: '/api/driving-licenses',
+      nationalPermits: '/api/national-permits',
+      cgPermits: '/api/cg-permits',
+      temporaryPermits: '/api/temporary-permits',
+      vehicleRegistrations: '/api/vehicle-registrations',
+      fitness: '/api/fitness'
+    }
+  })
+})
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack)
+  res.status(500).json({
+    success: false,
+    message: 'Something went wrong!',
+    error: err.message
+  })
+})
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`)
+})

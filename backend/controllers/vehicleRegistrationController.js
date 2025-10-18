@@ -1,0 +1,276 @@
+const VehicleRegistration = require('../models/VehicleRegistration')
+
+// Get all vehicle registrations
+exports.getAllRegistrations = async (req, res) => {
+  try {
+    const { search, status } = req.query
+    let query = {}
+
+    if (search) {
+      query.$or = [
+        { registrationNumber: { $regex: search, $options: 'i' } },
+        { ownerName: { $regex: search, $options: 'i' } },
+        { chassisNumber: { $regex: search, $options: 'i' } },
+        { engineNumber: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    if (status) {
+      query.status = status
+    }
+
+    const registrations = await VehicleRegistration.find(query).sort({ createdAt: -1 })
+
+    res.json({
+      success: true,
+      count: registrations.length,
+      data: registrations
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching vehicle registrations',
+      error: error.message
+    })
+  }
+}
+
+// Get single vehicle registration by ID
+exports.getRegistrationById = async (req, res) => {
+  try {
+    const registration = await VehicleRegistration.findById(req.params.id)
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle registration not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      data: registration
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching vehicle registration',
+      error: error.message
+    })
+  }
+}
+
+// Get vehicle registration by registration number
+exports.getRegistrationByNumber = async (req, res) => {
+  try {
+    const registration = await VehicleRegistration.findOne({
+      registrationNumber: req.params.registrationNumber.toUpperCase()
+    })
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle registration not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      data: registration
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching vehicle registration',
+      error: error.message
+    })
+  }
+}
+
+// Create new vehicle registration
+exports.createRegistration = async (req, res) => {
+  try {
+    const registration = await VehicleRegistration.create(req.body)
+
+    res.status(201).json({
+      success: true,
+      message: 'Vehicle registered successfully',
+      data: registration
+    })
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Registration number already exists'
+      })
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Error creating vehicle registration',
+      error: error.message
+    })
+  }
+}
+
+// Update vehicle registration
+exports.updateRegistration = async (req, res) => {
+  try {
+    const registration = await VehicleRegistration.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    )
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle registration not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Vehicle registration updated successfully',
+      data: registration
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating vehicle registration',
+      error: error.message
+    })
+  }
+}
+
+// Delete vehicle registration
+exports.deleteRegistration = async (req, res) => {
+  try {
+    const registration = await VehicleRegistration.findByIdAndDelete(req.params.id)
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle registration not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Vehicle registration deleted successfully'
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting vehicle registration',
+      error: error.message
+    })
+  }
+}
+
+// Update registration status
+exports.updateRegistrationStatus = async (req, res) => {
+  try {
+    const { status } = req.body
+
+    const registration = await VehicleRegistration.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    )
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle registration not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'Registration status updated successfully',
+      data: registration
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating registration status',
+      error: error.message
+    })
+  }
+}
+
+// Get statistics
+exports.getStatistics = async (req, res) => {
+  try {
+    const total = await VehicleRegistration.countDocuments()
+    const active = await VehicleRegistration.countDocuments({ status: 'Active' })
+    const transferred = await VehicleRegistration.countDocuments({ status: 'Transferred' })
+    const cancelled = await VehicleRegistration.countDocuments({ status: 'Cancelled' })
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        active,
+        transferred,
+        cancelled
+      }
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching statistics',
+      error: error.message
+    })
+  }
+}
+
+// Share registration via WhatsApp
+exports.shareRegistration = async (req, res) => {
+  try {
+    const registration = await VehicleRegistration.findById(req.params.id)
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle registration not found'
+      })
+    }
+
+    const message = `*VEHICLE REGISTRATION CERTIFICATE*\n\n` +
+      `Registration No: ${registration.registrationNumber}\n` +
+      `Date of Registration: ${registration.dateOfRegistration}\n\n` +
+      `*Vehicle Details*\n` +
+      `Chassis No: ${registration.chassisNumber}\n` +
+      `Engine No: ${registration.engineNumber}\n` +
+      `Maker: ${registration.makerName}\n` +
+      `Model: ${registration.modelName}\n` +
+      `Colour: ${registration.colour}\n\n` +
+      `*Owner Details*\n` +
+      `Name: ${registration.ownerName}\n` +
+      `S/W/D of: ${registration.relationOf}\n` +
+      `Address: ${registration.address}\n\n` +
+      `Status: ${registration.status}\n\n` +
+      `---\n` +
+      `Regional Transport Office`
+
+    const { phoneNumber } = req.body
+
+    res.json({
+      success: true,
+      message: 'Registration details prepared for sharing',
+      data: {
+        phoneNumber,
+        message,
+        whatsappUrl: `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
+      }
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error preparing registration for sharing',
+      error: error.message
+    })
+  }
+}

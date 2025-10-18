@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Naray/OneDrive/Desktop/abcd/admin/src/components/**)",
+      "Read(//c/Users/Naray/OneDrive/Desktop/abcd/admin/**)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(cat:*)",
+      "Bash(node scripts/fixDrivingIndexes.js:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
