@@ -119,7 +119,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className='p-4'>
+    <div className='p-4 md:p-6 lg:p-8 pt-20 lg:pt-20 max-w-[1800px] mx-auto'>
       {/* Header with Time Filter */}
       <div className='mb-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-3'>
         <div>

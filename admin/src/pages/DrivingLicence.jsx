@@ -6,6 +6,80 @@ import ApplicationDetailModal from '../components/ApplicationDetailModal'
 import { drivingLicenseAPI } from '../services/api'
 
 const DrivingLicence = () => {
+  // Demo data for when backend is not available
+  const demoApplications = [
+    {
+      id: 'DL-2024-001',
+      name: 'Rajesh Kumar',
+      type: 'LMV',
+      status: 'Approved',
+      date: '2024-01-15',
+      licenseNumber: 'CG071234567890',
+      licenseClass: 'LMV',
+      totalAmount: 1500,
+      paidAmount: 1500,
+      balanceAmount: 0,
+      mobile: '+91 9876543210',
+      email: 'rajesh.kumar@email.com'
+    },
+    {
+      id: 'DL-2024-002',
+      name: 'Priya Sharma',
+      type: 'MCWG',
+      status: 'Pending',
+      date: '2024-02-10',
+      licenseNumber: 'CG071234567891',
+      licenseClass: 'MCWG',
+      totalAmount: 1200,
+      paidAmount: 600,
+      balanceAmount: 600,
+      mobile: '+91 9876543211',
+      email: 'priya.sharma@email.com'
+    },
+    {
+      id: 'DL-2024-003',
+      name: 'Amit Patel',
+      type: 'HMV',
+      status: 'Under Review',
+      date: '2024-03-05',
+      licenseNumber: 'CG071234567892',
+      licenseClass: 'HMV',
+      totalAmount: 2000,
+      paidAmount: 2000,
+      balanceAmount: 0,
+      mobile: '+91 9876543212',
+      email: 'amit.patel@email.com'
+    },
+    {
+      id: 'DL-2024-004',
+      name: 'Sneha Verma',
+      type: 'LMV',
+      status: 'Rejected',
+      date: '2024-01-20',
+      licenseNumber: 'CG071234567893',
+      licenseClass: 'LMV',
+      totalAmount: 1500,
+      paidAmount: 1500,
+      balanceAmount: 0,
+      mobile: '+91 9876543213',
+      email: 'sneha.verma@email.com'
+    },
+    {
+      id: 'DL-2024-005',
+      name: 'Vikram Singh',
+      type: 'TRANS',
+      status: 'Approved',
+      date: '2024-02-28',
+      licenseNumber: 'CG071234567894',
+      licenseClass: 'TRANS',
+      totalAmount: 2500,
+      paidAmount: 2500,
+      balanceAmount: 0,
+      mobile: '+91 9876543214',
+      email: 'vikram.singh@email.com'
+    }
+  ]
+
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [statistics, setStatistics] = useState({
@@ -95,9 +169,11 @@ const DrivingLicence = () => {
       setTotalItems(response.pagination?.totalItems || 0)
     } catch (error) {
       console.error('Error fetching applications:', error)
-      setApplications([])
-      setTotalPages(0)
-      setTotalItems(0)
+      console.log('Using demo data as fallback')
+      // Use demo data when backend is not available
+      setApplications(demoApplications)
+      setTotalPages(1)
+      setTotalItems(demoApplications.length)
     } finally {
       setLoading(false)
     }
@@ -114,6 +190,13 @@ const DrivingLicence = () => {
       })
     } catch (error) {
       console.error('Error fetching statistics:', error)
+      // Use demo statistics when backend is not available
+      setStatistics({
+        total: demoApplications.length,
+        approved: demoApplications.filter(app => app.status === 'Approved').length,
+        pending: demoApplications.filter(app => app.status === 'Pending').length,
+        rejected: demoApplications.filter(app => app.status === 'Rejected').length
+      })
     }
   }
 
@@ -259,7 +342,7 @@ const DrivingLicence = () => {
   }
 
   return (
-    <div className='p-6'>
+    <div className='p-4 md:p-6 lg:p-8 pt-20 lg:pt-20 max-w-[1800px] mx-auto'>
       <QuickDLApplicationForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}

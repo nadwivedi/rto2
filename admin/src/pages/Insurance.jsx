@@ -2,7 +2,96 @@ import { useState, useMemo } from 'react'
 import AddInsuranceModal from '../components/AddInsuranceModal'
 
 const Insurance = () => {
-  const [insurances, setInsurances] = useState([])
+  // Demo data for when backend is not available
+  const demoInsurances = [
+    {
+      id: 'INS-2024-001',
+      vehicleNumber: 'CG-04-AB-1234',
+      vehicleType: 'Heavy Goods Vehicle',
+      ownerName: 'Rajesh Kumar',
+      policyNumber: 'INS123456789',
+      insuranceCompany: 'National Insurance Company',
+      policyType: 'Comprehensive',
+      issueDate: '2024-01-15',
+      validFrom: '2024-01-15',
+      validTo: '2025-01-14',
+      premiumAmount: 25000,
+      coverageAmount: 500000,
+      mobileNumber: '+91 9876543210',
+      agentName: 'Suresh Sharma',
+      agentContact: '+91 9988776655'
+    },
+    {
+      id: 'INS-2024-002',
+      vehicleNumber: 'CG-07-CD-5678',
+      vehicleType: 'Bus',
+      ownerName: 'Singh Transport',
+      policyNumber: 'INS123456790',
+      insuranceCompany: 'United India Insurance',
+      policyType: 'Comprehensive',
+      issueDate: '2024-02-10',
+      validFrom: '2024-02-10',
+      validTo: '2025-02-09',
+      premiumAmount: 35000,
+      coverageAmount: 800000,
+      mobileNumber: '+91 9876543211',
+      agentName: 'Ramesh Patel',
+      agentContact: '+91 9988776656'
+    },
+    {
+      id: 'INS-2024-003',
+      vehicleNumber: 'CG-20-EF-9012',
+      vehicleType: 'Truck',
+      ownerName: 'Patel Logistics',
+      policyNumber: 'INS123456791',
+      insuranceCompany: 'Oriental Insurance Company',
+      policyType: 'Third Party',
+      issueDate: '2024-03-05',
+      validFrom: '2024-03-05',
+      validTo: '2024-03-31',
+      premiumAmount: 8000,
+      coverageAmount: 200000,
+      mobileNumber: '+91 9876543212',
+      agentName: 'Vijay Kumar',
+      agentContact: '+91 9988776657'
+    },
+    {
+      id: 'INS-2024-004',
+      vehicleNumber: 'CG-10-GH-3456',
+      vehicleType: 'Pickup Truck',
+      ownerName: 'Verma Transport',
+      policyNumber: 'INS123456792',
+      insuranceCompany: 'New India Assurance',
+      policyType: 'Comprehensive',
+      issueDate: '2023-01-15',
+      validFrom: '2023-01-15',
+      validTo: '2024-01-14',
+      premiumAmount: 15000,
+      coverageAmount: 300000,
+      mobileNumber: '+91 9876543213',
+      agentName: 'Mohan Singh',
+      agentContact: '+91 9988776658'
+    },
+    {
+      id: 'INS-2024-005',
+      vehicleNumber: 'CG-04-IJ-7890',
+      vehicleType: 'Maxi Cab',
+      ownerName: 'Sharma Tours',
+      policyNumber: 'INS123456793',
+      insuranceCompany: 'ICICI Lombard',
+      policyType: 'Comprehensive',
+      issueDate: '2024-02-20',
+      validFrom: '2024-02-20',
+      validTo: '2025-02-19',
+      premiumAmount: 18000,
+      coverageAmount: 400000,
+      mobileNumber: '+91 9876543214',
+      agentName: 'Anil Verma',
+      agentContact: '+91 9988776659'
+    }
+  ]
+
+  const [insurances, setInsurances] = useState(demoInsurances)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -60,7 +149,7 @@ const Insurance = () => {
   }, [insurances])
 
   return (
-    <div className='p-6'>
+    <div className='p-4 md:p-6 lg:p-8 pt-20 lg:pt-20 max-w-[1800px] mx-auto'>
       <div className='mb-6 md:mb-8'>
         <h1 className='text-xl md:text-3xl font-black text-gray-800 mb-1 md:mb-2'>Insurance Management</h1>
         <p className='text-sm md:text-base text-gray-600'>Manage vehicle insurance records</p>

@@ -15,9 +15,7 @@ import Insurance from './pages/Insurance'
 import Fitness from './pages/Fitness'
 import LicenseRenewal from './pages/LicenseRenewal'
 import VehicleTransfer from './pages/VehicleTransfer'
-import NOC from './pages/NOC'
 import Reports from './pages/Reports'
-import Settings from './pages/Settings'
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -27,12 +25,12 @@ function App() {
       <div className='min-h-screen bg-gray-50'>
         <ToastContainer />
         {/* Sidebar */}
-        <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+        {/* <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} /> */}
         {/* Navbar */}
         <Navbar />
 
         {/* Main Content */}
-        <div className='lg:ml-64 min-h-screen'>
+        <div className='min-h-screen'>
           {/* Page Content */}
           <main>
             <Routes>
@@ -47,9 +45,7 @@ function App() {
               <Route path='/fitness' element={<Fitness setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/license-renewal' element={<LicenseRenewal setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/vehicle-transfer' element={<VehicleTransfer setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/noc' element={<NOC setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/reports' element={<Reports setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/settings' element={<Settings setIsSidebarOpen={setIsSidebarOpen} />} />
             </Routes>
           </main>
         </div>

@@ -614,7 +614,6 @@ exports.addDemoData = async (req, res) => {
         seatingCapacity: '2',
         validFrom: '15-01-2024',
         validTo: '14-01-2029',
-        issueDate: '15-01-2024',
         typeBAuthorization: {
           authorizationNumber: 'NPAUTH2024001',
           validFrom: '15-01-2024',

@@ -28,38 +28,10 @@ const CgPermitSchema = new mongoose.Schema({
     required: true
   },
 
-  // Type - Always "Type A" (hardcoded, 5 year validity)
-  permitType: {
-    type: String,
-    default: 'Type A',
-    enum: ['Type A']
-  },
 
-  // Validity in years
-  validityPeriod: {
-    type: Number,
-    default: 5
-  },
 
   // Additional Details (Optional)
   fatherName: {
-    type: String,
-    trim: true
-  },
-  address: {
-    type: String,
-    trim: true
-  },
-  city: {
-    type: String,
-    trim: true
-  },
-  state: {
-    type: String,
-    trim: true,
-    default: 'Chhattisgarh'
-  },
-  pincode: {
     type: String,
     trim: true
   },
@@ -122,33 +94,6 @@ const CgPermitSchema = new mongoose.Schema({
   maxLoadCapacity: {
     type: String
   },
-  validRoutes: {
-    type: String,
-    default: 'All State Highways and District Roads in Chhattisgarh'
-  },
-  restrictions: {
-    type: String,
-    default: 'As per RTO regulations'
-  },
-  conditions: {
-    type: String,
-    default: 'Valid for goods transportation within Chhattisgarh state only. Driver must carry valid driving license and vehicle documents.'
-  },
-  endorsements: {
-    type: String,
-    default: 'None'
-  },
-
-  // Issuing Details
-  issuingAuthority: {
-    type: String,
-    default: 'Regional Transport Office, Chhattisgarh'
-  },
-  issueDate: {
-    type: String,
-    required: true
-  },
-
   // Fees
   fees: {
     type: Number,
@@ -163,48 +108,6 @@ const CgPermitSchema = new mongoose.Schema({
     default: 'Active'
   },
 
-  // Renewal History
-  renewalHistory: [{
-    date: {
-      type: String,
-      required: true
-    },
-    amount: {
-      type: String,
-      required: true
-    },
-    status: {
-      type: String,
-      enum: ['Completed', 'Pending', 'Failed'],
-      default: 'Completed'
-    }
-  }],
-
-  // Insurance Details
-  insuranceDetails: {
-    policyNumber: {
-      type: String,
-      default: 'N/A'
-    },
-    company: {
-      type: String,
-      default: 'N/A'
-    },
-    validUpto: {
-      type: String,
-      default: 'N/A'
-    }
-  },
-
-  // Tax Details
-  taxDetails: {
-    taxPaidUpto: {
-      type: String
-    },
-    taxAmount: {
-      type: String
-    }
-  },
 
   // Document Uploads
   documents: {
@@ -220,36 +123,8 @@ const CgPermitSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Index for faster searches
-CgPermitSchema.index({ permitNumber: 1 })
-CgPermitSchema.index({ permitHolder: 1 })
-CgPermitSchema.index({ vehicleNumber: 1 })
-CgPermitSchema.index({ status: 1 })
 
-// Method to check if permit is expiring soon (within 30 days)
-CgPermitSchema.methods.isExpiringSoon = function () {
-  const validToDate = new Date(this.validTo)
-  const today = new Date()
-  const daysUntilExpiry = Math.ceil((validToDate - today) / (1000 * 60 * 60 * 24))
-  return daysUntilExpiry <= 30 && daysUntilExpiry > 0
-}
 
-// Method to check if permit is expired
-CgPermitSchema.methods.isExpired = function () {
-  const validToDate = new Date(this.validTo)
-  const today = new Date()
-  return validToDate < today
-}
-
-// Pre-save middleware to auto-update status based on validity
-CgPermitSchema.pre('save', function (next) {
-  if (this.isExpired()) {
-    this.status = 'Expired'
-  } else if (this.isExpiringSoon()) {
-    this.status = 'Expiring Soon'
-  }
-  next()
-})
 
 const CgPermit = mongoose.model('CgPermit', CgPermitSchema)
 

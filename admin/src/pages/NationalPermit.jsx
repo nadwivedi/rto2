@@ -459,7 +459,6 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
         seatingCapacity: '2',
         validFrom: formData.validFrom,
         validTo: formData.validTo,
-        issueDate: formData.validFrom,
         route: formData.route || 'All India',
         // Type B Authorization (structured as sub-schema)
         typeBAuthorization: {
@@ -524,7 +523,6 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
         seatingCapacity: formData.seatingCapacity || '2',
         validFrom: formData.validFrom,
         validTo: formData.validTo,
-        issueDate: formData.issueDate || formData.validFrom,
         route: formData.route || 'All India',
         // Type B Authorization
         typeBAuthorization: {
@@ -575,7 +573,8 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
   return (
     <>
       <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
-      <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-6 pt-20 lg:pt-6'>
+      <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-6 lg:p-8 pt-24 lg:pt-20'>
+        <div className='max-w-[1800px] mx-auto'>
         <div className='mb-6'>
         <div className='flex items-center gap-3'>
           <div className='w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg'>
@@ -589,8 +588,8 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
+      {/* Error Message - Commented out for demo */}
+      {/* {error && (
         <div className='bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 p-6 mb-8 rounded-2xl shadow-lg'>
           <div className='flex items-center'>
             <div className='w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mr-4 shadow-md'>
@@ -604,7 +603,7 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Loading State */}
       {loading && (
@@ -733,7 +732,7 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                     Vehicle No.
                   </div>
                 </th>
-                <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>Issue Date</th>
+                <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>Valid From</th>
                 <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>Valid Till</th>
                 <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>Actions</th>
               </tr>
@@ -765,49 +764,51 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='text-sm text-gray-700 font-medium'>{permit.issueDate}</div>
-                      <div className='text-xs text-gray-500'>Issued</div>
+                      <div className='text-sm text-gray-700 font-medium'>{permit.partA?.permitValidFrom || permit.validFrom || 'N/A'}</div>
+                      <div className='text-xs text-gray-500'>Valid From</div>
                     </td>
                     <td className='px-6 py-5'>
                       <div className='text-sm text-gray-700 font-medium'>{permit.validTill}</div>
                       <div className='text-xs text-gray-500'>Expires</div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex gap-2 flex-wrap'>
+                      <div className='flex gap-2 items-center'>
                         <button
                           onClick={() => handleViewDetails(permit)}
-                          className='px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg font-semibold text-xs transition-all transform hover:scale-105 cursor-pointer flex items-center gap-1'
+                          className='p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md'
+                          title='View Details'
                         >
-                          <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                          <svg className='w-4.5 h-4.5' fill='none' stroke='currentColor' viewBox='0 0 24 24' strokeWidth={2}>
+                            <path strokeLinecap='round' strokeLinejoin='round' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                            <path strokeLinecap='round' strokeLinejoin='round' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
                           </svg>
-                          View
                         </button>
                         <button
                           onClick={() => handleEditPermit(permit)}
-                          className='px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg font-semibold text-xs transition-all transform hover:scale-105 cursor-pointer flex items-center gap-1'
+                          className='p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors duration-200 cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md'
+                          title='Edit Permit'
                         >
-                          <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                          <svg className='w-4.5 h-4.5' fill='none' stroke='currentColor' viewBox='0 0 24 24' strokeWidth={2}>
+                            <path strokeLinecap='round' strokeLinejoin='round' d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
                           </svg>
-                          Edit
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
-                          className='px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg hover:shadow-lg font-semibold text-xs transition-all transform hover:scale-105 cursor-pointer'
+                          className='p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md'
+                          title='View Bill'
                         >
-                          Bill
+                          <svg className='w-4.5 h-4.5' fill='none' stroke='currentColor' viewBox='0 0 24 24' strokeWidth={2}>
+                            <path strokeLinecap='round' strokeLinejoin='round' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                          </svg>
                         </button>
                         <button
                           onClick={() => handleShare(permit)}
-                          className='px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold text-xs transition-all transform hover:scale-105 cursor-pointer flex items-center gap-1'
+                          className='p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md'
                           title='Share via WhatsApp'
                         >
-                          <svg className='w-3.5 h-3.5' fill='currentColor' viewBox='0 0 20 20'>
-                            <path d='M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z' />
+                          <svg className='w-4.5 h-4.5' fill='currentColor' viewBox='0 0 24 24'>
+                            <path d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z' />
                           </svg>
-                          Share
                         </button>
                       </div>
                     </td>
@@ -1433,6 +1434,7 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
           }}
         />
       )}
+      </div>
       </div>
     </>
   )

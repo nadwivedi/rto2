@@ -103,10 +103,6 @@ const NationalPermitSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  issueDate: {
-    type: String,
-    required: true
-  },
 
   // Route Information
 

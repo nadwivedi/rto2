@@ -2,7 +2,86 @@ import { useState, useMemo } from 'react'
 import AddFitnessModal from '../components/AddFitnessModal'
 
 const Fitness = () => {
-  const [fitnessRecords, setFitnessRecords] = useState([])
+  // Demo data for when backend is not available
+  const demoFitnessRecords = [
+    {
+      id: 'FIT-2024-001',
+      vehicleNumber: 'CG-04-AB-1234',
+      vehicleType: 'Heavy Goods Vehicle',
+      ownerName: 'Rajesh Kumar',
+      certificateNumber: 'FIT001234567',
+      issueDate: '15/01/2024',
+      validFrom: '15/01/2024',
+      validTo: '14/01/2025',
+      issuingAuthority: 'RTO Raipur',
+      mobileNumber: '+91 9876543210',
+      chassisNumber: 'MB1234567890ABCDE',
+      engineNumber: 'ENG12345678',
+      fees: 1500
+    },
+    {
+      id: 'FIT-2024-002',
+      vehicleNumber: 'CG-07-CD-5678',
+      vehicleType: 'Bus',
+      ownerName: 'Singh Transport',
+      certificateNumber: 'FIT001234568',
+      issueDate: '10/02/2024',
+      validFrom: '10/02/2024',
+      validTo: '09/02/2025',
+      issuingAuthority: 'RTO Bilaspur',
+      mobileNumber: '+91 9876543211',
+      chassisNumber: 'MB1234567890ABCDF',
+      engineNumber: 'ENG12345679',
+      fees: 2000
+    },
+    {
+      id: 'FIT-2024-003',
+      vehicleNumber: 'CG-20-EF-9012',
+      vehicleType: 'Truck',
+      ownerName: 'Patel Logistics',
+      certificateNumber: 'FIT001234569',
+      issueDate: '05/03/2024',
+      validFrom: '05/03/2024',
+      validTo: '31/03/2024',
+      issuingAuthority: 'RTO Durg',
+      mobileNumber: '+91 9876543212',
+      chassisNumber: 'MB1234567890ABCDG',
+      engineNumber: 'ENG12345680',
+      fees: 1800
+    },
+    {
+      id: 'FIT-2024-004',
+      vehicleNumber: 'CG-10-GH-3456',
+      vehicleType: 'Pickup Truck',
+      ownerName: 'Verma Transport',
+      certificateNumber: 'FIT001234570',
+      issueDate: '15/01/2023',
+      validFrom: '15/01/2023',
+      validTo: '14/01/2024',
+      issuingAuthority: 'RTO Raigarh',
+      mobileNumber: '+91 9876543213',
+      chassisNumber: 'MB1234567890ABCDH',
+      engineNumber: 'ENG12345681',
+      fees: 1200
+    },
+    {
+      id: 'FIT-2024-005',
+      vehicleNumber: 'CG-04-IJ-7890',
+      vehicleType: 'Maxi Cab',
+      ownerName: 'Sharma Tours',
+      certificateNumber: 'FIT001234571',
+      issueDate: '20/02/2024',
+      validFrom: '20/02/2024',
+      validTo: '19/02/2025',
+      issuingAuthority: 'RTO Korba',
+      mobileNumber: '+91 9876543214',
+      chassisNumber: 'MB1234567890ABCDI',
+      engineNumber: 'ENG12345682',
+      fees: 1500
+    }
+  ]
+
+  const [fitnessRecords, setFitnessRecords] = useState(demoFitnessRecords)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -59,7 +138,7 @@ const Fitness = () => {
   }, [fitnessRecords])
 
   return (
-    <div className='p-6'>
+    <div className='p-4 md:p-6 lg:p-8 pt-20 lg:pt-20 max-w-[1800px] mx-auto'>
       <div className='mb-6 md:mb-8'>
         <h1 className='text-xl md:text-3xl font-black text-gray-800 mb-1 md:mb-2'>Fitness Management</h1>
         <p className='text-sm md:text-base text-gray-600'>Manage vehicle fitness certificates</p>

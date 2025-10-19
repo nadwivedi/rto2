@@ -79,7 +79,7 @@ const Navbar = () => {
     <nav className="hidden lg:block fixed top-0 left-0 right-0 bg-gradient-to-r from-indigo-900 via-purple-900 to-blue-900 text-white shadow-2xl z-50">
       <div className="px-6 py-3">
         {/* Menu Items - Horizontal */}
-        <div className="flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-purple-500/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-purple-500/50">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
           {menuItems.map((item) => (
             <Link
               key={item.path}
