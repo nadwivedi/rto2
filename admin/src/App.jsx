@@ -6,7 +6,6 @@ import Sidebar from './components/Sidebar'
 import Navbar from './components/Navbar'
 import Dashboard from './pages/Dashboard'
 import DrivingLicence from './pages/DrivingLicence'
-import Permits from './pages/Permits'
 import NationalPermit from './pages/NationalPermit'
 import CgPermit from './pages/CgPermit'
 import TemporaryPermit from './pages/TemporaryPermit'
@@ -24,19 +23,20 @@ function App() {
     <Router>
       <div className='min-h-screen bg-gray-50'>
         <ToastContainer />
-        {/* Sidebar */}
-        {/* <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} /> */}
-        {/* Navbar */}
-        <Navbar />
 
-        {/* Main Content */}
-        <div className='min-h-screen'>
+        {/* Sidebar - with mobile hamburger menu */}
+        {/* <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} /> */}
+
+        {/* Navbar - Full width navigation */}
+        <Navbar/>
+
+        {/* Main Content - Full width without sidebar margin */}
+        <div className='min-h-screen w-full'>
           {/* Page Content */}
           <main>
             <Routes>
               <Route path='/' element={<Dashboard setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/driving-licence' element={<DrivingLicence setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/permits' element={<Permits setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/national-permit' element={<NationalPermit setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/cg-permit' element={<CgPermit setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/temporary-permit' element={<TemporaryPermit setIsSidebarOpen={setIsSidebarOpen} />} />

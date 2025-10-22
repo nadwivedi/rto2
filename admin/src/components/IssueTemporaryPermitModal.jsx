@@ -241,21 +241,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                   />
                 </div>
 
-                {/* Father Name */}
-                <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Father&apos;s Name <span className='text-red-500'>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    name='fatherName'
-                    value={formData.fatherName}
-                    onChange={handleChange}
-                    placeholder="Enter father's name"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
-                    required
-                  />
-                </div>
+
 
                 {/* Mobile Number */}
                 <div>
@@ -379,6 +365,19 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                   <div>
                     <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-orange-600'>Personal Information</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Father&apos;s Name
+                        </label>
+                        <input
+                          type='text'
+                          name='fatherName'
+                          value={formData.fatherName}
+                          onChange={handleChange}
+                          placeholder="Enter father's name"
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                        />
+                      </div>
                       <div>
                         <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                           Email

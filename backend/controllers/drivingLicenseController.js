@@ -32,6 +32,7 @@ exports.getAllApplications = async (req, res) => {
       limit = 10,
       search,
       applicationStatus,
+      paymentStatus,
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = req.query
@@ -57,6 +58,15 @@ exports.getAllApplications = async (req, res) => {
     // Filter by application status
     if (applicationStatus) {
       query.applicationStatus = applicationStatus
+    }
+
+    // Filter by payment status
+    if (paymentStatus) {
+      if (paymentStatus === 'Paid') {
+        query.balanceAmount = 0
+      } else if (paymentStatus === 'Pending') {
+        query.balanceAmount = { $gt: 0 }
+      }
     }
 
     // Calculate pagination

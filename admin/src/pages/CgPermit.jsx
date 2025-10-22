@@ -284,11 +284,8 @@ const CgPermit = () => {
   }
 
   return (
-    <div className='p-4 md:p-6 lg:p-8 pt-20 lg:pt-20 max-w-[1800px] mx-auto'>
-      <div className='mb-6 md:mb-8'>
-        <h1 className='text-xl md:text-3xl font-black text-gray-800 mb-1 md:mb-2'>CG Permit</h1>
-        <p className='text-sm md:text-base text-gray-600'>Manage Chhattisgarh state permit applications and records</p>
-      </div>
+    <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
+      <div className='p-3 md:p-4 lg:p-5 pt-14 lg:pt-16 max-w-[2000px] mx-auto'>
 
       {/* Error Message */}
       {error && (
@@ -307,140 +304,144 @@ const CgPermit = () => {
 
       {/* Loading State */}
       {loading && (
-        <div className='flex justify-center items-center py-20'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600'></div>
-          <span className='ml-3 text-gray-600 font-semibold'>Loading CG permits...</span>
+        <div className='flex flex-col justify-center items-center py-20'>
+          <div className='relative'>
+            <div className='w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
+            <div className='absolute inset-0 w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-2xl animate-spin'></div>
+          </div>
+          <div className='mt-6 text-center'>
+            <p className='text-xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1'>
+              Loading CG Permits
+            </p>
+            <p className='text-sm text-gray-600'>Please wait while we fetch your data...</p>
+          </div>
         </div>
       )}
 
-      {/* Stats Cards */}
       {!loading && (
       <>
-      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
-        <div className='bg-white rounded-lg p-4 shadow border border-gray-200'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>📋</div>
-            <div className='text-xl font-black text-gray-800'>{permits.length}</div>
-          </div>
-          <div className='text-xs text-gray-600'>Total CG Permits</div>
-        </div>
-        <div className='bg-white rounded-lg p-4 shadow border border-gray-200'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>✅</div>
-            <div className='text-xl font-black text-green-600'>
-              {permits.filter(p => p.status === 'Active').length}
+        {/* Search and Filters */}
+        <div className='mb-6'>
+          <div className='flex flex-col lg:flex-row gap-3 items-stretch lg:items-center'>
+            {/* Search Bar */}
+            <div className='relative flex-1 lg:max-w-xs'>
+              <input
+                type='text'
+                placeholder='Search by permit number, holder, or vehicle...'
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className='w-full pl-10 pr-4 py-2.5 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all shadow-sm bg-white'
+              />
+              <svg
+                className='absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+              </svg>
             </div>
+
+            {/* New Permit Button */}
+            <button
+              onClick={() => setShowIssuePermitModal(true)}
+              className='px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl transition-all duration-300 font-semibold whitespace-nowrap cursor-pointer lg:ml-auto'
+            >
+              + New Permit
+            </button>
           </div>
-          <div className='text-xs text-gray-600'>Active Permits</div>
         </div>
-        <div className='bg-white rounded-lg p-4 shadow border border-gray-200'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>⏰</div>
-            <div className='text-xl font-black text-orange-600'>
-              {permits.filter(p => p.status === 'Expiring Soon').length}
-            </div>
-          </div>
-          <div className='text-xs text-gray-600'>Expiring Soon</div>
-        </div>
-        <div className='bg-white rounded-lg p-4 shadow border border-gray-200'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>🔄</div>
-            <div className='text-xl font-black text-yellow-600'>
-              {permits.filter(p => p.status === 'Pending Renewal').length}
-            </div>
-          </div>
-          <div className='text-xs text-gray-600'>Pending Renewal</div>
-        </div>
-      </div>
 
       {/* Permits Table */}
-      <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden'>
-        <div className='p-6 border-b border-gray-200'>
-          <div className='flex flex-col md:flex-row justify-between items-start md:items-center gap-4'>
-            <h2 className='text-xl font-bold text-gray-800'>CG Permit Records</h2>
-
-            {/* Search Bar */}
-            <div className='flex flex-col md:flex-row gap-3 w-full md:w-auto'>
-              <div className='relative flex-1 md:w-96'>
-                <input
-                  type='text'
-                  placeholder='Search by permit number, holder name, or vehicle no...'
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className='w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                />
-                <svg
-                  className='absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
-                </svg>
-              </div>
-
-              <button
-                onClick={() => setShowIssuePermitModal(true)}
-                className='px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transition font-semibold whitespace-nowrap cursor-pointer'
-              >
-                + Add New CG Permit
-              </button>
-            </div>
-          </div>
-
-          {/* Results count */}
-          <div className='mt-4 text-sm text-gray-600'>
-            Showing {filteredPermits.length} of {permits.length} permits
-          </div>
-        </div>
+      <div className='bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden'>
 
         <div className='overflow-x-auto'>
           <table className='w-full'>
-            <thead className='bg-gray-50'>
+            <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
               <tr>
-                <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase'>Permit Number</th>
-                <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase'>Type</th>
-                <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase'>Permit Holder</th>
-                <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase'>Vehicle No.</th>
-                <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase'>Valid From</th>
-                <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase'>Valid Till</th>
-                <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase'>Status</th>
-                <th className='px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase'>Actions</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Number</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Holder</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle No.</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid From</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid Till</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Fee</th>
+                <th className='px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider'>Actions</th>
               </tr>
             </thead>
-            <tbody className='divide-y divide-gray-200'>
+            <tbody className='divide-y divide-gray-100'>
               {filteredPermits.length > 0 ? (
                 filteredPermits.map((permit) => (
-                  <tr key={permit.id} className='hover:bg-gray-50 transition'>
-                    <td className='px-6 py-4 text-sm font-semibold text-gray-800 font-mono'>{permit.permitNumber}</td>
-                    <td className='px-6 py-4'>
-                      <span className='px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-semibold'>
-                        {permit.permitType}
+                  <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 transition-all duration-300 group'>
+                    <td className='px-6 py-5'>
+                      <div className='text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200'>
+                        {permit.permitNumber}
+                      </div>
+                    </td>
+                    <td className='px-6 py-5'>
+                      <div className='flex items-center'>
+                        <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
+                          {permit.permitHolder?.charAt(0) || 'P'}
+                        </div>
+                        <div className='ml-4'>
+                          <div className='text-sm font-bold text-gray-900'>{permit.permitHolder}</div>
+                          <div className='text-xs text-gray-500 flex items-center mt-1'>
+                            <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                            </svg>
+                            {permit.mobileNumber || 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className='px-6 py-5'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
+                        <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
+                          <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                          <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                        </svg>
+                        {permit.vehicleNo}
                       </span>
                     </td>
-                    <td className='px-6 py-4 text-sm text-gray-800'>{permit.permitHolder}</td>
-                    <td className='px-6 py-4 text-sm font-mono text-gray-800'>{permit.vehicleNo}</td>
-                    <td className='px-6 py-4 text-sm text-gray-600'>{permit.validFrom}</td>
-                    <td className='px-6 py-4 text-sm text-gray-600'>{permit.validTill}</td>
-                    <td className='px-6 py-4'>
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(permit.status)}`}>
-                        {permit.status}
+                    <td className='px-6 py-5'>
+                      <div className='flex items-center text-sm text-gray-700'>
+                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                        </svg>
+                        {permit.validFrom}
+                      </div>
+                    </td>
+                    <td className='px-6 py-5'>
+                      <div className='flex items-center text-sm text-gray-700'>
+                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                        </svg>
+                        {permit.validTill}
+                      </div>
+                    </td>
+                    <td className='px-6 py-5'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-md text-sm font-bold bg-purple-100 text-purple-700 border border-purple-200'>
+                        ₹{permit.fees?.toLocaleString('en-IN') || '0'}
                       </span>
                     </td>
-                    <td className='px-6 py-4'>
-                      <div className='flex gap-2'>
+                    <td className='px-6 py-5'>
+                      <div className='flex items-center justify-center gap-2'>
                         <button
                           onClick={() => handleViewBill(permit)}
-                          className='px-3 py-1 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 font-semibold text-sm transition cursor-pointer'
+                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='View Bill'
                         >
-                          Bill
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                          </svg>
                         </button>
                         <button
                           onClick={() => handleShare(permit)}
-                          className='px-3 py-1 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 font-semibold text-sm transition cursor-pointer'
-                          title='Share via WhatsApp'
+                          className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Share'
                         >
-                          Share
+                          <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
+                            <path d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z' />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -448,13 +449,17 @@ const CgPermit = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='8' className='px-6 py-12 text-center'>
-                    <div className='text-gray-400'>
-                      <svg className='mx-auto h-12 w-12 mb-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                      </svg>
-                      <p className='text-lg font-semibold text-gray-600'>No CG permits found</p>
-                      <p className='text-sm text-gray-500 mt-1'>Try adjusting your search criteria</p>
+                  <td colSpan='7' className='px-6 py-16'>
+                    <div className='flex flex-col items-center justify-center'>
+                      <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg'>
+                        <svg className='w-12 h-12 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                        </svg>
+                      </div>
+                      <h3 className='text-xl font-black text-gray-700 mb-2'>No CG Permits Found</h3>
+                      <p className='text-sm text-gray-500 mb-6 max-w-md text-center'>
+                        {searchQuery ? 'No permits match your search criteria. Try adjusting your search terms.' : 'Get started by adding your first CG permit.'}
+                      </p>
                     </div>
                   </td>
                 </tr>
@@ -496,6 +501,7 @@ const CgPermit = () => {
           permitType="CG"
         />
       )}
+      </div>
     </div>
   )
 }

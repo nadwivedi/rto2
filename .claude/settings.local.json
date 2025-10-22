@@ -6,7 +6,9 @@
       "Bash(npm install:*)",
       "Bash(npm run dev:*)",
       "Bash(cat:*)",
-      "Bash(node scripts/fixDrivingIndexes.js:*)"
+      "Bash(node scripts/fixDrivingIndexes.js:*)",
+      "Bash(git checkout:*)",
+      "Read(//c/Users/Naray/OneDrive/Desktop/code/winners11/**)"
     ],
     "deny": [],
     "ask": []

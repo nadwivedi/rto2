@@ -403,6 +403,25 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
     return filtered
   }, [permits, searchQuery])
 
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const total = totalItems
+    const active = permits.filter(p => p.status === 'Active').length
+    const expiring = permits.filter(p => p.status === 'Expiring Soon').length
+    const totalRevenue = permits.reduce((sum, permit) => {
+      const feeString = permit.partA?.fees || '₹0'
+      const feeNumber = parseInt(feeString.replace(/[₹,]/g, '')) || 0
+      return sum + feeNumber
+    }, 0)
+
+    return {
+      total,
+      active,
+      expiring,
+      totalRevenue
+    }
+  }, [permits, totalItems])
+
   const handleViewDetails = (permit) => {
     setSelectedPermit(permit)
     setShowDetailsModal(true)
@@ -573,37 +592,74 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
   return (
     <>
       <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
-      <div className='min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4 md:p-6 lg:p-8 pt-24 lg:pt-20'>
-        <div className='max-w-[1800px] mx-auto'>
-        <div className='mb-6'>
-        <div className='flex items-center gap-3'>
-          <div className='w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg'>
-            <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-            </svg>
-          </div>
-          <h1 className='text-2xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent'>
-            National Permit
-          </h1>
-        </div>
-      </div>
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
+        <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
 
-      {/* Error Message - Commented out for demo */}
-      {/* {error && (
-        <div className='bg-gradient-to-r from-red-50 to-rose-50 border-l-4 border-red-500 p-6 mb-8 rounded-2xl shadow-lg'>
-          <div className='flex items-center'>
-            <div className='w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mr-4 shadow-md'>
-              <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-              </svg>
-            </div>
-            <div>
-              <h3 className='text-red-900 font-black text-lg mb-1'>Error Loading Permits</h3>
-              <p className='text-red-700 text-sm font-medium'>{error}</p>
+
+          {/* Statistics Cards */}
+          <div className='mb-2 mt-3'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5'>
+              {/* Total Permits */}
+              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Permits</p>
+                    <h3 className='text-2xl font-black text-gray-800'>{stats.total}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Permits */}
+              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Active Permits</p>
+                    <h3 className='text-2xl font-black text-emerald-600'>{stats.active}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Expiring Soon */}
+              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Expiring Soon</p>
+                    <h3 className='text-2xl font-black text-orange-600'>{stats.expiring}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Revenue */}
+              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Revenue</p>
+                    <h3 className='text-2xl font-black text-gray-800'>₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )} */}
 
       {/* Loading State */}
       {loading && (
@@ -621,192 +677,176 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
         </div>
       )}
 
-      {/* Stats Cards */}
       {!loading && (
       <>
-      <div className='grid grid-cols-1 md:grid-cols-1 gap-4 mb-6 max-w-xs'>
-        <div className='bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-4 shadow-md border border-blue-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>📄</div>
-            <div className='text-xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent'>{permits.length}</div>
-          </div>
-          <div className='text-xs font-semibold text-blue-700'>Total Permits</div>
-        </div>
-      </div>
-
       {/* Permits Table */}
-      <div className='bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden'>
-        <div className='bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6'>
-          <div className='flex flex-col md:flex-row gap-3 items-start md:items-center justify-between'>
-            {/* Filters */}
-            <div className='flex flex-wrap gap-3 items-center'>
-              {/* Date Filter */}
-              <div className='flex items-center gap-2'>
-                <label className='text-white text-sm font-semibold whitespace-nowrap'>Validity:</label>
-                <select
-                  value={dateFilter}
-                  onChange={(e) => handleFilterChange('date', e.target.value)}
-                  className='px-3 py-2 bg-white/90 backdrop-blur-sm border-2 border-white/50 rounded-lg focus:ring-2 focus:ring-white focus:border-white shadow-lg transition-all text-gray-800 font-medium cursor-pointer text-sm'
-                >
-                  <option value='All'>All Permits</option>
-                  <option value='Expiring30Days'>Expiring in 30 Days</option>
-                  <option value='Expiring60Days'>Expiring in 60 Days</option>
-                  <option value='Expired'>Expired</option>
-                </select>
-              </div>
+      <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
+        {/* Search and Filters Header */}
+        <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
+          <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center'>
+            {/* Search Bar */}
+            <div className='relative flex-1 lg:max-w-md'>
+              <input
+                type='text'
+                placeholder='Search by permit number, holder, or vehicle...'
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
+              />
+              <svg
+                className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+              </svg>
+            </div>
 
-              {/* Clear Filters Button */}
+            {/* Filters Group */}
+            <div className='flex flex-wrap gap-2'>
+              {/* Date Filter */}
+              <select
+                value={dateFilter}
+                onChange={(e) => handleFilterChange('date', e.target.value)}
+                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
+              >
+                <option value='All'>All Permits</option>
+                <option value='Expiring30Days'>Expiring in 30 Days</option>
+                <option value='Expiring60Days'>Expiring in 60 Days</option>
+                <option value='Expired'>Expired</option>
+              </select>
+
+              {/* Clear Filters */}
               {dateFilter !== 'All' && (
                 <button
-                  onClick={() => {
-                    handleFilterChange('date', 'All')
-                  }}
-                  className='px-3 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all font-semibold text-sm flex items-center gap-1 cursor-pointer'
+                  onClick={() => handleFilterChange('date', 'All')}
+                  className='px-4 py-3 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
                 >
-                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
                   Clear
                 </button>
               )}
             </div>
 
-            {/* Search Bar and Add Button */}
-            <div className='flex gap-3 items-center w-full md:w-auto'>
-              <div className='relative w-full md:w-64'>
-                <input
-                  type='text'
-                  placeholder='Search permits...'
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className='w-full pl-10 pr-4 py-2 bg-white/90 backdrop-blur-sm border-2 border-white/50 rounded-lg focus:ring-2 focus:ring-white focus:border-white shadow-lg transition-all text-gray-800 placeholder-gray-500 text-sm'
-                />
-                <svg
-                  className='absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
-                </svg>
-              </div>
-
-              <button
-                onClick={() => setShowIssuePermitModal(true)}
-                className='px-5 py-2 bg-white text-indigo-600 rounded-lg hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all font-bold whitespace-nowrap cursor-pointer transform hover:scale-105 flex items-center gap-2 text-sm'
-              >
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+            {/* New Permit Button */}
+            <button
+              onClick={() => setShowIssuePermitModal(true)}
+              className='px-5 py-3 text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-bold whitespace-nowrap cursor-pointer lg:ml-auto shadow-lg hover:shadow-xl transform hover:scale-105'
+            >
+              <span className='flex items-center gap-2'>
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
                 </svg>
-                Add New Permit
-              </button>
-            </div>
+                New Permit
+              </span>
+            </button>
           </div>
         </div>
 
         <div className='overflow-x-auto'>
           <table className='w-full'>
-            <thead className='bg-gradient-to-r from-gray-50 to-gray-100'>
+            <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
               <tr>
-                <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>
-                  <div className='flex items-center gap-2'>
-                    <svg className='w-4 h-4 text-indigo-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 20l4-16m2 16l4-16M6 9h14M4 15h14' />
-                    </svg>
-                    Permit Number
-                  </div>
-                </th>
-                <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>
-                  <div className='flex items-center gap-2'>
-                    <svg className='w-4 h-4 text-blue-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
-                    </svg>
-                    Permit Holder
-                  </div>
-                </th>
-                <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>
-                  <div className='flex items-center gap-2'>
-                    <svg className='w-4 h-4 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2' />
-                    </svg>
-                    Vehicle No.
-                  </div>
-                </th>
-                <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>Valid From</th>
-                <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>Valid Till</th>
-                <th className='px-6 py-5 text-left text-xs font-black text-gray-700 uppercase tracking-wider'>Actions</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Number</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Holder</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle No.</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid Till</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Fee</th>
+                <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
               </tr>
             </thead>
-            <tbody className='divide-y-0'>
+            <tbody className='divide-y divide-gray-200'>
               {filteredPermits.length > 0 ? (
                 filteredPermits.map((permit, index) => (
-                  <tr key={permit.id} className='group hover:bg-gradient-to-r hover:from-blue-50/50 hover:to-indigo-50/50 transition-all duration-200 border-b border-gray-100 last:border-0'>
-                    <td className='px-6 py-5'>
-                      <span className='text-sm font-bold text-gray-900 font-mono'>{permit.permitNumber}</span>
+                  <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group'>
+                    <td className='px-4 py-4'>
+                      <div className='text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200'>
+                        {permit.permitNumber}
+                      </div>
                     </td>
-                    <td className='px-6 py-5'>
-                      <div className='flex items-center gap-2'>
-                        <div className='w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm'>
-                          {permit.permitHolder.charAt(0)}
+                    <td className='px-4 py-4'>
+                      <div className='flex items-center gap-3'>
+                        <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
+                          {permit.permitHolder?.charAt(0) || 'P'}
                         </div>
                         <div>
                           <div className='text-sm font-bold text-gray-900'>{permit.permitHolder}</div>
-                          <div className='text-xs text-gray-500'>Permit Holder</div>
+                          <div className='text-xs text-gray-500 flex items-center mt-1'>
+                            <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                            </svg>
+                            {permit.partA?.ownerMobile || 'N/A'}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className='px-6 py-5'>
-                      <div className='inline-flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg group-hover:bg-white group-hover:shadow-md transition-all'>
-                        <svg className='w-4 h-4 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4' />
+                    <td className='px-4 py-4'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
+                        <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
+                          <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                          <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
                         </svg>
-                        <span className='text-sm font-bold font-mono text-gray-900'>{permit.vehicleNo}</span>
+                        {permit.vehicleNo}
+                      </span>
+                    </td>
+                    <td className='px-4 py-4'>
+                      <div className='flex items-center text-sm text-gray-700 font-medium'>
+                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                        </svg>
+                        {permit.partA?.permitValidFrom || permit.validFrom || 'N/A'}
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='text-sm text-gray-700 font-medium'>{permit.partA?.permitValidFrom || permit.validFrom || 'N/A'}</div>
-                      <div className='text-xs text-gray-500'>Valid From</div>
+                      <div className='flex items-center text-sm text-gray-700'>
+                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                        </svg>
+                        {permit.validTill}
+                      </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='text-sm text-gray-700 font-medium'>{permit.validTill}</div>
-                      <div className='text-xs text-gray-500'>Expires</div>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-md text-sm font-bold bg-purple-100 text-purple-700 border border-purple-200'>
+                        {permit.partA?.fees || '₹0'}
+                      </span>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex gap-2 items-center'>
+                      <div className='flex items-center justify-center gap-2'>
                         <button
                           onClick={() => handleViewDetails(permit)}
-                          className='p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md'
+                          className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                           title='View Details'
                         >
-                          <svg className='w-4.5 h-4.5' fill='none' stroke='currentColor' viewBox='0 0 24 24' strokeWidth={2}>
-                            <path strokeLinecap='round' strokeLinejoin='round' d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                            <path strokeLinecap='round' strokeLinejoin='round' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
                           </svg>
                         </button>
                         <button
                           onClick={() => handleEditPermit(permit)}
-                          className='p-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors duration-200 cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md'
+                          className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                           title='Edit Permit'
                         >
-                          <svg className='w-4.5 h-4.5' fill='none' stroke='currentColor' viewBox='0 0 24 24' strokeWidth={2}>
-                            <path strokeLinecap='round' strokeLinejoin='round' d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
                           </svg>
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
-                          className='p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md'
+                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                           title='View Bill'
                         >
-                          <svg className='w-4.5 h-4.5' fill='none' stroke='currentColor' viewBox='0 0 24 24' strokeWidth={2}>
-                            <path strokeLinecap='round' strokeLinejoin='round' d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                           </svg>
                         </button>
                         <button
                           onClick={() => handleShare(permit)}
-                          className='p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 cursor-pointer flex items-center justify-center shadow-sm hover:shadow-md'
-                          title='Share via WhatsApp'
+                          className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Share'
                         >
-                          <svg className='w-4.5 h-4.5' fill='currentColor' viewBox='0 0 24 24'>
+                          <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
                             <path d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z' />
                           </svg>
                         </button>
@@ -816,7 +856,7 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='6' className='px-6 py-16'>
+                  <td colSpan='7' className='px-6 py-16'>
                     <div className='flex flex-col items-center justify-center'>
                       <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg'>
                         <svg className='w-12 h-12 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -848,120 +888,71 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className='p-6 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white'>
-            <div className='flex flex-col md:flex-row items-center justify-between gap-4'>
-              {/* Pagination Info */}
-              <div className='text-sm text-gray-600 font-medium'>
-                Showing <span className='font-bold text-gray-800'>{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
-                <span className='font-bold text-gray-800'>{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{' '}
-                <span className='font-bold text-gray-800'>{totalItems}</span> permits
+          <div className='px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50'>
+            <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
+              <div className='text-sm font-semibold text-gray-700'>
+                Page {currentPage} of {totalPages}
               </div>
 
-              {/* Pagination Controls */}
               <div className='flex items-center gap-2'>
-                {/* First Page Button */}
-                <button
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
-                    currentPage === 1
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-sm cursor-pointer'
-                  }`}
-                >
-                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 19l-7-7 7-7m8 14l-7-7 7-7' />
-                  </svg>
-                </button>
-
-                {/* Previous Page Button */}
+                {/* Previous Button */}
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
                     currentPage === 1
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-sm cursor-pointer'
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
                   }`}
                 >
                   Previous
                 </button>
 
                 {/* Page Numbers */}
-                <div className='flex items-center gap-1'>
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNumber
-                    if (totalPages <= 5) {
-                      pageNumber = i + 1
-                    } else if (currentPage <= 3) {
-                      pageNumber = i + 1
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNumber = totalPages - 4 + i
-                    } else {
-                      pageNumber = currentPage - 2 + i
+                <div className='flex gap-1'>
+                  {[...Array(totalPages)].map((_, index) => {
+                    const pageNumber = index + 1
+                    // Show first page, last page, current page, and pages around current
+                    if (
+                      pageNumber === 1 ||
+                      pageNumber === totalPages ||
+                      (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={pageNumber}
+                          onClick={() => handlePageChange(pageNumber)}
+                          className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+                            currentPage === pageNumber
+                              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md transform scale-110'
+                              : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
+                          }`}
+                        >
+                          {pageNumber}
+                        </button>
+                      )
+                    } else if (
+                      pageNumber === currentPage - 2 ||
+                      pageNumber === currentPage + 2
+                    ) {
+                      return <span key={pageNumber} className='px-2 py-2 text-gray-400 font-bold'>...</span>
                     }
-
-                    return (
-                      <button
-                        key={pageNumber}
-                        onClick={() => handlePageChange(pageNumber)}
-                        className={`w-10 h-10 rounded-lg font-bold text-sm transition-all ${
-                          currentPage === pageNumber
-                            ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                            : 'bg-white text-gray-700 hover:bg-indigo-50 shadow-sm cursor-pointer'
-                        }`}
-                      >
-                        {pageNumber}
-                      </button>
-                    )
+                    return null
                   })}
                 </div>
 
-                {/* Next Page Button */}
+                {/* Next Button */}
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
                     currentPage === totalPages
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-sm cursor-pointer'
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
                   }`}
                 >
                   Next
                 </button>
-
-                {/* Last Page Button */}
-                <button
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
-                    currentPage === totalPages
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-white text-indigo-600 hover:bg-indigo-50 shadow-sm cursor-pointer'
-                  }`}
-                >
-                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 5l7 7-7 7M5 5l7 7-7 7' />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Page Jump */}
-              <div className='flex items-center gap-2'>
-                <span className='text-sm text-gray-600 font-medium'>Go to page:</span>
-                <input
-                  type='number'
-                  min='1'
-                  max={totalPages}
-                  value={currentPage}
-                  onChange={(e) => {
-                    const page = parseInt(e.target.value)
-                    if (page >= 1 && page <= totalPages) {
-                      handlePageChange(page)
-                    }
-                  }}
-                  className='w-16 px-2 py-1 border border-gray-300 rounded-lg text-center font-semibold text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                />
               </div>
             </div>
           </div>

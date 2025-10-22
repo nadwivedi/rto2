@@ -3,9 +3,10 @@ import { toast } from 'react-toastify'
 import QuickDLApplicationForm from '../components/QuickDLApplicationForm'
 import EditDLApplicationForm from '../components/EditDLApplicationForm'
 import ApplicationDetailModal from '../components/ApplicationDetailModal'
+import MobileHeader from '../components/MobileHeader'
 import { drivingLicenseAPI } from '../services/api'
 
-const DrivingLicence = () => {
+const DrivingLicence = ({ setIsSidebarOpen }) => {
   // Demo data for when backend is not available
   const demoApplications = [
     {
@@ -14,6 +15,8 @@ const DrivingLicence = () => {
       type: 'LMV',
       status: 'Approved',
       date: '2024-01-15',
+      issueDate: '2024-01-20',
+      expiryDate: '2044-01-20',
       licenseNumber: 'CG071234567890',
       licenseClass: 'LMV',
       totalAmount: 1500,
@@ -28,6 +31,8 @@ const DrivingLicence = () => {
       type: 'MCWG',
       status: 'Pending',
       date: '2024-02-10',
+      issueDate: '2024-02-15',
+      expiryDate: '2044-02-15',
       licenseNumber: 'CG071234567891',
       licenseClass: 'MCWG',
       totalAmount: 1200,
@@ -42,6 +47,8 @@ const DrivingLicence = () => {
       type: 'HMV',
       status: 'Under Review',
       date: '2024-03-05',
+      issueDate: '2024-03-10',
+      expiryDate: '2044-03-10',
       licenseNumber: 'CG071234567892',
       licenseClass: 'HMV',
       totalAmount: 2000,
@@ -56,6 +63,8 @@ const DrivingLicence = () => {
       type: 'LMV',
       status: 'Rejected',
       date: '2024-01-20',
+      issueDate: '2024-01-25',
+      expiryDate: '2044-01-25',
       licenseNumber: 'CG071234567893',
       licenseClass: 'LMV',
       totalAmount: 1500,
@@ -70,6 +79,8 @@ const DrivingLicence = () => {
       type: 'TRANS',
       status: 'Approved',
       date: '2024-02-28',
+      issueDate: '2024-03-05',
+      expiryDate: '2044-03-05',
       licenseNumber: 'CG071234567894',
       licenseClass: 'TRANS',
       totalAmount: 2500,
@@ -82,13 +93,6 @@ const DrivingLicence = () => {
 
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
-  const [statistics, setStatistics] = useState({
-    total: 0,
-    approved: 0,
-    pending: 0,
-    rejected: 0
-  })
-
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
@@ -96,9 +100,9 @@ const DrivingLicence = () => {
   const [isEditFormOpen, setIsEditFormOpen] = useState(false)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedApplication, setSelectedApplication] = useState(null)
-  const [statusFilter, setStatusFilter] = useState('All')
   const [typeFilter, setTypeFilter] = useState('All')
-  const [sortBy, setSortBy] = useState('createdAt')
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('All')
+  const [sortBy, setSortBy] = useState('applicationDate')
   const [sortOrder, setSortOrder] = useState('desc')
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
@@ -106,8 +110,7 @@ const DrivingLicence = () => {
   // Fetch applications from backend
   useEffect(() => {
     fetchApplications()
-    fetchStatistics()
-  }, [currentPage, searchQuery, statusFilter, typeFilter, sortBy, sortOrder])
+  }, [currentPage, searchQuery, typeFilter, sortBy, sortOrder, paymentStatusFilter])
 
   const fetchApplications = async () => {
     try {
@@ -120,8 +123,8 @@ const DrivingLicence = () => {
       }
 
       if (searchQuery) params.search = searchQuery
-      if (statusFilter !== 'All') params.applicationStatus = statusFilter.toLowerCase().replace(' ', '_')
       if (typeFilter !== 'All') params.licenseClass = typeFilter
+      if (paymentStatusFilter !== 'All') params.paymentStatus = paymentStatusFilter
 
       const response = await drivingLicenseAPI.getAll(params)
 
@@ -129,17 +132,22 @@ const DrivingLicence = () => {
 
       // Transform backend data to match frontend format
       const transformedData = (response.data || []).map(app => {
-        // Safely handle application status
-        const appStatus = app.applicationStatus || 'pending'
-        const formattedStatus = appStatus.charAt(0).toUpperCase() + appStatus.slice(1).replace('_', ' ')
 
         // Safely handle date
         let formattedDate = '-'
         try {
           if (app.createdAt) {
-            formattedDate = new Date(app.createdAt).toISOString().split('T')[0]
+            const d = new Date(app.createdAt);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            formattedDate = `${day}-${month}-${year}`;
           } else if (app.applicationDate) {
-            formattedDate = app.applicationDate
+            const d = new Date(app.applicationDate);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            formattedDate = `${day}-${month}-${year}`;
           }
         } catch (err) {
           console.error('Date parsing error:', err)
@@ -149,7 +157,6 @@ const DrivingLicence = () => {
           id: app._id,
           name: app.name || '-',
           type: app.licenseClass || '-',
-          status: formattedStatus,
           date: formattedDate,
           licenseNumber: app.drivingLicenseNumber || '-',
           licenseClass: app.licenseClass || '-',
@@ -179,41 +186,24 @@ const DrivingLicence = () => {
     }
   }
 
-  const fetchStatistics = async () => {
-    try {
-      const response = await drivingLicenseAPI.getStatistics()
-      setStatistics({
-        total: response.data.applications.total,
-        approved: response.data.applications.approved,
-        pending: response.data.applications.pending,
-        rejected: response.data.applications.rejected
-      })
-    } catch (error) {
-      console.error('Error fetching statistics:', error)
-      // Use demo statistics when backend is not available
-      setStatistics({
-        total: demoApplications.length,
-        approved: demoApplications.filter(app => app.status === 'Approved').length,
-        pending: demoApplications.filter(app => app.status === 'Pending').length,
-        rejected: demoApplications.filter(app => app.status === 'Rejected').length
-      })
-    }
-  }
-
-  const getStatusColor = (status) => {
-    const statusLower = status.toLowerCase()
-    switch (statusLower) {
-      case 'approved': return 'bg-gradient-to-r from-green-500 to-emerald-500 text-white'
-      case 'pending': return 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white'
-      case 'under review': return 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
-      case 'under_review': return 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white'
-      case 'rejected': return 'bg-gradient-to-r from-red-500 to-rose-500 text-white'
-      default: return 'bg-gradient-to-r from-gray-500 to-slate-500 text-white'
-    }
-  }
 
   // Use applications directly from backend (backend handles filtering, sorting, and pagination)
   const currentApplications = applications
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const total = totalItems
+    const totalRevenue = applications.reduce((sum, app) => sum + (app.totalAmount || 0), 0)
+    const totalPaid = applications.reduce((sum, app) => sum + (app.paidAmount || 0), 0)
+    const totalPending = applications.reduce((sum, app) => sum + (app.balanceAmount || 0), 0)
+
+    return {
+      total,
+      totalRevenue,
+      totalPaid,
+      totalPending
+    }
+  }, [applications, totalItems])
 
   // Reset to page 1 when search changes
   const handleSearchChange = (e) => {
@@ -278,7 +268,6 @@ const DrivingLicence = () => {
       if (response.success) {
         toast.success('Application submitted successfully!', { autoClose: 700 })
         fetchApplications() // Refresh the list
-        fetchStatistics() // Refresh statistics
       }
     } catch (error) {
       console.error('Error submitting application:', error)
@@ -333,7 +322,6 @@ const DrivingLicence = () => {
         toast.success('Application updated successfully!', { autoClose: 700 })
         setIsEditFormOpen(false)
         fetchApplications() // Refresh the list
-        fetchStatistics() // Refresh statistics
       }
     } catch (error) {
       console.error('Error updating application:', error)
@@ -342,8 +330,77 @@ const DrivingLicence = () => {
   }
 
   return (
-    <div className='p-4 md:p-6 lg:p-8 pt-20 lg:pt-20 max-w-[1800px] mx-auto'>
-      <QuickDLApplicationForm
+    <>
+      <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
+        <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
+
+          {/* Statistics Cards */}
+          <div className='mb-2 mt-3'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5'>
+              {/* Total Applications */}
+              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Applications</p>
+                    <h3 className='text-2xl font-black text-gray-800'>{stats.total}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Revenue */}
+              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Revenue</p>
+                    <h3 className='text-2xl font-black text-gray-800'>₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Paid */}
+              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Paid</p>
+                    <h3 className='text-2xl font-black text-emerald-600'>₹{stats.totalPaid.toLocaleString('en-IN')}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pending Amount */}
+              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Pending Amount</p>
+                    <h3 className='text-2xl font-black text-orange-600'>₹{stats.totalPending.toLocaleString('en-IN')}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <QuickDLApplicationForm
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleFormSubmit}
@@ -361,59 +418,23 @@ const DrivingLicence = () => {
         onClose={() => setIsDetailModalOpen(false)}
         application={selectedApplication}
       />
-      <div className='mb-6 md:mb-8'>
-        <h1 className='text-xl md:text-3xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-1 md:mb-2'>Driving Licence Applications</h1>
-        <p className='text-sm md:text-base text-gray-600'>Manage and review driving licence applications</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mb-6'>
-        <div className='bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl p-4 shadow-md border border-gray-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>📊</div>
-            <div className='text-xl font-black bg-gradient-to-r from-gray-700 to-gray-900 bg-clip-text text-transparent'>{statistics.total}</div>
-          </div>
-          <div className='text-xs font-semibold text-gray-600'>Total Applications</div>
-        </div>
-        <div className='bg-gradient-to-br from-green-50 to-emerald-100 rounded-xl p-4 shadow-md border border-green-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>✅</div>
-            <div className='text-xl font-black bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent'>{statistics.approved}</div>
-          </div>
-          <div className='text-xs font-semibold text-green-700'>Approved</div>
-        </div>
-        <div className='bg-gradient-to-br from-yellow-50 to-amber-100 rounded-xl p-4 shadow-md border border-yellow-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>⏳</div>
-            <div className='text-xl font-black bg-gradient-to-r from-yellow-600 to-amber-600 bg-clip-text text-transparent'>{statistics.pending}</div>
-          </div>
-          <div className='text-xs font-semibold text-yellow-700'>Pending</div>
-        </div>
-        <div className='bg-gradient-to-br from-red-50 to-rose-100 rounded-xl p-4 shadow-md border border-red-200 hover:shadow-lg transition-all duration-300 hover:-translate-y-1'>
-          <div className='flex items-center gap-2 mb-1'>
-            <div className='text-2xl'>❌</div>
-            <div className='text-xl font-black bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent'>{statistics.rejected}</div>
-          </div>
-          <div className='text-xs font-semibold text-red-700'>Rejected</div>
-        </div>
-      </div>
 
       {/* Applications Table */}
-      <div className='bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden'>
-        <div className='p-6 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
+      <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
+        <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
           {/* All Filters, Search and Action in One Line */}
-          <div className='flex flex-col lg:flex-row gap-3 items-stretch lg:items-center'>
+          <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center'>
             {/* Search Bar */}
-            <div className='relative flex-1 lg:max-w-xs'>
+            <div className='relative flex-1 lg:max-w-md'>
               <input
                 type='text'
                 placeholder='Search by DL number or name...'
                 value={searchQuery}
                 onChange={handleSearchChange}
-                className='w-full pl-10 pr-4 py-2 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all shadow-sm'
+                className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
               />
               <svg
-                className='absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
+                className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -424,21 +445,7 @@ const DrivingLicence = () => {
 
             {/* Filters Group */}
             <div className='flex flex-wrap gap-2'>
-              {/* Status Filter */}
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value)
-                  setCurrentPage(1)
-                }}
-                className='px-3 py-2 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 text-sm font-medium bg-white shadow-sm hover:border-indigo-300 transition-all'
-              >
-                <option value='All'>All Status</option>
-                <option value='Pending'>Pending</option>
-                <option value='Under Review'>Under Review</option>
-                <option value='Approved'>Approved</option>
-                <option value='Rejected'>Rejected</option>
-              </select>
+
 
               {/* License Class Filter */}
               <select
@@ -447,7 +454,7 @@ const DrivingLicence = () => {
                   setTypeFilter(e.target.value)
                   setCurrentPage(1)
                 }}
-                className='px-3 py-2 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 text-sm font-medium bg-white shadow-sm hover:border-indigo-300 transition-all'
+                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
               >
                 <option value='All'>All Types</option>
                 <option value='MCWG'>MCWG</option>
@@ -462,32 +469,45 @@ const DrivingLicence = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className='px-3 py-2 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 text-sm font-medium bg-white shadow-sm hover:border-indigo-300 transition-all'
+                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
               >
-                <option value='date'>By Date</option>
+                <option value='applicationDate'>By Date</option>
                 <option value='name'>By Name</option>
-                <option value='status'>By Status</option>
                 <option value='id'>By ID</option>
+              </select>
+
+              {/* Payment Status Filter */}
+              <select
+                value={paymentStatusFilter}
+                onChange={(e) => {
+                  setPaymentStatusFilter(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
+              >
+                <option value='All'>All Statuses</option>
+                <option value='Paid'>Paid</option>
+                <option value='Pending'>Pending</option>
               </select>
 
               {/* Sort Order */}
               <button
                 onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className='px-3 py-2 border-2 border-indigo-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-300 transition-all font-semibold text-sm bg-white shadow-sm'
+                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all font-bold bg-white shadow-sm'
               >
                 {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
               </button>
 
               {/* Clear Filters */}
-              {(statusFilter !== 'All' || typeFilter !== 'All' || searchQuery) && (
+              {(typeFilter !== 'All' || searchQuery || paymentStatusFilter !== 'All') && (
                 <button
                   onClick={() => {
-                    setStatusFilter('All')
                     setTypeFilter('All')
                     setSearchQuery('')
+                    setPaymentStatusFilter('All')
                     setCurrentPage(1)
                   }}
-                  className='px-3 py-2 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg hover:from-red-600 hover:to-rose-600 transition-all font-semibold text-sm shadow-md hover:shadow-lg'
+                  className='px-4 py-3 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
                 >
                   Clear
                 </button>
@@ -497,62 +517,160 @@ const DrivingLicence = () => {
             {/* New Application Button */}
             <button
               onClick={() => setIsFormOpen(true)}
-              className='px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl transition-all duration-300 font-semibold whitespace-nowrap cursor-pointer lg:ml-auto'
+              className='px-5 py-3 text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-bold whitespace-nowrap cursor-pointer lg:ml-auto shadow-lg hover:shadow-xl transform hover:scale-105'
             >
-              + New Application
+              <span className='flex items-center gap-2'>
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+                </svg>
+                New Application
+              </span>
             </button>
           </div>
         </div>
 
         <div className='overflow-x-auto'>
           <table className='w-full'>
-            <thead className='bg-gradient-to-r from-indigo-600 to-purple-600'>
+            <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
               <tr>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Applicant Name</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>License Class</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>License Number</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Date</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Status</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Actions</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Applicant Details</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Class</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Number</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Application Date</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Issue Date</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Expiry Date</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Amount</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Paid Amount</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Balance</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Status</th>
+                <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
               </tr>
             </thead>
-            <tbody className='divide-y divide-gray-100'>
+            <tbody className='divide-y divide-gray-200'>
               {loading ? (
                 <tr>
-                  <td colSpan='6' className='px-6 py-12 text-center'>
+                  <td colSpan='11' className='px-4 py-8 text-center'>
                     <div className='text-gray-400'>
-                      <svg className='animate-spin mx-auto h-12 w-12 mb-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
                       </svg>
-                      <p className='text-lg font-semibold text-gray-600'>Loading applications...</p>
+                      <p className='text-sm font-semibold text-gray-600'>Loading applications...</p>
                     </div>
                   </td>
                 </tr>
               ) : currentApplications.length > 0 ? (
-                currentApplications.map((app) => (
-                  <tr key={app.id} className='hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 transition-all duration-200'>
-                    <td className='px-6 py-4 text-sm font-semibold text-gray-800'>{app.name}</td>
-                    <td className='px-6 py-4 text-sm text-gray-700'>{app.type}</td>
-                    <td className='px-6 py-4 text-sm text-gray-700'>{app.licenseNumber}</td>
-                    <td className='px-6 py-4 text-sm text-gray-700'>{app.date}</td>
-                    <td className='px-6 py-4'>
-                      <span className={`px-3 py-1.5 rounded-full text-xs font-bold shadow-sm ${getStatusColor(app.status)}`}>
-                        {app.status}
+                currentApplications.map((app, index) => (
+                  <tr key={app.id} className='hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group'>
+                    <td className='px-4 py-4'>
+                      <div className='flex items-center gap-3'>
+                        <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
+                          {app.name?.charAt(0) || 'A'}
+                        </div>
+                        <div>
+                          <div className='text-sm font-bold text-gray-900'>{app.name}</div>
+                          <div className='text-xs text-gray-500 flex items-center mt-1'>
+                            <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                            </svg>
+                            {app.mobile}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className='px-4 py-4'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
+                        <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
+                          <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                          <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                        </svg>
+                        {app.type}
                       </span>
                     </td>
-                    <td className='px-6 py-4'>
-                      <div className='flex items-center gap-6'>
+                    <td className='px-4 py-4'>
+                      <div className='text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200'>
+                        {app.licenseNumber}
+                      </div>
+                    </td>
+                    <td className='px-4 py-4'>
+                      <div className='flex items-center text-sm text-gray-700 font-medium'>
+                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                        </svg>
+                        {app.date}
+                      </div>
+                    </td>
+                    <td className='px-4 py-4'>
+                      <div className='flex items-center text-sm text-emerald-700 font-medium'>
+                        <svg className='w-4 h-4 mr-2 text-emerald-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                        {app.issueDate || '-'}
+                      </div>
+                    </td>
+                    <td className='px-4 py-4'>
+                      <div className='flex items-center text-sm text-orange-700 font-medium'>
+                        <svg className='w-4 h-4 mr-2 text-orange-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                        {app.expiryDate || '-'}
+                      </div>
+                    </td>
+                    <td className='px-4 py-4'>
+                      <span className='text-sm font-bold text-gray-800'>₹{app.totalAmount.toLocaleString('en-IN')}</span>
+                    </td>
+                    <td className='px-4 py-4'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
+                        ₹{app.paidAmount.toLocaleString('en-IN')}
+                      </span>
+                    </td>
+                    <td className='px-4 py-4'>
+                      {app.balanceAmount > 0 ? (
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200'>
+                          ₹{app.balanceAmount.toLocaleString('en-IN')}
+                        </span>
+                      ) : (
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200'>
+                          ₹0
+                        </span>
+                      )}
+                    </td>
+                    <td className='px-4 py-4'>
+                      {app.balanceAmount === 0 ? (
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200'>
+                          <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
+                            <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
+                          </svg>
+                          Paid
+                        </span>
+                      ) : (
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200'>
+                          <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
+                            <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z' clipRule='evenodd' />
+                          </svg>
+                          Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className='px-4 py-4'>
+                      <div className='flex items-center justify-center gap-2'>
                         <button
                           onClick={() => handleViewDetails(app)}
-                          className='text-indigo-600 hover:text-indigo-800 font-bold text-sm cursor-pointer hover:underline transition-all'
+                          className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='View Details'
                         >
-                          View
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                          </svg>
                         </button>
                         <button
                           onClick={() => handleEdit(app)}
-                          className='text-blue-600 hover:text-blue-800 font-bold text-sm cursor-pointer hover:underline transition-all'
+                          className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Edit Application'
                         >
-                          Edit
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                          </svg>
                         </button>
                       </div>
                     </td>
@@ -560,13 +678,13 @@ const DrivingLicence = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='6' className='px-6 py-12 text-center'>
+                  <td colSpan='11' className='px-4 py-8 text-center'>
                     <div className='text-gray-400'>
-                      <svg className='mx-auto h-12 w-12 mb-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <svg className='mx-auto h-8 w-8 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                       </svg>
-                      <p className='text-lg font-semibold text-gray-600'>No applications found</p>
-                      <p className='text-sm text-gray-500 mt-1'>Click "New Application" to add your first application</p>
+                      <p className='text-sm font-semibold text-gray-600'>No applications found</p>
+                      <p className='text-xs text-gray-500 mt-1'>Click "New Application" to add your first application</p>
                     </div>
                   </td>
                 </tr>
@@ -579,7 +697,7 @@ const DrivingLicence = () => {
         {totalItems > 0 && (
           <div className='px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50'>
             <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
-              <div className='text-sm font-semibold text-gray-700'>
+              <div className='text-sm font-bold text-gray-700'>
                 Page {currentPage} of {totalPages}
               </div>
 
@@ -588,7 +706,7 @@ const DrivingLicence = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
                     currentPage === 1
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
@@ -598,7 +716,7 @@ const DrivingLicence = () => {
                 </button>
 
                 {/* Page Numbers */}
-                <div className='flex gap-1'>
+                <div className='flex gap-1.5'>
                   {[...Array(totalPages)].map((_, index) => {
                     const pageNumber = index + 1
                     // Show first page, last page, current page, and pages around current
@@ -611,9 +729,9 @@ const DrivingLicence = () => {
                         <button
                           key={pageNumber}
                           onClick={() => handlePageChange(pageNumber)}
-                          className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+                          className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
                             currentPage === pageNumber
-                              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md transform scale-110'
+                              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg transform scale-110'
                               : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
                           }`}
                         >
@@ -624,7 +742,7 @@ const DrivingLicence = () => {
                       pageNumber === currentPage - 2 ||
                       pageNumber === currentPage + 2
                     ) {
-                      return <span key={pageNumber} className='px-2 py-2 text-gray-400 font-bold'>...</span>
+                      return <span key={pageNumber} className='px-2 py-2 text-gray-400 font-bold text-sm'>...</span>
                     }
                     return null
                   })}
@@ -634,7 +752,7 @@ const DrivingLicence = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
+                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
                     currentPage === totalPages
                       ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                       : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
@@ -646,8 +764,10 @@ const DrivingLicence = () => {
             </div>
           </div>
         )}
+        </div>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

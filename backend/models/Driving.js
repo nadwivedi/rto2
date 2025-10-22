@@ -115,11 +115,7 @@ const DrivingSchema = new mongoose.Schema({
     medicalCertificate: String
   },
 
-  // Admin Notes
-  notes: {
-    type: String,
-    trim: true
-  }
+  
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields
 })

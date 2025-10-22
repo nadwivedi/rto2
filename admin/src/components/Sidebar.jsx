@@ -88,20 +88,20 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       {/* Sidebar */}
       <div className={`fixed left-0 top-0 h-full bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white transform transition-transform duration-300 ease-in-out z-50 ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 w-64 shadow-2xl`}>
+      } lg:translate-x-0 w-56 shadow-2xl`}>
 
         {/* Logo */}
-        <div className="p-6 border-b border-purple-700/30">
+        <div className="p-3 border-b border-purple-700/30">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="text-2xl font-black text-white">R</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
+                <span className="text-xl font-black text-white">R</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-200 to-yellow-200">
+                <h1 className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-200 to-yellow-200">
                   RTO
                 </h1>
-                <p className="text-xs text-purple-300 font-medium">
+                <p className="text-[10px] text-purple-300 font-medium">
                   Admin Panel
                 </p>
               </div>
@@ -109,10 +109,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             {/* Close Button */}
             <button
               onClick={() => setIsOpen(false)}
-              className="lg:hidden text-purple-300 hover:text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="lg:hidden text-purple-300 hover:text-white p-1.5 hover:bg-white/10 rounded-lg transition-colors"
               title="Close Sidebar"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -120,31 +120,31 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </div>
 
         {/* Menu Items */}
-        <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100vh-120px)] [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-purple-500/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-purple-500/50">
+        <nav className="p-3 space-y-2 overflow-y-auto h-[calc(100vh-70px)] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-purple-500/30 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:hover:bg-purple-500/50">
           {menuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               onClick={() => setIsOpen(false)}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+              className={`flex items-center space-x-2 px-3 py-3 rounded-lg transition-all duration-200 group ${
                 isActive(item.path)
                   ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg'
                   : 'hover:bg-white/10 hover:border border-transparent hover:border-purple-400/20'
               }`}
             >
-              <span className={`text-xl ${isActive(item.path) ? 'text-orange-300' : 'text-purple-200 group-hover:text-orange-300'}`}>
+              <span className={`text-lg ${isActive(item.path) ? 'text-orange-300' : 'text-purple-200 group-hover:text-orange-300'}`}>
                 {item.icon}
               </span>
-              <div className="flex-1">
-                <div className={`font-semibold ${isActive(item.path) ? 'text-purple-100' : 'text-purple-100 group-hover:text-white'}`}>
+              <div className="flex-1 min-w-0">
+                <div className={`text-sm font-semibold truncate ${isActive(item.path) ? 'text-purple-100' : 'text-purple-100 group-hover:text-white'}`}>
                   {item.name}
                 </div>
-                <div className={`text-xs ${isActive(item.path) ? 'text-purple-300' : 'text-purple-400 group-hover:text-purple-300'}`}>
+                <div className={`text-[10px] truncate ${isActive(item.path) ? 'text-purple-300' : 'text-purple-400 group-hover:text-purple-300'}`}>
                   {item.description}
                 </div>
               </div>
               {isActive(item.path) && (
-                <div className="ml-auto w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+                <div className="ml-auto w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse flex-shrink-0"></div>
               )}
             </Link>
           ))}
