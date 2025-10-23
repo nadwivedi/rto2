@@ -1,4 +1,8 @@
+import { useNavigate } from 'react-router-dom'
+
 const Reports = () => {
+  const navigate = useNavigate()
+
   return (
     <div className='p-6'>
       <div className='mb-8'>
@@ -8,10 +12,11 @@ const Reports = () => {
 
       {/* Report Categories */}
       <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>
-        <div className='bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all cursor-pointer'>
+        <div className='bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all cursor-pointer'
+          onClick={() => navigate('/driving-license-report')}>
           <div className='text-4xl mb-4'>📊</div>
-          <h3 className='text-xl font-bold mb-2'>License Reports</h3>
-          <p className='text-blue-100 text-sm mb-4'>DL and LL statistics</p>
+          <h3 className='text-xl font-bold mb-2'>License Expiry Report</h3>
+          <p className='text-blue-100 text-sm mb-4'>Track driving licenses near expiry</p>
           <button className='bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition'>
             View Report
           </button>

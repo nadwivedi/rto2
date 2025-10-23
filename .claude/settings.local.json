@@ -8,7 +8,8 @@
       "Bash(cat:*)",
       "Bash(node scripts/fixDrivingIndexes.js:*)",
       "Bash(git checkout:*)",
-      "Read(//c/Users/Naray/OneDrive/Desktop/code/winners11/**)"
+      "Read(//c/Users/Naray/OneDrive/Desktop/code/winners11/**)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

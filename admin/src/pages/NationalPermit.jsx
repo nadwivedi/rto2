@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import IssueNewPermitModal from '../components/IssueNewPermitModal'
 import EditNationalPermitModal from '../components/EditNationalPermitModal'
 import PermitBillModal from '../components/PermitBillModal'
@@ -8,267 +9,8 @@ import MobileHeader from '../components/MobileHeader'
 const API_BASE_URL = 'http://localhost:5000/api'
 
 const NationalPermit = ({ setIsSidebarOpen }) => {
-  const [permits, setPermits] = useState([
-    {
-      id: 'NP-2024-001',
-      permitNumber: 'NP001234567',
-      permitHolder: 'Rajesh Transport Services',
-      vehicleNo: 'MH-12-AB-1234',
-      issueDate: '2024-01-15',
-      validTill: '2025-01-14',
-      status: 'Active',
-      partA: {
-        permitNumber: 'NP001234567',
-        permitType: 'National Permit',
-        ownerName: 'Rajesh Transport Services',
-        ownerAddress: '123, Transport Nagar, Mumbai, Maharashtra - 400001',
-        ownerMobile: '+91 9876543210',
-        vehicleNumber: 'MH-12-AB-1234',
-        vehicleClass: 'Heavy Goods Vehicle',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDE',
-        engineNumber: 'ENG12345678',
-        makerModel: 'TATA LPT 1616',
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
-        route: 'All India',
-        permitValidFrom: '2024-01-15',
-        permitValidUpto: '2025-01-14',
-        issuingAuthority: 'Regional Transport Office, Mumbai',
-        issueDate: '2024-01-15',
-        fees: '₹15,000'
-      },
-      partB: {
-        permitNumber: 'NP001234567',
-        authorization: 'Carriage of Goods',
-        goodsType: 'General Goods',
-        maxLoadCapacity: '16,000 kg',
-        validRoutes: 'All National Highways and State Highways across India',
-        restrictions: 'No carriage of hazardous materials',
-        conditions: 'Valid for goods transportation only. Driver must carry valid driving license and vehicle documents.',
-        endorsements: 'None',
-        renewalHistory: [
-          { date: '2023-01-15', amount: '₹15,000', status: 'Completed' }
-        ],
-        insuranceDetails: {
-          policyNumber: 'INS123456789',
-          company: 'National Insurance Company',
-          validUpto: '2024-12-31'
-        },
-        taxDetails: {
-          taxPaidUpto: '2024-12-31',
-          taxAmount: '₹25,000'
-        }
-      }
-    },
-    {
-      id: 'NP-2024-002',
-      permitNumber: 'NP001234568',
-      permitHolder: 'Kumar Logistics Pvt Ltd',
-      vehicleNo: 'DL-1C-CD-5678',
-      issueDate: '2024-02-10',
-      validTill: '2025-02-09',
-      status: 'Active',
-      partA: {
-        permitNumber: 'NP001234568',
-        permitType: 'National Permit',
-        ownerName: 'Kumar Logistics Pvt Ltd',
-        ownerAddress: '456, Industrial Area, Delhi - 110001',
-        ownerMobile: '+91 9876543211',
-        vehicleNumber: 'DL-1C-CD-5678',
-        vehicleClass: 'Medium Goods Vehicle',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDF',
-        engineNumber: 'ENG12345679',
-        makerModel: 'ASHOK LEYLAND DOST',
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
-        route: 'All India',
-        permitValidFrom: '2024-02-10',
-        permitValidUpto: '2025-02-09',
-        issuingAuthority: 'Regional Transport Office, Delhi',
-        issueDate: '2024-02-10',
-        fees: '₹12,000'
-      },
-      partB: {
-        permitNumber: 'NP001234568',
-        authorization: 'Carriage of Goods',
-        goodsType: 'Packaged Goods',
-        maxLoadCapacity: '7,500 kg',
-        validRoutes: 'All National Highways and State Highways across India',
-        restrictions: 'No carriage of perishable items without proper refrigeration',
-        conditions: 'Valid for goods transportation only. Vehicle must undergo fitness test annually.',
-        endorsements: 'Express Delivery Authorized',
-        renewalHistory: [
-          { date: '2023-02-10', amount: '₹12,000', status: 'Completed' }
-        ],
-        insuranceDetails: {
-          policyNumber: 'INS123456790',
-          company: 'United India Insurance',
-          validUpto: '2024-11-30'
-        },
-        taxDetails: {
-          taxPaidUpto: '2024-11-30',
-          taxAmount: '₹18,000'
-        }
-      }
-    },
-    {
-      id: 'NP-2024-003',
-      permitNumber: 'NP001234569',
-      permitHolder: 'Singh Brothers Transport',
-      vehicleNo: 'PB-10-EF-9012',
-      issueDate: '2024-03-05',
-      validTill: '2025-03-04',
-      status: 'Active',
-      partA: {
-        permitNumber: 'NP001234569',
-        permitType: 'National Permit',
-        ownerName: 'Singh Brothers Transport',
-        ownerAddress: '789, Transport Hub, Ludhiana, Punjab - 141001',
-        ownerMobile: '+91 9876543212',
-        vehicleNumber: 'PB-10-EF-9012',
-        vehicleClass: 'Heavy Goods Vehicle',
-        vehicleType: 'Container Truck',
-        chassisNumber: 'MB1234567890ABCDG',
-        engineNumber: 'ENG12345680',
-        makerModel: 'TATA PRIMA 4038.S',
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
-        route: 'All India',
-        permitValidFrom: '2024-03-05',
-        permitValidUpto: '2025-03-04',
-        issuingAuthority: 'Regional Transport Office, Ludhiana',
-        issueDate: '2024-03-05',
-        fees: '₹18,000'
-      },
-      partB: {
-        permitNumber: 'NP001234569',
-        authorization: 'Carriage of Goods',
-        goodsType: 'Containerized Cargo',
-        maxLoadCapacity: '28,000 kg',
-        validRoutes: 'All National Highways and State Highways across India',
-        restrictions: 'No overloading beyond specified capacity',
-        conditions: 'Valid for containerized goods only. Must maintain trip log book.',
-        endorsements: 'Port Clearance Authorized',
-        renewalHistory: [],
-        insuranceDetails: {
-          policyNumber: 'INS123456791',
-          company: 'Oriental Insurance Company',
-          validUpto: '2025-02-28'
-        },
-        taxDetails: {
-          taxPaidUpto: '2025-02-28',
-          taxAmount: '₹35,000'
-        }
-      }
-    },
-    {
-      id: 'NP-2024-004',
-      permitNumber: 'NP001234570',
-      permitHolder: 'Maharashtra Freight Services',
-      vehicleNo: 'MH-14-GH-3456',
-      issueDate: '2024-01-20',
-      validTill: '2024-12-31',
-      status: 'Expiring Soon',
-      partA: {
-        permitNumber: 'NP001234570',
-        permitType: 'National Permit',
-        ownerName: 'Maharashtra Freight Services',
-        ownerAddress: '321, Cargo Complex, Pune, Maharashtra - 411001',
-        ownerMobile: '+91 9876543213',
-        vehicleNumber: 'MH-14-GH-3456',
-        vehicleClass: 'Medium Goods Vehicle',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDH',
-        engineNumber: 'ENG12345681',
-        makerModel: 'EICHER PRO 3015',
-        yearOfManufacture: '2022',
-        seatingCapacity: '2',
-        route: 'All India',
-        permitValidFrom: '2024-01-20',
-        permitValidUpto: '2024-12-31',
-        issuingAuthority: 'Regional Transport Office, Pune',
-        issueDate: '2024-01-20',
-        fees: '₹14,000'
-      },
-      partB: {
-        permitNumber: 'NP001234570',
-        authorization: 'Carriage of Goods',
-        goodsType: 'Industrial Materials',
-        maxLoadCapacity: '9,500 kg',
-        validRoutes: 'All National Highways and State Highways across India',
-        restrictions: 'No carriage of flammable materials',
-        conditions: 'Valid for industrial goods only. Monthly maintenance certificate required.',
-        endorsements: 'None',
-        renewalHistory: [
-          { date: '2023-01-20', amount: '₹14,000', status: 'Completed' },
-          { date: '2022-01-20', amount: '₹13,000', status: 'Completed' }
-        ],
-        insuranceDetails: {
-          policyNumber: 'INS123456792',
-          company: 'New India Assurance',
-          validUpto: '2024-12-15'
-        },
-        taxDetails: {
-          taxPaidUpto: '2024-12-15',
-          taxAmount: '₹20,000'
-        }
-      }
-    },
-    {
-      id: 'NP-2024-005',
-      permitNumber: 'NP001234571',
-      permitHolder: 'Gujarat Transport Corporation',
-      vehicleNo: 'GJ-01-IJ-7890',
-      issueDate: '2023-12-15',
-      validTill: '2024-12-14',
-      status: 'Pending Renewal',
-      partA: {
-        permitNumber: 'NP001234571',
-        permitType: 'National Permit',
-        ownerName: 'Gujarat Transport Corporation',
-        ownerAddress: '654, Transport Plaza, Ahmedabad, Gujarat - 380001',
-        ownerMobile: '+91 9876543214',
-        vehicleNumber: 'GJ-01-IJ-7890',
-        vehicleClass: 'Heavy Goods Vehicle',
-        vehicleType: 'Multi-axle Truck',
-        chassisNumber: 'MB1234567890ABCDI',
-        engineNumber: 'ENG12345682',
-        makerModel: 'BHARAT BENZ 3143',
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
-        route: 'All India',
-        permitValidFrom: '2023-12-15',
-        permitValidUpto: '2024-12-14',
-        issuingAuthority: 'Regional Transport Office, Ahmedabad',
-        issueDate: '2023-12-15',
-        fees: '₹16,500'
-      },
-      partB: {
-        permitNumber: 'NP001234571',
-        authorization: 'Carriage of Goods',
-        goodsType: 'Heavy Machinery Parts',
-        maxLoadCapacity: '25,000 kg',
-        validRoutes: 'All National Highways and State Highways across India',
-        restrictions: 'Load must be properly secured. No transportation during night on hilly routes.',
-        conditions: 'Valid for heavy goods only. Requires special transportation permit for oversized loads.',
-        endorsements: 'Heavy Load Authorized',
-        renewalHistory: [
-          { date: '2022-12-15', amount: '₹16,000', status: 'Completed' }
-        ],
-        insuranceDetails: {
-          policyNumber: 'INS123456793',
-          company: 'ICICI Lombard',
-          validUpto: '2024-11-30'
-        },
-        taxDetails: {
-          taxPaidUpto: '2024-11-30',
-          taxAmount: '₹32,000'
-        }
-      }
-    }
-  ])
+  const navigate = useNavigate()
+  const [permits, setPermits] = useState([])
 
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedPermit, setSelectedPermit] = useState(null)
@@ -288,11 +30,46 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const itemsPerPage = 10
+  const [partAExpiringCount, setPartAExpiringCount] = useState(0)
+  const [partBExpiringCount, setPartBExpiringCount] = useState(0)
 
   // Fetch permits from backend on component mount and when filters or page change
   useEffect(() => {
     fetchPermits()
   }, [dateFilter, currentPage]) // Re-fetch when filters or page change
+
+  // Fetch expiring counts on component mount
+  useEffect(() => {
+    fetchExpiringCounts()
+  }, [])
+
+  const fetchExpiringCounts = async () => {
+    try {
+      console.log('Fetching National Permit expiring counts...')
+
+      // Fetch Part A expiring count
+      const partAResponse = await fetch(`${API_BASE_URL}/national-permits/part-a-expiring-soon?page=1&limit=1`)
+      const partAData = await partAResponse.json()
+      console.log('Part A Response:', partAData)
+      const partACount = partAData.pagination?.totalItems || 0
+      console.log('Part A Count:', partACount)
+      setPartAExpiringCount(partACount)
+
+      // Fetch Part B expiring count
+      const partBResponse = await fetch(`${API_BASE_URL}/national-permits/part-b-expiring-soon?page=1&limit=1`)
+      const partBData = await partBResponse.json()
+      console.log('Part B Response:', partBData)
+      const partBCount = partBData.pagination?.totalItems || 0
+      console.log('Part B Count:', partBCount)
+      setPartBExpiringCount(partBCount)
+
+      console.log('National Permit expiring counts updated - Part A:', partACount, 'Part B:', partBCount)
+    } catch (error) {
+      console.error('Error fetching National Permit expiring counts:', error)
+      setPartAExpiringCount(0)
+      setPartBExpiringCount(0)
+    }
+  }
 
   const fetchPermits = async () => {
     try {
@@ -407,20 +184,18 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
   const stats = useMemo(() => {
     const total = totalItems
     const active = permits.filter(p => p.status === 'Active').length
-    const expiring = permits.filter(p => p.status === 'Expiring Soon').length
-    const totalRevenue = permits.reduce((sum, permit) => {
-      const feeString = permit.partA?.fees || '₹0'
-      const feeNumber = parseInt(feeString.replace(/[₹,]/g, '')) || 0
-      return sum + feeNumber
-    }, 0)
+
+    // Use the fetched counts instead of calculating from current page
+    const expiring = partAExpiringCount
+    const partBExpiring = partBExpiringCount
 
     return {
       total,
       active,
       expiring,
-      totalRevenue
+      partBExpiring
     }
-  }, [permits, totalItems])
+  }, [permits, totalItems, partAExpiringCount, partBExpiringCount])
 
   const handleViewDetails = (permit) => {
     setSelectedPermit(permit)
@@ -513,8 +288,9 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
       // Show success message
       alert('Permit added successfully!')
 
-      // Refresh the permits list
+      // Refresh the permits list and expiring counts
       await fetchPermits()
+      await fetchExpiringCounts()
     } catch (error) {
       console.error('Error creating permit:', error)
       alert(`Failed to create permit: ${error.message}`)
@@ -577,8 +353,9 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
       // Show success message
       alert('Permit updated successfully!')
 
-      // Refresh the permits list
+      // Refresh the permits list and expiring counts
       await fetchPermits()
+      await fetchExpiringCounts()
 
       // Close modal
       setShowEditPermitModal(false)
@@ -629,12 +406,16 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                 </div>
               </div>
 
-              {/* Expiring Soon */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* Part A - Expiring Soon */}
+              <div
+                onClick={() => navigate('/national-part-a-expiring')}
+                className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+              >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Expiring Soon</p>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Part A - Expiring Soon</p>
                     <h3 className='text-2xl font-black text-orange-600'>{stats.expiring}</h3>
+                    <p className='text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
                   <div className='w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -644,16 +425,20 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                 </div>
               </div>
 
-              {/* Total Revenue */}
-              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* Part B - Expiring Soon */}
+              <div
+                onClick={() => navigate('/national-part-b-expiring')}
+                className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+              >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Revenue</p>
-                    <h3 className='text-2xl font-black text-gray-800'>₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Part B - Expiring Soon</p>
+                    <h3 className='text-2xl font-black text-purple-600'>{stats.partBExpiring}</h3>
+                    <p className='text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
                   <div className='w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>
@@ -752,6 +537,7 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle No.</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid Till</th>
+                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Part B</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Fee</th>
                 <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
               </tr>
@@ -806,6 +592,19 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                         {permit.validTill}
                       </div>
                     </td>
+                    <td className='px-4 py-4'>
+                      <div>
+                        <div className='font-mono font-semibold text-gray-900 mb-1 text-sm'>
+                          {permit.partB?.authorizationNumber || 'N/A'}
+                        </div>
+                        <div className='text-green-600 font-semibold mb-0.5 text-xs'>
+                          {permit.partB?.validFrom || 'N/A'}
+                        </div>
+                        <div className='text-red-600 font-semibold text-xs'>
+                          {permit.partB?.validTo || 'N/A'}
+                        </div>
+                      </div>
+                    </td>
                     <td className='px-6 py-5'>
                       <span className='inline-flex items-center px-3 py-1.5 rounded-md text-sm font-bold bg-purple-100 text-purple-700 border border-purple-200'>
                         {permit.partA?.fees || '₹0'}
@@ -856,7 +655,7 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='7' className='px-6 py-16'>
+                  <td colSpan='8' className='px-6 py-16'>
                     <div className='flex flex-col items-center justify-center'>
                       <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg'>
                         <svg className='w-12 h-12 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

@@ -62,16 +62,28 @@ const DrivingSchema = new mongoose.Schema({
   },
 
   // Driving License Details
-  drivingLicenseNumber: {
+  LicenseNumber: {
     type: String,
     trim: true,
     unique: true,
     sparse: true
   },
-  drivingLicenseIssueDate: {
+  LicenseIssueDate: {
     type: Date
   },
-  drivingLicenseExpiryDate: {
+  LicenseExpiryDate: {
+    type: Date
+  },
+
+  // Learning License Details
+  learningLicenseNumber: {
+    type: String,
+    trim: true
+  },
+  learningLicenseIssueDate: {
+    type: Date
+  },
+  learningLicenseExpiryDate: {
     type: Date
   },
 

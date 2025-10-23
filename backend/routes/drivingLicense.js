@@ -8,6 +8,15 @@ router.get('/', drivingLicenseController.getAllApplications)
 // GET statistics
 router.get('/statistics', drivingLicenseController.getStatistics)
 
+// GET license expiry report
+router.get('/expiry-report', drivingLicenseController.getLicenseExpiryReport)
+
+// GET learning licenses expiring in next 30 days
+router.get('/ll-expiring-soon', drivingLicenseController.getLearningLicensesExpiringSoon)
+
+// GET driving licenses expiring in next 30 days
+router.get('/dl-expiring-soon', drivingLicenseController.getDrivingLicensesExpiringSoon)
+
 // POST add demo data (15 driving licenses)
 router.post('/demo-data', drivingLicenseController.addDemoData)
 

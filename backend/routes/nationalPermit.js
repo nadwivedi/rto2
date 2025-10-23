@@ -14,6 +14,12 @@ router.post('/demo-data', nationalPermitController.addDemoData)
 // GET expiring permits
 router.get('/expiring', nationalPermitController.getExpiringPermits)
 
+// GET Part A expiring in next 30 days
+router.get('/part-a-expiring-soon', nationalPermitController.getPartAExpiringSoon)
+
+// GET Part B expiring in next 30 days
+router.get('/part-b-expiring-soon', nationalPermitController.getPartBExpiringSoon)
+
 // POST share permit via WhatsApp (must be before /:id route)
 router.post('/:id/share', nationalPermitController.sharePermit)
 

@@ -1,9 +1,53 @@
 const Driving = require('../models/Driving')
 
+// Helper function to convert DD-MM-YYYY to Date object
+const convertToDate = (dateString) => {
+  if (!dateString) return null
+
+  // If already a Date object, return as is
+  if (dateString instanceof Date) return dateString
+
+  // Handle DD-MM-YYYY format
+  const parts = dateString.split('-')
+  if (parts.length === 3) {
+    const [day, month, year] = parts
+    // Create date object (month is 0-indexed in JavaScript)
+    return new Date(year, parseInt(month) - 1, day)
+  }
+
+  return null
+}
+
 // Create new driving license application
 exports.createApplication = async (req, res) => {
   try {
-    const applicationData = req.body
+    const applicationData = { ...req.body }
+
+    // Map lowercase field names to uppercase (model field names)
+    if (applicationData.licenseNumber !== undefined) {
+      applicationData.LicenseNumber = applicationData.licenseNumber
+      delete applicationData.licenseNumber
+    }
+
+    // Convert date strings to Date objects and map to uppercase field names
+    if (applicationData.licenseIssueDate !== undefined) {
+      applicationData.LicenseIssueDate = convertToDate(applicationData.licenseIssueDate)
+      delete applicationData.licenseIssueDate
+    }
+
+    if (applicationData.licenseExpiryDate !== undefined) {
+      applicationData.LicenseExpiryDate = convertToDate(applicationData.licenseExpiryDate)
+      delete applicationData.licenseExpiryDate
+    }
+
+    // Convert learning license dates
+    if (applicationData.learningLicenseIssueDate !== undefined) {
+      applicationData.learningLicenseIssueDate = convertToDate(applicationData.learningLicenseIssueDate)
+    }
+
+    if (applicationData.learningLicenseExpiryDate !== undefined) {
+      applicationData.learningLicenseExpiryDate = convertToDate(applicationData.learningLicenseExpiryDate)
+    }
 
     // Create new driving license application
     const newApplication = new Driving(applicationData)
@@ -32,9 +76,7 @@ exports.getAllApplications = async (req, res) => {
       limit = 10,
       search,
       applicationStatus,
-      paymentStatus,
-      sortBy = 'createdAt',
-      sortOrder = 'desc'
+      paymentStatus
     } = req.query
 
     // Build query
@@ -71,12 +113,10 @@ exports.getAllApplications = async (req, res) => {
 
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit)
-    const sortOptions = {}
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
 
-    // Execute query
+    // Execute query with default sort by creation date (newest first)
     const applications = await Driving.find(query)
-      .sort(sortOptions)
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit))
 
@@ -134,7 +174,33 @@ exports.getApplicationById = async (req, res) => {
 exports.updateApplication = async (req, res) => {
   try {
     const { id } = req.params
-    const updateData = req.body
+    const updateData = { ...req.body }
+
+    // Map lowercase field names to uppercase (model field names)
+    if (updateData.licenseNumber !== undefined) {
+      updateData.LicenseNumber = updateData.licenseNumber
+      delete updateData.licenseNumber
+    }
+
+    // Convert date strings to Date objects and map to uppercase field names
+    if (updateData.licenseIssueDate !== undefined) {
+      updateData.LicenseIssueDate = convertToDate(updateData.licenseIssueDate)
+      delete updateData.licenseIssueDate
+    }
+
+    if (updateData.licenseExpiryDate !== undefined) {
+      updateData.LicenseExpiryDate = convertToDate(updateData.licenseExpiryDate)
+      delete updateData.licenseExpiryDate
+    }
+
+    // Convert learning license dates
+    if (updateData.learningLicenseIssueDate !== undefined) {
+      updateData.learningLicenseIssueDate = convertToDate(updateData.learningLicenseIssueDate)
+    }
+
+    if (updateData.learningLicenseExpiryDate !== undefined) {
+      updateData.learningLicenseExpiryDate = convertToDate(updateData.learningLicenseExpiryDate)
+    }
 
     const updatedApplication = await Driving.findByIdAndUpdate(
       id,
@@ -351,6 +417,176 @@ exports.getStatistics = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch statistics',
+      error: error.message
+    })
+  }
+}
+
+// Get license expiry report
+exports.getLicenseExpiryReport = async (req, res) => {
+  try {
+    const today = new Date()
+    const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
+    const sixtyDaysFromNow = new Date(today.getTime() + (60 * 24 * 60 * 60 * 1000))
+    const ninetyDaysFromNow = new Date(today.getTime() + (90 * 24 * 60 * 60 * 1000))
+
+    // Get all licenses with expiry dates
+    const allLicenses = await Driving.find({
+      LicenseExpiryDate: { $exists: true, $ne: null }
+    }).sort({ LicenseExpiryDate: 1 })
+
+    // Categorize licenses
+    const expired = []
+    const expiringIn30Days = []
+    const expiringIn60Days = []
+    const expiringIn90Days = []
+    const valid = []
+
+    allLicenses.forEach(license => {
+      const expiryDate = new Date(license.LicenseExpiryDate)
+
+      if (expiryDate < today) {
+        expired.push(license)
+      } else if (expiryDate <= thirtyDaysFromNow) {
+        expiringIn30Days.push(license)
+      } else if (expiryDate <= sixtyDaysFromNow) {
+        expiringIn60Days.push(license)
+      } else if (expiryDate <= ninetyDaysFromNow) {
+        expiringIn90Days.push(license)
+      } else {
+        valid.push(license)
+      }
+    })
+
+    res.status(200).json({
+      success: true,
+      data: {
+        summary: {
+          total: allLicenses.length,
+          expired: expired.length,
+          expiringIn30Days: expiringIn30Days.length,
+          expiringIn60Days: expiringIn60Days.length,
+          expiringIn90Days: expiringIn90Days.length,
+          valid: valid.length
+        },
+        licenses: {
+          expired,
+          expiringIn30Days,
+          expiringIn60Days,
+          expiringIn90Days,
+          valid
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching license expiry report:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch license expiry report',
+      error: error.message
+    })
+  }
+}
+
+// Get learning licenses expiring in next 30 days
+exports.getLearningLicensesExpiringSoon = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10
+    } = req.query
+
+    const today = new Date()
+    const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
+
+    // Find all applications with learning license expiry dates within next 30 days
+    const query = {
+      learningLicenseExpiryDate: {
+        $exists: true,
+        $ne: null,
+        $gte: today,
+        $lte: thirtyDaysFromNow
+      }
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    // Execute query with default sort by expiry date (earliest first)
+    const applications = await Driving.find(query)
+      .sort({ learningLicenseExpiryDate: 1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Driving.countDocuments(query)
+
+    res.status(200).json({
+      success: true,
+      data: applications,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching LL expiring soon:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch learning licenses expiring soon',
+      error: error.message
+    })
+  }
+}
+
+// Get driving licenses expiring in next 30 days
+exports.getDrivingLicensesExpiringSoon = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10
+    } = req.query
+
+    const today = new Date()
+    const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
+
+    // Find all applications with driving license expiry dates within next 30 days
+    const query = {
+      LicenseExpiryDate: {
+        $exists: true,
+        $ne: null,
+        $gte: today,
+        $lte: thirtyDaysFromNow
+      }
+    }
+
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    // Execute query with default sort by expiry date (earliest first)
+    const applications = await Driving.find(query)
+      .sort({ LicenseExpiryDate: 1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Driving.countDocuments(query)
+
+    res.status(200).json({
+      success: true,
+      data: applications,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching DL expiring soon:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch driving licenses expiring soon',
       error: error.message
     })
   }

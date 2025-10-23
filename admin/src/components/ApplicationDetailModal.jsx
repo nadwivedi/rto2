@@ -50,7 +50,7 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
 
   return (
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4'>
-      <div className='bg-white rounded-none md:rounded-2xl shadow-2xl max-w-6xl w-full h-full md:h-auto md:max-h-[90vh] overflow-hidden flex flex-col'>
+      <div className='bg-white rounded-none md:rounded-2xl shadow-2xl max-w-[95vw] w-full h-full md:h-auto md:max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='bg-gradient-to-r from-indigo-600 to-purple-600 p-4 md:p-6 text-white'>
           <div className='flex justify-between items-start'>
@@ -157,6 +157,107 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
               </div>
             </div>
 
+            {/* License Information - All three cards in same row for desktop */}
+            <div className='grid grid-cols-1 lg:grid-cols-7 gap-6'>
+              {/* License Class */}
+              <div className='bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 lg:col-span-1'>
+                <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
+                  <span className='text-2xl'>📋</span>
+                  License Class
+                </h3>
+                <div className='grid grid-cols-1 gap-4'>
+                  <div>
+                    <label className='text-sm font-semibold text-gray-600'>License Class</label>
+                    <p className='text-gray-800 font-bold mt-1 text-lg'>{application.type || application.fullData?.licenseClass || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Learning License Information - Show only if any LL field is filled */}
+              {(application.fullData?.learningLicenseNumber || application.fullData?.learningLicenseIssueDate || application.fullData?.learningLicenseExpiryDate) && (
+                <div className='bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border-2 border-yellow-200 lg:col-span-3'>
+                  <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
+                    <span className='text-2xl'>🎓</span>
+                    Learning License Details
+                  </h3>
+                  <div className='grid grid-cols-1 xl:grid-cols-3 gap-4'>
+                    {/* LL Number - Show only if filled */}
+                    {application.fullData?.learningLicenseNumber && (
+                      <div>
+                        <label className='text-sm font-semibold text-gray-600'>LL Number</label>
+                        <p className='text-gray-800 font-mono font-bold mt-1 text-sm'>{application.fullData.learningLicenseNumber}</p>
+                      </div>
+                    )}
+
+                    {/* LL Issue Date - Show only if filled */}
+                    {application.fullData?.learningLicenseIssueDate && (
+                      <div>
+                        <label className='text-sm font-semibold text-gray-600'>LL Issue Date</label>
+                        <p className='text-green-600 font-bold mt-1 text-sm'>
+                          {formatDate(application.fullData.learningLicenseIssueDate)}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* LL Expiry Date - Show only if filled */}
+                    {application.fullData?.learningLicenseExpiryDate && (
+                      <div>
+                        <label className='text-sm font-semibold text-gray-600'>LL Expiry Date</label>
+                        <p className='text-red-600 font-bold mt-1 text-sm'>
+                          {formatDate(application.fullData.learningLicenseExpiryDate)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Driving License Information - Show only if any DL field is filled */}
+              {(application.licenseNumber || application.fullData?.licenseNumber || application.fullData?.LicenseNumber ||
+                application.issueDate || application.fullData?.LicenseIssueDate || application.fullData?.licenseIssueDate ||
+                application.expiryDate || application.fullData?.LicenseExpiryDate || application.fullData?.licenseExpiryDate) && (
+                <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 lg:col-span-3'>
+                  <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
+                    <span className='text-2xl'>🪪</span>
+                    Driving License Details
+                  </h3>
+                  <div className='grid grid-cols-1 xl:grid-cols-3 gap-4'>
+                    {/* License Number - Show only if filled */}
+                    {(application.licenseNumber || application.fullData?.licenseNumber || application.fullData?.LicenseNumber) && (
+                      <div>
+                        <label className='text-sm font-semibold text-gray-600'>DL Number</label>
+                        <p className='text-gray-800 font-mono font-bold mt-1 text-sm'>{application.licenseNumber || application.fullData?.licenseNumber || application.fullData?.LicenseNumber}</p>
+                      </div>
+                    )}
+
+                    {/* License Issue Date - Show only if filled */}
+                    {(application.issueDate || application.fullData?.LicenseIssueDate || application.fullData?.licenseIssueDate) && (
+                      <div>
+                        <label className='text-sm font-semibold text-gray-600'>DL Issue Date</label>
+                        <p className='text-green-600 font-bold mt-1 text-sm'>
+                          {application.issueDate ||
+                           (application.fullData?.LicenseIssueDate && formatDate(application.fullData?.LicenseIssueDate)) ||
+                           application.fullData?.licenseIssueDate}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* License Expiry Date - Show only if filled */}
+                    {(application.expiryDate || application.fullData?.LicenseExpiryDate || application.fullData?.licenseExpiryDate) && (
+                      <div>
+                        <label className='text-sm font-semibold text-gray-600'>DL Expiry Date</label>
+                        <p className='text-red-600 font-bold mt-1 text-sm'>
+                          {application.expiryDate ||
+                           (application.fullData?.LicenseExpiryDate && formatDate(application.fullData?.LicenseExpiryDate)) ||
+                           application.fullData?.licenseExpiryDate}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Payment Information */}
             <div className='bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 relative'>
               {/* PAID Stamp - Show only when balance is 0 */}
@@ -229,16 +330,16 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
         </div>
 
         {/* Footer Actions */}
-        <div className='border-t border-gray-200 p-4 md:p-6 bg-gray-50'>
-          <div className='flex flex-col gap-3 md:flex-row md:justify-between md:items-center'>
-            <div className='text-xs md:text-sm text-gray-600 text-center md:text-left'>
+        <div className='border-t border-gray-200 p-2 md:p-3 bg-gray-50'>
+          <div className='flex flex-col gap-2 md:flex-row md:justify-between md:items-center'>
+            <div className='text-xs text-gray-600 text-center md:text-left'>
               Last updated: 2 hours ago
             </div>
 
-            <div className='flex flex-col md:flex-row gap-2 md:gap-3'>
+            <div className='flex flex-col md:flex-row gap-2'>
               <button
                 onClick={onClose}
-                className='px-4 md:px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition text-sm md:text-base cursor-pointer'
+                className='px-4 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition text-sm cursor-pointer'
               >
                 Close
               </button>

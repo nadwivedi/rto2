@@ -6,7 +6,12 @@ import Sidebar from './components/Sidebar'
 import Navbar from './components/Navbar'
 import Dashboard from './pages/Dashboard'
 import DrivingLicence from './pages/DrivingLicence'
+import DrivingLicenseReport from './pages/DrivingLicenseReport'
+import LLExpiring from './pages/LLExpiring'
+import DLExpiring from './pages/DLExpiring'
 import NationalPermit from './pages/NationalPermit'
+import NationalPartAExpiring from './pages/NationalPartAExpiring'
+import NationalPartBExpiring from './pages/NationalPartBExpiring'
 import CgPermit from './pages/CgPermit'
 import TemporaryPermit from './pages/TemporaryPermit'
 import VehicleRegistration from './pages/VehicleRegistration'
@@ -37,7 +42,12 @@ function App() {
             <Routes>
               <Route path='/' element={<Dashboard setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/driving-licence' element={<DrivingLicence setIsSidebarOpen={setIsSidebarOpen} />} />
+              <Route path='/driving-license-report' element={<DrivingLicenseReport setIsSidebarOpen={setIsSidebarOpen} />} />
+              <Route path='/ll-expiring' element={<LLExpiring setIsSidebarOpen={setIsSidebarOpen} />} />
+              <Route path='/dl-expiring' element={<DLExpiring setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/national-permit' element={<NationalPermit setIsSidebarOpen={setIsSidebarOpen} />} />
+              <Route path='/national-part-a-expiring' element={<NationalPartAExpiring setIsSidebarOpen={setIsSidebarOpen} />} />
+              <Route path='/national-part-b-expiring' element={<NationalPartBExpiring setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/cg-permit' element={<CgPermit setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/temporary-permit' element={<TemporaryPermit setIsSidebarOpen={setIsSidebarOpen} />} />
               <Route path='/vehicle-registration' element={<VehicleRegistration setIsSidebarOpen={setIsSidebarOpen} />} />

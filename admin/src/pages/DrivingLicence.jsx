@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import QuickDLApplicationForm from '../components/QuickDLApplicationForm'
 import EditDLApplicationForm from '../components/EditDLApplicationForm'
@@ -7,6 +8,7 @@ import MobileHeader from '../components/MobileHeader'
 import { drivingLicenseAPI } from '../services/api'
 
 const DrivingLicence = ({ setIsSidebarOpen }) => {
+  const navigate = useNavigate()
   // Demo data for when backend is not available
   const demoApplications = [
     {
@@ -102,24 +104,55 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
   const [selectedApplication, setSelectedApplication] = useState(null)
   const [typeFilter, setTypeFilter] = useState('All')
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('All')
-  const [sortBy, setSortBy] = useState('applicationDate')
-  const [sortOrder, setSortOrder] = useState('desc')
+  const [dlExpiryFilter, setDlExpiryFilter] = useState('All')
+  const [llExpiryFilter, setLlExpiryFilter] = useState('All')
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
+  const [llExpiringCount, setLlExpiringCount] = useState(0)
+  const [dlExpiringCount, setDlExpiringCount] = useState(0)
 
   // Fetch applications from backend
   useEffect(() => {
     fetchApplications()
-  }, [currentPage, searchQuery, typeFilter, sortBy, sortOrder, paymentStatusFilter])
+  }, [currentPage, searchQuery, typeFilter, paymentStatusFilter, dlExpiryFilter, llExpiryFilter])
+
+  // Fetch expiring counts on component mount
+  useEffect(() => {
+    fetchExpiringCounts()
+  }, [])
+
+  const fetchExpiringCounts = async () => {
+    try {
+      console.log('Fetching expiring counts...')
+
+      // Fetch LL expiring count
+      const llResponse = await drivingLicenseAPI.getLLExpiringSoon({ page: 1, limit: 1 })
+      console.log('LL Response:', llResponse)
+      const llCount = llResponse.pagination?.totalItems || 0
+      console.log('LL Count:', llCount)
+      setLlExpiringCount(llCount)
+
+      // Fetch DL expiring count
+      const dlResponse = await drivingLicenseAPI.getDLExpiringSoon({ page: 1, limit: 1 })
+      console.log('DL Response:', dlResponse)
+      const dlCount = dlResponse.pagination?.totalItems || 0
+      console.log('DL Count:', dlCount)
+      setDlExpiringCount(dlCount)
+
+      console.log('Expiring counts updated - LL:', llCount, 'DL:', dlCount)
+    } catch (error) {
+      console.error('Error fetching expiring counts:', error)
+      setLlExpiringCount(0)
+      setDlExpiringCount(0)
+    }
+  }
 
   const fetchApplications = async () => {
     try {
       setLoading(true)
       const params = {
         page: currentPage,
-        limit: itemsPerPage,
-        sortBy,
-        sortOrder
+        limit: itemsPerPage
       }
 
       if (searchQuery) params.search = searchQuery
@@ -153,12 +186,48 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
           console.error('Date parsing error:', err)
         }
 
+        // Format license issue date (prioritize new field, fallback to old field)
+        let formattedIssueDate = '-'
+        try {
+          const issueDate = app.LicenseIssueDate || app.drivingLicenseIssueDate
+          if (issueDate) {
+            const d = new Date(issueDate);
+            if (!isNaN(d.getTime())) {
+              const day = String(d.getDate()).padStart(2, '0');
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const year = d.getFullYear();
+              formattedIssueDate = `${day}-${month}-${year}`;
+            }
+          }
+        } catch (err) {
+          console.error('Issue date parsing error:', err)
+        }
+
+        // Format license expiry date (prioritize new field, fallback to old field)
+        let formattedExpiryDate = '-'
+        try {
+          const expiryDate = app.LicenseExpiryDate || app.drivingLicenseExpiryDate
+          if (expiryDate) {
+            const d = new Date(expiryDate);
+            if (!isNaN(d.getTime())) {
+              const day = String(d.getDate()).padStart(2, '0');
+              const month = String(d.getMonth() + 1).padStart(2, '0');
+              const year = d.getFullYear();
+              formattedExpiryDate = `${day}-${month}-${year}`;
+            }
+          }
+        } catch (err) {
+          console.error('Expiry date parsing error:', err)
+        }
+
         return {
           id: app._id,
           name: app.name || '-',
           type: app.licenseClass || '-',
           date: formattedDate,
-          licenseNumber: app.drivingLicenseNumber || '-',
+          licenseNumber: app.LicenseNumber || app.drivingLicenseNumber || '-',
+          issueDate: formattedIssueDate,
+          expiryDate: formattedExpiryDate,
           licenseClass: app.licenseClass || '-',
           totalAmount: app.totalAmount || 0,
           paidAmount: app.paidAmount || 0,
@@ -187,23 +256,76 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
   }
 
 
-  // Use applications directly from backend (backend handles filtering, sorting, and pagination)
-  const currentApplications = applications
+  // Apply client-side filtering for DL and LL expiry
+  const currentApplications = useMemo(() => {
+    let filtered = [...applications]
+
+    const today = new Date()
+
+    // Filter by DL Expiry
+    if (dlExpiryFilter !== 'All') {
+      filtered = filtered.filter(app => {
+        if (!app.expiryDate || app.expiryDate === '-') return false
+
+        try {
+          const [day, month, year] = app.expiryDate.split('-')
+          const expiryDate = new Date(year, month - 1, day)
+          const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
+
+          if (dlExpiryFilter === '30') {
+            return daysUntilExpiry >= 0 && daysUntilExpiry <= 30
+          } else if (dlExpiryFilter === '60') {
+            return daysUntilExpiry >= 0 && daysUntilExpiry <= 60
+          }
+        } catch (e) {
+          return false
+        }
+        return true
+      })
+    }
+
+    // Filter by LL Expiry
+    if (llExpiryFilter !== 'All') {
+      filtered = filtered.filter(app => {
+        const llExpiryDate = app.fullData?.learningLicenseExpiryDate
+        if (!llExpiryDate) return false
+
+        try {
+          const expiry = new Date(llExpiryDate)
+          const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24))
+
+          if (llExpiryFilter === '30') {
+            return daysUntilExpiry >= 0 && daysUntilExpiry <= 30
+          } else if (llExpiryFilter === '45') {
+            return daysUntilExpiry >= 0 && daysUntilExpiry <= 45
+          }
+        } catch (e) {
+          return false
+        }
+        return true
+      })
+    }
+
+    return filtered
+  }, [applications, dlExpiryFilter, llExpiryFilter])
 
   // Calculate statistics
   const stats = useMemo(() => {
     const total = totalItems
-    const totalRevenue = applications.reduce((sum, app) => sum + (app.totalAmount || 0), 0)
-    const totalPaid = applications.reduce((sum, app) => sum + (app.paidAmount || 0), 0)
+
+    // Use the fetched counts instead of calculating from current page
+    const expiringSoon = dlExpiringCount
+    const llExpiringSoon = llExpiringCount
+
     const totalPending = applications.reduce((sum, app) => sum + (app.balanceAmount || 0), 0)
 
     return {
       total,
-      totalRevenue,
-      totalPaid,
+      expiringSoon,
+      llExpiringSoon,
       totalPending
     }
-  }, [applications, totalItems])
+  }, [applications, totalItems, dlExpiringCount, llExpiringCount])
 
   // Reset to page 1 when search changes
   const handleSearchChange = (e) => {
@@ -251,6 +373,11 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
         applicationDate: formData.applicationDate,
         licenseClass: formData.licenseClass,
         licenseNumber: formData.licenseNumber,
+        licenseIssueDate: formData.licenseIssueDate,
+        licenseExpiryDate: formData.licenseExpiryDate,
+        learningLicenseNumber: formData.learningLicenseNumber,
+        learningLicenseIssueDate: formData.learningLicenseIssueDate,
+        learningLicenseExpiryDate: formData.learningLicenseExpiryDate,
         qualification: formData.qualification,
         aadharNumber: formData.aadharNumber,
         panNumber: formData.panNumber,
@@ -259,8 +386,7 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
         totalAmount: parseFloat(formData.totalAmount) || 0,
         paidAmount: parseFloat(formData.paidAmount) || 0,
         balanceAmount: parseFloat(formData.balanceAmount) || 0,
-        applicationStatus: 'pending',
-        learningLicenseNumber: formData.existingLLNumber || null
+        applicationStatus: 'pending'
       }
 
       const response = await drivingLicenseAPI.create(applicationData)
@@ -268,6 +394,7 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
       if (response.success) {
         toast.success('Application submitted successfully!', { autoClose: 700 })
         fetchApplications() // Refresh the list
+        fetchExpiringCounts() // Refresh the expiring counts
       }
     } catch (error) {
       console.error('Error submitting application:', error)
@@ -301,6 +428,11 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
         applicationDate: formData.applicationDate,
         licenseClass: formData.licenseClass,
         licenseNumber: formData.licenseNumber,
+        licenseIssueDate: formData.licenseIssueDate,
+        licenseExpiryDate: formData.licenseExpiryDate,
+        learningLicenseNumber: formData.learningLicenseNumber,
+        learningLicenseIssueDate: formData.learningLicenseIssueDate,
+        learningLicenseExpiryDate: formData.learningLicenseExpiryDate,
         drivingLicenseNumber: formData.drivingLicenseNumber,
         drivingLicenseIssueDate: convertDateToISO(formData.drivingLicenseIssueDate),
         drivingLicenseExpiryDate: convertDateToISO(formData.drivingLicenseExpiryDate),
@@ -322,6 +454,7 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
         toast.success('Application updated successfully!', { autoClose: 700 })
         setIsEditFormOpen(false)
         fetchApplications() // Refresh the list
+        fetchExpiringCounts() // Refresh the expiring counts
       }
     } catch (error) {
       console.error('Error updating application:', error)
@@ -353,31 +486,39 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
                 </div>
               </div>
 
-              {/* Total Revenue */}
-              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* DL Expiring Soon */}
+              <div
+                onClick={() => navigate('/dl-expiring')}
+                className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+              >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Revenue</p>
-                    <h3 className='text-2xl font-black text-gray-800'>₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>DL Expiring Soon</p>
+                    <h3 className='text-2xl font-black text-gray-800'>{stats.expiringSoon}</h3>
+                    <p className='text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
                   <div className='w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>
               </div>
 
-              {/* Total Paid */}
-              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* LL Expiring Soon */}
+              <div
+                onClick={() => navigate('/ll-expiring')}
+                className='bg-white rounded-lg shadow-md border border-yellow-100 p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+              >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Paid</p>
-                    <h3 className='text-2xl font-black text-emerald-600'>₹{stats.totalPaid.toLocaleString('en-IN')}</h3>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>LL Expiring Soon</p>
+                    <h3 className='text-2xl font-black text-gray-800'>{stats.llExpiringSoon}</h3>
+                    <p className='text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-11 h-11 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>
@@ -465,17 +606,6 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
                 <option value='Transport'>Transport</option>
               </select>
 
-              {/* Sort By */}
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
-              >
-                <option value='applicationDate'>By Date</option>
-                <option value='name'>By Name</option>
-                <option value='id'>By ID</option>
-              </select>
-
               {/* Payment Status Filter */}
               <select
                 value={paymentStatusFilter}
@@ -485,26 +615,48 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
                 }}
                 className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
               >
-                <option value='All'>All Statuses</option>
+                <option value='All'>All Status</option>
                 <option value='Paid'>Paid</option>
                 <option value='Pending'>Pending</option>
               </select>
 
-              {/* Sort Order */}
-              <button
-                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl hover:bg-indigo-50 hover:border-indigo-300 transition-all font-bold bg-white shadow-sm'
+              {/* DL Expiry Filter */}
+              <select
+                value={dlExpiryFilter}
+                onChange={(e) => {
+                  setDlExpiryFilter(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className='px-3 py-3 text-sm border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-400 font-semibold bg-white hover:border-purple-300 transition-all shadow-sm'
               >
-                {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
-              </button>
+                <option value='All'>DL Expiry - All</option>
+                <option value='30'>DL Expiring in 30 Days</option>
+                <option value='60'>DL Expiring in 60 Days</option>
+              </select>
+
+              {/* LL Expiry Filter */}
+              <select
+                value={llExpiryFilter}
+                onChange={(e) => {
+                  setLlExpiryFilter(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className='px-4 py-3 text-sm border-2 border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-400 font-semibold bg-white hover:border-yellow-300 transition-all shadow-sm'
+              >
+                <option value='All'>LL Expiry - All</option>
+                <option value='30'>LL Expiring in 30 Days</option>
+                <option value='45'>LL Expiring in 45 Days</option>
+              </select>
 
               {/* Clear Filters */}
-              {(typeFilter !== 'All' || searchQuery || paymentStatusFilter !== 'All') && (
+              {(typeFilter !== 'All' || searchQuery || paymentStatusFilter !== 'All' || dlExpiryFilter !== 'All' || llExpiryFilter !== 'All') && (
                 <button
                   onClick={() => {
                     setTypeFilter('All')
                     setSearchQuery('')
                     setPaymentStatusFilter('All')
+                    setDlExpiryFilter('All')
+                    setLlExpiryFilter('All')
                     setCurrentPage(1)
                   }}
                   className='px-4 py-3 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
@@ -536,7 +688,6 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Applicant Details</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Class</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Number</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Application Date</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Issue Date</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Expiry Date</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Amount</th>
@@ -549,7 +700,7 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
             <tbody className='divide-y divide-gray-200'>
               {loading ? (
                 <tr>
-                  <td colSpan='11' className='px-4 py-8 text-center'>
+                  <td colSpan='10' className='px-4 py-8 text-center'>
                     <div className='text-gray-400'>
                       <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
@@ -592,25 +743,17 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
                       </div>
                     </td>
                     <td className='px-4 py-4'>
-                      <div className='flex items-center text-sm text-gray-700 font-medium'>
-                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <div className='flex items-center text-sm text-green-600 font-semibold'>
+                        <svg className='w-4 h-4 mr-2 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                        </svg>
-                        {app.date}
-                      </div>
-                    </td>
-                    <td className='px-4 py-4'>
-                      <div className='flex items-center text-sm text-emerald-700 font-medium'>
-                        <svg className='w-4 h-4 mr-2 text-emerald-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                         </svg>
                         {app.issueDate || '-'}
                       </div>
                     </td>
                     <td className='px-4 py-4'>
-                      <div className='flex items-center text-sm text-orange-700 font-medium'>
-                        <svg className='w-4 h-4 mr-2 text-orange-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                      <div className='flex items-center text-sm text-red-600 font-semibold'>
+                        <svg className='w-4 h-4 mr-2 text-red-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
                         </svg>
                         {app.expiryDate || '-'}
                       </div>
@@ -678,7 +821,7 @@ const DrivingLicence = ({ setIsSidebarOpen }) => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='11' className='px-4 py-8 text-center'>
+                  <td colSpan='10' className='px-4 py-8 text-center'>
                     <div className='text-gray-400'>
                       <svg className='mx-auto h-8 w-8 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />

@@ -2,10 +2,11 @@ import { useState, useMemo, useEffect } from 'react'
 import PermitBillModal from '../components/PermitBillModal'
 import SharePermitModal from '../components/SharePermitModal'
 import IssueCgPermitModal from '../components/IssueCgPermitModal'
+import MobileHeader from '../components/MobileHeader'
 
 const API_BASE_URL = 'http://localhost:5000/api'
 
-const CgPermit = () => {
+const CgPermit = ({ setIsSidebarOpen }) => {
   // Demo data for when backend is not available
   const demoPermits = [
     {
@@ -126,8 +127,19 @@ const CgPermit = () => {
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showBillModal, setShowBillModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [showEditPermitModal, setShowEditPermitModal] = useState(false)
+  const [editingPermit, setEditingPermit] = useState(null)
+  const [showAdditionalDetails, setShowAdditionalDetails] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [dateFilter, setDateFilter] = useState('All')
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const itemsPerPage = 10
 
   // Fetch permits from backend on component mount
   useEffect(() => {
@@ -216,6 +228,26 @@ const CgPermit = () => {
     )
   }, [permits, searchQuery])
 
+  // Calculate statistics
+  const stats = useMemo(() => {
+    const total = permits.length
+    const active = permits.filter(p => p.status === 'Active').length
+    const expiring = permits.filter(p => p.status === 'Expiring Soon').length
+    const totalRevenue = permits.reduce((sum, permit) => sum + (permit.fees || 0), 0)
+
+    return {
+      total,
+      active,
+      expiring,
+      totalRevenue
+    }
+  }, [permits])
+
+  const handleViewDetails = (permit) => {
+    setSelectedPermit(permit)
+    setShowDetailsModal(true)
+  }
+
   const handleViewBill = (permit) => {
     setSelectedPermit(permit)
     setShowBillModal(true)
@@ -224,6 +256,17 @@ const CgPermit = () => {
   const handleShare = (permit) => {
     setSelectedPermit(permit)
     setShowShareModal(true)
+  }
+
+  const handleEditPermit = (permit) => {
+    setEditingPermit(permit)
+    setShowEditPermitModal(true)
+  }
+
+  const handleFilterChange = (filterType, value) => {
+    if (filterType === 'date') {
+      setDateFilter(value)
+    }
   }
 
   const handleIssuePermit = async (formData) => {
@@ -284,23 +327,75 @@ const CgPermit = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
-      <div className='p-3 md:p-4 lg:p-5 pt-14 lg:pt-16 max-w-[2000px] mx-auto'>
+    <>
+      <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
+        <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
 
-      {/* Error Message */}
-      {error && (
-        <div className='bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-lg'>
-          <div className='flex items-center'>
-            <svg className='w-6 h-6 text-red-500 mr-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-            </svg>
-            <div>
-              <h3 className='text-red-800 font-semibold'>Error loading CG permits</h3>
-              <p className='text-red-700 text-sm'>{error}</p>
+          {/* Statistics Cards */}
+          <div className='mb-2 mt-3'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5'>
+              {/* Total Permits */}
+              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total CG Permits</p>
+                    <h3 className='text-2xl font-black text-gray-800'>{stats.total}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Active Permits */}
+              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Active Permits</p>
+                    <h3 className='text-2xl font-black text-emerald-600'>{stats.active}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Expiring Soon */}
+              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Expiring Soon</p>
+                    <h3 className='text-2xl font-black text-orange-600'>{stats.expiring}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Revenue */}
+              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Revenue</p>
+                    <h3 className='text-2xl font-black text-gray-800'>₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
+                  </div>
+                  <div className='w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
       {/* Loading State */}
       {loading && (
@@ -320,20 +415,22 @@ const CgPermit = () => {
 
       {!loading && (
       <>
-        {/* Search and Filters */}
-        <div className='mb-6'>
-          <div className='flex flex-col lg:flex-row gap-3 items-stretch lg:items-center'>
+      {/* Permits Table */}
+      <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
+        {/* Search and Filters Header */}
+        <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
+          <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center'>
             {/* Search Bar */}
-            <div className='relative flex-1 lg:max-w-xs'>
+            <div className='relative flex-1 lg:max-w-md'>
               <input
                 type='text'
                 placeholder='Search by permit number, holder, or vehicle...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className='w-full pl-10 pr-4 py-2.5 border-2 border-indigo-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all shadow-sm bg-white'
+                className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
               />
               <svg
-                className='absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
+                className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -342,18 +439,45 @@ const CgPermit = () => {
               </svg>
             </div>
 
+            {/* Filters Group */}
+            <div className='flex flex-wrap gap-2'>
+              {/* Date Filter */}
+              <select
+                value={dateFilter}
+                onChange={(e) => handleFilterChange('date', e.target.value)}
+                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
+              >
+                <option value='All'>All Permits</option>
+                <option value='Expiring30Days'>Expiring in 30 Days</option>
+                <option value='Expiring60Days'>Expiring in 60 Days</option>
+                <option value='Expired'>Expired</option>
+              </select>
+
+              {/* Clear Filters */}
+              {dateFilter !== 'All' && (
+                <button
+                  onClick={() => handleFilterChange('date', 'All')}
+                  className='px-4 py-3 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+
             {/* New Permit Button */}
             <button
               onClick={() => setShowIssuePermitModal(true)}
-              className='px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 hover:shadow-xl transition-all duration-300 font-semibold whitespace-nowrap cursor-pointer lg:ml-auto'
+              className='px-5 py-3 text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-bold whitespace-nowrap cursor-pointer lg:ml-auto shadow-lg hover:shadow-xl transform hover:scale-105'
             >
-              + New Permit
+              <span className='flex items-center gap-2'>
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+                </svg>
+                New CG Permit
+              </span>
             </button>
           </div>
         </div>
-
-      {/* Permits Table */}
-      <div className='bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden'>
 
         <div className='overflow-x-auto'>
           <table className='w-full'>
@@ -425,6 +549,25 @@ const CgPermit = () => {
                     </td>
                     <td className='px-6 py-5'>
                       <div className='flex items-center justify-center gap-2'>
+                        <button
+                          onClick={() => handleViewDetails(permit)}
+                          className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='View Details'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleEditPermit(permit)}
+                          className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Edit Permit'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                          </svg>
+                        </button>
                         <button
                           onClick={() => handleViewBill(permit)}
                           className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200'
@@ -501,8 +644,9 @@ const CgPermit = () => {
           permitType="CG"
         />
       )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

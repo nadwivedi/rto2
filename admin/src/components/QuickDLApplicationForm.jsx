@@ -31,6 +31,13 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
     // License Information
     licenseClass: 'MCWG+LMV',
     licenseNumber: '',
+    licenseIssueDate: '',
+    licenseExpiryDate: '',
+
+    // Learning License Information
+    learningLicenseNumber: '',
+    learningLicenseIssueDate: '',
+    learningLicenseExpiryDate: '',
 
     // Educational Information
     qualification: '',
@@ -166,12 +173,87 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
     }
   }, [dobMonth, dobYear])
 
+  // Format date input to DD-MM-YYYY
+  const formatDateInput = (input) => {
+    if (!input) return ''
+
+    // Remove any non-digit characters except / and -
+    let cleaned = input.replace(/[^\d/-]/g, '')
+
+    // Replace / with -
+    cleaned = cleaned.replace(/\//g, '-')
+
+    // Split by -
+    const parts = cleaned.split('-')
+
+    if (parts.length === 3) {
+      let [day, month, year] = parts
+
+      // Pad day and month with leading zeros if needed
+      day = day.padStart(2, '0')
+      month = month.padStart(2, '0')
+
+      // Handle 2-digit year
+      if (year.length === 2) {
+        const currentYear = new Date().getFullYear()
+        const currentCentury = Math.floor(currentYear / 100) * 100
+        const twoDigitYear = parseInt(year)
+        const currentTwoDigit = currentYear % 100
+
+        // If year is less than or equal to current year's last 2 digits, assume current century
+        // Otherwise assume previous century
+        if (twoDigitYear <= currentTwoDigit + 10) {
+          year = currentCentury + twoDigitYear
+        } else {
+          year = (currentCentury - 100) + twoDigitYear
+        }
+      }
+
+      // Ensure year is 4 digits
+      if (year.length === 4) {
+        return `${day}-${month}-${year}`
+      }
+    }
+
+    return cleaned
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+
+    // Apply date formatting for license date fields
+    if (name === 'licenseIssueDate' || name === 'licenseExpiryDate' || name === 'learningLicenseIssueDate' || name === 'learningLicenseExpiryDate') {
+      const formattedDate = formatDateInput(value)
+      setFormData(prev => ({
+        ...prev,
+        [name]: formattedDate
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }))
+    }
+  }
+
+  // Handle Enter key to move to next field instead of submitting
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && e.target.type !== 'submit') {
+      e.preventDefault()
+
+      // Get all focusable elements
+      const form = e.target.form
+      const focusableElements = Array.from(
+        form.querySelectorAll('input, select, textarea, button')
+      ).filter(el => !el.disabled && el.type !== 'submit')
+
+      const currentIndex = focusableElements.indexOf(e.target)
+      const nextElement = focusableElements[currentIndex + 1]
+
+      if (nextElement) {
+        nextElement.focus()
+      }
+    }
   }
 
   const handleSubmit = (e) => {
@@ -214,6 +296,11 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
       applicationDate: getCurrentDate(),
       licenseClass: 'MCWG+LMV',
       licenseNumber: '',
+      licenseIssueDate: '',
+      licenseExpiryDate: '',
+      learningLicenseNumber: '',
+      learningLicenseIssueDate: '',
+      learningLicenseExpiryDate: '',
       qualification: '',
       aadharNumber: '',
       panNumber: '',
@@ -253,7 +340,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
+        <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
             {/* Essential Fields Section */}
             <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
@@ -424,14 +511,15 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
 
             {/* License & Payment Section */}
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6'>
-              {/* License Details */}
-              <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6'>
+              {/* LEFT COLUMN - License Class & Learning License Combined */}
+              <div className='bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-3 md:p-6'>
                 <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                  <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                  License Details
+                  <span className='bg-yellow-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
+                  License Class & Learning License
                 </h3>
 
-                <div className='space-y-3'>
+                <div className='space-y-4'>
+                  {/* License Class */}
                   <div>
                     <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                       License Class <span className='text-red-500'>*</span>
@@ -440,7 +528,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                       name='licenseClass'
                       value={formData.licenseClass}
                       onChange={handleChange}
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent font-semibold'
                       required
                     >
                       <option value='MCWG'>MCWG - Two Wheeler</option>
@@ -452,75 +540,169 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                     </select>
                   </div>
 
-                  <div className='mt-6'>
-                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                      License Number
-                    </label>
-                    <input
-                      type='text'
-                      name='licenseNumber'
-                      value={formData.licenseNumber}
-                      onChange={handleChange}
-                      placeholder='Enter existing license number (if any)'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
-                    />
+                  {/* Learning License Section */}
+                  <div className='border-t border-yellow-300 pt-4'>
+                    <h4 className='text-xs md:text-sm font-bold text-yellow-800 mb-3'>Learning License Details</h4>
+
+                    <div className='space-y-3'>
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          LL Number
+                        </label>
+                        <input
+                          type='text'
+                          name='learningLicenseNumber'
+                          value={formData.learningLicenseNumber}
+                          onChange={handleChange}
+                          placeholder='Enter learning license number'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
+                        />
+                      </div>
+
+                      <div className='grid grid-cols-2 gap-3'>
+                        <div>
+                          <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                            LL Issue Date
+                          </label>
+                          <input
+                            type='text'
+                            name='learningLicenseIssueDate'
+                            value={formData.learningLicenseIssueDate}
+                            onChange={handleChange}
+                            placeholder='DD-MM-YYYY'
+                            className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-green-600 font-semibold'
+                          />
+                        </div>
+
+                        <div>
+                          <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                            LL Expiry Date
+                          </label>
+                          <input
+                            type='text'
+                            name='learningLicenseExpiryDate'
+                            value={formData.learningLicenseExpiryDate}
+                            onChange={handleChange}
+                            placeholder='DD-MM-YYYY'
+                            className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-red-600 font-semibold'
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Payment Details */}
-              <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-3 md:p-6'>
-                <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                  <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
-                  Payment Details
-                </h3>
+              {/* RIGHT COLUMN - Driving License & Payment */}
+              <div className='space-y-4 md:space-y-6'>
+                {/* Driving License Details */}
+                <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6'>
+                  <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                    <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
+                    Driving License Details
+                  </h3>
 
-                <div className='space-y-3'>
-                  {/* Total Amount and Paid Now in one line */}
-                  <div className='grid grid-cols-2 gap-3'>
+                  <div className='space-y-3'>
                     <div>
                       <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Total Amount
+                        DL Number
                       </label>
-                      <div className='relative'>
-                        <span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold'>₹</span>
-                        <input
-                          type='number'
-                          name='totalAmount'
-                          value={formData.totalAmount}
-                          onChange={handleChange}
-                          className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-base md:text-lg'
-                          required
-                        />
-                      </div>
+                      <input
+                        type='text'
+                        name='licenseNumber'
+                        value={formData.licenseNumber}
+                        onChange={handleChange}
+                        placeholder='Enter driving license number'
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                      />
                     </div>
 
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Paid Now
-                      </label>
-                      <div className='relative'>
-                        <span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold'>₹</span>
+                    <div className='grid grid-cols-2 gap-3'>
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          DL Issue Date
+                        </label>
                         <input
-                          type='number'
-                          name='paidAmount'
-                          value={formData.paidAmount}
+                          type='text'
+                          name='licenseIssueDate'
+                          value={formData.licenseIssueDate}
                           onChange={handleChange}
-                          max={formData.totalAmount}
-                          className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-base md:text-lg'
-                          required
+                          placeholder='DD-MM-YYYY'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-green-600 font-semibold'
+                        />
+                      </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          DL Expiry Date
+                        </label>
+                        <input
+                          type='text'
+                          name='licenseExpiryDate'
+                          value={formData.licenseExpiryDate}
+                          onChange={handleChange}
+                          placeholder='DD-MM-YYYY'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-red-600 font-semibold'
                         />
                       </div>
                     </div>
                   </div>
+                </div>
 
-                  {/* Balance in separate line */}
-                  <div className='bg-white rounded-lg p-3 border-2 border-green-300'>
-                    <div className='flex justify-between items-center'>
-                      <span className='text-sm font-semibold text-gray-700'>Balance</span>
-                      <span className='text-xl font-black text-green-600'>
-                        ₹ {formData.balanceAmount.toFixed(2)}
-                      </span>
+                {/* Payment Details */}
+                <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-3 md:p-6'>
+                  <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                    <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>4</span>
+                    Payment Details
+                  </h3>
+
+                  <div className='space-y-3'>
+                    {/* Total Amount and Paid Now in one line */}
+                    <div className='grid grid-cols-2 gap-3'>
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Total Amount
+                        </label>
+                        <div className='relative'>
+                          <span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold'>₹</span>
+                          <input
+                            type='number'
+                            name='totalAmount'
+                            value={formData.totalAmount}
+                            onChange={handleChange}
+                            className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-base md:text-lg'
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Paid Now
+                        </label>
+                        <div className='relative'>
+                          <span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold'>₹</span>
+                          <input
+                            type='number'
+                            name='paidAmount'
+                            value={formData.paidAmount}
+                            onChange={handleChange}
+                            max={formData.totalAmount}
+                            className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-base md:text-lg'
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Balance in separate line */}
+                    <div className='bg-white rounded-lg p-3 border-2 border-green-300'>
+                      <div className='flex justify-between items-center'>
+                        <span className='text-sm font-semibold text-gray-700'>Balance</span>
+                        <span className='text-xl font-black text-green-600'>
+                          ₹ {formData.balanceAmount.toFixed(2)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

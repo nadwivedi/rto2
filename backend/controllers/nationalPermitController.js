@@ -1020,3 +1020,121 @@ exports.addDemoData = async (req, res) => {
     })
   }
 }
+
+// Get Part A (National Permit) expiring in next 30 days
+exports.getPartAExpiringSoon = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10
+    } = req.query
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    // Get all permits
+    const allPermits = await NationalPermit.find()
+
+    // Filter permits where Part A is expiring in next 30 days
+    const expiringPermits = allPermits.filter(permit => {
+      const validToDate = parsePermitDate(permit.validTo)
+      if (!validToDate) return false
+
+      const diffTime = validToDate - today
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+      // Between 0 and 30 days (not expired yet)
+      return diffDays >= 0 && diffDays <= 30
+    })
+
+    // Sort by expiry date (earliest first)
+    expiringPermits.sort((a, b) => {
+      const dateA = parsePermitDate(a.validTo)
+      const dateB = parsePermitDate(b.validTo)
+      return dateA - dateB
+    })
+
+    // Apply pagination
+    const total = expiringPermits.length
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+    const paginatedPermits = expiringPermits.slice(skip, skip + parseInt(limit))
+
+    res.status(200).json({
+      success: true,
+      data: paginatedPermits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching Part A expiring soon:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Part A expiring soon',
+      error: error.message
+    })
+  }
+}
+
+// Get Part B (Type B Authorization) expiring in next 30 days
+exports.getPartBExpiringSoon = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10
+    } = req.query
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    // Get all permits
+    const allPermits = await NationalPermit.find()
+
+    // Filter permits where Part B is expiring in next 30 days
+    const expiringPermits = allPermits.filter(permit => {
+      if (!permit.typeBAuthorization || !permit.typeBAuthorization.validTo) return false
+
+      const validToDate = parsePermitDate(permit.typeBAuthorization.validTo)
+      if (!validToDate) return false
+
+      const diffTime = validToDate - today
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+      // Between 0 and 30 days (not expired yet)
+      return diffDays >= 0 && diffDays <= 30
+    })
+
+    // Sort by expiry date (earliest first)
+    expiringPermits.sort((a, b) => {
+      const dateA = parsePermitDate(a.typeBAuthorization.validTo)
+      const dateB = parsePermitDate(b.typeBAuthorization.validTo)
+      return dateA - dateB
+    })
+
+    // Apply pagination
+    const total = expiringPermits.length
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+    const paginatedPermits = expiringPermits.slice(skip, skip + parseInt(limit))
+
+    res.status(200).json({
+      success: true,
+      data: paginatedPermits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching Part B expiring soon:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Part B expiring soon',
+      error: error.message
+    })
+  }
+}

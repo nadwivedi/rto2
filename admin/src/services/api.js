@@ -195,6 +195,106 @@ export const drivingLicenseAPI = {
       console.error('Error fetching statistics:', error)
       throw error
     }
+  },
+
+  // Get license expiry report
+  getExpiryReport: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/driving-licenses/expiry-report`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch expiry report')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching expiry report:', error)
+      throw error
+    }
+  },
+
+  // Get learning licenses expiring soon (next 30 days)
+  getLLExpiringSoon: async (params = {}) => {
+    try {
+      const queryString = new URLSearchParams(params).toString()
+      const url = `${API_BASE_URL}/driving-licenses/ll-expiring-soon${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch LL expiring soon')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching LL expiring soon:', error)
+      throw error
+    }
+  },
+
+  // Get driving licenses expiring soon (next 30 days)
+  getDLExpiringSoon: async (params = {}) => {
+    try {
+      const queryString = new URLSearchParams(params).toString()
+      const url = `${API_BASE_URL}/driving-licenses/dl-expiring-soon${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch DL expiring soon')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching DL expiring soon:', error)
+      throw error
+    }
+  }
+}
+
+// National Permit API
+export const nationalPermitAPI = {
+  // Get Part A expiring soon (next 30 days)
+  getPartAExpiringSoon: async (params = {}) => {
+    try {
+      const queryString = new URLSearchParams(params).toString()
+      const url = `${API_BASE_URL}/national-permits/part-a-expiring-soon${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch Part A expiring soon')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching Part A expiring soon:', error)
+      throw error
+    }
+  },
+
+  // Get Part B expiring soon (next 30 days)
+  getPartBExpiringSoon: async (params = {}) => {
+    try {
+      const queryString = new URLSearchParams(params).toString()
+      const url = `${API_BASE_URL}/national-permits/part-b-expiring-soon${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch Part B expiring soon')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching Part B expiring soon:', error)
+      throw error
+    }
   }
 }
 
