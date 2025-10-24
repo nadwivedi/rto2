@@ -1,13 +1,28 @@
 const NationalPermit = require('../models/NationalPermit')
+const { generatePDF, generateBillNumber } = require('../utils/billGenerator')
 
 // Create new national permit
 exports.createPermit = async (req, res) => {
   try {
     const permitData = req.body
 
+    // Auto-generate bill number
+    permitData.billNumber = await generateBillNumber(NationalPermit)
+
     // Create new national permit
     const newPermit = new NationalPermit(permitData)
     await newPermit.save()
+
+    // Generate PDF bill in background
+    try {
+      const pdfPath = await generatePDF(newPermit)
+      newPermit.billPdfPath = pdfPath
+      await newPermit.save()
+      console.log('Bill PDF generated successfully:', pdfPath)
+    } catch (pdfError) {
+      console.error('Error generating PDF (non-critical):', pdfError)
+      // Don't fail the permit creation if PDF generation fails
+    }
 
     res.status(201).json({
       success: true,
@@ -1134,6 +1149,94 @@ exports.getPartBExpiringSoon = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch Part B expiring soon',
+      error: error.message
+    })
+  }
+}
+
+// Generate or regenerate bill PDF for a permit
+exports.generateBillPDF = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const permit = await NationalPermit.findById(id)
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    // Generate PDF
+    const pdfPath = await generatePDF(permit)
+    permit.billPdfPath = pdfPath
+    await permit.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Bill PDF generated successfully',
+      data: {
+        billNumber: permit.billNumber,
+        pdfPath: pdfPath,
+        pdfUrl: `${req.protocol}://${req.get('host')}${pdfPath}`
+      }
+    })
+  } catch (error) {
+    console.error('Error generating bill PDF:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate bill PDF',
+      error: error.message
+    })
+  }
+}
+
+// Download bill PDF
+exports.downloadBillPDF = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const permit = await NationalPermit.findById(id)
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    // Check if PDF exists
+    if (!permit.billPdfPath) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bill PDF not found. Please generate it first.'
+      })
+    }
+
+    // Get absolute path to PDF
+    const pdfPath = path.join(__dirname, '..', permit.billPdfPath)
+
+    // Check if file exists
+    if (!fs.existsSync(pdfPath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bill PDF file not found on server'
+      })
+    }
+
+    // Set headers for download
+    const fileName = `${permit.billNumber}_${permit.permitNumber}.pdf`
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
+
+    // Send file
+    res.sendFile(pdfPath)
+  } catch (error) {
+    console.error('Error downloading bill PDF:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download bill PDF',
       error: error.message
     })
   }

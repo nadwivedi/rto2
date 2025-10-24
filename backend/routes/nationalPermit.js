@@ -23,6 +23,12 @@ router.get('/part-b-expiring-soon', nationalPermitController.getPartBExpiringSoo
 // POST share permit via WhatsApp (must be before /:id route)
 router.post('/:id/share', nationalPermitController.sharePermit)
 
+// POST generate bill PDF for a permit
+router.post('/:id/generate-bill-pdf', nationalPermitController.generateBillPDF)
+
+// GET download bill PDF for a permit
+router.get('/:id/download-bill-pdf', nationalPermitController.downloadBillPDF)
+
 // GET single national permit by ID
 router.get('/:id', nationalPermitController.getPermitById)
 

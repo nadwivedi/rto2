@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import IssueNewPermitModal from '../components/IssueNewPermitModal'
 import EditNationalPermitModal from '../components/EditNationalPermitModal'
 import PermitBillModal from '../components/PermitBillModal'
-import SharePermitModal from '../components/SharePermitModal'
 import MobileHeader from '../components/MobileHeader'
 
 const API_BASE_URL = 'http://localhost:5000/api'
@@ -19,11 +18,11 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
   const [showBillModal, setShowBillModal] = useState(false)
-  const [showShareModal, setShowShareModal] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showAdditionalDetails, setShowAdditionalDetails] = useState(false)
   const [dateFilter, setDateFilter] = useState('All')
+  const [whatsappLoading, setWhatsappLoading] = useState(null) // Track which permit is loading
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -110,6 +109,8 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
         status: permit.status,
         partA: {
           permitNumber: permit.permitNumber,
+          billNumber: permit.billNumber || 'BILL-2025-0001',
+          billPdfPath: permit.billPdfPath || null,
           permitType: 'National Permit',
           ownerName: permit.permitHolder,
           ownerAddress: permit.address || 'N/A',
@@ -207,9 +208,83 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
     setShowBillModal(true)
   }
 
-  const handleShare = (permit) => {
-    setSelectedPermit(permit)
-    setShowShareModal(true)
+  const handleWhatsAppShare = async (permit) => {
+    // Set loading state
+    setWhatsappLoading(permit.id)
+
+    try {
+      // Get phone number first (validate before API call)
+      const phoneNumber = (permit.partA?.ownerMobile || '').replace(/\D/g, '')
+
+      if (!phoneNumber) {
+        alert('No mobile number found for this permit holder.')
+        setWhatsappLoading(null)
+        return
+      }
+
+      // Check if PDF already exists
+      let pdfUrl = null
+
+      if (permit.partA?.billPdfPath) {
+        // PDF already exists, use it directly (instant!)
+        pdfUrl = `http://localhost:5000${permit.partA.billPdfPath}`
+      } else {
+        // Need to generate PDF
+        const response = await fetch(`${API_BASE_URL}/national-permits/${permit.id}/generate-bill-pdf`, {
+          method: 'POST'
+        })
+
+        const data = await response.json()
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Failed to generate PDF')
+        }
+
+        pdfUrl = data.data.pdfUrl || `http://localhost:5000${data.data.pdfPath}`
+      }
+
+      // Create WhatsApp message
+      const message = `Hello ${permit.partA?.ownerName || 'Sir/Madam'},
+
+Your National Permit Bill is ready!
+
+*Bill Number:* ${permit.partA?.billNumber || 'N/A'}
+*Permit Number:* ${permit.permitNumber}
+*Vehicle Number:* ${permit.partA?.vehicleNumber || 'N/A'}
+*Amount:* ${permit.partA?.fees || '₹0'}
+
+Download your bill here:
+${pdfUrl}
+
+Thank you for your business!
+- Ashok Kumar (Transport Consultant)`
+
+      // Encode message for URL
+      const encodedMessage = encodeURIComponent(message)
+
+      // Clear loading state
+      setWhatsappLoading(null)
+
+      // Format phone number with country code
+      const formattedPhone = phoneNumber.startsWith('91') ? phoneNumber : `91${phoneNumber}`
+
+      // Use WhatsApp Web for reliable message pre-fill (works for saved and unsaved contacts)
+      const whatsappWebUrl = `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`
+
+      // Open in same tab named 'whatsapp_share' - reuses tab if already open
+      const whatsappWindow = window.open(whatsappWebUrl, 'whatsapp_share')
+      if (whatsappWindow) {
+        whatsappWindow.focus()
+      } else {
+        // If popup blocked, show message
+        alert('Please allow popups for this site to share via WhatsApp, or copy the link manually.')
+      }
+
+    } catch (error) {
+      console.error('Error sharing via WhatsApp:', error)
+      setWhatsappLoading(null)
+      alert('Failed to prepare WhatsApp message. Please try again.')
+    }
   }
 
   const handleEditPermit = (permit) => {
@@ -632,21 +707,33 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
                           </svg>
                         </button>
                         <button
+                          onClick={() => handleWhatsAppShare(permit)}
+                          disabled={whatsappLoading === permit.id}
+                          className={`p-2 rounded-lg transition-all group-hover:scale-110 duration-200 relative ${
+                            whatsappLoading === permit.id
+                              ? 'text-gray-400 bg-gray-100 cursor-wait'
+                              : 'text-green-600 hover:bg-green-100 cursor-pointer'
+                          }`}
+                          title={whatsappLoading === permit.id ? 'Loading...' : 'Share via WhatsApp'}
+                        >
+                          {whatsappLoading === permit.id ? (
+                            <svg className='w-5 h-5 animate-spin' fill='none' viewBox='0 0 24 24'>
+                              <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                              <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                            </svg>
+                          ) : (
+                            <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
+                              <path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/>
+                            </svg>
+                          )}
+                        </button>
+                        <button
                           onClick={() => handleViewBill(permit)}
                           className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                           title='View Bill'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleShare(permit)}
-                          className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all group-hover:scale-110 duration-200'
-                          title='Share'
-                        >
-                          <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
-                            <path d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z' />
                           </svg>
                         </button>
                       </div>
@@ -1209,17 +1296,6 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
           permit={selectedPermit}
           onClose={() => {
             setShowBillModal(false)
-            setSelectedPermit(null)
-          }}
-        />
-      )}
-
-      {/* Share Modal */}
-      {showShareModal && selectedPermit && (
-        <SharePermitModal
-          permit={selectedPermit}
-          onClose={() => {
-            setShowShareModal(false)
             setSelectedPermit(null)
           }}
         />

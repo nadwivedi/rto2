@@ -1,73 +1,12 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
+
+const API_BASE_URL = 'http://localhost:5000/api'
 
 const SharePermitModal = ({ permit, onClose }) => {
   const [phoneNumber, setPhoneNumber] = useState(permit.partA?.ownerMobile || '')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const billRef = useRef(null)
-
-  const currentDate = new Date().toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  })
-
-  const currentTime = new Date().toLocaleTimeString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-
-  const generatePDF = async (asBlob = false) => {
-    try {
-      // Dynamically import html2pdf
-      const html2pdf = (await import('html2pdf.js')).default
-
-      const element = billRef.current
-
-      if (!element) {
-        throw new Error('Bill content not found')
-      }
-
-      const opt = {
-        margin: [0.3, 0.3, 0.3, 0.3],
-        filename: `National_Permit_${permit.permitNumber}.pdf`,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff'
-        },
-        jsPDF: {
-          unit: 'in',
-          format: 'a4',
-          orientation: 'portrait',
-          compress: true
-        }
-      }
-
-      console.log('Starting PDF generation...')
-
-      if (asBlob) {
-        // Generate PDF as blob for sharing
-        console.log('Generating PDF as blob...')
-        const worker = html2pdf().set(opt).from(element)
-        const blob = await worker.outputPdf('blob')
-        console.log('PDF blob generated successfully', blob)
-        return blob
-      } else {
-        // Download PDF
-        console.log('Generating PDF for download...')
-        await html2pdf().set(opt).from(element).save()
-        console.log('PDF downloaded successfully')
-        return true
-      }
-    } catch (error) {
-      console.error('Error generating PDF:', error)
-      throw new Error(`Failed to generate PDF: ${error.message}`)
-    }
-  }
 
   const handleDownloadPDF = async () => {
     setLoading(true)
@@ -75,7 +14,24 @@ const SharePermitModal = ({ permit, onClose }) => {
     setMessage('')
 
     try {
-      await generatePDF(false)
+      // Use the dedicated download endpoint
+      const downloadUrl = `${API_BASE_URL}/national-permits/${permit.id}/download-bill-pdf`
+
+      // Create a link element with download attribute
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.target = '_blank'
+      link.rel = 'noopener noreferrer'
+
+      // Append to body, click, and remove
+      document.body.appendChild(link)
+      link.click()
+
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link)
+      }, 100)
+
       setMessage('PDF downloaded successfully!')
       setTimeout(() => {
         setMessage('')
@@ -107,63 +63,70 @@ const SharePermitModal = ({ permit, onClose }) => {
     setMessage('')
 
     try {
-      // Check if Web Share API is supported
-      if (navigator.share && navigator.canShare) {
-        // Generate PDF as blob for sharing
-        const pdfBlob = await generatePDF(true)
+      // Check if PDF already exists, otherwise generate it
+      let pdfUrl = null
 
-        // Create a File object from the blob
-        const pdfFile = new File(
-          [pdfBlob],
-          `National_Permit_${permit.permitNumber}.pdf`,
-          { type: 'application/pdf' }
-        )
+      if (permit.partA?.billPdfPath) {
+        // PDF already exists, use it directly
+        pdfUrl = `http://localhost:5000${permit.partA.billPdfPath}`
+      } else {
+        // Need to generate PDF
+        const response = await fetch(`${API_BASE_URL}/national-permits/${permit.id}/generate-bill-pdf`, {
+          method: 'POST'
+        })
 
-        // Check if we can share files
-        if (navigator.canShare({ files: [pdfFile] })) {
-          try {
-            await navigator.share({
-              files: [pdfFile],
-              title: `National Permit Bill - ${permit.permitNumber}`,
-              text: `National Permit Bill for ${permit.permitHolder}\nPermit: ${permit.permitNumber}\nVehicle: ${permit.vehicleNo}`
-            })
+        const data = await response.json()
 
-            setMessage('PDF shared successfully!')
-            setTimeout(() => {
-              onClose()
-            }, 2000)
-            return
-          } catch (shareError) {
-            // User cancelled the share or error occurred
-            if (shareError.name === 'AbortError') {
-              setError('Share cancelled')
-              setLoading(false)
-              return
-            }
-            throw shareError
-          }
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || 'Failed to generate PDF')
         }
+
+        pdfUrl = data.data.pdfUrl || `http://localhost:5000${data.data.pdfPath}`
       }
 
-      // Fallback: Download PDF and open WhatsApp
-      await generatePDF(false)
+      // Create WhatsApp message
+      const message = `Hello ${permit.partA?.ownerName || 'Sir/Madam'},
 
-      setMessage('PDF downloaded! Opening WhatsApp...')
+Your National Permit Bill is ready!
 
-      // Wait a bit for download to complete
+*Bill Number:* ${permit.partA?.billNumber || 'N/A'}
+*Permit Number:* ${permit.permitNumber}
+*Vehicle Number:* ${permit.partA?.vehicleNumber || 'N/A'}
+*Amount:* ${permit.partA?.fees || '₹0'}
+
+Download your bill here:
+${pdfUrl}
+
+Thank you for your business!
+- Ashok Kumar (Transport Consultant)`
+
+      // Encode message for URL
+      const encodedMessage = encodeURIComponent(message)
+
+      // Clear loading state
+      setLoading(false)
+
+      // Format phone number for WhatsApp with country code
+      const formattedPhone = `91${cleanedNumber}`
+
+      // Use WhatsApp Web for reliable message pre-fill (works for saved and unsaved contacts)
+      const whatsappWebUrl = `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`
+
+      // Open in same tab named 'whatsapp_share' - reuses tab if already open
+      const whatsappWindow = window.open(whatsappWebUrl, 'whatsapp_share')
+      if (whatsappWindow) {
+        whatsappWindow.focus()
+      } else {
+        // If popup blocked, show message
+        setError('Please allow popups for this site to share via WhatsApp.')
+        return
+      }
+
+      setMessage('Opening WhatsApp...')
       setTimeout(() => {
-        // Format phone number for WhatsApp
-        const formattedPhone = `91${cleanedNumber}`
+        onClose()
+      }, 2000)
 
-        // Open WhatsApp without message (user will attach PDF manually)
-        const whatsappUrl = `https://wa.me/${formattedPhone}`
-        window.open(whatsappUrl, '_blank')
-
-        setMessage('PDF downloaded! Please attach it in WhatsApp and send.')
-        setTimeout(() => {
-          onClose()
-        }, 3000)
-      }, 1000)
     } catch (error) {
       console.error('Error sharing permit:', error)
       setError(error.message || 'Failed to share permit. Please try again.')
@@ -174,11 +137,12 @@ const SharePermitModal = ({ permit, onClose }) => {
 
   return (
     <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4'>
-      <div className='bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
+      <div className='bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 flex justify-between items-center'>
           <div>
             <h2 className='text-2xl font-bold'>Share National Permit Bill</h2>
+            <p className='text-sm text-green-100 mt-1'>Share bill via WhatsApp</p>
           </div>
           <button
             onClick={onClose}
@@ -190,90 +154,42 @@ const SharePermitModal = ({ permit, onClose }) => {
           </button>
         </div>
 
-        {/* Bill Preview */}
-        <div ref={billRef} className='p-4 overflow-y-auto flex-1 bg-white'>
-          {/* Bill Header */}
-          <div className='bg-white mb-3 border-b border-gray-300 pb-3'>
-            <div className='flex justify-between items-start mb-2'>
-              <div>
-                <h1 className='text-2xl font-black text-gray-800 mb-1'>Ashok Kumar</h1>
-                <p className='text-sm text-gray-600 font-semibold'>(Transport Consultant)</p>
-                <div className='mt-2 space-y-0.5 text-xs text-gray-700'>
-                  <p>Email: ashok123kumarbhatt@gmail.com</p>
-                  <p>Address: GF-17, Ground Floor, Shyam Plaza, opp. Bus Stand, Pandri, Raipur</p>
-                </div>
-              </div>
-              <div className='text-right'>
-                <p className='text-xs font-bold text-gray-700 mb-0.5'>Mobile:</p>
-                <p className='text-sm font-semibold text-gray-800'>99934-48850</p>
-                <p className='text-sm font-semibold text-gray-800'>9827146175</p>
-              </div>
-            </div>
-
-            <div className='border-t border-dashed border-gray-300 my-2'></div>
-
-            <div className='text-center mb-2'>
-              <h2 className='text-base font-bold text-gray-800'>National Permit - Bill Receipt</h2>
-              <div className='mt-1 flex justify-center gap-4 text-xs text-gray-600'>
-                <span><strong>Date:</strong> {currentDate}</span>
-                <span><strong>Time:</strong> {currentTime}</span>
-              </div>
-            </div>
-
-            <div className='border-t border-dashed border-gray-300 my-2'></div>
-
-            {/* Permit Holder Details */}
-            <div className='mb-2'>
-              <p className='text-gray-500 text-xs uppercase font-semibold mb-1'>Bill To</p>
-              <p className='font-bold text-gray-800 text-base'>{permit.permitHolder}</p>
-            </div>
-          </div>
-
-          {/* Permit Details */}
-          <div className='bg-gray-50 rounded-lg p-3 mb-3 border border-gray-200'>
-            <h3 className='text-sm font-bold text-gray-800 mb-2 pb-1 border-b border-gray-300'>Permit Details</h3>
-
-            <div className='space-y-1.5'>
-              <div className='flex justify-between items-center py-1 border-b border-gray-200'>
-                <span className='text-gray-700 font-semibold text-sm'>Permit Number:</span>
-                <span className='font-mono font-bold text-gray-800 text-sm'>{permit.permitNumber}</span>
-              </div>
-
-              <div className='flex justify-between items-center py-1 border-b border-gray-200'>
-                <span className='text-gray-700 font-semibold text-sm'>Vehicle Number:</span>
-                <span className='font-mono font-bold text-gray-800 text-sm'>{permit.vehicleNo}</span>
-              </div>
-
-              <div className='flex justify-between items-center py-1 border-b border-gray-200'>
-                <span className='text-gray-700 font-semibold text-sm'>Valid From:</span>
-                <span className='font-semibold text-gray-800 text-sm'>{permit.partA?.permitValidFrom || permit.issueDate}</span>
-              </div>
-
-              <div className='flex justify-between items-center py-1'>
-                <span className='text-gray-700 font-semibold text-sm'>Valid To:</span>
-                <span className='font-semibold text-gray-800 text-sm'>{permit.partA?.permitValidUpto || permit.validTill}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Fees Section */}
-          <div className='bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-300'>
-            <h3 className='text-sm font-bold text-gray-800 mb-2 flex items-center gap-2'>
-              <span className='text-lg'>💰</span>
-              Fee Details
+        {/* Permit Information Summary */}
+        <div className='p-6 bg-gradient-to-br from-gray-50 to-white'>
+          <div className='bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-4'>
+            <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
+              <svg className='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+              </svg>
+              Permit Summary
             </h3>
 
-            <div className='flex justify-between items-center py-2 bg-green-600 text-white px-3 rounded'>
-              <span className='text-base font-bold'>Total Amount</span>
-              <span className='text-2xl font-black'>
-                {permit.partA?.fees || '₹15,000'}
-              </span>
+            <div className='space-y-3'>
+              <div className='flex justify-between items-center pb-3 border-b border-gray-100'>
+                <span className='text-sm text-gray-600 font-medium'>Permit Holder:</span>
+                <span className='font-bold text-gray-900'>{permit.permitHolder}</span>
+              </div>
+
+              <div className='flex justify-between items-center pb-3 border-b border-gray-100'>
+                <span className='text-sm text-gray-600 font-medium'>Permit Number:</span>
+                <span className='font-mono font-bold text-gray-900'>{permit.permitNumber}</span>
+              </div>
+
+              <div className='flex justify-between items-center pb-3 border-b border-gray-100'>
+                <span className='text-sm text-gray-600 font-medium'>Vehicle Number:</span>
+                <span className='font-mono font-bold text-gray-900'>{permit.vehicleNo}</span>
+              </div>
+
+              <div className='flex justify-between items-center'>
+                <span className='text-sm text-gray-600 font-medium'>Bill Amount:</span>
+                <span className='text-xl font-black text-green-600'>{permit.partA?.fees || '₹15,000'}</span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Footer with Share Options */}
-        <div className='bg-white border-t border-gray-200 p-4'>
+        <div className='bg-white border-t border-gray-200 p-6'>
           {/* Phone Number Input */}
           <div className='mb-4'>
             <label className='block text-sm font-semibold text-gray-700 mb-2'>

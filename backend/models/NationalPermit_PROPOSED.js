@@ -1,6 +1,45 @@
 const mongoose = require('mongoose')
 
-// Type B Authorization Schema (1 year validity)
+// Part B Renewal History Schema (tracks each renewal with its bill)
+const PartBRenewalSchema = new mongoose.Schema({
+  renewalDate: {
+    type: Date,
+    default: Date.now
+  },
+  validFrom: {
+    type: String,
+    required: true
+  },
+  validTo: {
+    type: String,
+    required: true
+  },
+  fees: {
+    type: Number,
+    required: true,
+    default: 5000 // Part B renewal fee
+  },
+  billNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  billPdfPath: {
+    type: String,
+    default: null
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Pending', 'Paid', 'Cancelled'],
+    default: 'Paid'
+  },
+  notes: {
+    type: String,
+    trim: true
+  }
+}, { _id: true, timestamps: true })
+
+// Type B Authorization Schema (current active Part B)
 const TypeBAuthorizationSchema = new mongoose.Schema({
   authorizationNumber: {
     type: String,
@@ -15,7 +54,11 @@ const TypeBAuthorizationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-
+  // Track renewal history
+  renewalHistory: {
+    type: [PartBRenewalSchema],
+    default: []
+  }
 }, { _id: false })
 
 const NationalPermitSchema = new mongoose.Schema({
@@ -40,7 +83,7 @@ const NationalPermitSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  
+
   mobileNumber: {
     type: String,
     trim: true
@@ -93,7 +136,7 @@ const NationalPermitSchema = new mongoose.Schema({
     default: '2'
   },
 
-  // Permit Validity (Part A - 5 years)
+  // Part A - Permit Validity (5 years)
   validFrom: {
     type: String,
     required: true
@@ -103,9 +146,7 @@ const NationalPermitSchema = new mongoose.Schema({
     required: true
   },
 
-  // Route Information
-
-  // Type B Authorization (1 year validity) - Structured as separate schema
+  // Part B - Type B Authorization (1 year validity with renewal history)
   typeBAuthorization: {
     type: TypeBAuthorizationSchema,
     required: true
@@ -118,15 +159,12 @@ const NationalPermitSchema = new mongoose.Schema({
     default: 'Active'
   },
 
-
-  // Fees
+  // Part A Fees and Bill (initial issuance)
   fees: {
     type: Number,
     required: true,
     default: 15000
   },
-
-  // Bill Information
   billNumber: {
     type: String,
     trim: true
@@ -142,13 +180,10 @@ const NationalPermitSchema = new mongoose.Schema({
     partBImage: String
   },
 
-
 }, {
   timestamps: true, // Automatically adds createdAt and updatedAt fields
   autoIndex: false // Disable automatic index creation (improves performance in production)
 })
-
-
 
 const NationalPermit = mongoose.model('NationalPermit', NationalPermitSchema)
 

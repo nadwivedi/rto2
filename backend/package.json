@@ -17,8 +17,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cloudinary": "^2.8.0",
     "express": "^5.1.0",
     "mongoose": "^8.19.1",
-    "nodemailer": "^7.0.9"
+    "nodemailer": "^7.0.9",
+    "puppeteer": "^24.26.1"
   }
 }

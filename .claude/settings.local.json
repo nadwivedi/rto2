@@ -9,7 +9,10 @@
       "Bash(node scripts/fixDrivingIndexes.js:*)",
       "Bash(git checkout:*)",
       "Read(//c/Users/Naray/OneDrive/Desktop/code/winners11/**)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm start)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []
