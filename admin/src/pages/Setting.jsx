@@ -1,10 +1,20 @@
 import React, { useState } from 'react'
+import { usePWAInstall } from '../hooks/usePWAInstall'
 
 const Setting = () => {
   const [theme, setTheme] = useState('light')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+
+  const { isInstallable, isInstalled, installPWA } = usePWAInstall()
+
+  const handleInstallClick = async () => {
+    const success = await installPWA()
+    if (success) {
+      console.log('App installation initiated')
+    }
+  }
 
   return (
     <div className='p-4 md:p-6 lg:p-8 pt-20 lg:pt-20 max-w-[1400px] mx-auto'>
@@ -16,6 +26,71 @@ const Setting = () => {
 
       {/* Settings Cards */}
       <div className='space-y-4'>
+        {/* PWA Install App */}
+        <div className='bg-white rounded-xl p-6 shadow-lg border border-gray-200'>
+          <div className='flex items-center gap-3 mb-4'>
+            <div className='w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center text-white text-xl'>
+              📱
+            </div>
+            <div>
+              <h2 className='text-lg font-bold text-gray-800'>Install App</h2>
+              <p className='text-xs text-gray-500'>Install RTO Admin as a desktop application</p>
+            </div>
+          </div>
+
+          <div className='space-y-3'>
+            {isInstalled ? (
+              <div className='p-4 bg-green-50 border border-green-200 rounded-lg'>
+                <div className='flex items-center gap-3'>
+                  <div className='text-2xl'>✅</div>
+                  <div className='flex-1'>
+                    <div className='font-semibold text-green-800 text-sm'>App Installed</div>
+                    <div className='text-xs text-green-600'>RTO Admin is installed on your device</div>
+                  </div>
+                </div>
+              </div>
+            ) : isInstallable ? (
+              <div className='space-y-3'>
+                <div className='p-4 bg-blue-50 border border-blue-200 rounded-lg'>
+                  <div className='text-sm text-blue-800 mb-3'>
+                    Install this app on your device for quick access without opening a browser. Works offline and provides a native app experience.
+                  </div>
+                  <ul className='text-xs text-blue-700 space-y-1 ml-4 list-disc'>
+                    <li>Launch directly from desktop/home screen</li>
+                    <li>Works offline with cached data</li>
+                    <li>Faster loading times</li>
+                    <li>No browser address bar</li>
+                  </ul>
+                </div>
+                <button
+                  onClick={handleInstallClick}
+                  className='w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-lg transition font-semibold text-sm shadow-lg hover:shadow-xl transform hover:scale-105'
+                >
+                  <span className='text-xl'>⬇️</span>
+                  <span>Install RTO Admin App</span>
+                </button>
+              </div>
+            ) : (
+              <div className='p-4 bg-gray-50 border border-gray-200 rounded-lg'>
+                <div className='flex items-center gap-3'>
+                  <div className='text-2xl'>ℹ️</div>
+                  <div className='flex-1'>
+                    <div className='font-semibold text-gray-800 text-sm'>Installation Not Available</div>
+                    <div className='text-xs text-gray-600 mt-1'>
+                      To install this app:
+                      <ul className='mt-2 ml-4 list-disc space-y-1'>
+                        <li>Use Chrome, Edge, or Safari browser</li>
+                        <li>Access via HTTPS (secure connection)</li>
+                        <li>App may already be installed</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Theme Settings */}
         <div className='bg-white rounded-xl p-6 shadow-lg border border-gray-200'>
           <div className='flex items-center gap-3 mb-4'>

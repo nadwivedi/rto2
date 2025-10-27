@@ -1,18 +1,180 @@
 import { useState } from 'react'
-import { formatDate, getFiveYearsFromNow } from '../utils/dateHelpers'
+import { formatDate, getFiveYearsFromNow, parseFormattedDate } from '../utils/dateHelpers'
 
 const API_BASE_URL = 'http://localhost:5000/api'
 
 const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
+  // Get latest Part B data (active or most recent expired)
+  const getLatestPartB = () => {
+    // Check if there's an active Part B
+    if (permit.partB) {
+      const authNum = permit.partB.authorizationNumber
+      const validFrom = permit.partB.validFrom
+      const validTo = permit.partB.validTo
+
+      // Check if Part B data exists (not 'N/A')
+      if (authNum !== 'N/A' && validFrom !== 'N/A' && validTo !== 'N/A') {
+        // Check if it's actually active (not expired)
+        const validToDate = parseFormattedDate(validTo)
+        const today = new Date()
+        const isActive = validToDate && validToDate >= today
+
+        if (isActive) {
+          // Part B is active
+          return {
+            authorizationNumber: authNum,
+            validFrom: validFrom,
+            validTo: validTo,
+            isActive: true,
+            expiredData: null
+          }
+        } else {
+          // Part B exists but expired
+          return {
+            authorizationNumber: '',
+            validFrom: '',
+            validTo: '',
+            isActive: false,
+            expiredData: {
+              authorizationNumber: authNum,
+              validFrom: validFrom,
+              validTo: validTo
+            }
+          }
+        }
+      }
+    }
+
+    // No Part B data found
+    return {
+      authorizationNumber: '',
+      validFrom: '',
+      validTo: '',
+      isActive: false,
+      expiredData: null
+    }
+  }
+
+  const latestPartB = getLatestPartB()
+
   const [formData, setFormData] = useState({
     permitNumber: permit.permitNumber || '',
     validFrom: formatDate(new Date()),
-    validTo: getFiveYearsFromNow(),
+    validTo: formatDate(getFiveYearsFromNow()),
     fees: '15000',
-    notes: 'Part A renewal (5 years)'
+    notes: 'Part A renewal (5 years)',
+    // Part B fields
+    authorizationNumber: latestPartB.authorizationNumber,
+    typeBValidFrom: latestPartB.validFrom,
+    typeBValidTo: latestPartB.validTo
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [partBInfo, setPartBInfo] = useState({
+    isActive: latestPartB.isActive,
+    message: latestPartB.isActive ? 'Active Part B (auto-filled, editable)' : 'No active Part B found'
+  })
+
+  // Auto-format date as user types (DD-MM-YYYY)
+  const handleDateInput = (e) => {
+    const { name, value } = e.target
+    const input = e.target
+    const cursorPos = input.selectionStart
+    const prevValue = formData[name]
+
+    // Handle backspace on dash - remove the dash and the digit before it
+    if (value.length < prevValue.length) {
+      // User is deleting
+      const deletedChar = prevValue[cursorPos]
+      if (deletedChar === '-') {
+        // User backspaced a dash, so remove the digit before it too
+        const newValue = prevValue.slice(0, cursorPos - 1) + prevValue.slice(cursorPos + 1)
+
+        // Update state with the modified value
+        if (name === 'validFrom') {
+          const parsedDate = parseFormattedDate(newValue)
+          if (parsedDate && !isNaN(parsedDate.getTime())) {
+            const validToDate = getFiveYearsFromNow(parsedDate)
+            setFormData(prev => ({
+              ...prev,
+              [name]: newValue,
+              validTo: formatDate(validToDate)
+            }))
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              [name]: newValue
+            }))
+          }
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            [name]: newValue
+          }))
+        }
+        setError('')
+        return
+      }
+    }
+
+    // Remove all non-numeric characters except dashes
+    let cleaned = value.replace(/[^\d-]/g, '')
+
+    // Remove any dashes to rebuild the format
+    let numbers = cleaned.replace(/-/g, '')
+
+    // Limit to 8 digits (DDMMYYYY)
+    numbers = numbers.slice(0, 8)
+
+    // Format as DD-MM-YYYY with dash after 2 and 4 digits
+    let formatted = ''
+    if (numbers.length > 0) {
+      formatted = numbers.slice(0, 2) // DD
+
+      // Add dash after day if we have 2+ digits
+      if (numbers.length >= 2) {
+        formatted += '-'
+      }
+
+      if (numbers.length >= 3) {
+        formatted += numbers.slice(2, 4) // MM
+      }
+
+      // Add dash after month if we have 4+ digits
+      if (numbers.length >= 4) {
+        formatted += '-'
+      }
+
+      if (numbers.length >= 5) {
+        formatted += numbers.slice(4, 8) // YYYY
+      }
+    }
+
+    // If Valid From changes, automatically calculate Valid To
+    if (name === 'validFrom') {
+      const parsedDate = parseFormattedDate(formatted)
+      if (parsedDate && !isNaN(parsedDate.getTime())) {
+        const validToDate = getFiveYearsFromNow(parsedDate)
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted,
+          validTo: formatDate(validToDate)
+        }))
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted
+        }))
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+    }
+
+    setError('')
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -56,7 +218,13 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
           validFrom: formData.validFrom,
           validTo: formData.validTo,
           fees: parseFloat(formData.fees),
-          notes: formData.notes
+          notes: formData.notes,
+          // Part B data
+          typeBAuthorization: {
+            authorizationNumber: formData.authorizationNumber,
+            validFrom: formData.typeBValidFrom,
+            validTo: formData.typeBValidTo
+          }
         })
       })
 
@@ -79,7 +247,7 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
 
   return (
     <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
-      <div className='bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
+      <div className='bg-white rounded-3xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 p-6 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
@@ -136,87 +304,231 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
 
           {/* Renewal Form */}
           <div className='space-y-4'>
-            {/* Permit Number */}
-            <div>
-              <label className='block text-sm font-bold text-gray-700 mb-2'>
-                Permit Number <span className='text-red-500'>*</span>
-              </label>
-              <input
-                type='text'
-                name='permitNumber'
-                value={formData.permitNumber}
-                onChange={handleChange}
-                placeholder='e.g., NP-2025-0001'
-                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono'
-                required
-              />
-              <p className='text-xs text-gray-500 mt-1'>Enter the permit number (can be same as current or new)</p>
+            {/* Row 1: Permit Number, Valid From, Valid To */}
+            <div className='grid grid-cols-3 gap-4'>
+              {/* Permit Number */}
+              <div>
+                <label className='block text-sm font-bold text-gray-700 mb-2'>
+                  Permit Number <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='text'
+                  name='permitNumber'
+                  value={formData.permitNumber}
+                  onChange={handleChange}
+                  placeholder='e.g., NP-2025-0001'
+                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono'
+                  required
+                />
+              </div>
+
+              {/* Valid From */}
+              <div>
+                <label className='block text-sm font-bold text-gray-700 mb-2'>
+                  Valid From <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='text'
+                  name='validFrom'
+                  value={formData.validFrom}
+                  onChange={handleDateInput}
+                  placeholder='27-10-2025'
+                  maxLength='10'
+                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                  required
+                />
+              </div>
+
+              {/* Valid To */}
+              <div>
+                <label className='block text-sm font-bold text-gray-700 mb-2'>
+                  Valid To <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='text'
+                  name='validTo'
+                  value={formData.validTo}
+                  onChange={handleDateInput}
+                  placeholder='26-10-2030'
+                  maxLength='10'
+                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50'
+                  required
+                />
+              </div>
             </div>
 
-            {/* Valid From */}
-            <div>
-              <label className='block text-sm font-bold text-gray-700 mb-2'>
-                Valid From <span className='text-red-500'>*</span>
-              </label>
-              <input
-                type='text'
-                name='validFrom'
-                value={formData.validFrom}
-                onChange={handleChange}
-                placeholder='DD-MM-YYYY'
-                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                required
-              />
+            {/* Row 2: Renewal Fees, Notes */}
+            <div className='grid grid-cols-2 gap-4'>
+              {/* Fees */}
+              <div>
+                <label className='block text-sm font-bold text-gray-700 mb-2'>
+                  Renewal Fees (₹) <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='number'
+                  name='fees'
+                  value={formData.fees}
+                  onChange={handleChange}
+                  placeholder='15000'
+                  min='0'
+                  step='100'
+                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                  required
+                />
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className='block text-sm font-bold text-gray-700 mb-2'>
+                  Notes (Optional)
+                </label>
+                <input
+                  type='text'
+                  name='notes'
+                  value={formData.notes}
+                  onChange={handleChange}
+                  placeholder='Add any notes about this renewal...'
+                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                />
+              </div>
             </div>
 
-            {/* Valid To */}
-            <div>
-              <label className='block text-sm font-bold text-gray-700 mb-2'>
-                Valid To <span className='text-red-500'>*</span>
-              </label>
-              <input
-                type='text'
-                name='validTo'
-                value={formData.validTo}
-                onChange={handleChange}
-                placeholder='DD-MM-YYYY'
-                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                required
-              />
-              <p className='text-xs text-gray-500 mt-1'>Part A is valid for 5 years</p>
+            {/* Helper Text */}
+            <div className='grid grid-cols-3 gap-4 text-xs text-gray-500'>
+              <p>Can be same as current or new</p>
+              <p>Format: DD-MM-YYYY (4-digit year)</p>
+              <p>Auto-calculated (5 years - 1 day)</p>
+            </div>
+          </div>
+
+          {/* Part B Section */}
+          <div className='mt-6 p-5 bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl'>
+            <div className='flex items-center justify-between mb-4'>
+              <h3 className='text-lg font-black text-red-700 flex items-center gap-2'>
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                </svg>
+                Part B Authorization (Optional)
+              </h3>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                partBInfo.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {partBInfo.message}
+              </span>
             </div>
 
-            {/* Fees */}
-            <div>
-              <label className='block text-sm font-bold text-gray-700 mb-2'>
-                Renewal Fees (₹) <span className='text-red-500'>*</span>
-              </label>
-              <input
-                type='number'
-                name='fees'
-                value={formData.fees}
-                onChange={handleChange}
-                placeholder='15000'
-                min='0'
-                step='100'
-                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                required
-              />
-            </div>
+            {/* Show Active Part B Info */}
+            {latestPartB.isActive && (
+              <div className='mb-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg'>
+                <h4 className='text-sm font-bold text-green-800 mb-2 flex items-center gap-2'>
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                  Current Active Part B Details (Auto-filled below)
+                </h4>
+                <div className='grid grid-cols-3 gap-3 text-sm'>
+                  <div>
+                    <span className='text-green-700 font-semibold'>Auth Number:</span>
+                    <p className='text-gray-800 font-mono'>{latestPartB.authorizationNumber}</p>
+                  </div>
+                  <div>
+                    <span className='text-green-700 font-semibold'>Valid From:</span>
+                    <p className='text-gray-800'>{latestPartB.validFrom}</p>
+                  </div>
+                  <div>
+                    <span className='text-green-700 font-semibold'>Valid To:</span>
+                    <p className='text-gray-800'>{latestPartB.validTo}</p>
+                  </div>
+                </div>
+                <p className='text-xs text-green-700 mt-2 font-semibold'>
+                  ✓ These values have been automatically filled in the fields below. You can modify them if needed.
+                </p>
+              </div>
+            )}
 
-            {/* Notes */}
-            <div>
-              <label className='block text-sm font-bold text-gray-700 mb-2'>
-                Notes (Optional)
-              </label>
-              <textarea
-                name='notes'
-                value={formData.notes}
-                onChange={handleChange}
-                placeholder='Add any notes about this renewal...'
-                rows='3'
-                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none'
-              />
+            {/* Show Expired Part B Info */}
+            {latestPartB.expiredData && (
+              <div className='mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg'>
+                <h4 className='text-sm font-bold text-yellow-800 mb-2 flex items-center gap-2'>
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                  Latest Expired Part B Details
+                </h4>
+                <div className='grid grid-cols-3 gap-3 text-sm'>
+                  <div>
+                    <span className='text-yellow-700 font-semibold'>Auth Number:</span>
+                    <p className='text-gray-800 font-mono'>{latestPartB.expiredData.authorizationNumber}</p>
+                  </div>
+                  <div>
+                    <span className='text-yellow-700 font-semibold'>Valid From:</span>
+                    <p className='text-gray-800'>{latestPartB.expiredData.validFrom}</p>
+                  </div>
+                  <div>
+                    <span className='text-yellow-700 font-semibold'>Valid To:</span>
+                    <p className='text-gray-800'>{latestPartB.expiredData.validTo}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className='space-y-4'>
+              {/* Row 1: Auth Number, Valid From, Valid To */}
+              <div className='grid grid-cols-3 gap-4'>
+                {/* Authorization Number */}
+                <div>
+                  <label className='block text-sm font-bold text-gray-700 mb-2'>
+                    Authorization Number
+                  </label>
+                  <input
+                    type='text'
+                    name='authorizationNumber'
+                    value={formData.authorizationNumber}
+                    onChange={handleChange}
+                    placeholder='e.g., AUTH-2025-001'
+                    className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono'
+                  />
+                </div>
+
+                {/* Part B Valid From */}
+                <div>
+                  <label className='block text-sm font-bold text-gray-700 mb-2'>
+                    Valid From
+                  </label>
+                  <input
+                    type='text'
+                    name='typeBValidFrom'
+                    value={formData.typeBValidFrom}
+                    onChange={handleDateInput}
+                    placeholder='27-10-2025'
+                    maxLength='10'
+                    className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'
+                  />
+                </div>
+
+                {/* Part B Valid To */}
+                <div>
+                  <label className='block text-sm font-bold text-gray-700 mb-2'>
+                    Valid To
+                  </label>
+                  <input
+                    type='text'
+                    name='typeBValidTo'
+                    value={formData.typeBValidTo}
+                    onChange={handleDateInput}
+                    placeholder='26-10-2026'
+                    maxLength='10'
+                    className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'
+                  />
+                </div>
+              </div>
+
+              {/* Helper Text */}
+              <div className='p-3 bg-white rounded-lg border border-red-200'>
+                <p className='text-xs text-red-700 font-semibold'>
+                  💡 Part B is typically valid for 1 year. {partBInfo.isActive ? 'Active Part B data has been auto-filled. You can modify these fields as needed.' : 'Enter new Part B details if needed, or leave empty to skip.'}
+                </p>
+              </div>
             </div>
           </div>
 

@@ -157,7 +157,8 @@ const NationalPermit = () => {
             taxPaidUpto: 'N/A',
             taxAmount: 'N/A'
           }
-        }
+        },
+        partARenewalHistory: permit.renewalHistory || []
       }))
 
       setPermits(transformedPermits)

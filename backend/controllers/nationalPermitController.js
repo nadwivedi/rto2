@@ -17,20 +17,25 @@ exports.createPermit = async (req, res) => {
     const newPermit = new NationalPermit(permitData)
     await newPermit.save()
 
-    // Generate PDF bill in background
-    try {
-      const pdfPath = await generatePDF(newPermit)
-      newPermit.billPdfPath = pdfPath
-      await newPermit.save()
-      console.log('Bill PDF generated successfully:', pdfPath)
-    } catch (pdfError) {
-      console.error('Error generating PDF (non-critical):', pdfError)
-      // Don't fail the permit creation if PDF generation fails
-    }
+    // Fire PDF generation in background (don't wait for it)
+    // This improves response time significantly
+    generatePDF(newPermit)
+      .then(pdfPath => {
+        newPermit.billPdfPath = pdfPath
+        return newPermit.save()
+      })
+      .then(() => {
+        console.log('Bill PDF generated successfully for permit:', newPermit.permitNumber)
+      })
+      .catch(pdfError => {
+        console.error('Error generating PDF (non-critical):', pdfError)
+        // Don't fail the permit creation if PDF generation fails
+      })
 
+    // Send response immediately without waiting for PDF
     res.status(201).json({
       success: true,
-      message: 'National permit created successfully',
+      message: 'National permit created successfully. Bill is being generated in background.',
       data: newPermit
     })
   } catch (error) {
@@ -1295,14 +1300,6 @@ exports.renewPartB = async (req, res) => {
       notes: notes || 'Part B renewal'
     }
 
-    // Generate PDF bill
-    try {
-      const pdfPath = await generatePartBRenewalPDF(permit, renewalRecord)
-      renewalRecord.billPdfPath = pdfPath
-    } catch (pdfError) {
-      console.error('Error generating Part B renewal PDF:', pdfError)
-    }
-
     // Initialize renewal history if it doesn't exist
     if (!permit.typeBAuthorization.renewalHistory) {
       permit.typeBAuthorization.renewalHistory = []
@@ -1340,9 +1337,22 @@ exports.renewPartB = async (req, res) => {
 
     await permit.save()
 
+    // Generate PDF bill in background (don't wait for it)
+    generatePartBRenewalPDF(permit, renewalRecord)
+      .then(pdfPath => {
+        renewalRecord.billPdfPath = pdfPath
+        return permit.save()
+      })
+      .then(() => {
+        console.log('Part B renewal PDF generated successfully for permit:', permit.permitNumber)
+      })
+      .catch(pdfError => {
+        console.error('Error generating Part B renewal PDF (non-critical):', pdfError)
+      })
+
     res.status(200).json({
       success: true,
-      message: 'Part B renewed successfully',
+      message: 'Part B renewed successfully. Bill is being generated in background.',
       data: {
         permit,
         renewal: renewalRecord
@@ -1557,14 +1567,6 @@ exports.renewPartA = async (req, res) => {
       notes: notes || 'Part A renewal (5 years)'
     }
 
-    // Generate PDF bill
-    try {
-      const pdfPath = await generatePartARenewalPDF(permit, renewalRecord)
-      renewalRecord.billPdfPath = pdfPath
-    } catch (pdfError) {
-      console.error('Error generating Part A renewal PDF:', pdfError)
-    }
-
     // Initialize renewal history if it doesn't exist
     if (!permit.partARenewalHistory) {
       permit.partARenewalHistory = []
@@ -1602,9 +1604,22 @@ exports.renewPartA = async (req, res) => {
 
     await permit.save()
 
+    // Generate PDF bill in background (don't wait for it)
+    generatePartARenewalPDF(permit, renewalRecord)
+      .then(pdfPath => {
+        renewalRecord.billPdfPath = pdfPath
+        return permit.save()
+      })
+      .then(() => {
+        console.log('Part A renewal PDF generated successfully for permit:', permit.permitNumber)
+      })
+      .catch(pdfError => {
+        console.error('Error generating Part A renewal PDF (non-critical):', pdfError)
+      })
+
     res.status(200).json({
       success: true,
-      message: 'Part A renewed successfully',
+      message: 'Part A renewed successfully. Bill is being generated in background.',
       data: {
         permit,
         renewal: renewalRecord

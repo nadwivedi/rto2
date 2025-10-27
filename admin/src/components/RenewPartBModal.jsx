@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatDate, getOneYearFromNow } from '../utils/dateHelpers'
+import { formatDate, getOneYearFromNow, parseFormattedDate } from '../utils/dateHelpers'
 
 const API_BASE_URL = 'http://localhost:5000/api'
 
@@ -7,12 +7,113 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
   const [formData, setFormData] = useState({
     authorizationNumber: '',
     validFrom: formatDate(new Date()),
-    validTo: getOneYearFromNow(),
+    validTo: formatDate(getOneYearFromNow()),
     fees: '5000',
     notes: 'Annual Part B renewal'
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Auto-format date as user types (DD-MM-YYYY)
+  const handleDateInput = (e) => {
+    const { name, value } = e.target
+    const input = e.target
+    const cursorPos = input.selectionStart
+    const prevValue = formData[name]
+
+    // Handle backspace on dash - remove the dash and the digit before it
+    if (value.length < prevValue.length) {
+      // User is deleting
+      const deletedChar = prevValue[cursorPos]
+      if (deletedChar === '-') {
+        // User backspaced a dash, so remove the digit before it too
+        const newValue = prevValue.slice(0, cursorPos - 1) + prevValue.slice(cursorPos + 1)
+
+        // Update state with the modified value
+        if (name === 'validFrom') {
+          const parsedDate = parseFormattedDate(newValue)
+          if (parsedDate && !isNaN(parsedDate.getTime())) {
+            const validToDate = getOneYearFromNow(parsedDate)
+            setFormData(prev => ({
+              ...prev,
+              [name]: newValue,
+              validTo: formatDate(validToDate)
+            }))
+          } else {
+            setFormData(prev => ({
+              ...prev,
+              [name]: newValue
+            }))
+          }
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            [name]: newValue
+          }))
+        }
+        setError('')
+        return
+      }
+    }
+
+    // Remove all non-numeric characters except dashes
+    let cleaned = value.replace(/[^\d-]/g, '')
+
+    // Remove any dashes to rebuild the format
+    let numbers = cleaned.replace(/-/g, '')
+
+    // Limit to 8 digits (DDMMYYYY)
+    numbers = numbers.slice(0, 8)
+
+    // Format as DD-MM-YYYY with dash after 2 and 4 digits
+    let formatted = ''
+    if (numbers.length > 0) {
+      formatted = numbers.slice(0, 2) // DD
+
+      // Add dash after day if we have 2+ digits
+      if (numbers.length >= 2) {
+        formatted += '-'
+      }
+
+      if (numbers.length >= 3) {
+        formatted += numbers.slice(2, 4) // MM
+      }
+
+      // Add dash after month if we have 4+ digits
+      if (numbers.length >= 4) {
+        formatted += '-'
+      }
+
+      if (numbers.length >= 5) {
+        formatted += numbers.slice(4, 8) // YYYY
+      }
+    }
+
+    // If Valid From changes, automatically calculate Valid To
+    if (name === 'validFrom') {
+      const parsedDate = parseFormattedDate(formatted)
+      if (parsedDate && !isNaN(parsedDate.getTime())) {
+        const validToDate = getOneYearFromNow(parsedDate)
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted,
+          validTo: formatDate(validToDate)
+        }))
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted
+        }))
+      }
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+    }
+
+    setError('')
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -162,11 +263,13 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
                 type='text'
                 name='validFrom'
                 value={formData.validFrom}
-                onChange={handleChange}
-                placeholder='DD-MM-YYYY'
+                onChange={handleDateInput}
+                placeholder='27-10-2025'
+                maxLength='10'
                 className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'
                 required
               />
+              <p className='text-xs text-gray-500 mt-1'>Format: DD-MM-YYYY (4-digit year)</p>
             </div>
 
             {/* Valid To */}
@@ -178,12 +281,13 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
                 type='text'
                 name='validTo'
                 value={formData.validTo}
-                onChange={handleChange}
-                placeholder='DD-MM-YYYY'
-                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'
+                onChange={handleDateInput}
+                placeholder='26-10-2026'
+                maxLength='10'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent bg-gray-50'
                 required
               />
-              <p className='text-xs text-gray-500 mt-1'>Part B is valid for 1 year</p>
+              <p className='text-xs text-gray-500 mt-1'>Auto-calculated (1 year from Valid From)</p>
             </div>
 
             {/* Fees */}

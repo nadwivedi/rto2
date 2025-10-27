@@ -19,13 +19,14 @@ export const formatDate = (date) => {
 }
 
 /**
- * Get a date 5 years from now
+ * Get a date 5 years from now minus 1 day
  * @param {Date} fromDate - Starting date (defaults to today)
- * @returns {Date} Date 5 years in the future
+ * @returns {Date} Date 5 years in the future minus 1 day
  */
 export const getFiveYearsFromNow = (fromDate = new Date()) => {
   const date = new Date(fromDate)
   date.setFullYear(date.getFullYear() + 5)
+  date.setDate(date.getDate() - 1) // Subtract 1 day
   return date
 }
 

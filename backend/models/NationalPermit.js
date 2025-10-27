@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-// Part A Renewal History Schema (tracks each Part A renewal with its bill)
+
 const PartARenewalSchema = new mongoose.Schema({
   permitNumber: {
     type: String,
@@ -48,7 +48,7 @@ const PartARenewalSchema = new mongoose.Schema({
   }
 }, { _id: true, timestamps: true })
 
-// Part B Renewal History Schema (tracks each renewal with its bill)
+
 const PartBRenewalSchema = new mongoose.Schema({
   authorizationNumber: {
     type: String,
