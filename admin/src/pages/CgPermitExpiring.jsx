@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { nationalPermitAPI } from '../services/api'
-import RenewPartBModal from '../components/RenewPartBModal'
 
-const NationalPartBExpiring = () => {
+const API_BASE_URL = 'http://localhost:5000/api'
+
+const CgPermitExpiring = () => {
   const navigate = useNavigate()
   const [permits, setPermits] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,10 +13,8 @@ const NationalPartBExpiring = () => {
   const itemsPerPage = 10
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
-  const [showRenewPartBModal, setShowRenewPartBModal] = useState(false)
-  const [renewingPermit, setRenewingPermit] = useState(null)
 
-  // Fetch Part B expiring soon permits from backend
+  // Fetch expiring soon permits from backend
   useEffect(() => {
     fetchPermits()
   }, [currentPage, searchQuery])
@@ -24,22 +22,28 @@ const NationalPartBExpiring = () => {
   const fetchPermits = async () => {
     try {
       setLoading(true)
-      const params = {
+      const params = new URLSearchParams({
         page: currentPage,
-        limit: itemsPerPage
+        limit: itemsPerPage,
+        days: 30
+      })
+
+      const response = await fetch(`${API_BASE_URL}/cg-permits/expiring?${params}`)
+      const data = await response.json()
+
+      console.log('CG Expiring API Response:', data)
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch expiring permits')
       }
 
-      const response = await nationalPermitAPI.getPartBExpiringSoon(params)
-
-      console.log('Part B Expiring API Response:', response)
-
       // Transform backend data to match frontend format
-      const transformedData = (response.data || []).map(permit => {
-        // Calculate days until Part B expiry
+      const transformedData = (data.data || []).map(permit => {
+        // Calculate days until expiry
         let daysUntilExpiry = '-'
         try {
-          if (permit.typeBAuthorization?.validTo) {
-            const parts = permit.typeBAuthorization.validTo.split('-')
+          if (permit.validTo) {
+            const parts = permit.validTo.split(/[-/]/)
             if (parts.length === 3) {
               const expiryDate = new Date(parts[2], parts[1] - 1, parts[0])
               const today = new Date()
@@ -57,9 +61,8 @@ const NationalPartBExpiring = () => {
           permitNumber: permit.permitNumber || '-',
           permitHolder: permit.permitHolder || '-',
           vehicleNumber: permit.vehicleNumber || '-',
-          authNumber: permit.typeBAuthorization?.authorizationNumber || '-',
-          validFrom: permit.typeBAuthorization?.validFrom || '-',
-          validTo: permit.typeBAuthorization?.validTo || '-',
+          validFrom: permit.validFrom || '-',
+          validTo: permit.validTo || '-',
           daysUntilExpiry,
           fees: permit.fees || 0,
           mobile: permit.mobileNumber || '-',
@@ -73,10 +76,10 @@ const NationalPartBExpiring = () => {
       console.log('Transformed Data:', transformedData)
 
       setPermits(transformedData)
-      setTotalPages(response.pagination?.totalPages || 0)
-      setTotalItems(response.pagination?.totalItems || 0)
+      setTotalPages(data.pagination?.totalPages || 0)
+      setTotalItems(data.pagination?.totalItems || 0)
     } catch (error) {
-      console.error('Error fetching Part B expiring permits:', error)
+      console.error('Error fetching CG expiring permits:', error)
       toast.error('Failed to fetch permits. Please try again.', { autoClose: 700 })
       setPermits([])
       setTotalPages(0)
@@ -94,7 +97,6 @@ const NationalPartBExpiring = () => {
       permit.permitHolder.toLowerCase().includes(searchLower) ||
       permit.permitNumber.toLowerCase().includes(searchLower) ||
       permit.vehicleNumber.toLowerCase().includes(searchLower) ||
-      permit.authNumber.toLowerCase().includes(searchLower) ||
       permit.mobile.toLowerCase().includes(searchLower)
     )
   })
@@ -108,54 +110,44 @@ const NationalPartBExpiring = () => {
     setCurrentPage(page)
   }
 
-  const handleRenewPartB = (permit) => {
-    setRenewingPermit(permit)
-    setShowRenewPartBModal(true)
-  }
-
-  const handleRenewalSuccess = () => {
-    // Refresh permits list after successful renewal
-    fetchPermits()
-  }
-
   return (
     <>
-      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50'>
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
           {/* Page Header */}
           <div className='mb-6'>
             <div className='flex items-center gap-3'>
               <button
-                onClick={() => navigate('/national-permit')}
+                onClick={() => navigate('/cg-permit')}
                 className='p-2 hover:bg-white rounded-lg transition-all'
-                title='Back to National Permit'
+                title='Back to CG Permit'
               >
                 <svg className='w-6 h-6 text-gray-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' />
                 </svg>
               </button>
               <div>
-                <h1 className='text-2xl md:text-3xl font-black text-gray-800'>Part B - Expiring Soon</h1>
-                <p className='text-sm text-gray-600 mt-1'>Type B Authorizations expiring within the next 30 days</p>
+                <h1 className='text-2xl md:text-3xl font-black text-gray-800'>CG Permits - Expiring Soon</h1>
+                <p className='text-sm text-gray-600 mt-1'>CG Permits expiring within the next 30 days</p>
               </div>
             </div>
           </div>
 
           {/* Permits Table */}
           <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
-            <div className='px-6 py-5 bg-gradient-to-r from-purple-50 via-pink-50 to-red-50 border-b border-gray-200'>
+            <div className='px-6 py-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-gray-200'>
               <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center'>
                 {/* Search Bar */}
                 <div className='relative flex-1 lg:max-w-md'>
                   <input
                     type='text'
-                    placeholder='Search by permit holder, auth number, vehicle or mobile...'
+                    placeholder='Search by permit holder, number, vehicle or mobile...'
                     value={searchQuery}
                     onChange={handleSearchChange}
-                    className='w-full pl-11 pr-4 py-3 text-sm border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-400 transition-all bg-white shadow-sm'
+                    className='w-full pl-11 pr-4 py-3 text-sm border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all bg-white shadow-sm'
                   />
                   <svg
-                    className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-purple-400'
+                    className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-blue-400'
                     fill='none'
                     stroke='currentColor'
                     viewBox='0 0 24 24'
@@ -168,24 +160,23 @@ const NationalPartBExpiring = () => {
 
             <div className='overflow-x-auto'>
               <table className='w-full'>
-                <thead className='bg-gradient-to-r from-purple-600 via-pink-600 to-red-600'>
+                <thead className='bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600'>
                   <tr>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Details</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle Info</th>
-                    <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Part B Auth Number</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid To</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Days Left</th>
+                    <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Fees</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Status</th>
-                    <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200'>
                   {loading ? (
                     <tr>
-                      <td colSpan='8' className='px-4 py-8 text-center'>
+                      <td colSpan='7' className='px-4 py-8 text-center'>
                         <div className='text-gray-400'>
-                          <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
                           </svg>
                           <p className='text-sm font-semibold text-gray-600'>Loading permits...</p>
@@ -194,10 +185,10 @@ const NationalPartBExpiring = () => {
                     </tr>
                   ) : filteredPermits.length > 0 ? (
                     filteredPermits.map((permit, index) => (
-                      <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-purple-50/50 hover:via-pink-50/50 hover:to-red-50/50 transition-all duration-200 group'>
+                      <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group'>
                         <td className='px-4 py-4'>
                           <div className='flex items-center gap-3'>
-                            <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
+                            <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
                               {permit.permitHolder?.charAt(0) || 'P'}
                             </div>
                             <div>
@@ -215,11 +206,6 @@ const NationalPartBExpiring = () => {
                         <td className='px-4 py-4'>
                           <div className='text-sm font-mono font-semibold text-gray-900'>{permit.vehicleNumber}</div>
                           <div className='text-xs text-gray-500 mt-0.5'>{permit.vehicleType}</div>
-                        </td>
-                        <td className='px-4 py-4'>
-                          <div className='text-sm font-mono font-semibold text-gray-900 bg-purple-100 px-3 py-1.5 rounded-lg inline-block border border-purple-200'>
-                            {permit.authNumber}
-                          </div>
                         </td>
                         <td className='px-4 py-4'>
                           <div className='flex items-center text-sm text-green-600 font-semibold'>
@@ -249,37 +235,24 @@ const NationalPartBExpiring = () => {
                           </span>
                         </td>
                         <td className='px-4 py-4'>
-                          <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200'>
-                            {permit.status}
-                          </span>
+                          <span className='text-sm font-bold text-gray-800'>₹{permit.fees.toLocaleString('en-IN')}</span>
                         </td>
                         <td className='px-4 py-4'>
-                          <div className='flex items-center justify-center'>
-                            <button
-                              onClick={() => handleRenewPartB(permit)}
-                              className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all duration-200 relative'
-                              title='Renew Part B'
-                            >
-                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                              </svg>
-                              {permit.daysUntilExpiry <= 7 && (
-                                <span className='absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse'></span>
-                              )}
-                            </button>
-                          </div>
+                          <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
+                            {permit.status}
+                          </span>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan='8' className='px-4 py-8 text-center'>
+                      <td colSpan='7' className='px-4 py-8 text-center'>
                         <div className='text-gray-400'>
                           <svg className='mx-auto h-8 w-8 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                           </svg>
-                          <p className='text-sm font-semibold text-gray-600'>No Part B authorizations expiring soon</p>
-                          <p className='text-xs text-gray-500 mt-1'>All authorizations are valid for more than 30 days</p>
+                          <p className='text-sm font-semibold text-gray-600'>No CG permits expiring soon</p>
+                          <p className='text-xs text-gray-500 mt-1'>All permits are valid for more than 30 days</p>
                         </div>
                       </td>
                     </tr>
@@ -290,7 +263,7 @@ const NationalPartBExpiring = () => {
 
             {/* Pagination */}
             {totalItems > 0 && (
-              <div className='px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-purple-50 via-pink-50 to-red-50'>
+              <div className='px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50'>
                 <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
                   <div className='text-sm font-bold text-gray-700'>
                     Page {currentPage} of {totalPages}
@@ -304,7 +277,7 @@ const NationalPartBExpiring = () => {
                       className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
                         currentPage === 1
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-white border-2 border-purple-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300 shadow-sm'
+                          : 'bg-white border-2 border-blue-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 shadow-sm'
                       }`}
                     >
                       Previous
@@ -325,8 +298,8 @@ const NationalPartBExpiring = () => {
                               onClick={() => handlePageChange(pageNumber)}
                               className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
                                 currentPage === pageNumber
-                                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg transform scale-110'
-                                  : 'bg-white border-2 border-purple-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300 shadow-sm'
+                                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transform scale-110'
+                                  : 'bg-white border-2 border-blue-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 shadow-sm'
                               }`}
                             >
                               {pageNumber}
@@ -349,7 +322,7 @@ const NationalPartBExpiring = () => {
                       className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
                         currentPage === totalPages
                           ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-white border-2 border-purple-200 text-gray-700 hover:bg-purple-50 hover:border-purple-300 shadow-sm'
+                          : 'bg-white border-2 border-blue-200 text-gray-700 hover:bg-blue-50 hover:border-blue-300 shadow-sm'
                       }`}
                     >
                       Next
@@ -361,20 +334,8 @@ const NationalPartBExpiring = () => {
           </div>
         </div>
       </div>
-
-      {/* Renew Part B Modal */}
-      {showRenewPartBModal && renewingPermit && (
-        <RenewPartBModal
-          permit={renewingPermit}
-          onClose={() => {
-            setShowRenewPartBModal(false)
-            setRenewingPermit(null)
-          }}
-          onRenewalSuccess={handleRenewalSuccess}
-        />
-      )}
     </>
   )
 }
 
-export default NationalPartBExpiring
+export default CgPermitExpiring

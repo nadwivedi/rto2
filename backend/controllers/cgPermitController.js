@@ -397,29 +397,71 @@ exports.getStatistics = async (req, res) => {
   }
 }
 
-// Get expiring permits (within specified days)
+// Helper function to parse date from string (DD-MM-YYYY or DD/MM/YYYY format)
+function parsePermitDate(dateString) {
+  if (!dateString) return null
+
+  // Handle both DD-MM-YYYY and DD/MM/YYYY formats
+  const parts = dateString.split(/[-/]/)
+  if (parts.length !== 3) return null
+
+  const day = parseInt(parts[0], 10)
+  const month = parseInt(parts[1], 10) - 1 // Month is 0-indexed in JS
+  const year = parseInt(parts[2], 10)
+
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return null
+
+  return new Date(year, month, day)
+}
+
+// Get expiring permits (within specified days) - with pagination
 exports.getExpiringPermits = async (req, res) => {
   try {
-    const { days = 30 } = req.query
+    const {
+      page = 1,
+      limit = 10,
+      days = 30
+    } = req.query
 
     const today = new Date()
-    const futureDate = new Date()
-    futureDate.setDate(today.getDate() + parseInt(days))
+    today.setHours(0, 0, 0, 0)
 
-    const expiringPermits = await CgPermit.find({
-      status: { $in: ['Active', 'Expiring Soon'] }
+    // Get all permits
+    const allPermits = await CgPermit.find()
+
+    // Filter permits where permit is expiring in next N days
+    const expiringPermits = allPermits.filter(permit => {
+      const validToDate = parsePermitDate(permit.validTo)
+      if (!validToDate) return false
+
+      const diffTime = validToDate - today
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+      // Between 0 and specified days (not expired yet)
+      return diffDays >= 0 && diffDays <= parseInt(days)
     })
 
-    // Filter permits that are expiring within the specified days
-    const filteredPermits = expiringPermits.filter(permit => {
-      const validToDate = new Date(permit.validTo)
-      return validToDate >= today && validToDate <= futureDate
+    // Sort by expiry date (earliest first)
+    expiringPermits.sort((a, b) => {
+      const dateA = parsePermitDate(a.validTo)
+      const dateB = parsePermitDate(b.validTo)
+      return dateA - dateB
     })
+
+    // Apply pagination
+    const total = expiringPermits.length
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+    const paginatedPermits = expiringPermits.slice(skip, skip + parseInt(limit))
 
     res.status(200).json({
       success: true,
-      data: filteredPermits,
-      count: filteredPermits.length
+      data: paginatedPermits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
     })
   } catch (error) {
     console.error('Error fetching expiring permits:', error)

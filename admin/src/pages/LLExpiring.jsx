@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import ApplicationDetailModal from '../components/ApplicationDetailModal'
-import MobileHeader from '../components/MobileHeader'
 import { drivingLicenseAPI } from '../services/api'
 
-const LLExpiring = ({ setIsSidebarOpen }) => {
+const LLExpiring = () => {
   const navigate = useNavigate()
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
@@ -157,7 +156,6 @@ const LLExpiring = ({ setIsSidebarOpen }) => {
 
   return (
     <>
-      <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
       <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
           {/* Page Header */}

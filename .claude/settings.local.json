@@ -12,7 +12,10 @@
       "Bash(curl:*)",
       "Bash(npm uninstall:*)",
       "Bash(npm start)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(for:*)",
+      "Bash(do sed -i '/^[[:space:]]*<MobileHeader/d' \"$file\")",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import MobileHeader from '../components/MobileHeader'
 import { nationalPermitAPI } from '../services/api'
+import RenewPartAModal from '../components/RenewPartAModal'
 
-const NationalPartAExpiring = ({ setIsSidebarOpen }) => {
+const NationalPartAExpiring = () => {
   const navigate = useNavigate()
   const [permits, setPermits] = useState([])
   const [loading, setLoading] = useState(true)
@@ -13,6 +13,8 @@ const NationalPartAExpiring = ({ setIsSidebarOpen }) => {
   const itemsPerPage = 10
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
+  const [showRenewPartAModal, setShowRenewPartAModal] = useState(false)
+  const [renewingPermit, setRenewingPermit] = useState(null)
 
   // Fetch Part A expiring soon permits from backend
   useEffect(() => {
@@ -104,9 +106,18 @@ const NationalPartAExpiring = ({ setIsSidebarOpen }) => {
     setCurrentPage(page)
   }
 
+  const handleRenewPartA = (permit) => {
+    setRenewingPermit(permit)
+    setShowRenewPartAModal(true)
+  }
+
+  const handleRenewalSuccess = () => {
+    // Refresh permits list after successful renewal
+    fetchPermits()
+  }
+
   return (
     <>
-      <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
       <div className='min-h-screen bg-gradient-to-br from-gray-50 via-orange-50 to-red-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
           {/* Page Header */}
@@ -164,12 +175,13 @@ const NationalPartAExpiring = ({ setIsSidebarOpen }) => {
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Days Left</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Fees</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Status</th>
+                    <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200'>
                   {loading ? (
                     <tr>
-                      <td colSpan='7' className='px-4 py-8 text-center'>
+                      <td colSpan='8' className='px-4 py-8 text-center'>
                         <div className='text-gray-400'>
                           <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-orange-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
@@ -237,11 +249,27 @@ const NationalPartAExpiring = ({ setIsSidebarOpen }) => {
                             {permit.status}
                           </span>
                         </td>
+                        <td className='px-4 py-4'>
+                          <div className='flex items-center justify-center'>
+                            <button
+                              onClick={() => handleRenewPartA(permit)}
+                              className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all duration-200 relative'
+                              title='Renew Part A'
+                            >
+                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                              </svg>
+                              {permit.daysUntilExpiry <= 7 && (
+                                <span className='absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-pulse'></span>
+                              )}
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan='7' className='px-4 py-8 text-center'>
+                      <td colSpan='8' className='px-4 py-8 text-center'>
                         <div className='text-gray-400'>
                           <svg className='mx-auto h-8 w-8 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
@@ -329,6 +357,18 @@ const NationalPartAExpiring = ({ setIsSidebarOpen }) => {
           </div>
         </div>
       </div>
+
+      {/* Renew Part A Modal */}
+      {showRenewPartAModal && renewingPermit && (
+        <RenewPartAModal
+          permit={renewingPermit}
+          onClose={() => {
+            setShowRenewPartAModal(false)
+            setRenewingPermit(null)
+          }}
+          onRenewalSuccess={handleRenewalSuccess}
+        />
+      )}
     </>
   )
 }

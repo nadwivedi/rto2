@@ -2,11 +2,10 @@ import { useState, useMemo, useEffect } from 'react'
 import PermitBillModal from '../components/PermitBillModal'
 import SharePermitModal from '../components/SharePermitModal'
 import IssueTemporaryPermitModal from '../components/IssueTemporaryPermitModal'
-import MobileHeader from '../components/MobileHeader'
 
 const API_BASE_URL = 'http://localhost:5000/api'
 
-const TemporaryPermit = ({ setIsSidebarOpen }) => {
+const TemporaryPermit = () => {
   // Demo data for when backend is not available
   const demoPermits = [
     {
@@ -307,7 +306,6 @@ const TemporaryPermit = ({ setIsSidebarOpen }) => {
 
   return (
     <>
-      <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
       <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
 

@@ -1,5 +1,9 @@
 const NationalPermit = require('../models/NationalPermit')
 const { generatePDF, generateBillNumber } = require('../utils/billGenerator')
+const { generatePartBRenewalPDF, generatePartBBillNumber } = require('../utils/partBBillGenerator')
+const { generatePartARenewalPDF, generatePartARenewalBillNumber } = require('../utils/partARenewalBillGenerator')
+const path = require('path')
+const fs = require('fs')
 
 // Create new national permit
 exports.createPermit = async (req, res) => {
@@ -1237,6 +1241,469 @@ exports.downloadBillPDF = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to download bill PDF',
+      error: error.message
+    })
+  }
+}
+
+// Renew Part B Authorization
+exports.renewPartB = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { authorizationNumber, validFrom, validTo, fees = 5000, notes } = req.body
+
+    // Validate required fields
+    if (!authorizationNumber || authorizationNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Authorization Number is required'
+      })
+    }
+
+    if (!validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid From and Valid To dates are required'
+      })
+    }
+
+    // Find permit
+    const permit = await NationalPermit.findById(id)
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    // Use the provided authorization number (manual entry)
+    const newAuthNumber = authorizationNumber.trim()
+
+    // Generate Part B bill number
+    const billNumber = await generatePartBBillNumber(NationalPermit)
+
+    // Create renewal record
+    const renewalRecord = {
+      authorizationNumber: newAuthNumber,
+      renewalDate: new Date(),
+      validFrom,
+      validTo,
+      fees,
+      billNumber,
+      billPdfPath: null,
+      paymentStatus: 'Paid',
+      notes: notes || 'Part B renewal'
+    }
+
+    // Generate PDF bill
+    try {
+      const pdfPath = await generatePartBRenewalPDF(permit, renewalRecord)
+      renewalRecord.billPdfPath = pdfPath
+    } catch (pdfError) {
+      console.error('Error generating Part B renewal PDF:', pdfError)
+    }
+
+    // Initialize renewal history if it doesn't exist
+    if (!permit.typeBAuthorization.renewalHistory) {
+      permit.typeBAuthorization.renewalHistory = []
+    }
+
+    // IMPORTANT: Save the current/original Part B to history BEFORE replacing it
+    // This ensures we track the original Part B that was created with the initial permit
+    if (permit.typeBAuthorization.authorizationNumber) {
+      const originalPartB = {
+        authorizationNumber: permit.typeBAuthorization.authorizationNumber,
+        renewalDate: permit.createdAt || new Date(), // Use permit creation date
+        validFrom: permit.typeBAuthorization.validFrom,
+        validTo: permit.typeBAuthorization.validTo,
+        fees: 0, // Original Part B fees were part of the main permit fees
+        billNumber: 'N/A', // No separate bill for original Part B
+        billPdfPath: null, // No separate PDF for original Part B
+        paymentStatus: 'Paid',
+        notes: 'Original Part B (created with initial permit). Bill included in main permit.',
+        isOriginal: true // Flag to identify this is the original Part B
+      }
+
+      // Only add original Part B if this is the first renewal (history is empty)
+      if (permit.typeBAuthorization.renewalHistory.length === 0) {
+        permit.typeBAuthorization.renewalHistory.push(originalPartB)
+      }
+    }
+
+    // Add the new renewal to history
+    permit.typeBAuthorization.renewalHistory.push(renewalRecord)
+
+    // Update current Part B dates and authorization number
+    permit.typeBAuthorization.authorizationNumber = newAuthNumber
+    permit.typeBAuthorization.validFrom = validFrom
+    permit.typeBAuthorization.validTo = validTo
+
+    await permit.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Part B renewed successfully',
+      data: {
+        permit,
+        renewal: renewalRecord
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing Part B:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to renew Part B',
+      error: error.message
+    })
+  }
+}
+
+// Get Part B renewal history
+exports.getPartBRenewalHistory = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const permit = await NationalPermit.findById(id)
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    const renewalHistory = permit.typeBAuthorization?.renewalHistory || []
+
+    res.status(200).json({
+      success: true,
+      data: renewalHistory,
+      count: renewalHistory.length
+    })
+  } catch (error) {
+    console.error('Error fetching Part B renewal history:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Part B renewal history',
+      error: error.message
+    })
+  }
+}
+
+// Download Part B renewal bill PDF
+exports.downloadPartBRenewalPDF = async (req, res) => {
+  try {
+    const { id, renewalId } = req.params
+
+    const permit = await NationalPermit.findById(id)
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    // Find the specific renewal
+    const renewal = permit.typeBAuthorization.renewalHistory.id(renewalId)
+    if (!renewal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Renewal record not found'
+      })
+    }
+
+    if (!renewal.billPdfPath) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bill PDF not found. Please generate it first.'
+      })
+    }
+
+    // Get absolute path to PDF
+    const pdfPath = path.join(__dirname, '..', renewal.billPdfPath)
+
+    // Check if file exists
+    if (!fs.existsSync(pdfPath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bill PDF file not found on server'
+      })
+    }
+
+    // Set headers for download
+    const fileName = `${renewal.billNumber}_${permit.permitNumber}.pdf`
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
+
+    // Send file
+    res.sendFile(pdfPath)
+  } catch (error) {
+    console.error('Error downloading Part B renewal PDF:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download Part B renewal PDF',
+      error: error.message
+    })
+  }
+}
+
+// Get Part B expiring in next 35 days
+exports.getPartBExpiringSoon = async (req, res) => {
+  try {
+    const {
+      page = 1,
+      limit = 10
+    } = req.query
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    // Get all permits
+    const allPermits = await NationalPermit.find()
+
+    // Filter permits where Part B is expiring in next 35 days
+    const expiringPermits = allPermits.filter(permit => {
+      if (!permit.typeBAuthorization || !permit.typeBAuthorization.validTo) return false
+
+      const validToDate = parsePermitDate(permit.typeBAuthorization.validTo)
+      if (!validToDate) return false
+
+      const diffTime = validToDate - today
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+      // Between 0 and 35 days (not expired yet)
+      return diffDays >= 0 && diffDays <= 35
+    })
+
+    // Sort by expiry date (earliest first)
+    expiringPermits.sort((a, b) => {
+      const dateA = parsePermitDate(a.typeBAuthorization.validTo)
+      const dateB = parsePermitDate(b.typeBAuthorization.validTo)
+      return dateA - dateB
+    })
+
+    // Apply pagination
+    const total = expiringPermits.length
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+    const paginatedPermits = expiringPermits.slice(skip, skip + parseInt(limit))
+
+    res.status(200).json({
+      success: true,
+      data: paginatedPermits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching Part B expiring soon:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Part B expiring soon',
+      error: error.message
+    })
+  }
+}
+
+
+// Renew Part A (National Permit)
+exports.renewPartA = async (req, res) => {
+  try {
+    const { id } = req.params
+    const { permitNumber, validFrom, validTo, fees = 15000, notes } = req.body
+
+    // Validate required fields
+    if (!permitNumber || permitNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit Number is required'
+      })
+    }
+
+    if (!validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid From and Valid To dates are required'
+      })
+    }
+
+    // Find permit
+    const permit = await NationalPermit.findById(id)
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    // Use the provided permit number (can be same as original or new)
+    const newPermitNumber = permitNumber.trim()
+
+    // Generate Part A renewal bill number
+    const billNumber = await generatePartARenewalBillNumber(NationalPermit)
+
+    // Create renewal record
+    const renewalRecord = {
+      permitNumber: newPermitNumber,
+      renewalDate: new Date(),
+      validFrom,
+      validTo,
+      fees,
+      billNumber,
+      billPdfPath: null,
+      paymentStatus: 'Paid',
+      notes: notes || 'Part A renewal (5 years)'
+    }
+
+    // Generate PDF bill
+    try {
+      const pdfPath = await generatePartARenewalPDF(permit, renewalRecord)
+      renewalRecord.billPdfPath = pdfPath
+    } catch (pdfError) {
+      console.error('Error generating Part A renewal PDF:', pdfError)
+    }
+
+    // Initialize renewal history if it doesn't exist
+    if (!permit.partARenewalHistory) {
+      permit.partARenewalHistory = []
+    }
+
+    // IMPORTANT: Save the current/original Part A to history BEFORE replacing it
+    // This ensures we track the original Part A that was created with the initial permit
+    if (permit.permitNumber) {
+      const originalPartA = {
+        permitNumber: permit.permitNumber,
+        renewalDate: permit.createdAt || new Date(), // Use permit creation date
+        validFrom: permit.validFrom,
+        validTo: permit.validTo,
+        fees: permit.fees || 15000, // Original Part A fees
+        billNumber: permit.billNumber || 'N/A',
+        billPdfPath: permit.billPdfPath || null,
+        paymentStatus: 'Paid',
+        notes: 'Original Part A (created with initial permit)',
+        isOriginal: true // Flag to identify this is the original Part A
+      }
+
+      // Only add original Part A if this is the first renewal (history is empty)
+      if (permit.partARenewalHistory.length === 0) {
+        permit.partARenewalHistory.push(originalPartA)
+      }
+    }
+
+    // Add the new renewal to history
+    permit.partARenewalHistory.push(renewalRecord)
+
+    // Update current Part A dates and permit number
+    permit.permitNumber = newPermitNumber
+    permit.validFrom = validFrom
+    permit.validTo = validTo
+
+    await permit.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Part A renewed successfully',
+      data: {
+        permit,
+        renewal: renewalRecord
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing Part A:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to renew Part A',
+      error: error.message
+    })
+  }
+}
+
+// Get Part A renewal history
+exports.getPartARenewalHistory = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const permit = await NationalPermit.findById(id)
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    const renewalHistory = permit.partARenewalHistory || []
+
+    res.status(200).json({
+      success: true,
+      data: renewalHistory,
+      count: renewalHistory.length
+    })
+  } catch (error) {
+    console.error('Error fetching Part A renewal history:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Part A renewal history',
+      error: error.message
+    })
+  }
+}
+
+// Download Part A renewal bill PDF
+exports.downloadPartARenewalPDF = async (req, res) => {
+  try {
+    const { id, renewalId } = req.params
+
+    const permit = await NationalPermit.findById(id)
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    // Find the specific renewal
+    const renewal = permit.partARenewalHistory.id(renewalId)
+    if (!renewal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Renewal record not found'
+      })
+    }
+
+    if (!renewal.billPdfPath) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bill PDF not found. Please generate it first.'
+      })
+    }
+
+    // Get absolute path to PDF
+    const pdfPath = path.join(__dirname, '..', renewal.billPdfPath)
+
+    // Check if file exists
+    if (!fs.existsSync(pdfPath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bill PDF file not found on server'
+      })
+    }
+
+    // Set headers for download
+    const fileName = `${renewal.billNumber}_${renewal.permitNumber}.pdf`
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
+    res.setHeader('Access-Control-Allow-Origin', '*')
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
+
+    // Send file
+    res.sendFile(pdfPath)
+  } catch (error) {
+    console.error('Error downloading Part A renewal PDF:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download Part A renewal PDF',
       error: error.message
     })
   }

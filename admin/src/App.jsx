@@ -1,61 +1,52 @@
-import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import Sidebar from './components/Sidebar'
 import Navbar from './components/Navbar'
-import Dashboard from './pages/Dashboard'
+import Setting from './pages/Setting'
 import DrivingLicence from './pages/DrivingLicence'
-import DrivingLicenseReport from './pages/DrivingLicenseReport'
 import LLExpiring from './pages/LLExpiring'
 import DLExpiring from './pages/DLExpiring'
 import NationalPermit from './pages/NationalPermit'
 import NationalPartAExpiring from './pages/NationalPartAExpiring'
 import NationalPartBExpiring from './pages/NationalPartBExpiring'
 import CgPermit from './pages/CgPermit'
+import CgPermitExpiring from './pages/CgPermitExpiring'
 import TemporaryPermit from './pages/TemporaryPermit'
 import VehicleRegistration from './pages/VehicleRegistration'
 import Insurance from './pages/Insurance'
 import Fitness from './pages/Fitness'
-import LicenseRenewal from './pages/LicenseRenewal'
 import VehicleTransfer from './pages/VehicleTransfer'
-import Reports from './pages/Reports'
+import DealerBill from './pages/DealerBill'
 
 function App() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-
   return (
     <Router>
       <div className='min-h-screen bg-gray-50'>
         <ToastContainer />
 
-        {/* Sidebar - with mobile hamburger menu */}
-        {/* <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} /> */}
-
-        {/* Navbar - Full width navigation */}
-        <Navbar/>
+        {/* Unified Navbar - handles both desktop and mobile navigation */}
+        <Navbar />
 
         {/* Main Content - Full width without sidebar margin */}
         <div className='min-h-screen w-full'>
           {/* Page Content */}
           <main>
             <Routes>
-              <Route path='/' element={<Dashboard setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/driving-licence' element={<DrivingLicence setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/driving-license-report' element={<DrivingLicenseReport setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/ll-expiring' element={<LLExpiring setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/dl-expiring' element={<DLExpiring setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/national-permit' element={<NationalPermit setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/national-part-a-expiring' element={<NationalPartAExpiring setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/national-part-b-expiring' element={<NationalPartBExpiring setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/cg-permit' element={<CgPermit setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/temporary-permit' element={<TemporaryPermit setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/vehicle-registration' element={<VehicleRegistration setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/insurance' element={<Insurance setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/fitness' element={<Fitness setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/license-renewal' element={<LicenseRenewal setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/vehicle-transfer' element={<VehicleTransfer setIsSidebarOpen={setIsSidebarOpen} />} />
-              <Route path='/reports' element={<Reports setIsSidebarOpen={setIsSidebarOpen} />} />
+              <Route path='/' element={<Setting />} />
+              <Route path='/driving-licence' element={<DrivingLicence />} />
+              <Route path='/ll-expiring' element={<LLExpiring />} />
+              <Route path='/dl-expiring' element={<DLExpiring />} />
+              <Route path='/national-permit' element={<NationalPermit />} />
+              <Route path='/national-part-a-expiring' element={<NationalPartAExpiring />} />
+              <Route path='/national-part-b-expiring' element={<NationalPartBExpiring />} />
+              <Route path='/cg-permit' element={<CgPermit />} />
+              <Route path='/cg-permit-expiring' element={<CgPermitExpiring />} />
+              <Route path='/temporary-permit' element={<TemporaryPermit />} />
+              <Route path='/vehicle-registration' element={<VehicleRegistration />} />
+              <Route path='/insurance' element={<Insurance />} />
+              <Route path='/fitness' element={<Fitness />} />
+              <Route path='/vehicle-transfer' element={<VehicleTransfer />} />
+              <Route path='/dealer-bill' element={<DealerBill />} />
             </Routes>
           </main>
         </div>

@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import IssueNewPermitModal from '../components/IssueNewPermitModal'
 import EditNationalPermitModal from '../components/EditNationalPermitModal'
 import PermitBillModal from '../components/PermitBillModal'
-import MobileHeader from '../components/MobileHeader'
+import RenewPartBModal from '../components/RenewPartBModal'
+import RenewPartAModal from '../components/RenewPartAModal'
+import { isPartBExpiringSoon, isPartAExpiringSoon, getDaysRemaining } from '../utils/dateHelpers'
 
 const API_BASE_URL = 'http://localhost:5000/api'
 
-const NationalPermit = ({ setIsSidebarOpen }) => {
+const NationalPermit = () => {
   const navigate = useNavigate()
   const [permits, setPermits] = useState([])
 
@@ -18,6 +20,9 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
   const [showBillModal, setShowBillModal] = useState(false)
+  const [showRenewPartBModal, setShowRenewPartBModal] = useState(false)
+  const [showRenewPartAModal, setShowRenewPartAModal] = useState(false)
+  const [renewingPermit, setRenewingPermit] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [showAdditionalDetails, setShowAdditionalDetails] = useState(false)
@@ -142,7 +147,7 @@ const NationalPermit = ({ setIsSidebarOpen }) => {
           restrictions: permit.typeBAuthorization?.restrictions || 'As per RTO regulations',
           conditions: permit.typeBAuthorization?.conditions || 'Valid for goods transportation only',
           endorsements: permit.typeBAuthorization?.endorsements || 'None',
-          renewalHistory: permit.renewalHistory || [],
+          renewalHistory: permit.typeBAuthorization?.renewalHistory || [],
           insuranceDetails: permit.insuranceDetails || {
             policyNumber: 'N/A',
             company: 'N/A',
@@ -290,6 +295,21 @@ Thank you for your business!
   const handleEditPermit = (permit) => {
     setEditingPermit(permit)
     setShowEditPermitModal(true)
+  }
+
+  const handleRenewPartB = (permit) => {
+    setRenewingPermit(permit)
+    setShowRenewPartBModal(true)
+  }
+
+  const handleRenewPartA = (permit) => {
+    setRenewingPermit(permit)
+    setShowRenewPartAModal(true)
+  }
+
+  const handleRenewalSuccess = (data) => {
+    // Refresh permits list after successful renewal
+    fetchPermits()
   }
 
   // Pagination handlers
@@ -443,23 +463,22 @@ Thank you for your business!
 
   return (
     <>
-      <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
       <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
 
 
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5'>
+            <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Permits */}
-              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Permits</p>
-                    <h3 className='text-2xl font-black text-gray-800'>{stats.total}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Permits</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.total}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                     </svg>
                   </div>
@@ -467,14 +486,14 @@ Thank you for your business!
               </div>
 
               {/* Active Permits */}
-              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Active Permits</p>
-                    <h3 className='text-2xl font-black text-emerald-600'>{stats.active}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active Permits</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-emerald-600'>{stats.active}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
@@ -484,16 +503,16 @@ Thank you for your business!
               {/* Part A - Expiring Soon */}
               <div
                 onClick={() => navigate('/national-part-a-expiring')}
-                className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+                className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
               >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Part A - Expiring Soon</p>
-                    <h3 className='text-2xl font-black text-orange-600'>{stats.expiring}</h3>
-                    <p className='text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Part A - Expiring Soon</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{stats.expiring}</h3>
+                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
@@ -503,16 +522,16 @@ Thank you for your business!
               {/* Part B - Expiring Soon */}
               <div
                 onClick={() => navigate('/national-part-b-expiring')}
-                className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+                className='bg-white rounded-lg shadow-md border border-purple-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
               >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Part B - Expiring Soon</p>
-                    <h3 className='text-2xl font-black text-purple-600'>{stats.partBExpiring}</h3>
-                    <p className='text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Part B - Expiring Soon</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-purple-600'>{stats.partBExpiring}</h3>
+                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
@@ -542,7 +561,7 @@ Thank you for your business!
       {/* Permits Table */}
       <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
         {/* Search and Filters Header */}
-        <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
+        <div className='px-3 lg:px-6 py-3 lg:py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
           <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center'>
             {/* Search Bar */}
             <div className='relative flex-1 lg:max-w-md'>
@@ -551,10 +570,10 @@ Thank you for your business!
                 placeholder='Search by permit number, holder, or vehicle...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
+                className='w-full pl-9 lg:pl-11 pr-3 lg:pr-4 py-2 lg:py-3 text-xs lg:text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
               />
               <svg
-                className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
+                className='absolute left-2.5 lg:left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-indigo-400'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -569,11 +588,11 @@ Thank you for your business!
               <select
                 value={dateFilter}
                 onChange={(e) => handleFilterChange('date', e.target.value)}
-                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
+                className='w-[calc(50%-0.25rem)] lg:w-auto px-2 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
               >
                 <option value='All'>All Permits</option>
-                <option value='Expiring30Days'>Expiring in 30 Days</option>
-                <option value='Expiring60Days'>Expiring in 60 Days</option>
+                <option value='Expiring30Days'>30 Days</option>
+                <option value='Expiring60Days'>60 Days</option>
                 <option value='Expired'>Expired</option>
               </select>
 
@@ -581,7 +600,7 @@ Thank you for your business!
               {dateFilter !== 'All' && (
                 <button
                   onClick={() => handleFilterChange('date', 'All')}
-                  className='px-4 py-3 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
+                  className='w-[calc(50%-0.25rem)] lg:w-auto px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
                 >
                   Clear
                 </button>
@@ -591,13 +610,14 @@ Thank you for your business!
             {/* New Permit Button */}
             <button
               onClick={() => setShowIssuePermitModal(true)}
-              className='px-5 py-3 text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-bold whitespace-nowrap cursor-pointer lg:ml-auto shadow-lg hover:shadow-xl transform hover:scale-105'
+              className='px-3 lg:px-5 py-2 lg:py-3 text-xs lg:text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-bold whitespace-nowrap cursor-pointer lg:ml-auto shadow-lg hover:shadow-xl transform hover:scale-105'
             >
-              <span className='flex items-center gap-2'>
-                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <span className='flex items-center gap-1 lg:gap-2'>
+                <svg className='w-4 h-4 lg:w-5 lg:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
                 </svg>
-                New Permit
+                <span className='hidden sm:inline'>New Permit</span>
+                <span className='sm:hidden'>New</span>
               </span>
             </button>
           </div>
@@ -686,10 +706,10 @@ Thank you for your business!
                       </span>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex items-center justify-center gap-2'>
+                      <div className='flex items-center justify-start gap-1.5'>
                         <button
                           onClick={() => handleViewDetails(permit)}
-                          className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200 flex-shrink-0'
                           title='View Details'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -699,7 +719,7 @@ Thank you for your business!
                         </button>
                         <button
                           onClick={() => handleEditPermit(permit)}
-                          className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200 flex-shrink-0'
                           title='Edit Permit'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -709,7 +729,7 @@ Thank you for your business!
                         <button
                           onClick={() => handleWhatsAppShare(permit)}
                           disabled={whatsappLoading === permit.id}
-                          className={`p-2 rounded-lg transition-all group-hover:scale-110 duration-200 relative ${
+                          className={`p-2 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0 ${
                             whatsappLoading === permit.id
                               ? 'text-gray-400 bg-gray-100 cursor-wait'
                               : 'text-green-600 hover:bg-green-100 cursor-pointer'
@@ -729,13 +749,47 @@ Thank you for your business!
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
-                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200 flex-shrink-0'
                           title='View Bill'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                           </svg>
                         </button>
+                        {/* Renew Part B Button - Only show if expiring within 35 days */}
+                        {permit.partB?.validTo && permit.partB.validTo !== 'N/A' && isPartBExpiringSoon(permit.partB.validTo, 35) ? (
+                          <button
+                            onClick={() => handleRenewPartB(permit)}
+                            className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0'
+                            title={`Renew Part B (${getDaysRemaining(permit.partB.validTo)} days left)`}
+                          >
+                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                            </svg>
+                            {getDaysRemaining(permit.partB.validTo) <= 7 && (
+                              <span className='absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse'></span>
+                            )}
+                          </button>
+                        ) : (
+                          <div className='w-9 h-9 flex-shrink-0'></div>
+                        )}
+                        {/* Renew Part A Button - Only show if expiring within 35 days */}
+                        {permit.validTill && permit.validTill !== 'N/A' && isPartAExpiringSoon(permit.validTill, 35) ? (
+                          <button
+                            onClick={() => handleRenewPartA(permit)}
+                            className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0'
+                            title={`Renew Part A (${getDaysRemaining(permit.validTill)} days left)`}
+                          >
+                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                            </svg>
+                            {getDaysRemaining(permit.validTill) <= 7 && (
+                              <span className='absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-pulse'></span>
+                            )}
+                          </button>
+                        ) : (
+                          <div className='w-9 h-9 flex-shrink-0'></div>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -915,13 +969,19 @@ Thank you for your business!
               {/* Type B Authorization & Fees */}
               <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
                 <div className='bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200'>
-                  <h4 className='text-sm font-black text-purple-700 mb-3 flex items-center gap-2'>
-                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
-                    </svg>
-                    TYPE B AUTHORIZATION
-                  </h4>
-                  <p className='text-sm font-semibold text-gray-800'>{selectedPermit.partB.authorizationNumber}</p>
+                  <div className='flex justify-between items-start mb-3'>
+                    <h4 className='text-sm font-black text-purple-700 flex items-center gap-2'>
+                      <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
+                      </svg>
+                      TYPE B AUTHORIZATION - CURRENT
+                    </h4>
+                    {/* Active Badge */}
+                    <span className='px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-full'>
+                      ACTIVE
+                    </span>
+                  </div>
+                  <p className='text-sm font-semibold text-gray-800 font-mono'>{selectedPermit.partB.authorizationNumber}</p>
                   <div className='mt-3 pt-3 border-t border-purple-200'>
                     <div className='grid grid-cols-2 gap-2 text-xs'>
                       <div>
@@ -933,7 +993,121 @@ Thank you for your business!
                         <p className='text-gray-800 font-semibold'>{selectedPermit.partB.validTo}</p>
                       </div>
                     </div>
+                    {/* Days Remaining */}
+                    {selectedPermit.partB?.validTo && (
+                      <div className='mt-2 pt-2 border-t border-purple-200'>
+                        <span className='text-purple-600 font-bold text-xs'>Days Remaining:</span>
+                        <p className={`text-sm font-black mt-1 ${
+                          getDaysRemaining(selectedPermit.partB.validTo) <= 7
+                            ? 'text-red-600'
+                            : getDaysRemaining(selectedPermit.partB.validTo) <= 35
+                              ? 'text-orange-600'
+                              : 'text-green-600'
+                        }`}>
+                          {getDaysRemaining(selectedPermit.partB.validTo)} days
+                        </p>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Download/Share buttons for renewed Part B */}
+                  {selectedPermit.partB?.renewalHistory && selectedPermit.partB.renewalHistory.length > 0 && (() => {
+                    console.log('Renewal History:', selectedPermit.partB.renewalHistory)
+                    // Find the latest renewal (current Part B bill)
+                    const latestRenewal = selectedPermit.partB.renewalHistory
+                      .filter(r => !r.isOriginal)
+                      .sort((a, b) => new Date(b.renewalDate) - new Date(a.renewalDate))[0]
+
+                    console.log('Latest Renewal:', latestRenewal)
+                    console.log('Has billPdfPath?', latestRenewal?.billPdfPath)
+
+                    return latestRenewal && latestRenewal.billPdfPath ? (
+                      <div className='mt-3 pt-3 border-t border-purple-200'>
+                        <div className='flex gap-2'>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const downloadUrl = `${API_BASE_URL}/national-permits/${selectedPermit.id}/part-b-renewals/${latestRenewal._id}/download-pdf`
+                                const link = document.createElement('a')
+                                link.href = downloadUrl
+                                link.download = `${latestRenewal.billNumber}.pdf`
+                                link.target = '_blank'
+                                document.body.appendChild(link)
+                                link.click()
+                                document.body.removeChild(link)
+                              } catch (error) {
+                                console.error('Error downloading Part B bill:', error)
+                                alert('Failed to download bill')
+                              }
+                            }}
+                            className='flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-semibold'
+                          >
+                            <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                            </svg>
+                            Bill
+                          </button>
+                          <button
+                            onClick={() => {
+                              const pdfUrl = `http://localhost:5000${latestRenewal.billPdfPath}`
+                              const message = `Hello ${selectedPermit.permitHolder},
+
+Your Part B Renewal Bill is ready!
+
+*Bill Number:* ${latestRenewal.billNumber}
+*Authorization Number:* ${latestRenewal.authorizationNumber}
+*Permit Number:* ${selectedPermit.permitNumber}
+*Valid From:* ${latestRenewal.validFrom}
+*Valid To:* ${latestRenewal.validTo}
+*Amount:* ₹${latestRenewal.fees?.toLocaleString('en-IN')}
+
+Download your Part B renewal bill here:
+${pdfUrl}
+
+Thank you for your business!
+- Ashok Kumar (Transport Consultant)`
+
+                              const encodedMessage = encodeURIComponent(message)
+                              const phoneNumber = (selectedPermit.partA?.ownerMobile || '').replace(/\D/g, '')
+
+                              if (!phoneNumber) {
+                                alert('No mobile number found')
+                                return
+                              }
+
+                              const formattedPhone = phoneNumber.startsWith('91') ? phoneNumber : `91${phoneNumber}`
+                              const whatsappWebUrl = `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`
+                              window.open(whatsappWebUrl, 'whatsapp_share')
+                            }}
+                            className='flex-1 flex items-center justify-center gap-1 px-2 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-xs font-semibold'
+                          >
+                            <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 24 24'>
+                              <path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/>
+                            </svg>
+                            WhatsApp
+                          </button>
+                        </div>
+                      </div>
+                    ) : null
+                  })()}
+
+                  {/* Renewal History Link - if available */}
+                  {selectedPermit.partB?.renewalHistory && selectedPermit.partB.renewalHistory.length > 0 && (
+                    <div className='mt-3 pt-3 border-t border-purple-200'>
+                      <button
+                        className='text-xs text-purple-600 font-bold hover:text-purple-800 flex items-center gap-1'
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          alert(`Renewal History: ${selectedPermit.partB.renewalHistory.length} renewals found`)
+                        }}
+                      >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                        View Renewal History ({selectedPermit.partB.renewalHistory.length})
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className='bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200'>
@@ -994,19 +1168,6 @@ Thank you for your business!
                     const hasMaxLoadCapacity = hasValue(selectedPermit.partB.maxLoadCapacity)
                     const hasVehicleInfo = hasVehicleModel || hasVehicleType || hasVehicleClass || hasYearOfManufacture ||
                                           hasChassisNumber || hasEngineNumber || hasSeatingCapacity || hasMaxLoadCapacity
-
-                    // Check for Permit Details fields
-                    const hasPermitType = hasValue(selectedPermit.partA.permitType)
-                    const hasRoute = hasValue(selectedPermit.partA.route)
-                    const hasIssuingAuthority = hasValue(selectedPermit.partA.issuingAuthority)
-                    const hasIssueDate = hasValue(selectedPermit.partA.issueDate)
-                    const hasGoodsType = hasValue(selectedPermit.partB.goodsType)
-                    const hasValidRoutes = hasValue(selectedPermit.partB.validRoutes)
-                    const hasRestrictions = hasValue(selectedPermit.partB.restrictions)
-                    const hasConditions = hasValue(selectedPermit.partB.conditions)
-                    const hasEndorsements = hasValue(selectedPermit.partB.endorsements)
-                    const hasPermitDetails = hasPermitType || hasRoute || hasIssuingAuthority || hasIssueDate ||
-                                            hasGoodsType || hasValidRoutes || hasRestrictions || hasConditions || hasEndorsements
 
                     // Check for Insurance Details
                     const hasPolicyNumber = hasValue(selectedPermit.partB.insuranceDetails?.policyNumber)
@@ -1105,69 +1266,6 @@ Thank you for your business!
                           </div>
                         )}
 
-                        {/* Permit Details */}
-                        {hasPermitDetails && (
-                          <div>
-                            <h4 className='text-sm font-black text-blue-700 mb-3 uppercase'>Permit Details</h4>
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 bg-blue-50/50 rounded-xl p-4'>
-                              {hasPermitType && (
-                                <div>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Permit Type</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partA.permitType}</p>
-                                </div>
-                              )}
-                              {hasRoute && (
-                                <div>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Route</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partA.route}</p>
-                                </div>
-                              )}
-                              {hasIssuingAuthority && (
-                                <div>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Issuing Authority</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partA.issuingAuthority}</p>
-                                </div>
-                              )}
-                              {hasIssueDate && (
-                                <div>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Issue Date</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partA.issueDate}</p>
-                                </div>
-                              )}
-                              {hasGoodsType && (
-                                <div>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Goods Type</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partB.goodsType}</p>
-                                </div>
-                              )}
-                              {hasValidRoutes && (
-                                <div className='md:col-span-2'>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Valid Routes</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partB.validRoutes}</p>
-                                </div>
-                              )}
-                              {hasRestrictions && (
-                                <div className='md:col-span-2'>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Restrictions</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partB.restrictions}</p>
-                                </div>
-                              )}
-                              {hasConditions && (
-                                <div className='md:col-span-2'>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Conditions</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partB.conditions}</p>
-                                </div>
-                              )}
-                              {hasEndorsements && (
-                                <div className='md:col-span-2'>
-                                  <label className='text-xs font-bold text-gray-600 uppercase'>Endorsements</label>
-                                  <p className='text-sm font-semibold text-gray-800 mt-1'>{selectedPermit.partB.endorsements}</p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
                         {/* Insurance Details */}
                         {hasInsuranceInfo && (
                           <div>
@@ -1216,23 +1314,309 @@ Thank you for your business!
                           </div>
                         )}
 
-                        {/* Renewal History */}
-                        {selectedPermit.partB.renewalHistory && selectedPermit.partB.renewalHistory.length > 0 && (
-                          <div>
-                            <h4 className='text-sm font-black text-teal-700 mb-3 uppercase'>Renewal History</h4>
-                            <div className='bg-teal-50/50 rounded-xl p-4'>
-                              <div className='space-y-2'>
-                                {selectedPermit.partB.renewalHistory.map((renewal, index) => (
-                                  <div key={index} className='flex items-center justify-between py-3 px-4 bg-white rounded-lg border border-teal-200'>
-                                    <span className='text-sm font-semibold text-gray-800'>{renewal.date}</span>
-                                    <span className='text-sm font-semibold text-gray-800'>{renewal.amount}</span>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                      renewal.status === 'Completed' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                                    }`}>
-                                      {renewal.status}
-                                    </span>
+                        {/* Part A Renewal History */}
+                        {selectedPermit.partARenewalHistory && selectedPermit.partARenewalHistory.length > 0 && (
+                          <div className='mb-6'>
+                            <h4 className='text-sm font-black text-indigo-700 mb-3 uppercase flex items-center gap-2'>
+                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                              </svg>
+                              Part A Renewal History
+                            </h4>
+                            <div className='bg-indigo-50/50 rounded-xl p-4'>
+                              <div className='space-y-3'>
+                                {selectedPermit.partARenewalHistory.map((renewal, index) => (
+                                  <div key={renewal._id || index} className={`bg-white rounded-xl border-2 p-4 hover:shadow-md transition-all ${
+                                    renewal.isOriginal ? 'border-blue-200' : 'border-indigo-200'
+                                  }`}>
+                                    <div className='flex items-start justify-between mb-3'>
+                                      <div className='flex-1'>
+                                        <div className='flex items-center gap-2 mb-2'>
+                                          {renewal.isOriginal ? (
+                                            <span className='px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded flex items-center gap-1'>
+                                              <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                                                <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
+                                              </svg>
+                                              ORIGINAL PART A
+                                            </span>
+                                          ) : (
+                                            <span className='px-2 py-1 bg-indigo-100 text-indigo-700 text-xs font-bold rounded'>
+                                              Renewal #{selectedPermit.partARenewalHistory.filter(r => !r.isOriginal).findIndex(r => r._id === renewal._id) + 1}
+                                            </span>
+                                          )}
+                                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                            renewal.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                          }`}>
+                                            {renewal.paymentStatus}
+                                          </span>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-2 text-xs'>
+                                          <div>
+                                            <span className='text-gray-600 font-semibold'>Permit Number:</span>
+                                            <p className='text-gray-900 font-mono font-bold'>{renewal.permitNumber}</p>
+                                          </div>
+                                          {!renewal.isOriginal && (
+                                            <div>
+                                              <span className='text-gray-600 font-semibold'>Bill Number:</span>
+                                              <p className='text-gray-900 font-mono font-bold'>{renewal.billNumber}</p>
+                                            </div>
+                                          )}
+                                          <div>
+                                            <span className='text-gray-600 font-semibold'>Valid From:</span>
+                                            <p className='text-gray-900 font-semibold'>{renewal.validFrom}</p>
+                                          </div>
+                                          <div>
+                                            <span className='text-gray-600 font-semibold'>Valid To:</span>
+                                            <p className='text-gray-900 font-semibold'>{renewal.validTo}</p>
+                                          </div>
+                                          <div>
+                                            <span className='text-gray-600 font-semibold'>{renewal.isOriginal ? 'Issue Date:' : 'Renewal Date:'}</span>
+                                            <p className='text-gray-900 font-semibold'>{new Date(renewal.renewalDate).toLocaleDateString('en-IN')}</p>
+                                          </div>
+                                          {!renewal.isOriginal && (
+                                            <div>
+                                              <span className='text-gray-600 font-semibold'>Fees:</span>
+                                              <p className='text-indigo-700 font-black'>₹{renewal.fees?.toLocaleString('en-IN') || '0'}</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                        {renewal.notes && (
+                                          <div className='mt-2 pt-2 border-t border-gray-200'>
+                                            <span className='text-gray-600 text-xs font-semibold'>Notes:</span>
+                                            <p className='text-gray-700 text-xs mt-1'>{renewal.notes}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Action Buttons - Only show for renewals, NOT for original Part A */}
+                                    {!renewal.isOriginal && renewal.billPdfPath && (
+                                      <div className='flex items-center gap-2 pt-3 border-t border-indigo-200'>
+                                        <button
+                                          onClick={async () => {
+                                            try {
+                                              const downloadUrl = `${API_BASE_URL}/national-permits/${selectedPermit.id}/part-a-renewals/${renewal._id}/download-pdf`
+                                              const link = document.createElement('a')
+                                              link.href = downloadUrl
+                                              link.download = `${renewal.billNumber}.pdf`
+                                              link.target = '_blank'
+                                              document.body.appendChild(link)
+                                              link.click()
+                                              document.body.removeChild(link)
+                                            } catch (error) {
+                                              console.error('Error downloading Part A bill:', error)
+                                              alert('Failed to download bill')
+                                            }
+                                          }}
+                                          className='flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-semibold'
+                                        >
+                                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                                          </svg>
+                                          Download Bill
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            const pdfUrl = `http://localhost:5000${renewal.billPdfPath}`
+                                            const message = `Hello ${selectedPermit.permitHolder},
+
+Your Part A (National Permit) Renewal Bill is ready!
+
+*Bill Number:* ${renewal.billNumber}
+*Permit Number:* ${renewal.permitNumber}
+*Valid From:* ${renewal.validFrom}
+*Valid To:* ${renewal.validTo}
+*Validity:* 5 Years
+*Amount:* ₹${renewal.fees?.toLocaleString('en-IN')}
+
+Download your Part A renewal bill here:
+${pdfUrl}
+
+Thank you for your business!
+- Ashok Kumar (Transport Consultant)`
+
+                                            const encodedMessage = encodeURIComponent(message)
+                                            const phoneNumber = (selectedPermit.partA?.ownerMobile || '').replace(/\D/g, '')
+
+                                            if (!phoneNumber) {
+                                              alert('No mobile number found')
+                                              return
+                                            }
+
+                                            const formattedPhone = phoneNumber.startsWith('91') ? phoneNumber : `91${phoneNumber}`
+                                            const whatsappWebUrl = `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`
+                                            window.open(whatsappWebUrl, 'whatsapp_share')
+                                          }}
+                                          className='flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-xs font-semibold'
+                                        >
+                                          <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
+                                            <path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/>
+                                          </svg>
+                                          Share on WhatsApp
+                                        </button>
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
+                              </div>
+                              <div className='mt-3 p-3 bg-white rounded-lg border border-blue-200'>
+                                <p className='text-xs text-blue-700 font-semibold'>
+                                  ℹ️ <strong>Original Part A</strong> was created with the initial permit. Its bill is available in the main "View Bill" section. Only <strong>renewed Part A</strong> records have separate bills with download options.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Part B Renewal History */}
+                        {selectedPermit.partB.renewalHistory && selectedPermit.partB.renewalHistory.length > 0 && (
+                          <div>
+                            <h4 className='text-sm font-black text-red-700 mb-3 uppercase flex items-center gap-2'>
+                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                              </svg>
+                              Part B Renewal History
+                            </h4>
+                            <div className='bg-red-50/50 rounded-xl p-4'>
+                              <div className='space-y-3'>
+                                {selectedPermit.partB.renewalHistory.map((renewal, index) => (
+                                  <div key={renewal._id || index} className={`bg-white rounded-xl border-2 p-4 hover:shadow-md transition-all ${
+                                    renewal.isOriginal ? 'border-blue-200' : 'border-red-200'
+                                  }`}>
+                                    <div className='flex items-start justify-between mb-3'>
+                                      <div className='flex-1'>
+                                        <div className='flex items-center gap-2 mb-2'>
+                                          {renewal.isOriginal ? (
+                                            <span className='px-2 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded flex items-center gap-1'>
+                                              <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                                                <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
+                                              </svg>
+                                              ORIGINAL PART B
+                                            </span>
+                                          ) : (
+                                            <span className='px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded'>
+                                              Renewal #{selectedPermit.partB.renewalHistory.filter(r => !r.isOriginal).findIndex(r => r._id === renewal._id) + 1}
+                                            </span>
+                                          )}
+                                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                                            renewal.paymentStatus === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                                          }`}>
+                                            {renewal.paymentStatus}
+                                          </span>
+                                        </div>
+                                        <div className='grid grid-cols-2 gap-2 text-xs'>
+                                          <div>
+                                            <span className='text-gray-600 font-semibold'>Auth Number:</span>
+                                            <p className='text-gray-900 font-mono font-bold'>{renewal.authorizationNumber}</p>
+                                          </div>
+                                          {!renewal.isOriginal && (
+                                            <div>
+                                              <span className='text-gray-600 font-semibold'>Bill Number:</span>
+                                              <p className='text-gray-900 font-mono font-bold'>{renewal.billNumber}</p>
+                                            </div>
+                                          )}
+                                          <div>
+                                            <span className='text-gray-600 font-semibold'>Valid From:</span>
+                                            <p className='text-gray-900 font-semibold'>{renewal.validFrom}</p>
+                                          </div>
+                                          <div>
+                                            <span className='text-gray-600 font-semibold'>Valid To:</span>
+                                            <p className='text-gray-900 font-semibold'>{renewal.validTo}</p>
+                                          </div>
+                                          <div>
+                                            <span className='text-gray-600 font-semibold'>{renewal.isOriginal ? 'Issue Date:' : 'Renewal Date:'}</span>
+                                            <p className='text-gray-900 font-semibold'>{new Date(renewal.renewalDate).toLocaleDateString('en-IN')}</p>
+                                          </div>
+                                          {!renewal.isOriginal && (
+                                            <div>
+                                              <span className='text-gray-600 font-semibold'>Fees:</span>
+                                              <p className='text-red-700 font-black'>₹{renewal.fees?.toLocaleString('en-IN') || '0'}</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                        {renewal.notes && (
+                                          <div className='mt-2 pt-2 border-t border-gray-200'>
+                                            <span className='text-gray-600 text-xs font-semibold'>Notes:</span>
+                                            <p className='text-gray-700 text-xs mt-1'>{renewal.notes}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    {/* Action Buttons - Only show for renewals, NOT for original Part B */}
+                                    {!renewal.isOriginal && renewal.billPdfPath && (
+                                      <div className='flex items-center gap-2 pt-3 border-t border-red-200'>
+                                        <button
+                                          onClick={async () => {
+                                            try {
+                                              const downloadUrl = `${API_BASE_URL}/national-permits/${selectedPermit.id}/part-b-renewals/${renewal._id}/download-pdf`
+                                              const link = document.createElement('a')
+                                              link.href = downloadUrl
+                                              link.download = `${renewal.billNumber}.pdf`
+                                              link.target = '_blank'
+                                              document.body.appendChild(link)
+                                              link.click()
+                                              document.body.removeChild(link)
+                                            } catch (error) {
+                                              console.error('Error downloading Part B bill:', error)
+                                              alert('Failed to download bill')
+                                            }
+                                          }}
+                                          className='flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all text-xs font-semibold'
+                                        >
+                                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                                          </svg>
+                                          Download Bill
+                                        </button>
+                                        <button
+                                          onClick={() => {
+                                            const pdfUrl = `http://localhost:5000${renewal.billPdfPath}`
+                                            const message = `Hello ${selectedPermit.permitHolder},
+
+Your Part B Renewal Bill is ready!
+
+*Bill Number:* ${renewal.billNumber}
+*Authorization Number:* ${renewal.authorizationNumber}
+*Permit Number:* ${selectedPermit.permitNumber}
+*Valid From:* ${renewal.validFrom}
+*Valid To:* ${renewal.validTo}
+*Amount:* ₹${renewal.fees?.toLocaleString('en-IN')}
+
+Download your Part B renewal bill here:
+${pdfUrl}
+
+Thank you for your business!
+- Ashok Kumar (Transport Consultant)`
+
+                                            const encodedMessage = encodeURIComponent(message)
+                                            const phoneNumber = (selectedPermit.partA?.ownerMobile || '').replace(/\D/g, '')
+
+                                            if (!phoneNumber) {
+                                              alert('No mobile number found')
+                                              return
+                                            }
+
+                                            const formattedPhone = phoneNumber.startsWith('91') ? phoneNumber : `91${phoneNumber}`
+                                            const whatsappWebUrl = `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`
+                                            window.open(whatsappWebUrl, 'whatsapp_share')
+                                          }}
+                                          className='flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all text-xs font-semibold'
+                                        >
+                                          <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
+                                            <path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z'/>
+                                          </svg>
+                                          Share on WhatsApp
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className='mt-3 p-3 bg-white rounded-lg border border-blue-200'>
+                                <p className='text-xs text-blue-700 font-semibold'>
+                                  ℹ️ <strong>Original Part B</strong> was created with the initial permit. Its bill is available in the main "View Bill" section. Only <strong>renewed Part B</strong> records have separate bills with download options.
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -1298,6 +1682,30 @@ Thank you for your business!
             setShowBillModal(false)
             setSelectedPermit(null)
           }}
+        />
+      )}
+
+      {/* Renew Part B Modal */}
+      {showRenewPartBModal && renewingPermit && (
+        <RenewPartBModal
+          permit={renewingPermit}
+          onClose={() => {
+            setShowRenewPartBModal(false)
+            setRenewingPermit(null)
+          }}
+          onRenewalSuccess={handleRenewalSuccess}
+        />
+      )}
+
+      {/* Renew Part A Modal */}
+      {showRenewPartAModal && renewingPermit && (
+        <RenewPartAModal
+          permit={renewingPermit}
+          onClose={() => {
+            setShowRenewPartAModal(false)
+            setRenewingPermit(null)
+          }}
+          onRenewalSuccess={handleRenewalSuccess}
         />
       )}
       </div>

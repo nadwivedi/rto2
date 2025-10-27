@@ -17,7 +17,7 @@ router.get('/expiring', nationalPermitController.getExpiringPermits)
 // GET Part A expiring in next 30 days
 router.get('/part-a-expiring-soon', nationalPermitController.getPartAExpiringSoon)
 
-// GET Part B expiring in next 30 days
+// GET Part B expiring in next 35 days
 router.get('/part-b-expiring-soon', nationalPermitController.getPartBExpiringSoon)
 
 // POST share permit via WhatsApp (must be before /:id route)
@@ -55,5 +55,27 @@ router.patch('/:id/insurance', nationalPermitController.updateInsurance)
 
 // PATCH update tax details
 router.patch('/:id/tax', nationalPermitController.updateTax)
+
+// ========== Part A Renewal Routes ==========
+
+// POST renew Part A (National Permit)
+router.post('/:id/renew-part-a', nationalPermitController.renewPartA)
+
+// GET Part A renewal history
+router.get('/:id/part-a-history', nationalPermitController.getPartARenewalHistory)
+
+// GET download Part A renewal bill PDF
+router.get('/:id/part-a-renewals/:renewalId/download-pdf', nationalPermitController.downloadPartARenewalPDF)
+
+// ========== Part B Renewal Routes ==========
+
+// POST renew Part B authorization
+router.post('/:id/renew-part-b', nationalPermitController.renewPartB)
+
+// GET Part B renewal history
+router.get('/:id/part-b-history', nationalPermitController.getPartBRenewalHistory)
+
+// GET download Part B renewal bill PDF
+router.get('/:id/part-b-renewals/:renewalId/download-pdf', nationalPermitController.downloadPartBRenewalPDF)
 
 module.exports = router

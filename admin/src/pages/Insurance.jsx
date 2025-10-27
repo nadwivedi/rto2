@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react'
 import AddInsuranceModal from '../components/AddInsuranceModal'
-import MobileHeader from '../components/MobileHeader'
 
-const Insurance = ({ setIsSidebarOpen }) => {
+const Insurance = () => {
   // Demo data for when backend is not available
   const demoInsurances = [
     {
@@ -161,7 +160,6 @@ const Insurance = ({ setIsSidebarOpen }) => {
 
   return (
     <>
-      <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
       <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
 

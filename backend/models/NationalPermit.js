@@ -1,5 +1,101 @@
 const mongoose = require('mongoose')
 
+// Part A Renewal History Schema (tracks each Part A renewal with its bill)
+const PartARenewalSchema = new mongoose.Schema({
+  permitNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  renewalDate: {
+    type: Date,
+    default: Date.now
+  },
+  validFrom: {
+    type: String,
+    required: true
+  },
+  validTo: {
+    type: String,
+    required: true
+  },
+  fees: {
+    type: Number,
+    required: true,
+    default: 15000 // Part A renewal fee (5 years)
+  },
+  billNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  billPdfPath: {
+    type: String,
+    default: null
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Pending', 'Paid', 'Cancelled'],
+    default: 'Paid'
+  },
+  notes: {
+    type: String,
+    trim: true
+  },
+  isOriginal: {
+    type: Boolean,
+    default: false // True for the original Part A created with the initial permit
+  }
+}, { _id: true, timestamps: true })
+
+// Part B Renewal History Schema (tracks each renewal with its bill)
+const PartBRenewalSchema = new mongoose.Schema({
+  authorizationNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  renewalDate: {
+    type: Date,
+    default: Date.now
+  },
+  validFrom: {
+    type: String,
+    required: true
+  },
+  validTo: {
+    type: String,
+    required: true
+  },
+  fees: {
+    type: Number,
+    required: true,
+    default: 5000 // Part B renewal fee
+  },
+  billNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  billPdfPath: {
+    type: String,
+    default: null
+  },
+  paymentStatus: {
+    type: String,
+    enum: ['Pending', 'Paid', 'Cancelled'],
+    default: 'Paid'
+  },
+  notes: {
+    type: String,
+    trim: true
+  },
+  isOriginal: {
+    type: Boolean,
+    default: false // True for the original Part B created with the initial permit
+  }
+}, { _id: true, timestamps: true })
+
 // Type B Authorization Schema (1 year validity)
 const TypeBAuthorizationSchema = new mongoose.Schema({
   authorizationNumber: {
@@ -15,7 +111,11 @@ const TypeBAuthorizationSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-
+  // Track renewal history
+  renewalHistory: {
+    type: [PartBRenewalSchema],
+    default: []
+  }
 }, { _id: false })
 
 const NationalPermitSchema = new mongoose.Schema({
@@ -101,6 +201,12 @@ const NationalPermitSchema = new mongoose.Schema({
   validTo: {
     type: String,
     required: true
+  },
+
+  // Part A Renewal History
+  partARenewalHistory: {
+    type: [PartARenewalSchema],
+    default: []
   },
 
   // Route Information

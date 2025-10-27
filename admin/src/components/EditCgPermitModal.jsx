@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
 
-const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
+const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
+  const [showOptionalFields, setShowOptionalFields] = useState(true) // Show optional fields by default in edit mode
+
   const [formData, setFormData] = useState({
     // Required fields
     permitNumber: '',
-    permitHolderName: '',
+    permitHolder: '',
     vehicleNumber: '',
     validFrom: '',
     validTo: '',
+    status: 'Active',
 
     // Optional fields
     fatherName: '',
@@ -30,7 +33,31 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
     fees: '10000'
   })
 
-  const [showOptionalFields, setShowOptionalFields] = useState(false)
+  // Populate form when permit changes
+  useEffect(() => {
+    if (permit) {
+      setFormData({
+        permitNumber: permit.permitNumber || '',
+        permitHolder: permit.permitHolder || '',
+        vehicleNumber: permit.vehicleNo || permit.vehicleNumber || '',
+        validFrom: permit.validFrom || '',
+        validTo: permit.validTill || permit.validTo || '',
+        status: permit.status || 'Active',
+        fatherName: permit.fatherName || '',
+        address: permit.address || '',
+        mobileNumber: permit.mobileNumber?.replace('+91 ', '') || '',
+        email: permit.email || '',
+        vehicleModel: permit.vehicleModel || '',
+        vehicleType: permit.vehicleType || '',
+        unladenWeight: permit.unladenWeight || '',
+        grossWeight: permit.grossWeight || '',
+        chassisNumber: permit.chassisNumber || '',
+        engineNumber: permit.engineNumber || '',
+        goodsType: permit.goodsType || '',
+        fees: permit.fees?.toString() || '10000'
+      })
+    }
+  }, [permit])
 
   // Calculate valid to date (5 years from valid from)
   useEffect(() => {
@@ -137,27 +164,6 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
     if (onSubmit) {
       onSubmit(formData)
     }
-    // Reset form
-    setFormData({
-      permitNumber: '',
-      permitHolderName: '',
-      vehicleNumber: '',
-      validFrom: '',
-      validTo: '',
-      fatherName: '',
-      address: '',
-      mobileNumber: '',
-      email: '',
-      vehicleModel: '',
-      vehicleType: '',
-      unladenWeight: '',
-      grossWeight: '',
-      chassisNumber: '',
-      engineNumber: '',
-      goodsType: '',
-      fees: '10000'
-    })
-    setShowOptionalFields(false)
     onClose()
   }
 
@@ -170,7 +176,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
         <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-3 md:p-4 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-lg md:text-2xl font-bold'>Add New CG Permit</h2>
+              <h2 className='text-lg md:text-2xl font-bold'>Edit CG Permit</h2>
             </div>
             <button
               onClick={onClose}
@@ -190,7 +196,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
             <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
-                Type A
+                Essential Information
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
@@ -207,7 +213,6 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder='CG001234567'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
                     required
-                    autoFocus
                   />
                 </div>
 
@@ -218,8 +223,8 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
                   </label>
                   <input
                     type='text'
-                    name='permitHolderName'
-                    value={formData.permitHolderName}
+                    name='permitHolder'
+                    value={formData.permitHolder}
                     onChange={handleChange}
                     placeholder='Rajesh Transport Services'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
@@ -293,6 +298,26 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     readOnly
                   />
                   <p className='text-xs text-gray-500 mt-1'>Auto-calculated (5 years - 1 day from Valid From date)</p>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Status <span className='text-red-500'>*</span>
+                  </label>
+                  <select
+                    name='status'
+                    value={formData.status}
+                    onChange={handleChange}
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    required
+                  >
+                    <option value='Active'>Active</option>
+                    <option value='Pending Renewal'>Pending Renewal</option>
+                    <option value='Expiring Soon'>Expiring Soon</option>
+                    <option value='Expired'>Expired</option>
+                    <option value='Suspended'>Suspended</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -485,6 +510,20 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                         />
                       </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Goods Type
+                        </label>
+                        <input
+                          type='text'
+                          name='goodsType'
+                          value={formData.goodsType}
+                          onChange={handleChange}
+                          placeholder='General Goods'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -495,7 +534,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Footer Actions */}
           <div className='border-t border-gray-200 p-3 md:p-4 bg-gray-50 flex justify-between items-center flex-shrink-0 sticky bottom-0 shadow-lg'>
             <div className='text-sm text-gray-600 hidden md:block'>
-              <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
+              <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to save quickly
             </div>
 
             <div className='flex gap-2 md:gap-3 w-full md:w-auto'>
@@ -514,7 +553,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
                 <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                 </svg>
-                Add CG Permit
+                Save Changes
               </button>
             </div>
           </div>
@@ -524,4 +563,4 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
   )
 }
 
-export default IssueCgPermitModal
+export default EditCgPermitModal

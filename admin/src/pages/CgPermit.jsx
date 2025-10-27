@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PermitBillModal from '../components/PermitBillModal'
 import SharePermitModal from '../components/SharePermitModal'
 import IssueCgPermitModal from '../components/IssueCgPermitModal'
-import MobileHeader from '../components/MobileHeader'
+import EditCgPermitModal from '../components/EditCgPermitModal'
 
 const API_BASE_URL = 'http://localhost:5000/api'
 
-const CgPermit = ({ setIsSidebarOpen }) => {
+const CgPermit = () => {
   // Demo data for when backend is not available
   const demoPermits = [
     {
@@ -121,7 +122,9 @@ const CgPermit = ({ setIsSidebarOpen }) => {
     }
   ]
 
+  const navigate = useNavigate()
   const [permits, setPermits] = useState([])
+  const [expiringCount, setExpiringCount] = useState(0)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedPermit, setSelectedPermit] = useState(null)
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
@@ -144,6 +147,7 @@ const CgPermit = ({ setIsSidebarOpen }) => {
   // Fetch permits from backend on component mount
   useEffect(() => {
     fetchPermits()
+    fetchExpiringCount()
   }, [])
 
   const fetchPermits = async () => {
@@ -200,6 +204,21 @@ const CgPermit = ({ setIsSidebarOpen }) => {
       setError(null)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchExpiringCount = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/cg-permits/expiring?days=30`)
+      const data = await response.json()
+
+      if (response.ok && data.pagination) {
+        setExpiringCount(data.pagination.totalItems || 0)
+      }
+    } catch (error) {
+      console.error('Error fetching expiring count:', error)
+      // Fallback to calculating from permits
+      setExpiringCount(0)
     }
   }
 
@@ -326,9 +345,67 @@ const CgPermit = ({ setIsSidebarOpen }) => {
     }
   }
 
+  const handleUpdatePermit = async (formData) => {
+    try {
+      if (!editingPermit || !editingPermit.id) {
+        throw new Error('No permit selected for editing')
+      }
+
+      // Prepare data to match backend model
+      const permitData = {
+        permitNumber: formData.permitNumber,
+        permitHolder: formData.permitHolder,
+        vehicleNumber: formData.vehicleNumber,
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        status: formData.status,
+        fatherName: formData.fatherName || '',
+        address: formData.address || '',
+        mobileNumber: formData.mobileNumber || '',
+        email: formData.email || '',
+        vehicleModel: formData.vehicleModel || '',
+        vehicleType: formData.vehicleType || '',
+        chassisNumber: formData.chassisNumber || '',
+        engineNumber: formData.engineNumber || '',
+        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : 0,
+        grossWeight: formData.grossWeight ? Number(formData.grossWeight) : 0,
+        goodsType: formData.goodsType || 'General Goods',
+        fees: Number(formData.fees) || 10000
+      }
+
+      // Make PUT request to backend
+      const response = await fetch(`${API_BASE_URL}/cg-permits/${editingPermit.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(permitData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update CG permit')
+      }
+
+      // Show success message
+      alert('CG Permit updated successfully!')
+
+      // Refresh the permits list
+      await fetchPermits()
+      await fetchExpiringCount()
+
+      // Close the modal
+      setShowEditPermitModal(false)
+      setEditingPermit(null)
+    } catch (error) {
+      console.error('Error updating CG permit:', error)
+      alert(`Failed to update CG permit: ${error.message}`)
+    }
+  }
+
   return (
     <>
-      <MobileHeader setIsSidebarOpen={setIsSidebarOpen} />
       <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
 
@@ -366,11 +443,15 @@ const CgPermit = ({ setIsSidebarOpen }) => {
               </div>
 
               {/* Expiring Soon */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => navigate('/cg-permit-expiring')}
+                className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Expiring Soon</p>
-                    <h3 className='text-2xl font-black text-orange-600'>{stats.expiring}</h3>
+                    <h3 className='text-2xl font-black text-orange-600'>{expiringCount}</h3>
+                    <p className='text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
                   <div className='w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -619,6 +700,17 @@ const CgPermit = ({ setIsSidebarOpen }) => {
         isOpen={showIssuePermitModal}
         onClose={() => setShowIssuePermitModal(false)}
         onSubmit={handleIssuePermit}
+      />
+
+      {/* Edit CG Permit Modal */}
+      <EditCgPermitModal
+        isOpen={showEditPermitModal}
+        onClose={() => {
+          setShowEditPermitModal(false)
+          setEditingPermit(null)
+        }}
+        onSubmit={handleUpdatePermit}
+        permit={editingPermit}
       />
 
       {/* Bill Modal */}

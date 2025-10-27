@@ -1,0 +1,275 @@
+import { useState } from 'react'
+import { formatDate, getFiveYearsFromNow } from '../utils/dateHelpers'
+
+const API_BASE_URL = 'http://localhost:5000/api'
+
+const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
+  const [formData, setFormData] = useState({
+    permitNumber: permit.permitNumber || '',
+    validFrom: formatDate(new Date()),
+    validTo: getFiveYearsFromNow(),
+    fees: '15000',
+    notes: 'Part A renewal (5 years)'
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    setError('')
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    // Validation
+    if (!formData.permitNumber || formData.permitNumber.trim() === '') {
+      setError('Permit Number is required')
+      return
+    }
+
+    if (!formData.validFrom || !formData.validTo) {
+      setError('Valid From and Valid To dates are required')
+      return
+    }
+
+    if (!formData.fees || parseFloat(formData.fees) <= 0) {
+      setError('Please enter valid fees')
+      return
+    }
+
+    setLoading(true)
+    setError('')
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/national-permits/${permit.id}/renew-part-a`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          permitNumber: formData.permitNumber.trim(),
+          validFrom: formData.validFrom,
+          validTo: formData.validTo,
+          fees: parseFloat(formData.fees),
+          notes: formData.notes
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to renew Part A')
+      }
+
+      alert('Part A renewed successfully! New bill has been generated.')
+      onRenewalSuccess && onRenewalSuccess(data.data)
+      onClose()
+    } catch (err) {
+      console.error('Error renewing Part A:', err)
+      setError(err.message || 'Failed to renew Part A. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+      <div className='bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
+        {/* Header */}
+        <div className='bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-600 p-6 text-white flex-shrink-0'>
+          <div className='flex justify-between items-center'>
+            <div>
+              <h2 className='text-2xl font-black mb-1'>Renew Part A (National Permit)</h2>
+              <p className='text-blue-100 text-sm'>Generate new permit for 5 years</p>
+            </div>
+            <button
+              type='button'
+              onClick={onClose}
+              className='w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-all'
+            >
+              <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable Content */}
+        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
+          <div className='flex-1 overflow-y-auto p-6'>
+          {/* Current Part A Info */}
+          <div className='mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded'>
+            <h3 className='text-sm font-bold text-blue-800 mb-2'>Current Part A Details</h3>
+            <div className='grid grid-cols-2 gap-3 text-sm'>
+              <div>
+                <span className='text-blue-600 font-semibold'>Current Permit Number:</span>
+                <p className='text-gray-800 font-mono'>{permit.permitNumber || 'N/A'}</p>
+              </div>
+              <div>
+                <span className='text-blue-600 font-semibold'>Valid To:</span>
+                <p className='text-gray-800 font-semibold'>{permit.partA?.permitValidUpto || permit.validTo || 'N/A'}</p>
+              </div>
+            </div>
+            <p className='text-xs text-blue-600 mt-2 font-semibold'>
+              ℹ️ You can keep the same permit number or enter a new one
+            </p>
+          </div>
+
+          {/* Permit Holder Reference */}
+          <div className='mb-6 p-4 bg-gray-50 rounded-lg'>
+            <div className='grid grid-cols-2 gap-3 text-sm'>
+              <div>
+                <span className='text-gray-600 font-semibold'>Permit Holder:</span>
+                <p className='text-gray-900'>{permit.permitHolder || permit.partA?.ownerName}</p>
+              </div>
+              <div>
+                <span className='text-gray-600 font-semibold'>Vehicle Number:</span>
+                <p className='text-gray-900 font-mono'>{permit.vehicleNo || permit.partA?.vehicleNumber}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Renewal Form */}
+          <div className='space-y-4'>
+            {/* Permit Number */}
+            <div>
+              <label className='block text-sm font-bold text-gray-700 mb-2'>
+                Permit Number <span className='text-red-500'>*</span>
+              </label>
+              <input
+                type='text'
+                name='permitNumber'
+                value={formData.permitNumber}
+                onChange={handleChange}
+                placeholder='e.g., NP-2025-0001'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono'
+                required
+              />
+              <p className='text-xs text-gray-500 mt-1'>Enter the permit number (can be same as current or new)</p>
+            </div>
+
+            {/* Valid From */}
+            <div>
+              <label className='block text-sm font-bold text-gray-700 mb-2'>
+                Valid From <span className='text-red-500'>*</span>
+              </label>
+              <input
+                type='text'
+                name='validFrom'
+                value={formData.validFrom}
+                onChange={handleChange}
+                placeholder='DD-MM-YYYY'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                required
+              />
+            </div>
+
+            {/* Valid To */}
+            <div>
+              <label className='block text-sm font-bold text-gray-700 mb-2'>
+                Valid To <span className='text-red-500'>*</span>
+              </label>
+              <input
+                type='text'
+                name='validTo'
+                value={formData.validTo}
+                onChange={handleChange}
+                placeholder='DD-MM-YYYY'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                required
+              />
+              <p className='text-xs text-gray-500 mt-1'>Part A is valid for 5 years</p>
+            </div>
+
+            {/* Fees */}
+            <div>
+              <label className='block text-sm font-bold text-gray-700 mb-2'>
+                Renewal Fees (₹) <span className='text-red-500'>*</span>
+              </label>
+              <input
+                type='number'
+                name='fees'
+                value={formData.fees}
+                onChange={handleChange}
+                placeholder='15000'
+                min='0'
+                step='100'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                required
+              />
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className='block text-sm font-bold text-gray-700 mb-2'>
+                Notes (Optional)
+              </label>
+              <textarea
+                name='notes'
+                value={formData.notes}
+                onChange={handleChange}
+                placeholder='Add any notes about this renewal...'
+                rows='3'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none'
+              />
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className='mt-4 p-3 bg-red-50 border-l-4 border-red-500 rounded'>
+              <p className='text-sm text-red-700 font-semibold'>{error}</p>
+            </div>
+          )}
+
+          {/* Info Box */}
+          <div className='mt-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded'>
+            <p className='text-xs text-amber-700 font-semibold'>
+              ℹ️ Upon renewal, a new bill will be generated for the 5-year Part A permit.
+              The old Part A will be moved to renewal history.
+            </p>
+          </div>
+          </div>
+
+          {/* Fixed Bottom Action Bar */}
+          <div className='flex-shrink-0 border-t border-gray-200 bg-gray-50 p-4'>
+            <div className='flex gap-3'>
+              <button
+                type='button'
+                onClick={onClose}
+                className='flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-semibold'
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button
+                type='submit'
+                disabled={loading}
+                className='flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed'
+              >
+                {loading ? (
+                  <span className='flex items-center justify-center gap-2'>
+                    <svg className='animate-spin h-5 w-5' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' fill='none'></circle>
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                    </svg>
+                    Processing...
+                  </span>
+                ) : (
+                  'Renew Part A'
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+export default RenewPartAModal
