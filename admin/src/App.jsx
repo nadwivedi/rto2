@@ -32,8 +32,8 @@ function App() {
           {/* Page Content */}
           <main>
             <Routes>
-              <Route path='/' element={<Setting />} />
-              <Route path='/driving-licence' element={<DrivingLicence />} />
+              <Route path='/setting' element={<Setting />} />
+              <Route path='/' element={<DrivingLicence />} />
               <Route path='/ll-expiring' element={<LLExpiring />} />
               <Route path='/dl-expiring' element={<DLExpiring />} />
               <Route path='/national-permit' element={<NationalPermit />} />

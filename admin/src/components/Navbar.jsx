@@ -10,7 +10,7 @@ const Navbar = () => {
     {
       name: 'Driving Licence',
       icon: '🪪',
-      path: '/driving-licence',
+      path: '/',
       description: 'DL Applications'
     },
     {
@@ -64,7 +64,7 @@ const Navbar = () => {
     {
       name: 'Setting',
       icon: '⚙️',
-      path: '/',
+      path: '/setting',
       description: 'App Settings'
     },
   ]
