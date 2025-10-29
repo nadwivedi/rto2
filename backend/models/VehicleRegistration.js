@@ -1,16 +1,20 @@
 const mongoose = require('mongoose')
 
 const vehicleRegistrationSchema = new mongoose.Schema({
-  registrationNumber: {
+  vehicleNumber: {
     type: String,
     required: true,
     unique: true,
     uppercase: true,
     trim: true
   },
-  dateOfRegistration: {
+  registrationNumber: {
     type: String,
-    required: true
+    uppercase: true,
+    trim: true
+  },
+  dateOfRegistration: {
+    type: String
   },
   chassisNumber: {
     type: String,
@@ -20,39 +24,62 @@ const vehicleRegistrationSchema = new mongoose.Schema({
   },
   engineNumber: {
     type: String,
-    required: true,
     uppercase: true,
     trim: true
   },
   ownerName: {
     type: String,
-    required: true,
     trim: true
   },
-  relationOf: {
+  sonWifeDaughterOf: {
     type: String,
-    required: true,
     trim: true
   },
   address: {
     type: String,
-    required: true,
     trim: true
   },
   makerName: {
     type: String,
-    required: true,
     trim: true
   },
   modelName: {
     type: String,
-    required: true,
+    trim: true
+  },
+  makerModel: {
+    type: String,
     trim: true
   },
   colour: {
     type: String,
-    required: true,
     trim: true
+  },
+  seatingCapacity: {
+    type: Number
+  },
+  vehicleClass: {
+    type: String,
+    trim: true
+  },
+  ladenWeight: {
+    type: Number
+  },
+  unladenWeight: {
+    type: Number
+  },
+  manufactureYear: {
+    type: Number
+  },
+  vehicleCategory: {
+    type: String,
+    trim: true
+  },
+  purchaseDeliveryDate: {
+    type: String
+  },
+  saleAmount: {
+    type: Number
   },
   status: {
     type: String,
@@ -63,9 +90,6 @@ const vehicleRegistrationSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Index for faster searches
-vehicleRegistrationSchema.index({ registrationNumber: 1 })
-vehicleRegistrationSchema.index({ chassisNumber: 1 })
-vehicleRegistrationSchema.index({ ownerName: 1 })
+
 
 module.exports = mongoose.model('VehicleRegistration', vehicleRegistrationSchema)

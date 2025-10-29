@@ -96,7 +96,7 @@ const PartBRenewalSchema = new mongoose.Schema({
   }
 }, { _id: true, timestamps: true })
 
-// Type B Authorization Schema (1 year validity)
+
 const TypeBAuthorizationSchema = new mongoose.Schema({
   authorizationNumber: {
     type: String,
@@ -119,6 +119,16 @@ const TypeBAuthorizationSchema = new mongoose.Schema({
 }, { _id: false })
 
 const NationalPermitSchema = new mongoose.Schema({
+  // Vehicle Reference (Link to VehicleRegistration)
+  vehicleNumber: {
+    type: String,
+    ref: 'VehicleRegistration',
+    required: true,
+    uppercase: true,
+    trim: true,
+    index: true
+  },
+
   // Basic Permit Information
   permitNumber: {
     type: String,
@@ -150,49 +160,7 @@ const NationalPermitSchema = new mongoose.Schema({
     lowercase: true,
     trim: true
   },
-
-  // Vehicle Details
-  vehicleNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  vehicleModel: {
-    type: String,
-    trim: true
-  },
-  vehicleType: {
-    type: String,
-    enum: ['Truck', 'Container Truck', 'Multi-axle Truck', 'Tanker', 'Bus', 'Tempo', ''],
-    default: ''
-  },
-  vehicleClass: {
-    type: String,
-  },
-  chassisNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  engineNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  unladenWeight: {
-    type: Number // in kg
-  },
-  grossWeight: {
-    type: Number // in kg
-  },
-  yearOfManufacture: {
-    type: String
-  },
-  seatingCapacity: {
-    type: String,
-    default: '2'
-  },
-
+  
   // Permit Validity (Part A - 5 years)
   validFrom: {
     type: String,
@@ -251,7 +219,6 @@ const NationalPermitSchema = new mongoose.Schema({
 
 }, {
   timestamps: true, // Automatically adds createdAt and updatedAt fields
-  autoIndex: false // Disable automatic index creation (improves performance in production)
 })
 
 

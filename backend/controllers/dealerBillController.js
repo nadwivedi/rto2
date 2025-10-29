@@ -9,45 +9,34 @@ const fs = require('fs')
  */
 exports.createDealerBill = async (req, res) => {
   try {
-    const { permit, fitness, registration, totalFees, notes } = req.body
+    const { customerName, items, totalFees, notes } = req.body
 
     // Validation
-    if (!permit || !permit.permitType) {
+    if (!customerName || customerName.trim() === '') {
       return res.status(400).json({
         success: false,
-        message: 'Permit information is required'
+        message: 'Customer name is required'
       })
     }
 
-    // Validate National Permit fields
-    if (permit.permitType === 'National Permit') {
-      if (!permit.partANumber || !permit.partBNumber) {
-        return res.status(400).json({
-          success: false,
-          message: 'Part A Number and Part B Number are required for National Permit'
-        })
-      }
-    } else {
-      // Validate other permit types
-      if (!permit.permitNumber) {
-        return res.status(400).json({
-          success: false,
-          message: 'Permit Number is required'
-        })
-      }
-    }
-
-    if (!fitness || !fitness.certificateNumber) {
+    if (!items) {
       return res.status(400).json({
         success: false,
-        message: 'Fitness certificate number is required'
+        message: 'Items information is required'
       })
     }
 
-    if (!registration || !registration.registrationNumber) {
+    // Validate at least one item is included
+    const hasIncludedItem =
+      (items.permit && items.permit.isIncluded) ||
+      (items.fitness && items.fitness.isIncluded) ||
+      (items.vehicleRegistration && items.vehicleRegistration.isIncluded) ||
+      (items.temporaryRegistration && items.temporaryRegistration.isIncluded)
+
+    if (!hasIncludedItem) {
       return res.status(400).json({
         success: false,
-        message: 'Registration number is required'
+        message: 'At least one item must be included in the bill'
       })
     }
 
@@ -64,10 +53,9 @@ exports.createDealerBill = async (req, res) => {
     // Create dealer bill
     const dealerBill = new DealerBill({
       billNumber,
-      permit,
-      fitness,
-      registration,
-      totalFees,
+      customerName: customerName.trim(),
+      items,
+      totalFees: parseFloat(totalFees),
       notes
     })
 
@@ -123,18 +111,11 @@ exports.getAllDealerBills = async (req, res) => {
     if (search) {
       query.$or = [
         { billNumber: { $regex: search, $options: 'i' } },
-        { 'permit.permitNumber': { $regex: search, $options: 'i' } },
-        { 'permit.partANumber': { $regex: search, $options: 'i' } },
-        { 'permit.partBNumber': { $regex: search, $options: 'i' } },
-        { 'fitness.certificateNumber': { $regex: search, $options: 'i' } },
-        { 'registration.registrationNumber': { $regex: search, $options: 'i' } }
+        { customerName: { $regex: search, $options: 'i' } }
       ]
     }
 
     // Filters
-    if (permitType) {
-      query['permit.permitType'] = permitType
-    }
     if (paymentStatus) {
       query.paymentStatus = paymentStatus
     }
@@ -235,7 +216,7 @@ exports.updateDealerBill = async (req, res) => {
     await dealerBill.save()
 
     // Regenerate PDF if critical fields changed
-    const criticalFields = ['permit', 'fitness', 'registration', 'totalFees']
+    const criticalFields = ['customerName', 'items', 'totalFees']
     const shouldRegeneratePDF = criticalFields.some(field => updates[field] !== undefined)
 
     if (shouldRegeneratePDF) {
@@ -461,10 +442,11 @@ exports.getDealerBillStatistics = async (req, res) => {
     ])
     const pendingAmount = pendingResult.length > 0 ? pendingResult[0].total : 0
 
-    // Count by permit type
-    const permitTypeStats = await DealerBill.aggregate([
-      { $group: { _id: '$permit.permitType', count: { $sum: 1 } } }
-    ])
+    // Count by included items
+    const includesPermit = await DealerBill.countDocuments({ 'items.permit.isIncluded': true })
+    const includesFitness = await DealerBill.countDocuments({ 'items.fitness.isIncluded': true })
+    const includesRegistration = await DealerBill.countDocuments({ 'items.vehicleRegistration.isIncluded': true })
+    const includesTemporaryRegistration = await DealerBill.countDocuments({ 'items.temporaryRegistration.isIncluded': true })
 
     res.status(200).json({
       success: true,
@@ -475,7 +457,12 @@ exports.getDealerBillStatistics = async (req, res) => {
         cancelledBills,
         totalRevenue,
         pendingAmount,
-        permitTypeStats
+        itemStats: {
+          includesPermit,
+          includesFitness,
+          includesRegistration,
+          includesTemporaryRegistration
+        }
       }
     })
   } catch (error) {

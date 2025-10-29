@@ -111,7 +111,7 @@ const VehicleRegistration = () => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Vehicle Registration Certificate - ${registration.registrationNumber}</title>
+        <title>Vehicle Registration Certificate - ${registration.vehicleNumber}</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -189,13 +189,17 @@ const VehicleRegistration = () => {
         <div class="section">
           <h2>Registration Details</h2>
           <div class="field">
-            <div class="field-label">Registration Number:</div>
-            <div class="field-value"><strong>${registration.registrationNumber}</strong></div>
+            <div class="field-label">Vehicle Number:</div>
+            <div class="field-value"><strong>${registration.vehicleNumber}</strong></div>
           </div>
-          <div class="field">
+          ${registration.registrationNumber ? `<div class="field">
+            <div class="field-label">Registration Number:</div>
+            <div class="field-value">${registration.registrationNumber}</div>
+          </div>` : ''}
+          ${registration.dateOfRegistration ? `<div class="field">
             <div class="field-label">Date of Registration:</div>
             <div class="field-value">${registration.dateOfRegistration}</div>
-          </div>
+          </div>` : ''}
           <div class="field">
             <div class="field-label">Status:</div>
             <div class="field-value"><span class="status">${registration.status}</span></div>
@@ -208,38 +212,74 @@ const VehicleRegistration = () => {
             <div class="field-label">Chassis Number:</div>
             <div class="field-value">${registration.chassisNumber}</div>
           </div>
-          <div class="field">
+          ${registration.engineNumber ? `<div class="field">
             <div class="field-label">Engine Number:</div>
             <div class="field-value">${registration.engineNumber}</div>
-          </div>
-          <div class="field">
+          </div>` : ''}
+          ${registration.makerName ? `<div class="field">
             <div class="field-label">Maker Name:</div>
             <div class="field-value">${registration.makerName}</div>
-          </div>
-          <div class="field">
+          </div>` : ''}
+          ${registration.modelName ? `<div class="field">
             <div class="field-label">Model Name:</div>
             <div class="field-value">${registration.modelName}</div>
-          </div>
-          <div class="field">
+          </div>` : ''}
+          ${registration.makerModel ? `<div class="field">
+            <div class="field-label">Maker Model:</div>
+            <div class="field-value">${registration.makerModel}</div>
+          </div>` : ''}
+          ${registration.colour ? `<div class="field">
             <div class="field-label">Colour:</div>
             <div class="field-value">${registration.colour}</div>
-          </div>
+          </div>` : ''}
+          ${registration.seatingCapacity ? `<div class="field">
+            <div class="field-label">Seating Capacity:</div>
+            <div class="field-value">${registration.seatingCapacity}</div>
+          </div>` : ''}
+          ${registration.vehicleClass ? `<div class="field">
+            <div class="field-label">Vehicle Class:</div>
+            <div class="field-value">${registration.vehicleClass}</div>
+          </div>` : ''}
+          ${registration.vehicleCategory ? `<div class="field">
+            <div class="field-label">Vehicle Category:</div>
+            <div class="field-value">${registration.vehicleCategory}</div>
+          </div>` : ''}
+          ${registration.ladenWeight ? `<div class="field">
+            <div class="field-label">Laden Weight:</div>
+            <div class="field-value">${registration.ladenWeight} kg</div>
+          </div>` : ''}
+          ${registration.unladenWeight ? `<div class="field">
+            <div class="field-label">Unladen Weight:</div>
+            <div class="field-value">${registration.unladenWeight} kg</div>
+          </div>` : ''}
+          ${registration.manufactureYear ? `<div class="field">
+            <div class="field-label">Manufacture Year:</div>
+            <div class="field-value">${registration.manufactureYear}</div>
+          </div>` : ''}
+          ${registration.purchaseDeliveryDate ? `<div class="field">
+            <div class="field-label">Purchase/Delivery Date:</div>
+            <div class="field-value">${registration.purchaseDeliveryDate}</div>
+          </div>` : ''}
+          ${registration.saleAmount ? `<div class="field">
+            <div class="field-label">Sale Amount:</div>
+            <div class="field-value">₹${registration.saleAmount}</div>
+          </div>` : ''}
         </div>
 
         <div class="section">
           <h2>Owner Details</h2>
-          <div class="field">
+          ${registration.ownerName ? `<div class="field">
             <div class="field-label">Owner Name:</div>
             <div class="field-value">${registration.ownerName}</div>
-          </div>
-          <div class="field">
+          </div>` : ''}
+          ${registration.sonWifeDaughterOf ? `<div class="field">
             <div class="field-label">S/W/D of:</div>
-            <div class="field-value">${registration.relationOf}</div>
-          </div>
-          <div class="field">
+            <div class="field-value">${registration.sonWifeDaughterOf}</div>
+          </div>` : ''}
+          ${registration.address ? `<div class="field">
             <div class="field-label">Address:</div>
             <div class="field-value">${registration.address}</div>
-          </div>
+          </div>` : ''}
         </div>
 
         <div class="footer">
@@ -261,10 +301,11 @@ const VehicleRegistration = () => {
   const filteredRegistrations = useMemo(() => {
     return registrations.filter((registration) => {
       const matchesSearch =
-        registration.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.chassisNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        registration.engineNumber.toLowerCase().includes(searchTerm.toLowerCase())
+        (registration.vehicleNumber && registration.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (registration.registrationNumber && registration.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (registration.ownerName && registration.ownerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (registration.chassisNumber && registration.chassisNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (registration.engineNumber && registration.engineNumber.toLowerCase().includes(searchTerm.toLowerCase()))
 
       const matchesStatus = !filterStatus || registration.status === filterStatus
 
@@ -447,26 +488,26 @@ const VehicleRegistration = () => {
                         <td className='px-4 py-4'>
                           <div className='flex items-center gap-3'>
                             <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
-                              {registration.registrationNumber?.substring(0, 2) || 'RC'}
+                              {registration.vehicleNumber?.substring(0, 2) || 'VH'}
                             </div>
                             <div>
-                              <div className='text-sm font-mono font-bold text-gray-900'>{registration.registrationNumber}</div>
+                              <div className='text-sm font-mono font-bold text-gray-900'>{registration.vehicleNumber}</div>
                               <div className='text-xs text-gray-500 mt-0.5'>Chassis: {registration.chassisNumber}</div>
                             </div>
                           </div>
                         </td>
                         <td className='px-4 py-4'>
-                          <div className='text-sm font-bold text-gray-900'>{registration.ownerName}</div>
-                          <div className='text-xs text-gray-500 mt-0.5'>S/W/D of {registration.relationOf}</div>
+                          <div className='text-sm font-bold text-gray-900'>{registration.ownerName || 'N/A'}</div>
+                          <div className='text-xs text-gray-500 mt-0.5'>S/W/D of {registration.sonWifeDaughterOf || 'N/A'}</div>
                         </td>
                         <td className='px-4 py-4'>
-                          <div className='text-sm font-semibold text-gray-900'>{registration.makerName} {registration.modelName}</div>
+                          <div className='text-sm font-semibold text-gray-900'>{registration.makerName || 'N/A'} {registration.modelName || ''}</div>
                           <div className='text-xs text-gray-500 mt-0.5'>
                             <span className='inline-flex items-center'>
                               <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
                                 <circle cx='10' cy='10' r='6'></circle>
                               </svg>
-                              {registration.colour}
+                              {registration.colour || 'N/A'}
                             </span>
                           </div>
                         </td>
@@ -475,7 +516,7 @@ const VehicleRegistration = () => {
                             <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
                             </svg>
-                            {registration.dateOfRegistration}
+                            {registration.dateOfRegistration || 'N/A'}
                           </div>
                         </td>
                         <td className='px-4 py-4'>

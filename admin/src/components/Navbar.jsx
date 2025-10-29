@@ -1,75 +1,85 @@
-import React, { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
-  const location = useLocation()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const menuItems = [
+    {
+      name: "Vehicle Registration",
+      icon: "🚗",
+      path: "/vehicle-registration",
+      description: "Register Vehicles",
+    },
 
     {
-      name: 'Driving Licence',
-      icon: '🪪',
-      path: '/',
-      description: 'DL Applications'
+      name: "National Permit",
+      icon: "🛣️",
+      path: "/national-permit",
+      description: "National Permits",
     },
     {
-      name: 'National Permit',
-      icon: '🛣️',
-      path: '/national-permit',
-      description: 'National Permits'
+      name: "CG Permit",
+      icon: "📄",
+      path: "/cg-permit",
+      description: "CG State Permits",
     },
     {
-      name: 'CG Permit',
-      icon: '📄',
-      path: '/cg-permit',
-      description: 'CG State Permits'
+      name: "Temporary Permit",
+      icon: "⏰",
+      path: "/temporary-permit",
+      description: "Temporary Permits",
     },
-    {
-      name: 'Temporary Permit',
-      icon: '⏰',
-      path: '/temporary-permit',
-      description: 'Temporary Permits'
-    },
-    {
-      name: 'Vehicle Registration',
-      icon: '🚗',
-      path: '/vehicle-registration',
-      description: 'Register Vehicles'
-    },
-    {
-      name: 'Insurance',
-      icon: '🛡️',
-      path: '/insurance',
-      description: 'Vehicle Insurance'
-    },
-    {
-      name: 'Fitness',
-      icon: '✅',
-      path: '/fitness',
-      description: 'Fitness Certificate'
-    },
-    {
-      name: 'Vehicle Transfer',
-      icon: '🔀',
-      path: '/vehicle-transfer',
-      description: 'Transfer Ownership'
-    },
-    {
-      name: 'Dealer Bill',
-      icon: '📈',
-      path: '/dealer-bill',
-      description: 'Dealer Billing'
-    },
-    {
-      name: 'Setting',
-      icon: '⚙️',
-      path: '/setting',
-      description: 'App Settings'
-    },
-  ]
 
-  const isActive = (path) => location.pathname === path
+    {
+      name: "Fitness",
+      icon: "✅",
+      path: "/fitness",
+      description: "Fitness Certificate",
+    },
+    {
+      name: "Tax",
+      icon: "💰",
+      path: "/tax",
+      description: "Tax Management",
+    },
+
+     {
+      name: "Dealer Bill",
+      icon: "📈",
+      path: "/dealer-bill",
+      description: "Dealer Billing",
+    },
+
+    {
+      name: "Insurance",
+      icon: "🛡️",
+      path: "/insurance",
+      description: "Vehicle Insurance",
+    },
+    {
+      name: "Vehicle Transfer",
+      icon: "🔀",
+      path: "/vehicle-transfer",
+      description: "Transfer Ownership",
+    },
+
+    {
+      name: "Driving Licence",
+      icon: "🪪",
+      path: "/",
+      description: "DL Applications",
+    },
+    {
+      name: "Setting",
+      icon: "⚙️",
+      path: "/setting",
+      description: "App Settings",
+    },
+  ];
+
+  const isActive = (path) => location.pathname === path;
 
   return (
     <>
@@ -90,8 +100,18 @@ const Navbar = () => {
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
             aria-label="Open Menu"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 6h16M4 12h16M4 18h16"
+              />
             </svg>
           </button>
 
@@ -100,9 +120,7 @@ const Navbar = () => {
             <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md">
               <span className="text-lg font-black text-white">R</span>
             </div>
-            <h1 className="text-sm font-bold text-white">
-              RTO Admin
-            </h1>
+            <h1 className="text-sm font-bold text-white">RTO Admin</h1>
           </div>
 
           {/* Placeholder for alignment */}
@@ -111,9 +129,11 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Slide-in Menu */}
-      <div className={`lg:hidden fixed left-0 top-0 h-full bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white transform transition-transform duration-300 ease-in-out z-50 w-64 shadow-2xl ${
-        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <div
+        className={`lg:hidden fixed left-0 top-0 h-full bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white transform transition-transform duration-300 ease-in-out z-50 w-64 shadow-2xl ${
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
         {/* Mobile Menu Header */}
         <div className="p-4 border-b border-purple-700/30">
           <div className="flex items-center justify-between">
@@ -123,7 +143,9 @@ const Navbar = () => {
               </div>
               <div>
                 <h1 className="text-base font-bold text-white">RTO</h1>
-                <p className="text-xs text-purple-300 font-medium">Admin Panel</p>
+                <p className="text-xs text-purple-300 font-medium">
+                  Admin Panel
+                </p>
               </div>
             </div>
             {/* Close Button */}
@@ -131,8 +153,18 @@ const Navbar = () => {
               onClick={() => setIsMobileMenuOpen(false)}
               className="text-purple-300 hover:text-white p-1.5 hover:bg-white/10 rounded-lg transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -147,15 +179,27 @@ const Navbar = () => {
               onClick={() => setIsMobileMenuOpen(false)}
               className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group ${
                 isActive(item.path)
-                  ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg'
-                  : 'hover:bg-white/10 hover:border border-transparent hover:border-purple-400/20'
+                  ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg"
+                  : "hover:bg-white/10 hover:border border-transparent hover:border-purple-400/20"
               }`}
             >
-              <span className={`text-xl ${isActive(item.path) ? 'text-orange-300' : 'text-purple-200 group-hover:text-orange-300'}`}>
+              <span
+                className={`text-xl ${
+                  isActive(item.path)
+                    ? "text-orange-300"
+                    : "text-purple-200 group-hover:text-orange-300"
+                }`}
+              >
                 {item.icon}
               </span>
               <div className="flex-1">
-                <div className={`text-sm font-semibold ${isActive(item.path) ? 'text-white' : 'text-purple-100 group-hover:text-white'}`}>
+                <div
+                  className={`text-sm font-semibold ${
+                    isActive(item.path)
+                      ? "text-white"
+                      : "text-purple-100 group-hover:text-white"
+                  }`}
+                >
                   {item.name}
                 </div>
                 <div className="text-xs text-purple-400 group-hover:text-purple-300">
@@ -181,15 +225,27 @@ const Navbar = () => {
                 to={item.path}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 group flex-shrink-0 ${
                   isActive(item.path)
-                    ? 'bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg'
-                    : 'hover:bg-white/10 hover:border border-transparent hover:border-purple-400/20'
+                    ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg"
+                    : "hover:bg-white/10 hover:border border-transparent hover:border-purple-400/20"
                 }`}
                 title={item.description}
               >
-                <span className={`text-lg ${isActive(item.path) ? 'text-orange-300' : 'text-purple-200 group-hover:text-orange-300'}`}>
+                <span
+                  className={`text-lg ${
+                    isActive(item.path)
+                      ? "text-orange-300"
+                      : "text-purple-200 group-hover:text-orange-300"
+                  }`}
+                >
                   {item.icon}
                 </span>
-                <span className={`text-sm font-semibold whitespace-nowrap ${isActive(item.path) ? 'text-purple-100' : 'text-purple-100 group-hover:text-white'}`}>
+                <span
+                  className={`text-sm font-semibold whitespace-nowrap ${
+                    isActive(item.path)
+                      ? "text-purple-100"
+                      : "text-purple-100 group-hover:text-white"
+                  }`}
+                >
                   {item.name}
                 </span>
                 {isActive(item.path) && (
@@ -201,7 +257,7 @@ const Navbar = () => {
         </div>
       </nav>
     </>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

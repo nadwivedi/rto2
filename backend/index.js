@@ -47,6 +47,7 @@ const temporaryPermitRoutes = require('./routes/temporaryPermit')
 const vehicleRegistrationRoutes = require('./routes/vehicleRegistration')
 const fitnessRoutes = require('./routes/fitness')
 const dealerBillRoutes = require('./routes/dealerBill')
+const customBillRoutes = require('./routes/customBill')
 
 // Use Routes
 app.use('/api/driving-licenses', drivingLicenseRoutes)
@@ -56,6 +57,7 @@ app.use('/api/temporary-permits', temporaryPermitRoutes)
 app.use('/api/vehicle-registrations', vehicleRegistrationRoutes)
 app.use('/api/fitness', fitnessRoutes)
 app.use('/api/dealer-bills', dealerBillRoutes)
+app.use('/api/custom-bills', customBillRoutes)
 
 // Root route
 app.get('/', (req, res) => {

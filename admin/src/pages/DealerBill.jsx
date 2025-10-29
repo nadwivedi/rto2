@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import AddDealerBillModal from '../components/AddDealerBillModal'
+import BlankBillModal from '../components/BlankBillModal'
 
 const API_BASE_URL = 'http://localhost:5000/api'
 
@@ -11,6 +12,7 @@ const DealerBill = () => {
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isBlankBillModalOpen, setIsBlankBillModalOpen] = useState(false)
   const itemsPerPage = 10
 
   // Fetch dealer bills
@@ -103,23 +105,21 @@ const DealerBill = () => {
     }
   }
 
-  const getPermitDisplay = (permit) => {
-    if (permit.permitType === 'National Permit') {
-      return (
-        <div>
-          <div className='text-sm font-bold text-gray-900'>{permit.permitType}</div>
-          <div className='text-xs text-gray-600 mt-1'>Part A: {permit.partANumber || 'N/A'}</div>
-          <div className='text-xs text-gray-600'>Part B: {permit.partBNumber || 'N/A'}</div>
-        </div>
-      )
-    } else {
-      return (
-        <div>
-          <div className='text-sm font-bold text-gray-900'>{permit.permitType}</div>
-          <div className='text-xs text-gray-600 mt-1'>{permit.permitNumber || 'N/A'}</div>
-        </div>
-      )
+  const getIncludedItems = (items) => {
+    const includedList = []
+    if (items.permit && items.permit.isIncluded) {
+      includedList.push('Permit')
     }
+    if (items.fitness && items.fitness.isIncluded) {
+      includedList.push('Fitness')
+    }
+    if (items.vehicleRegistration && items.vehicleRegistration.isIncluded) {
+      includedList.push('Vehicle Registration')
+    }
+    if (items.temporaryRegistration && items.temporaryRegistration.isIncluded) {
+      includedList.push('Temporary Registration')
+    }
+    return includedList
   }
 
   const getPaymentStatusBadge = (status) => {
@@ -150,15 +150,26 @@ const DealerBill = () => {
               <h1 className='text-2xl md:text-3xl font-black text-gray-800'>Dealer Bills</h1>
               <p className='text-sm text-gray-600 mt-1'>Manage dealer bills for Permit, Fitness, and Registration</p>
             </div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className='px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all font-bold flex items-center gap-2'
-            >
-              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-              </svg>
-              Add Dealer Bill
-            </button>
+            <div className='flex gap-3'>
+              <button
+                onClick={() => setIsBlankBillModalOpen(true)}
+                className='px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-xl hover:shadow-lg transition-all font-bold flex items-center gap-2'
+              >
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                </svg>
+                Blank Bill
+              </button>
+              <button
+                onClick={() => setIsAddModalOpen(true)}
+                className='px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all font-bold flex items-center gap-2'
+              >
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+                </svg>
+                Add Dealer Bill
+              </button>
+            </div>
           </div>
         </div>
 
@@ -166,6 +177,15 @@ const DealerBill = () => {
         <AddDealerBillModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
+          onSuccess={() => {
+            fetchDealerBills()
+          }}
+        />
+
+        {/* Blank Bill Modal */}
+        <BlankBillModal
+          isOpen={isBlankBillModalOpen}
+          onClose={() => setIsBlankBillModalOpen(false)}
           onSuccess={() => {
             fetchDealerBills()
           }}
@@ -179,7 +199,7 @@ const DealerBill = () => {
               <div className='relative flex-1 lg:max-w-md'>
                 <input
                   type='text'
-                  placeholder='Search by bill number, permit, fitness, or registration...'
+                  placeholder='Search by bill number or customer name...'
                   value={searchQuery}
                   onChange={handleSearchChange}
                   className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
@@ -206,9 +226,8 @@ const DealerBill = () => {
               <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
                 <tr>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Bill Number</th>
-                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit</th>
-                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Fitness</th>
-                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Registration</th>
+                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Customer Name</th>
+                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Included Items</th>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Fees</th>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Payment Status</th>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Date</th>
@@ -218,7 +237,7 @@ const DealerBill = () => {
               <tbody className='divide-y divide-gray-200'>
                 {loading ? (
                   <tr>
-                    <td colSpan='8' className='px-4 py-8 text-center'>
+                    <td colSpan='7' className='px-4 py-8 text-center'>
                       <div className='text-gray-400'>
                         <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
@@ -236,16 +255,17 @@ const DealerBill = () => {
                         </div>
                       </td>
                       <td className='px-4 py-4'>
-                        {getPermitDisplay(bill.permit)}
-                      </td>
-                      <td className='px-4 py-4'>
-                        <div className='text-sm font-mono text-gray-900 bg-green-50 px-3 py-1.5 rounded-lg inline-block border border-green-200'>
-                          {bill.fitness.certificateNumber || 'N/A'}
+                        <div className='text-sm font-bold text-gray-900'>
+                          {bill.customerName || 'N/A'}
                         </div>
                       </td>
                       <td className='px-4 py-4'>
-                        <div className='text-sm font-mono text-gray-900 bg-orange-50 px-3 py-1.5 rounded-lg inline-block border border-orange-200'>
-                          {bill.registration.registrationNumber || 'N/A'}
+                        <div className='flex flex-wrap gap-1'>
+                          {getIncludedItems(bill.items).map((item, index) => (
+                            <div key={index} className='text-xs font-semibold text-gray-900 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200'>
+                              {item}
+                            </div>
+                          ))}
                         </div>
                       </td>
                       <td className='px-4 py-4'>
@@ -292,7 +312,7 @@ const DealerBill = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan='8' className='px-4 py-8 text-center'>
+                    <td colSpan='7' className='px-4 py-8 text-center'>
                       <div className='text-gray-400'>
                         <svg className='mx-auto h-12 w-12 mb-3 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />

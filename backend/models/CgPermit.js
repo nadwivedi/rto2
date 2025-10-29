@@ -15,9 +15,11 @@ const CgPermitSchema = new mongoose.Schema({
   },
   vehicleNumber: {
     type: String,
+    ref: 'VehicleRegistration',
     required: true,
     trim: true,
-    uppercase: true
+    uppercase: true,
+    index: true
   },
   validFrom: {
     type: String,

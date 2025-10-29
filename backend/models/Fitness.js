@@ -3,9 +3,11 @@ const mongoose = require('mongoose')
 const fitnessSchema = new mongoose.Schema({
   vehicleNumber: {
     type: String,
+    ref: 'VehicleRegistration',
     required: true,
     uppercase: true,
-    trim: true
+    trim: true,
+    index: true
   },
   validFrom: {
     type: String,

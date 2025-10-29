@@ -3,81 +3,92 @@ import { useState } from 'react'
 const API_BASE_URL = 'http://localhost:5000/api'
 
 const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
-  // Permit Section
-  const [permitData, setPermitData] = useState({
-    permitType: 'National Permit',
-    permitNumber: '',
-    partANumber: '',
-    partBNumber: ''
+  // Customer name
+  const [customerName, setCustomerName] = useState('')
+
+  // Items with checkbox approach and amounts
+  const [items, setItems] = useState({
+    permit: {
+      isIncluded: false,
+      amount: ''
+    },
+    fitness: {
+      isIncluded: false,
+      amount: ''
+    },
+    vehicleRegistration: {
+      isIncluded: false,
+      amount: ''
+    },
+    temporaryRegistration: {
+      isIncluded: false,
+      amount: ''
+    }
   })
 
-  // Fitness Section
-  const [fitnessData, setFitnessData] = useState({
-    certificateNumber: ''
-  })
-
-  // Registration Section
-  const [registrationData, setRegistrationData] = useState({
-    registrationNumber: ''
-  })
-
-  // Total Fees
-  const [totalFees, setTotalFees] = useState('')
+  // Total amount (calculated from item amounts)
+  const [totalAmount, setTotalAmount] = useState('')
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Handle permit data change
-  const handlePermitChange = (e) => {
-    const { name, value } = e.target
-    setPermitData(prev => ({
+  // Handle checkbox change
+  const handleCheckboxChange = (itemName) => {
+    setItems(prev => ({
       ...prev,
-      [name]: value
+      [itemName]: {
+        ...prev[itemName],
+        isIncluded: !prev[itemName].isIncluded
+      }
     }))
     setError('')
   }
 
-  // Handle fitness data change
-  const handleFitnessChange = (e) => {
-    const { name, value } = e.target
-    setFitnessData(prev => ({
+  // Handle amount change
+  const handleAmountChange = (itemName, value) => {
+    setItems(prev => ({
       ...prev,
-      [name]: value
+      [itemName]: {
+        ...prev[itemName],
+        amount: value
+      }
     }))
     setError('')
+
+    // Calculate total amount from all included items
+    calculateTotalAmount(itemName, value)
   }
 
-  // Handle registration data change
-  const handleRegistrationChange = (e) => {
-    const { name, value } = e.target
-    setRegistrationData(prev => ({
-      ...prev,
-      [name]: value
-    }))
-    setError('')
+  // Calculate total amount
+  const calculateTotalAmount = (changedItem, changedValue) => {
+    let total = 0
+
+    Object.keys(items).forEach(key => {
+      if (items[key].isIncluded || key === changedItem) {
+        const amount = key === changedItem ? changedValue : items[key].amount
+        total += parseFloat(amount) || 0
+      }
+    })
+
+    setTotalAmount(total.toString())
   }
 
   // Check if form is valid
   const isFormValid = () => {
-    if (permitData.permitType === 'National Permit') {
-      if (!permitData.partANumber || !permitData.partBNumber) {
-        return false
-      }
-    } else {
-      if (!permitData.permitNumber) {
-        return false
-      }
-    }
-
-    if (!fitnessData.certificateNumber) {
+    // Customer name is required
+    if (!customerName || customerName.trim() === '') {
       return false
     }
 
-    if (!registrationData.registrationNumber) {
+    // At least one item must be included
+    const hasIncludedItem = items.permit.isIncluded || items.fitness.isIncluded || items.vehicleRegistration.isIncluded || items.temporaryRegistration.isIncluded
+
+    if (!hasIncludedItem) {
       return false
     }
 
-    if (!totalFees || parseFloat(totalFees) <= 0) {
+    // Total amount must be valid
+    if (!totalAmount || parseFloat(totalAmount) <= 0) {
       return false
     }
 
@@ -97,16 +108,35 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
     setError('')
 
     try {
+      // Prepare items with amounts
+      const itemsToSend = {
+        permit: {
+          isIncluded: items.permit.isIncluded,
+          amount: items.permit.isIncluded ? parseFloat(items.permit.amount) || 0 : 0
+        },
+        fitness: {
+          isIncluded: items.fitness.isIncluded,
+          amount: items.fitness.isIncluded ? parseFloat(items.fitness.amount) || 0 : 0
+        },
+        vehicleRegistration: {
+          isIncluded: items.vehicleRegistration.isIncluded,
+          amount: items.vehicleRegistration.isIncluded ? parseFloat(items.vehicleRegistration.amount) || 0 : 0
+        },
+        temporaryRegistration: {
+          isIncluded: items.temporaryRegistration.isIncluded,
+          amount: items.temporaryRegistration.isIncluded ? parseFloat(items.temporaryRegistration.amount) || 0 : 0
+        }
+      }
+
       const response = await fetch(`${API_BASE_URL}/dealer-bills`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          permit: permitData,
-          fitness: fitnessData,
-          registration: registrationData,
-          totalFees: parseFloat(totalFees)
+          customerName: customerName.trim(),
+          items: itemsToSend,
+          totalFees: parseFloat(totalAmount)
         })
       })
 
@@ -119,19 +149,26 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
       alert('Dealer bill created successfully! Bill number: ' + data.data.billNumber)
 
       // Reset form
-      setPermitData({
-        permitType: 'National Permit',
-        permitNumber: '',
-        partANumber: '',
-        partBNumber: ''
+      setCustomerName('')
+      setItems({
+        permit: {
+          isIncluded: false,
+          amount: ''
+        },
+        fitness: {
+          isIncluded: false,
+          amount: ''
+        },
+        vehicleRegistration: {
+          isIncluded: false,
+          amount: ''
+        },
+        temporaryRegistration: {
+          isIncluded: false,
+          amount: ''
+        }
       })
-      setFitnessData({
-        certificateNumber: ''
-      })
-      setRegistrationData({
-        registrationNumber: ''
-      })
-      setTotalFees('')
+      setTotalAmount('')
 
       onSuccess && onSuccess(data.data)
       onClose()
@@ -170,152 +207,140 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
         {/* Scrollable Content */}
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-6'>
-            {/* Permit Section */}
-            <div className='mb-6 p-4 border-2 border-blue-200 rounded-xl bg-blue-50'>
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center text-sm font-black'>1</span>
-                Permit
-              </h3>
-
-              <div className='space-y-4'>
-                <div>
-                  <label className='block text-sm font-bold text-gray-700 mb-2'>
-                    Permit Type <span className='text-red-500'>*</span>
-                  </label>
-                  <select
-                    name='permitType'
-                    value={permitData.permitType}
-                    onChange={handlePermitChange}
-                    className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white'
-                    required
-                  >
-                    <option value='National Permit'>National Permit</option>
-                    <option value='CG Permit'>CG Permit</option>
-                    <option value='Temporary Permit'>Temporary Permit</option>
-                  </select>
-                </div>
-
-                {permitData.permitType === 'National Permit' ? (
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div>
-                      <label className='block text-sm font-bold text-gray-700 mb-2'>
-                        Part A Number <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='text'
-                        name='partANumber'
-                        value={permitData.partANumber}
-                        onChange={handlePermitChange}
-                        placeholder='e.g., PA-2025-001'
-                        className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono'
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-bold text-gray-700 mb-2'>
-                        Part B Number <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='text'
-                        name='partBNumber'
-                        value={permitData.partBNumber}
-                        onChange={handlePermitChange}
-                        placeholder='e.g., PB-2025-001'
-                        className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono'
-                        required
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <label className='block text-sm font-bold text-gray-700 mb-2'>
-                      Permit Number <span className='text-red-500'>*</span>
-                    </label>
-                    <input
-                      type='text'
-                      name='permitNumber'
-                      value={permitData.permitNumber}
-                      onChange={handlePermitChange}
-                      placeholder={permitData.permitType === 'CG Permit' ? 'e.g., CG-2025-0001' : 'e.g., TP-2025-0001'}
-                      className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono'
-                      required
-                    />
-                  </div>
-                )}
-              </div>
+            <div className='mb-4 p-4 border-2 border-indigo-200 rounded-xl bg-indigo-50'>
+              <p className='text-sm font-semibold text-gray-700'>
+                Enter customer name, select items to include in the bill, and enter the total amount.
+              </p>
             </div>
 
-            {/* Fitness Section */}
-            <div className='mb-6 p-4 border-2 border-green-200 rounded-xl bg-green-50'>
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center text-sm font-black'>2</span>
-                Fitness Certificate
-              </h3>
-
-              <div>
-                <label className='block text-sm font-bold text-gray-700 mb-2'>
-                  Certificate Number <span className='text-red-500'>*</span>
-                </label>
-                <input
-                  type='text'
-                  name='certificateNumber'
-                  value={fitnessData.certificateNumber}
-                  onChange={handleFitnessChange}
-                  placeholder='e.g., FIT-2025-001'
-                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono'
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Registration Section */}
-            <div className='mb-6 p-4 border-2 border-orange-200 rounded-xl bg-orange-50'>
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center text-sm font-black'>3</span>
-                Vehicle Registration
-              </h3>
-
-              <div>
-                <label className='block text-sm font-bold text-gray-700 mb-2'>
-                  Registration Number <span className='text-red-500'>*</span>
-                </label>
-                <input
-                  type='text'
-                  name='registrationNumber'
-                  value={registrationData.registrationNumber}
-                  onChange={handleRegistrationChange}
-                  placeholder='e.g., REG-2025-001'
-                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono'
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Total Fees Section */}
+            {/* Customer Name Section */}
             <div className='mb-6 p-4 border-2 border-purple-200 rounded-xl bg-purple-50'>
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='w-8 h-8 bg-purple-500 text-white rounded-lg flex items-center justify-center text-sm font-black'>₹</span>
-                Total Fees
+              <h3 className='text-lg font-bold text-gray-800 mb-3 flex items-center gap-2'>
+                <span className='w-8 h-8 bg-purple-500 text-white rounded-lg flex items-center justify-center text-sm font-black'>👤</span>
+                Customer Name
               </h3>
+              <input
+                type='text'
+                value={customerName}
+                onChange={(e) => {
+                  setCustomerName(e.target.value)
+                  setError('')
+                }}
+                placeholder='Enter customer name'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base font-semibold'
+                required
+              />
+            </div>
 
-              <div>
-                <label className='block text-sm font-bold text-gray-700 mb-2'>
-                  Total Amount (₹) <span className='text-red-500'>*</span>
-                </label>
+            {/* Items Selection Title */}
+            <div className='mb-4'>
+              <h3 className='text-md font-bold text-gray-800'>Select Items to Include:</h3>
+            </div>
+
+            {/* Permit Checkbox */}
+            <div className='mb-4 p-3 border-2 border-blue-200 rounded-xl bg-blue-50'>
+              <label className='flex items-center gap-3 cursor-pointer mb-2'>
+                <input
+                  type='checkbox'
+                  checked={items.permit.isIncluded}
+                  onChange={() => handleCheckboxChange('permit')}
+                  className='w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
+                />
+                <span className='text-base font-bold text-gray-800'>Permit</span>
+              </label>
+              {items.permit.isIncluded && (
                 <input
                   type='number'
-                  name='totalFees'
-                  value={totalFees}
-                  onChange={(e) => {
-                    setTotalFees(e.target.value)
-                    setError('')
-                  }}
-                  placeholder='e.g., 10000'
+                  value={items.permit.amount}
+                  onChange={(e) => handleAmountChange('permit', e.target.value)}
+                  placeholder='Enter amount for Permit'
                   min='0'
                   step='100'
-                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-lg font-bold'
-                  required
+                  className='w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base font-semibold'
                 />
+              )}
+            </div>
+
+            {/* Fitness Checkbox */}
+            <div className='mb-4 p-3 border-2 border-green-200 rounded-xl bg-green-50'>
+              <label className='flex items-center gap-3 cursor-pointer mb-2'>
+                <input
+                  type='checkbox'
+                  checked={items.fitness.isIncluded}
+                  onChange={() => handleCheckboxChange('fitness')}
+                  className='w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500'
+                />
+                <span className='text-base font-bold text-gray-800'>Fitness</span>
+              </label>
+              {items.fitness.isIncluded && (
+                <input
+                  type='number'
+                  value={items.fitness.amount}
+                  onChange={(e) => handleAmountChange('fitness', e.target.value)}
+                  placeholder='Enter amount for Fitness'
+                  min='0'
+                  step='100'
+                  className='w-full px-3 py-2 border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base font-semibold'
+                />
+              )}
+            </div>
+
+            {/* Vehicle Registration Checkbox */}
+            <div className='mb-4 p-3 border-2 border-orange-200 rounded-xl bg-orange-50'>
+              <label className='flex items-center gap-3 cursor-pointer mb-2'>
+                <input
+                  type='checkbox'
+                  checked={items.vehicleRegistration.isIncluded}
+                  onChange={() => handleCheckboxChange('vehicleRegistration')}
+                  className='w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500'
+                />
+                <span className='text-base font-bold text-gray-800'>Vehicle Registration</span>
+              </label>
+              {items.vehicleRegistration.isIncluded && (
+                <input
+                  type='number'
+                  value={items.vehicleRegistration.amount}
+                  onChange={(e) => handleAmountChange('vehicleRegistration', e.target.value)}
+                  placeholder='Enter amount for Vehicle Registration'
+                  min='0'
+                  step='100'
+                  className='w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-base font-semibold'
+                />
+              )}
+            </div>
+
+            {/* Temporary Registration Checkbox */}
+            <div className='mb-6 p-3 border-2 border-pink-200 rounded-xl bg-pink-50'>
+              <label className='flex items-center gap-3 cursor-pointer mb-2'>
+                <input
+                  type='checkbox'
+                  checked={items.temporaryRegistration.isIncluded}
+                  onChange={() => handleCheckboxChange('temporaryRegistration')}
+                  className='w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500'
+                />
+                <span className='text-base font-bold text-gray-800'>Temporary Registration</span>
+              </label>
+              {items.temporaryRegistration.isIncluded && (
+                <input
+                  type='number'
+                  value={items.temporaryRegistration.amount}
+                  onChange={(e) => handleAmountChange('temporaryRegistration', e.target.value)}
+                  placeholder='Enter amount for Temporary Registration'
+                  min='0'
+                  step='100'
+                  className='w-full px-3 py-2 border-2 border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-base font-semibold'
+                />
+              )}
+            </div>
+
+            {/* Total Amount Section */}
+            <div className='mb-6 p-4 border-2 border-indigo-200 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50'>
+              <h3 className='text-lg font-bold text-gray-800 mb-3 flex items-center gap-2'>
+                <span className='w-8 h-8 bg-indigo-500 text-white rounded-lg flex items-center justify-center text-sm font-black'>₹</span>
+                Total Amount (Auto-calculated)
+              </h3>
+              <div className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-gray-100 text-2xl font-bold text-gray-700'>
+                ₹{totalAmount || '0'}
               </div>
             </div>
 

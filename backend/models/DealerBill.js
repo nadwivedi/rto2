@@ -12,39 +12,57 @@ const dealerBillSchema = new mongoose.Schema(
       type: String
     },
 
-    // Permit Information (Flexible for any permit type)
-    permit: {
-      permitType: {
-        type: String,
-        enum: ['National Permit', 'CG Permit', 'Temporary Permit'],
-        required: true
-      },
-      // For National Permit: partANumber and partBNumber
-      // For CG/Temporary Permit: permitNumber
-      permitNumber: {
-        type: String
-      },
-      partANumber: {
-        type: String
-      },
-      partBNumber: {
-        type: String
-      }
+    // Customer Information
+    customerName: {
+      type: String,
+      required: true
     },
 
-    // Fitness Information
-    fitness: {
-      certificateNumber: {
-        type: String,
-        required: true
-      }
-    },
-
-    // Vehicle Registration Information
-    registration: {
-      registrationNumber: {
-        type: String,
-        required: true
+    // Bill Items with checkbox approach and amounts
+    items: {
+      permit: {
+        isIncluded: {
+          type: Boolean,
+          default: false
+        },
+        amount: {
+          type: Number,
+          default: 0,
+          min: 0
+        }
+      },
+      fitness: {
+        isIncluded: {
+          type: Boolean,
+          default: false
+        },
+        amount: {
+          type: Number,
+          default: 0,
+          min: 0
+        }
+      },
+      vehicleRegistration: {
+        isIncluded: {
+          type: Boolean,
+          default: false
+        },
+        amount: {
+          type: Number,
+          default: 0,
+          min: 0
+        }
+      },
+      temporaryRegistration: {
+        isIncluded: {
+          type: Boolean,
+          default: false
+        },
+        amount: {
+          type: Number,
+          default: 0,
+          min: 0
+        }
       }
     },
 
@@ -90,11 +108,7 @@ const dealerBillSchema = new mongoose.Schema(
 
 // Indexes for faster queries
 dealerBillSchema.index({ billNumber: 1 })
-dealerBillSchema.index({ 'permit.permitNumber': 1 })
-dealerBillSchema.index({ 'permit.partANumber': 1 })
-dealerBillSchema.index({ 'permit.partBNumber': 1 })
-dealerBillSchema.index({ 'fitness.certificateNumber': 1 })
-dealerBillSchema.index({ 'registration.registrationNumber': 1 })
+dealerBillSchema.index({ customerName: 1 })
 dealerBillSchema.index({ paymentStatus: 1 })
 dealerBillSchema.index({ status: 1 })
 dealerBillSchema.index({ createdAt: -1 })

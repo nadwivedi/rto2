@@ -8,6 +8,7 @@ exports.getAllRegistrations = async (req, res) => {
 
     if (search) {
       query.$or = [
+        { vehicleNumber: { $regex: search, $options: 'i' } },
         { registrationNumber: { $regex: search, $options: 'i' } },
         { ownerName: { $regex: search, $options: 'i' } },
         { chassisNumber: { $regex: search, $options: 'i' } },
@@ -60,11 +61,11 @@ exports.getRegistrationById = async (req, res) => {
   }
 }
 
-// Get vehicle registration by registration number
+// Get vehicle registration by vehicle number
 exports.getRegistrationByNumber = async (req, res) => {
   try {
     const registration = await VehicleRegistration.findOne({
-      registrationNumber: req.params.registrationNumber.toUpperCase()
+      vehicleNumber: req.params.registrationNumber.toUpperCase()
     })
 
     if (!registration) {
@@ -101,7 +102,7 @@ exports.createRegistration = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: 'Registration number already exists'
+        message: 'Vehicle number already exists'
       })
     }
 
@@ -239,18 +240,28 @@ exports.shareRegistration = async (req, res) => {
     }
 
     const message = `*VEHICLE REGISTRATION CERTIFICATE*\n\n` +
-      `Registration No: ${registration.registrationNumber}\n` +
-      `Date of Registration: ${registration.dateOfRegistration}\n\n` +
+      `Vehicle No: ${registration.vehicleNumber}\n` +
+      `Registration No: ${registration.registrationNumber || 'N/A'}\n` +
+      `Date of Registration: ${registration.dateOfRegistration || 'N/A'}\n\n` +
       `*Vehicle Details*\n` +
       `Chassis No: ${registration.chassisNumber}\n` +
-      `Engine No: ${registration.engineNumber}\n` +
-      `Maker: ${registration.makerName}\n` +
-      `Model: ${registration.modelName}\n` +
-      `Colour: ${registration.colour}\n\n` +
+      `Engine No: ${registration.engineNumber || 'N/A'}\n` +
+      `Maker: ${registration.makerName || 'N/A'}\n` +
+      `Model: ${registration.modelName || 'N/A'}\n` +
+      `Maker Model: ${registration.makerModel || 'N/A'}\n` +
+      `Colour: ${registration.colour || 'N/A'}\n` +
+      `Seating Capacity: ${registration.seatingCapacity || 'N/A'}\n` +
+      `Vehicle Class: ${registration.vehicleClass || 'N/A'}\n` +
+      `Vehicle Category: ${registration.vehicleCategory || 'N/A'}\n` +
+      `Laden Weight: ${registration.ladenWeight || 'N/A'} kg\n` +
+      `Unladen Weight: ${registration.unladenWeight || 'N/A'} kg\n` +
+      `Manufacture Year: ${registration.manufactureYear || 'N/A'}\n` +
+      `Purchase/Delivery Date: ${registration.purchaseDeliveryDate || 'N/A'}\n` +
+      `Sale Amount: ${registration.saleAmount ? '₹' + registration.saleAmount : 'N/A'}\n\n` +
       `*Owner Details*\n` +
-      `Name: ${registration.ownerName}\n` +
-      `S/W/D of: ${registration.relationOf}\n` +
-      `Address: ${registration.address}\n\n` +
+      `Name: ${registration.ownerName || 'N/A'}\n` +
+      `S/W/D of: ${registration.sonWifeDaughterOf || 'N/A'}\n` +
+      `Address: ${registration.address || 'N/A'}\n\n` +
       `Status: ${registration.status}\n\n` +
       `---\n` +
       `Regional Transport Office`

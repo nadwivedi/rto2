@@ -13,9 +13,11 @@ const InsuranceSchema = new mongoose.Schema({
   // Vehicle Information
   vehicleNumber: {
     type: String,
+    ref: 'VehicleRegistration',
     required: true,
     trim: true,
-    uppercase: true
+    uppercase: true,
+    index: true
   },
   vehicleType: {
     type: String,

@@ -2,16 +2,26 @@ import { useState, useEffect } from 'react'
 
 const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [formData, setFormData] = useState({
+    vehicleNumber: '',
     registrationNumber: '',
     dateOfRegistration: '',
     chassisNumber: '',
     engineNumber: '',
     ownerName: '',
-    relationOf: '',
+    sonWifeDaughterOf: '',
     address: '',
     makerName: '',
     modelName: '',
+    makerModel: '',
     colour: '',
+    seatingCapacity: '',
+    vehicleClass: '',
+    ladenWeight: '',
+    unladenWeight: '',
+    manufactureYear: '',
+    vehicleCategory: '',
+    purchaseDeliveryDate: '',
+    saleAmount: '',
     status: 'Active'
   })
 
@@ -23,16 +33,26 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       setFormData(editData)
     } else {
       setFormData({
+        vehicleNumber: '',
         registrationNumber: '',
         dateOfRegistration: '',
         chassisNumber: '',
         engineNumber: '',
         ownerName: '',
-        relationOf: '',
+        sonWifeDaughterOf: '',
         address: '',
         makerName: '',
         modelName: '',
+        makerModel: '',
         colour: '',
+        seatingCapacity: '',
+        vehicleClass: '',
+        ladenWeight: '',
+        unladenWeight: '',
+        manufactureYear: '',
+        vehicleCategory: '',
+        purchaseDeliveryDate: '',
+        saleAmount: '',
         status: 'Active'
       })
     }
@@ -113,7 +133,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   return (
     <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn'>
-      <div className='bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden animate-slideUp'>
+      <div className='bg-white rounded-3xl shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-hidden animate-slideUp'>
         {/* Header with gradient and icon */}
         <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white p-7 z-10 shadow-lg'>
           <div className='flex items-center justify-between'>
@@ -170,11 +190,34 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               </div>
               <div className='bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-2xl border border-indigo-100'>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-5'>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5'>
+                  {/* Vehicle Number */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Vehicle Number <span className='text-red-500'>*</span>
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='text'
+                        name='vehicleNumber'
+                        value={formData.vehicleNumber}
+                        onChange={handleChange}
+                        required
+                        placeholder='CG01AB1234'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
                   {/* Registration Number */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Registration Number <span className='text-red-500'>*</span>
+                      Registration Number
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -187,7 +230,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='registrationNumber'
                         value={formData.registrationNumber}
                         onChange={handleChange}
-                        required
                         placeholder='CG01AB1234'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -197,7 +239,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   {/* Date of Registration */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Date of Registration <span className='text-red-500'>*</span>
+                      Date of Registration
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -210,7 +252,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='dateOfRegistration'
                         value={formData.dateOfRegistration}
                         onChange={handleDateChange}
-                        required
                         placeholder='DD/MM/YYYY'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -243,7 +284,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   {/* Engine/Motor Number */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Engine/Motor Number <span className='text-red-500'>*</span>
+                      Engine/Motor Number
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -256,7 +297,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='engineNumber'
                         value={formData.engineNumber}
                         onChange={handleChange}
-                        required
                         placeholder='Enter engine/motor number'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -266,7 +306,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   {/* Maker Name */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Maker Name <span className='text-red-500'>*</span>
+                      Maker Name
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -279,7 +319,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='makerName'
                         value={formData.makerName}
                         onChange={handleChange}
-                        required
                         placeholder='e.g., Maruti Suzuki, Tata, Honda'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -289,7 +328,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   {/* Model Name */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Model Name <span className='text-red-500'>*</span>
+                      Model Name
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -302,8 +341,29 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='modelName'
                         value={formData.modelName}
                         onChange={handleChange}
-                        required
                         placeholder='e.g., Swift, Nexon, City'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Maker Model */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Maker Model
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' />
+                        </svg>
+                      </div>
+                      <input
+                        type='text'
+                        name='makerModel'
+                        value={formData.makerModel}
+                        onChange={handleChange}
+                        placeholder='e.g., Maruti Swift DXI'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
@@ -312,7 +372,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   {/* Colour */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Colour <span className='text-red-500'>*</span>
+                      Colour
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -325,8 +385,206 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='colour'
                         value={formData.colour}
                         onChange={handleChange}
-                        required
                         placeholder='e.g., White, Red, Blue'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Seating Capacity */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Seating Capacity
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='number'
+                        name='seatingCapacity'
+                        value={formData.seatingCapacity}
+                        onChange={handleChange}
+                        placeholder='e.g., 5, 7, 50'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Vehicle Class */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Vehicle Class
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='text'
+                        name='vehicleClass'
+                        value={formData.vehicleClass}
+                        onChange={handleChange}
+                        placeholder='e.g., Goods Carrier, Passenger, Private'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Vehicle Category */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Vehicle Category
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' />
+                        </svg>
+                      </div>
+                      <select
+                        name='vehicleCategory'
+                        value={formData.vehicleCategory}
+                        onChange={handleChange}
+                        className='w-full pl-12 pr-10 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
+                      >
+                        <option value=''>Select Category</option>
+                        <option value='LMV'>LMV (Light Motor Vehicle)</option>
+                        <option value='MMV'>MMV (Medium Motor Vehicle)</option>
+                        <option value='HMV'>HMV (Heavy Motor Vehicle)</option>
+                        <option value='HGV'>HGV (Heavy Goods Vehicle)</option>
+                        <option value='MGV'>MGV (Medium Goods Vehicle)</option>
+                        <option value='LGV'>LGV (Light Goods Vehicle)</option>
+                        <option value='MCWG'>MCWG (Motor Cycle With Gear)</option>
+                        <option value='MCWOG'>MCWOG (Motor Cycle Without Gear)</option>
+                        <option value='LMV-NT'>LMV-NT (Non-Transport)</option>
+                        <option value='HMV-PSV'>HMV-PSV (Heavy Motor Vehicle - Public Service Vehicle)</option>
+                        <option value='MGV-PSV'>MGV-PSV (Medium Goods Vehicle - Public Service Vehicle)</option>
+                        <option value='LMV-TR'>LMV-TR (Light Motor Vehicle - Transport)</option>
+                        <option value='3W-NT'>3W-NT (Three Wheeler - Non-Transport)</option>
+                        <option value='3W-TR'>3W-TR (Three Wheeler - Transport)</option>
+                        <option value='Tractor'>Tractor</option>
+                        <option value='Construction Vehicle'>Construction Vehicle</option>
+                        <option value='E-Cart'>E-Cart (Electric Cart)</option>
+                        <option value='E-Rickshaw'>E-Rickshaw (Electric Rickshaw)</option>
+                      </select>
+                      <div className='absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Laden Weight */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Laden Weight (kg)
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3' />
+                        </svg>
+                      </div>
+                      <input
+                        type='number'
+                        name='ladenWeight'
+                        value={formData.ladenWeight}
+                        onChange={handleChange}
+                        placeholder='e.g., 2500'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Unladen Weight */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Unladen Weight (kg)
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3' />
+                        </svg>
+                      </div>
+                      <input
+                        type='number'
+                        name='unladenWeight'
+                        value={formData.unladenWeight}
+                        onChange={handleChange}
+                        placeholder='e.g., 1200'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Manufacture Year */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Manufacture Year
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='number'
+                        name='manufactureYear'
+                        value={formData.manufactureYear}
+                        onChange={handleChange}
+                        placeholder='e.g., 2020'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Purchase/Delivery Date */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Purchase/Delivery Date
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='text'
+                        name='purchaseDeliveryDate'
+                        value={formData.purchaseDeliveryDate}
+                        onChange={handleDateChange}
+                        placeholder='DD/MM/YYYY'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sale Amount */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Sale Amount
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='number'
+                        name='saleAmount'
+                        value={formData.saleAmount}
+                        onChange={handleChange}
+                        placeholder='e.g., 500000'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
@@ -385,7 +643,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   {/* Owner Name */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Owner Name <span className='text-red-500'>*</span>
+                      Owner Name
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -398,7 +656,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='ownerName'
                         value={formData.ownerName}
                         onChange={handleChange}
-                        required
                         placeholder='Enter full name of owner'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -408,7 +665,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   {/* Son/Wife/Daughter of */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Son/Wife/Daughter of <span className='text-red-500'>*</span>
+                      Son/Wife/Daughter of
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -418,10 +675,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                       </div>
                       <input
                         type='text'
-                        name='relationOf'
-                        value={formData.relationOf}
+                        name='sonWifeDaughterOf'
+                        value={formData.sonWifeDaughterOf}
                         onChange={handleChange}
-                        required
                         placeholder='Enter father/husband/parent name'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -431,7 +687,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   {/* Address */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Address <span className='text-red-500'>*</span>
+                      Address
                     </label>
                     <div className='relative'>
                       <div className='absolute top-3 left-0 pl-4 flex items-start pointer-events-none'>
@@ -444,7 +700,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='address'
                         value={formData.address}
                         onChange={handleChange}
-                        required
                         rows='4'
                         placeholder='Enter complete address with pin code'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 resize-none font-semibold text-gray-800 placeholder-gray-400'

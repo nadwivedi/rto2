@@ -4,8 +4,6 @@ const fs = require('fs')
 
 /**
  * Convert number to words (Indian numbering system)
- * @param {Number} num - Number to convert
- * @returns {string} Number in words
  */
 function numberToWords(num) {
   if (!num || num === 0) return 'Zero'
@@ -37,79 +35,35 @@ function numberToWords(num) {
 }
 
 /**
- * Generate HTML template for dealer bill
- * @param {Object} dealerBill - Dealer bill object containing all details
- * @returns {string} HTML string for the bill
+ * Generate HTML template for custom bill
  */
-function generateDealerBillHTML(dealerBill) {
-  const currentDate = new Date().toLocaleDateString('en-IN', {
+function generateCustomBillHTML(customBill) {
+  const currentDate = customBill.billDate || new Date().toLocaleDateString('en-IN', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   })
 
-  // Build items list - only include items that are marked as included
+  // Build items HTML
   let itemsHTML = ''
-  let itemNumber = 1
 
-  if (dealerBill.items.permit && dealerBill.items.permit.isIncluded) {
-    const amount = dealerBill.items.permit.amount || 0
-    itemsHTML += `
-      <tr class="item-row">
-        <td class="sl-no-col">${itemNumber}</td>
-        <td class="description-col">Permit</td>
-        <td class="qty-col">1</td>
-        <td class="rate-col">${amount > 0 ? amount.toLocaleString('en-IN') : '-'}</td>
-        <td style="text-align: right; padding-right: 8px;">${amount > 0 ? amount.toLocaleString('en-IN') : '-'}</td>
-      </tr>
-    `
-    itemNumber++
+  if (customBill.items && customBill.items.length > 0) {
+    customBill.items.forEach((item, index) => {
+      itemsHTML += `
+        <tr class="item-row">
+          <td class="sl-no-col">${index + 1}</td>
+          <td class="description-col">${item.description || ''}</td>
+          <td class="qty-col">${item.quantity || 1}</td>
+          <td class="rate-col">${item.rate ? item.rate.toLocaleString('en-IN') : '-'}</td>
+          <td style="text-align: right; padding-right: 8px;">${item.amount ? item.amount.toLocaleString('en-IN') : '-'}</td>
+        </tr>
+      `
+    })
   }
 
-  if (dealerBill.items.fitness && dealerBill.items.fitness.isIncluded) {
-    const amount = dealerBill.items.fitness.amount || 0
-    itemsHTML += `
-      <tr class="item-row">
-        <td class="sl-no-col">${itemNumber}</td>
-        <td class="description-col">Fitness</td>
-        <td class="qty-col">1</td>
-        <td class="rate-col">${amount > 0 ? amount.toLocaleString('en-IN') : '-'}</td>
-        <td style="text-align: right; padding-right: 8px;">${amount > 0 ? amount.toLocaleString('en-IN') : '-'}</td>
-      </tr>
-    `
-    itemNumber++
-  }
-
-  if (dealerBill.items.vehicleRegistration && dealerBill.items.vehicleRegistration.isIncluded) {
-    const amount = dealerBill.items.vehicleRegistration.amount || 0
-    itemsHTML += `
-      <tr class="item-row">
-        <td class="sl-no-col">${itemNumber}</td>
-        <td class="description-col">Vehicle Registration</td>
-        <td class="qty-col">1</td>
-        <td class="rate-col">${amount > 0 ? amount.toLocaleString('en-IN') : '-'}</td>
-        <td style="text-align: right; padding-right: 8px;">${amount > 0 ? amount.toLocaleString('en-IN') : '-'}</td>
-      </tr>
-    `
-    itemNumber++
-  }
-
-  if (dealerBill.items.temporaryRegistration && dealerBill.items.temporaryRegistration.isIncluded) {
-    const amount = dealerBill.items.temporaryRegistration.amount || 0
-    itemsHTML += `
-      <tr class="item-row">
-        <td class="sl-no-col">${itemNumber}</td>
-        <td class="description-col">Temporary Registration</td>
-        <td class="qty-col">1</td>
-        <td class="rate-col">${amount > 0 ? amount.toLocaleString('en-IN') : '-'}</td>
-        <td style="text-align: right; padding-right: 8px;">${amount > 0 ? amount.toLocaleString('en-IN') : '-'}</td>
-      </tr>
-    `
-    itemNumber++
-  }
-
-  // Add empty rows if less than 3 items
-  while (itemNumber <= 3) {
+  // Add empty rows to make at least 3 rows
+  const itemCount = customBill.items ? customBill.items.length : 0
+  for (let i = itemCount; i < 3; i++) {
     itemsHTML += `
       <tr class="item-row">
         <td class="sl-no-col"></td>
@@ -119,7 +73,6 @@ function generateDealerBillHTML(dealerBill) {
         <td style="text-align: right; padding-right: 8px;"></td>
       </tr>
     `
-    itemNumber++
   }
 
   return `
@@ -250,20 +203,6 @@ function generateDealerBillHTML(dealerBill) {
         .amount-col {
           width: 15%;
         }
-        .amount-header {
-          text-align: center;
-          font-weight: bold;
-        }
-        .amount-rs {
-          width: 70%;
-          border-right: 1px solid #000;
-          text-align: right;
-          padding-right: 8px;
-        }
-        .amount-p {
-          width: 30%;
-          text-align: right;
-        }
         .item-row {
           height: 80px;
         }
@@ -332,7 +271,7 @@ function generateDealerBillHTML(dealerBill) {
         <div class="bill-info">
           <div>
             <span class="bill-number">No.</span>
-            <span class="bill-number-value">${dealerBill.billNumber || 'PENDING'}</span>
+            <span class="bill-number-value">${customBill.billNumber || 'PENDING'}</span>
           </div>
           <div>
             <span style="font-weight: bold;">Date</span>
@@ -343,7 +282,7 @@ function generateDealerBillHTML(dealerBill) {
         <!-- Customer Section -->
         <div class="customer-section">
           <span class="customer-label">M/s.</span>
-          <span class="customer-name">${dealerBill.customerName || ''}</span>
+          <span class="customer-name">${customBill.customerName || ''}</span>
         </div>
 
         <!-- Items Table -->
@@ -361,7 +300,7 @@ function generateDealerBillHTML(dealerBill) {
             ${itemsHTML}
             <tr class="total-row">
               <td colspan="4" class="total-label">TOTAL</td>
-              <td style="text-align: right; padding-right: 8px;">₹${dealerBill.totalFees ? dealerBill.totalFees.toLocaleString('en-IN') : '0'}</td>
+              <td style="text-align: right; padding-right: 8px;">₹${customBill.totalAmount ? customBill.totalAmount.toLocaleString('en-IN') : '0'}</td>
             </tr>
           </tbody>
         </table>
@@ -369,7 +308,7 @@ function generateDealerBillHTML(dealerBill) {
         <!-- Amount in Words -->
         <div class="amount-words">
           <span class="amount-words-label">Rs</span>
-          <span class="amount-words-value">${numberToWords(dealerBill.totalFees)} Rupees Only</span>
+          <span class="amount-words-value">${numberToWords(customBill.totalAmount)} Rupees Only</span>
         </div>
 
         <!-- Signature -->
@@ -385,15 +324,12 @@ function generateDealerBillHTML(dealerBill) {
 }
 
 /**
- * Generate PDF from dealer bill data
- * @param {Object} dealerBill - Dealer bill object
- * @returns {Promise<string>} Path to generated PDF relative to backend root
+ * Generate PDF from custom bill data
  */
-async function generateDealerBillPDF(dealerBill) {
+async function generateCustomBillPDF(customBill) {
   try {
-    const html = generateDealerBillHTML(dealerBill)
+    const html = generateCustomBillHTML(customBill)
 
-    // Launch headless browser
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -402,17 +338,14 @@ async function generateDealerBillPDF(dealerBill) {
     const page = await browser.newPage()
     await page.setContent(html, { waitUntil: 'networkidle0' })
 
-    // Ensure the uploads/bills directory exists
     const uploadsDir = path.join(__dirname, '..', 'uploads', 'bills')
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true })
     }
 
-    // Generate PDF filename
-    const filename = `${dealerBill.billNumber || 'DEALER-BILL-' + Date.now()}.pdf`
+    const filename = `${customBill.billNumber || 'CUSTOM-BILL-' + Date.now()}.pdf`
     const filepath = path.join(uploadsDir, filename)
 
-    // Generate PDF
     await page.pdf({
       path: filepath,
       format: 'A4',
@@ -427,44 +360,38 @@ async function generateDealerBillPDF(dealerBill) {
 
     await browser.close()
 
-    // Return relative path for database storage
     return `/uploads/bills/${filename}`
   } catch (error) {
-    console.error('Error generating dealer bill PDF:', error)
+    console.error('Error generating custom bill PDF:', error)
     throw error
   }
 }
 
 /**
- * Generate unique dealer bill number
- * Format: DEALER-BILL-YYYY-NNNN
- * @param {Model} DealerBill - Mongoose model
- * @returns {Promise<string>} Generated bill number
+ * Generate unique custom bill number
  */
-async function generateDealerBillNumber(DealerBill) {
+async function generateCustomBillNumber(CustomBill) {
   try {
     const currentYear = new Date().getFullYear()
 
-    // Count existing dealer bills created this year
-    const count = await DealerBill.countDocuments({
+    const count = await CustomBill.countDocuments({
       createdAt: {
         $gte: new Date(`${currentYear}-01-01`),
         $lt: new Date(`${currentYear + 1}-01-01`)
       }
     })
 
-    // Generate bill number with zero-padded counter
-    const billNumber = `DEALER-BILL-${currentYear}-${String(count + 1).padStart(4, '0')}`
+    const billNumber = `CUSTOM-BILL-${currentYear}-${String(count + 1).padStart(4, '0')}`
 
     return billNumber
   } catch (error) {
-    console.error('Error generating dealer bill number:', error)
+    console.error('Error generating custom bill number:', error)
     throw error
   }
 }
 
 module.exports = {
-  generateDealerBillHTML,
-  generateDealerBillPDF,
-  generateDealerBillNumber
+  generateCustomBillHTML,
+  generateCustomBillPDF,
+  generateCustomBillNumber
 }
