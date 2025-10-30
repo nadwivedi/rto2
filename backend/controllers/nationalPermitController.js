@@ -1,7 +1,6 @@
 const NationalPermit = require('../models/NationalPermit')
-const { generatePDF, generateBillNumber } = require('../utils/billGenerator')
-const { generatePartBRenewalPDF, generatePartBBillNumber } = require('../utils/partBBillGenerator')
-const { generatePartARenewalPDF, generatePartARenewalBillNumber } = require('../utils/partARenewalBillGenerator')
+const CustomBill = require('../models/CustomBill')
+const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
 const path = require('path')
 const fs = require('fs')
 
@@ -10,19 +9,41 @@ exports.createPermit = async (req, res) => {
   try {
     const permitData = req.body
 
-    // Auto-generate bill number
-    permitData.billNumber = await generateBillNumber(NationalPermit)
-
-    // Create new national permit
+    // Create new national permit without bill reference first
     const newPermit = new NationalPermit(permitData)
     await newPermit.save()
 
+    // Create CustomBill document
+    const billNumber = await generateCustomBillNumber(CustomBill)
+    const customBill = new CustomBill({
+      billNumber,
+      customerName: newPermit.permitHolder,
+      billDate: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
+      items: [
+        {
+          description: `National Permit (Part A)\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNumber}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}\nRoute: All India`,
+          quantity: 1,
+          rate: newPermit.totalFee,
+          amount: newPermit.totalFee
+        }
+      ],
+      totalAmount: newPermit.totalFee
+    })
+    await customBill.save()
+
+    // Update permit with bill reference
+    newPermit.bill = customBill._id
+    await newPermit.save()
+
     // Fire PDF generation in background (don't wait for it)
-    // This improves response time significantly
-    generatePDF(newPermit)
+    generateCustomBillPDF(customBill)
       .then(pdfPath => {
-        newPermit.billPdfPath = pdfPath
-        return newPermit.save()
+        customBill.billPdfPath = pdfPath
+        return customBill.save()
       })
       .then(() => {
         console.log('Bill PDF generated successfully for permit:', newPermit.permitNumber)
@@ -588,26 +609,19 @@ function generatePermitMessage(permit) {
 *Part A Validity:*
 📅 Valid From: ${permit.validFrom}
 📅 Valid To: ${permit.validTo}
-🛣️ Route: ${permit.route}
-
-*Vehicle Information:*
-🚗 Vehicle Type: ${permit.vehicleType || 'N/A'}
-🏭 Model: ${permit.vehicleModel || 'N/A'}
-⚙️ Engine No: ${permit.engineNumber || 'N/A'}
-🔢 Chassis No: ${permit.chassisNumber || 'N/A'}
 
 *Type B Authorization:*
 🔐 Authorization No: ${permit.typeBAuthorization?.authorizationNumber || 'N/A'}
 📅 Valid From: ${permit.typeBAuthorization?.validFrom || 'N/A'}
 📅 Valid To: ${permit.typeBAuthorization?.validTo || 'N/A'}
-📦 Goods Type: ${permit.typeBAuthorization?.goodsType || 'N/A'}
 
 *Fees:*
-💰 Amount Paid: ₹${permit.fees}
+💰 Total Fee: ₹${permit.totalFee}
+💵 Paid: ₹${permit.paid}
+💳 Balance: ₹${permit.balance}
 
 ━━━━━━━━━━━━━━━━━━━━
 *Status:* ${permit.status}
-📍 Issuing Authority: ${permit.issuingAuthority || 'Regional Transport Office'}
 
 Thank you for using our services!
 `.trim()
@@ -628,14 +642,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543210',
         email: 'rajesh.transport@gmail.com',
         vehicleNumber: 'MH-12-AB-1234',
-        vehicleModel: 'TATA LPT 1616',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDE',
-        engineNumber: 'ENG12345678',
-        unladenWeight: 5000,
-        grossWeight: 16000,
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
         validFrom: '15-01-2024',
         validTo: '14-01-2029',
         typeBAuthorization: {
@@ -643,7 +649,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '15-01-2024',
           validTo: '14-01-2025'
         },
-        fees: 15000,
+        totalFee: 15000, paid: 15000, balance: 0,
         status: 'Active'
       },
       {
@@ -654,14 +660,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543211',
         email: 'kumar.logistics@gmail.com',
         vehicleNumber: 'DL-1C-CD-5678',
-        vehicleModel: 'ASHOK LEYLAND DOST',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDF',
-        engineNumber: 'ENG12345679',
-        unladenWeight: 3500,
-        grossWeight: 7500,
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
         validFrom: '10-02-2024',
         validTo: '09-02-2029',
         issueDate: '10-02-2024',
@@ -670,7 +668,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '10-02-2024',
           validTo: '09-02-2025'
         },
-        fees: 12000,
+        totalFee: 12000, paid: 12000, balance: 0,
         status: 'Active'
       },
       {
@@ -681,14 +679,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543212',
         email: 'singh.transport@gmail.com',
         vehicleNumber: 'PB-10-EF-9012',
-        vehicleModel: 'TATA PRIMA 4038.S',
-        vehicleType: 'Container Truck',
-        chassisNumber: 'MB1234567890ABCDG',
-        engineNumber: 'ENG12345680',
-        unladenWeight: 10000,
-        grossWeight: 28000,
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
         validFrom: '05-03-2024',
         validTo: '04-03-2029',
         issueDate: '05-03-2024',
@@ -697,7 +687,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '05-03-2024',
           validTo: '04-03-2025'
         },
-        fees: 18000,
+        totalFee: 18000, paid: 18000, balance: 0,
         status: 'Active'
       },
       {
@@ -708,14 +698,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543213',
         email: 'maharashtra.freight@gmail.com',
         vehicleNumber: 'MH-14-GH-3456',
-        vehicleModel: 'EICHER PRO 3015',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDH',
-        engineNumber: 'ENG12345681',
-        unladenWeight: 4000,
-        grossWeight: 9500,
-        yearOfManufacture: '2022',
-        seatingCapacity: '2',
         validFrom: '20-11-2024',
         validTo: '19-11-2029',
         issueDate: '20-11-2024',
@@ -724,7 +706,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '20-11-2024',
           validTo: '19-11-2025'
         },
-        fees: 14000,
+        totalFee: 14000, paid: 14000, balance: 0,
         status: 'Active'
       },
       {
@@ -735,14 +717,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543214',
         email: 'gujarat.transport@gmail.com',
         vehicleNumber: 'GJ-01-IJ-7890',
-        vehicleModel: 'BHARAT BENZ 3143',
-        vehicleType: 'Multi-axle Truck',
-        chassisNumber: 'MB1234567890ABCDI',
-        engineNumber: 'ENG12345682',
-        unladenWeight: 12000,
-        grossWeight: 25000,
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
         validFrom: '15-12-2024',
         validTo: '14-12-2029',
         issueDate: '15-12-2024',
@@ -751,7 +725,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '15-12-2024',
           validTo: '14-12-2025'
         },
-        fees: 16500,
+        totalFee: 16500, paid: 16500, balance: 0,
         status: 'Expiring Soon'
       },
       {
@@ -762,14 +736,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543215',
         email: 'chennai.express@gmail.com',
         vehicleNumber: 'TN-01-KL-2345',
-        vehicleModel: 'TATA 407',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDJ',
-        engineNumber: 'ENG12345683',
-        unladenWeight: 2500,
-        grossWeight: 6500,
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
         validFrom: '01-04-2024',
         validTo: '31-03-2029',
         issueDate: '01-04-2024',
@@ -778,7 +744,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '01-04-2024',
           validTo: '31-03-2025'
         },
-        fees: 13000,
+        totalFee: 13000, paid: 13000, balance: 0,
         status: 'Active'
       },
       {
@@ -789,14 +755,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543216',
         email: 'kolkata.cargo@gmail.com',
         vehicleNumber: 'WB-07-MN-6789',
-        vehicleModel: 'MAHINDRA BLAZO X 35',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDK',
-        engineNumber: 'ENG12345684',
-        unladenWeight: 8000,
-        grossWeight: 20000,
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
         validFrom: '20-05-2024',
         validTo: '19-05-2029',
         issueDate: '20-05-2024',
@@ -805,7 +763,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '20-05-2024',
           validTo: '19-05-2025'
         },
-        fees: 15500,
+        totalFee: 15500, paid: 15500, balance: 0,
         status: 'Active'
       },
       {
@@ -816,14 +774,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543217',
         email: 'hyderabad.heavy@gmail.com',
         vehicleNumber: 'TS-09-OP-3456',
-        vehicleModel: 'VOLVO FM 440',
-        vehicleType: 'Container Truck',
-        chassisNumber: 'MB1234567890ABCDL',
-        engineNumber: 'ENG12345685',
-        unladenWeight: 11000,
-        grossWeight: 27000,
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
         validFrom: '10-06-2024',
         validTo: '09-06-2029',
         issueDate: '10-06-2024',
@@ -832,7 +782,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '10-06-2024',
           validTo: '09-06-2025'
         },
-        fees: 19000,
+        totalFee: 19000, paid: 19000, balance: 0,
         status: 'Active'
       },
       {
@@ -843,14 +793,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543218',
         email: 'jaipur.roadways@gmail.com',
         vehicleNumber: 'RJ-14-QR-7890',
-        vehicleModel: 'TATA SIGNA 4825.TK',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDM',
-        engineNumber: 'ENG12345686',
-        unladenWeight: 9000,
-        grossWeight: 22000,
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
         validFrom: '01-07-2024',
         validTo: '30-06-2029',
         issueDate: '01-07-2024',
@@ -859,7 +801,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '01-07-2024',
           validTo: '30-06-2025'
         },
-        fees: 16000,
+        totalFee: 16000, paid: 16000, balance: 0,
         status: 'Active'
       },
       {
@@ -870,14 +812,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543219',
         email: 'bangalore.express@gmail.com',
         vehicleNumber: 'KA-03-ST-1234',
-        vehicleModel: 'SCANIA P410',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDN',
-        engineNumber: 'ENG12345687',
-        unladenWeight: 7500,
-        grossWeight: 18500,
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
         validFrom: '25-07-2024',
         validTo: '24-07-2029',
         issueDate: '25-07-2024',
@@ -886,7 +820,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '25-07-2024',
           validTo: '24-07-2025'
         },
-        fees: 17500,
+        totalFee: 17500, paid: 17500, balance: 0,
         status: 'Active'
       },
       {
@@ -897,14 +831,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543220',
         email: 'lucknow.freight@gmail.com',
         vehicleNumber: 'UP-14-UV-5678',
-        vehicleModel: 'EICHER PRO 6049',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDO',
-        engineNumber: 'ENG12345688',
-        unladenWeight: 6000,
-        grossWeight: 14000,
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
         validFrom: '10-08-2024',
         validTo: '09-08-2029',
         issueDate: '10-08-2024',
@@ -913,7 +839,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '10-08-2024',
           validTo: '09-08-2025'
         },
-        fees: 14500,
+        totalFee: 14500, paid: 14500, balance: 0,
         status: 'Active'
       },
       {
@@ -924,14 +850,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543221',
         email: 'indore.transport@gmail.com',
         vehicleNumber: 'MP-09-WX-9012',
-        vehicleModel: 'TATA LPT 2518',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDP',
-        engineNumber: 'ENG12345689',
-        unladenWeight: 8500,
-        grossWeight: 21000,
-        yearOfManufacture: '2023',
-        seatingCapacity: '2',
         validFrom: '01-09-2024',
         validTo: '31-08-2029',
         issueDate: '01-09-2024',
@@ -940,7 +858,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '01-09-2024',
           validTo: '31-08-2025'
         },
-        fees: 15000,
+        totalFee: 15000, paid: 15000, balance: 0,
         status: 'Active'
       },
       {
@@ -951,14 +869,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543222',
         email: 'kochi.seacargo@gmail.com',
         vehicleNumber: 'KL-07-YZ-3456',
-        vehicleModel: 'ASHOK LEYLAND U-TRUCK',
-        vehicleType: 'Container Truck',
-        chassisNumber: 'MB1234567890ABCDQ',
-        engineNumber: 'ENG12345690',
-        unladenWeight: 9500,
-        grossWeight: 24000,
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
         validFrom: '20-09-2024',
         validTo: '19-09-2029',
         issueDate: '20-09-2024',
@@ -967,7 +877,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '20-09-2024',
           validTo: '19-09-2025'
         },
-        fees: 17000,
+        totalFee: 17000, paid: 17000, balance: 0,
         status: 'Active'
       },
       {
@@ -978,14 +888,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543223',
         email: 'chandigarh.truck@gmail.com',
         vehicleNumber: 'CH-01-AB-7890',
-        vehicleModel: 'BHARAT BENZ 2523R',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDR',
-        engineNumber: 'ENG12345691',
-        unladenWeight: 7000,
-        grossWeight: 16500,
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
         validFrom: '05-10-2024',
         validTo: '04-10-2029',
         issueDate: '05-10-2024',
@@ -994,7 +896,7 @@ exports.addDemoData = async (req, res) => {
           validFrom: '05-10-2024',
           validTo: '04-10-2025'
         },
-        fees: 14000,
+        totalFee: 14000, paid: 14000, balance: 0,
         status: 'Active'
       },
       {
@@ -1005,14 +907,6 @@ exports.addDemoData = async (req, res) => {
         mobileNumber: '9876543224',
         email: 'nagpur.central@gmail.com',
         vehicleNumber: 'MH-31-CD-1234',
-        vehicleModel: 'MAHINDRA FURIO 14',
-        vehicleType: 'Truck',
-        chassisNumber: 'MB1234567890ABCDS',
-        engineNumber: 'ENG12345692',
-        unladenWeight: 5500,
-        grossWeight: 13000,
-        yearOfManufacture: '2024',
-        seatingCapacity: '2',
         validFrom: '25-10-2024',
         validTo: '24-10-2029',
         issueDate: '25-10-2024',
@@ -1168,7 +1062,7 @@ exports.generateBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const permit = await NationalPermit.findById(id)
+    const permit = await NationalPermit.findById(id).populate('bill')
     if (!permit) {
       return res.status(404).json({
         success: false,
@@ -1176,16 +1070,45 @@ exports.generateBillPDF = async (req, res) => {
       })
     }
 
-    // Generate PDF
-    const pdfPath = await generatePDF(permit)
-    permit.billPdfPath = pdfPath
-    await permit.save()
+    let customBill = permit.bill
+
+    // If bill doesn't exist, create it
+    if (!customBill) {
+      const billNumber = await generateCustomBillNumber(CustomBill)
+      customBill = new CustomBill({
+        billNumber,
+        customerName: permit.permitHolder,
+        billDate: new Date().toLocaleDateString('en-IN', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        }),
+        items: [
+          {
+            description: `National Permit (Part A)\nPermit No: ${permit.permitNumber}\nVehicle No: ${permit.vehicleNumber}\nValid From: ${permit.validFrom}\nValid To: ${permit.validTo}\nRoute: All India`,
+            quantity: 1,
+            rate: permit.totalFee,
+            amount: permit.totalFee
+          }
+        ],
+        totalAmount: permit.totalFee
+      })
+      await customBill.save()
+
+      permit.bill = customBill._id
+      await permit.save()
+    }
+
+    // Generate or regenerate PDF
+    const pdfPath = await generateCustomBillPDF(customBill)
+    customBill.billPdfPath = pdfPath
+    await customBill.save()
 
     res.status(200).json({
       success: true,
       message: 'Bill PDF generated successfully',
       data: {
-        billNumber: permit.billNumber,
+        billNumber: customBill.billNumber,
         pdfPath: pdfPath,
         pdfUrl: `${req.protocol}://${req.get('host')}${pdfPath}`
       }
@@ -1205,7 +1128,7 @@ exports.downloadBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const permit = await NationalPermit.findById(id)
+    const permit = await NationalPermit.findById(id).populate('bill')
     if (!permit) {
       return res.status(404).json({
         success: false,
@@ -1213,8 +1136,16 @@ exports.downloadBillPDF = async (req, res) => {
       })
     }
 
+    // Check if bill exists
+    if (!permit.bill) {
+      return res.status(404).json({
+        success: false,
+        message: 'Bill not found. Please generate it first.'
+      })
+    }
+
     // Check if PDF exists
-    if (!permit.billPdfPath) {
+    if (!permit.bill.billPdfPath) {
       return res.status(404).json({
         success: false,
         message: 'Bill PDF not found. Please generate it first.'
@@ -1222,7 +1153,7 @@ exports.downloadBillPDF = async (req, res) => {
     }
 
     // Get absolute path to PDF
-    const pdfPath = path.join(__dirname, '..', permit.billPdfPath)
+    const pdfPath = path.join(__dirname, '..', permit.bill.billPdfPath)
 
     // Check if file exists
     if (!fs.existsSync(pdfPath)) {
@@ -1233,7 +1164,7 @@ exports.downloadBillPDF = async (req, res) => {
     }
 
     // Set headers for download
-    const fileName = `${permit.billNumber}_${permit.permitNumber}.pdf`
+    const fileName = `${permit.bill.billNumber}_${permit.permitNumber}.pdf`
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
     res.setHeader('Access-Control-Allow-Origin', '*')
@@ -1255,7 +1186,7 @@ exports.downloadBillPDF = async (req, res) => {
 exports.renewPartB = async (req, res) => {
   try {
     const { id } = req.params
-    const { authorizationNumber, validFrom, validTo, fees = 5000, notes } = req.body
+    const { authorizationNumber, validFrom, validTo, totalFee = 5000, paid = 0, balance = 5000, notes } = req.body
 
     // Validate required fields
     if (!authorizationNumber || authorizationNumber.trim() === '') {
@@ -1284,18 +1215,36 @@ exports.renewPartB = async (req, res) => {
     // Use the provided authorization number (manual entry)
     const newAuthNumber = authorizationNumber.trim()
 
-    // Generate Part B bill number
-    const billNumber = await generatePartBBillNumber(NationalPermit)
+    // Create CustomBill for Part B renewal
+    const billNumber = await generateCustomBillNumber(CustomBill)
+    const customBill = new CustomBill({
+      billNumber,
+      customerName: permit.permitHolder,
+      billDate: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
+      items: [
+        {
+          description: `Part B Authorization Renewal\nPermit No: ${permit.permitNumber}\nVehicle No: ${permit.vehicleNumber}\nAuthorization No: ${newAuthNumber}\nValid From: ${validFrom}\nValid To: ${validTo}`,
+          quantity: 1,
+          rate: totalFee,
+          amount: totalFee
+        }
+      ],
+      totalAmount: totalFee
+    })
+    await customBill.save()
 
-    // Create renewal record
+    // Create renewal record with bill reference
     const renewalRecord = {
       authorizationNumber: newAuthNumber,
       renewalDate: new Date(),
       validFrom,
       validTo,
-      fees,
-      billNumber,
-      billPdfPath: null,
+      totalFee, paid, balance,
+      bill: customBill._id,
       paymentStatus: 'Paid',
       notes: notes || 'Part B renewal'
     }
@@ -1305,27 +1254,8 @@ exports.renewPartB = async (req, res) => {
       permit.typeBAuthorization.renewalHistory = []
     }
 
-    // IMPORTANT: Save the current/original Part B to history BEFORE replacing it
-    // This ensures we track the original Part B that was created with the initial permit
-    if (permit.typeBAuthorization.authorizationNumber) {
-      const originalPartB = {
-        authorizationNumber: permit.typeBAuthorization.authorizationNumber,
-        renewalDate: permit.createdAt || new Date(), // Use permit creation date
-        validFrom: permit.typeBAuthorization.validFrom,
-        validTo: permit.typeBAuthorization.validTo,
-        fees: 0, // Original Part B fees were part of the main permit fees
-        billNumber: 'N/A', // No separate bill for original Part B
-        billPdfPath: null, // No separate PDF for original Part B
-        paymentStatus: 'Paid',
-        notes: 'Original Part B (created with initial permit). Bill included in main permit.',
-        isOriginal: true // Flag to identify this is the original Part B
-      }
-
-      // Only add original Part B if this is the first renewal (history is empty)
-      if (permit.typeBAuthorization.renewalHistory.length === 0) {
-        permit.typeBAuthorization.renewalHistory.push(originalPartB)
-      }
-    }
+    // Note: Original Part B bill was included in main permit bill
+    // No need to save original Part B to history since it shares the main permit's bill
 
     // Add the new renewal to history
     permit.typeBAuthorization.renewalHistory.push(renewalRecord)
@@ -1338,10 +1268,10 @@ exports.renewPartB = async (req, res) => {
     await permit.save()
 
     // Generate PDF bill in background (don't wait for it)
-    generatePartBRenewalPDF(permit, renewalRecord)
+    generateCustomBillPDF(customBill)
       .then(pdfPath => {
-        renewalRecord.billPdfPath = pdfPath
-        return permit.save()
+        customBill.billPdfPath = pdfPath
+        return customBill.save()
       })
       .then(() => {
         console.log('Part B renewal PDF generated successfully for permit:', permit.permitNumber)
@@ -1522,7 +1452,7 @@ exports.getPartBExpiringSoon = async (req, res) => {
 exports.renewPartA = async (req, res) => {
   try {
     const { id } = req.params
-    const { permitNumber, validFrom, validTo, fees = 15000, notes } = req.body
+    const { permitNumber, validFrom, validTo, totalFee = 15000, paid = 0, balance = 15000, notes } = req.body
 
     // Validate required fields
     if (!permitNumber || permitNumber.trim() === '') {
@@ -1551,18 +1481,36 @@ exports.renewPartA = async (req, res) => {
     // Use the provided permit number (can be same as original or new)
     const newPermitNumber = permitNumber.trim()
 
-    // Generate Part A renewal bill number
-    const billNumber = await generatePartARenewalBillNumber(NationalPermit)
+    // Create CustomBill for Part A renewal
+    const billNumber = await generateCustomBillNumber(CustomBill)
+    const customBill = new CustomBill({
+      billNumber,
+      customerName: permit.permitHolder,
+      billDate: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
+      items: [
+        {
+          description: `Part A Renewal (5 Years)\nPermit No: ${newPermitNumber}\nVehicle No: ${permit.vehicleNumber}\nValid From: ${validFrom}\nValid To: ${validTo}\nRoute: All India`,
+          quantity: 1,
+          rate: totalFee,
+          amount: totalFee
+        }
+      ],
+      totalAmount: totalFee
+    })
+    await customBill.save()
 
-    // Create renewal record
+    // Create renewal record with bill reference
     const renewalRecord = {
       permitNumber: newPermitNumber,
       renewalDate: new Date(),
       validFrom,
       validTo,
-      fees,
-      billNumber,
-      billPdfPath: null,
+      totalFee, paid, balance,
+      bill: customBill._id,
       paymentStatus: 'Paid',
       notes: notes || 'Part A renewal (5 years)'
     }
@@ -1574,24 +1522,20 @@ exports.renewPartA = async (req, res) => {
 
     // IMPORTANT: Save the current/original Part A to history BEFORE replacing it
     // This ensures we track the original Part A that was created with the initial permit
-    if (permit.permitNumber) {
+    if (permit.permitNumber && permit.partARenewalHistory.length === 0 && permit.bill) {
       const originalPartA = {
         permitNumber: permit.permitNumber,
         renewalDate: permit.createdAt || new Date(), // Use permit creation date
         validFrom: permit.validFrom,
         validTo: permit.validTo,
         fees: permit.fees || 15000, // Original Part A fees
-        billNumber: permit.billNumber || 'N/A',
-        billPdfPath: permit.billPdfPath || null,
+        bill: permit.bill, // Reference to original bill
         paymentStatus: 'Paid',
         notes: 'Original Part A (created with initial permit)',
         isOriginal: true // Flag to identify this is the original Part A
       }
 
-      // Only add original Part A if this is the first renewal (history is empty)
-      if (permit.partARenewalHistory.length === 0) {
-        permit.partARenewalHistory.push(originalPartA)
-      }
+      permit.partARenewalHistory.push(originalPartA)
     }
 
     // Add the new renewal to history
@@ -1605,10 +1549,10 @@ exports.renewPartA = async (req, res) => {
     await permit.save()
 
     // Generate PDF bill in background (don't wait for it)
-    generatePartARenewalPDF(permit, renewalRecord)
+    generateCustomBillPDF(customBill)
       .then(pdfPath => {
-        renewalRecord.billPdfPath = pdfPath
-        return permit.save()
+        customBill.billPdfPath = pdfPath
+        return customBill.save()
       })
       .then(() => {
         console.log('Part A renewal PDF generated successfully for permit:', permit.permitNumber)

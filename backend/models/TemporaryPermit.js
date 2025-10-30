@@ -73,43 +73,7 @@ const TemporaryPermitSchema = new mongoose.Schema({
     trim: true
   },
 
-  // Vehicle Details (Optional)
-  vehicleModel: {
-    type: String,
-    trim: true
-  },
-  vehicleClass: {
-    type: String,
-    trim: true
-  },
-  chassisNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  engineNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  unladenWeight: {
-    type: Number
-  },
-  grossWeight: {
-    type: Number
-  },
-  yearOfManufacture: {
-    type: String
-  },
-  seatingCapacity: {
-    type: String
-  },
-
   // Permit Details
-  route: {
-    type: String,
-    trim: true
-  },
   purpose: {
     type: String,
     trim: true

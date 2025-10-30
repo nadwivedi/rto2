@@ -91,7 +91,13 @@ exports.getRegistrationByNumber = async (req, res) => {
 // Create new vehicle registration
 exports.createRegistration = async (req, res) => {
   try {
-    const registration = await VehicleRegistration.create(req.body)
+    // Ensure vehicleNumber is set from registrationNumber
+    const registrationData = {
+      ...req.body,
+      vehicleNumber: req.body.registrationNumber || req.body.vehicleNumber
+    }
+
+    const registration = await VehicleRegistration.create(registrationData)
 
     res.status(201).json({
       success: true,
@@ -117,9 +123,15 @@ exports.createRegistration = async (req, res) => {
 // Update vehicle registration
 exports.updateRegistration = async (req, res) => {
   try {
+    // Ensure vehicleNumber is set from registrationNumber
+    const updateData = {
+      ...req.body,
+      vehicleNumber: req.body.registrationNumber || req.body.vehicleNumber
+    }
+
     const registration = await VehicleRegistration.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     )
 

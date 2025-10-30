@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 
 const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [formData, setFormData] = useState({
-    vehicleNumber: '',
     registrationNumber: '',
     dateOfRegistration: '',
     chassisNumber: '',
@@ -30,10 +29,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   useEffect(() => {
     if (editData) {
-      setFormData(editData)
+      // Set registrationNumber from either registrationNumber or vehicleNumber for backward compatibility
+      setFormData({
+        ...editData,
+        registrationNumber: editData.registrationNumber || editData.vehicleNumber || ''
+      })
     } else {
       setFormData({
-        vehicleNumber: '',
         registrationNumber: '',
         dateOfRegistration: '',
         chassisNumber: '',
@@ -68,23 +70,30 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   }
 
   const handleDateChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '')
+    const input = e.target.value
+    const prevValue = formData.dateOfRegistration || ''
 
+    // If user is deleting (backspace), allow deletion of dashes
+    if (input.length < prevValue.length) {
+      setFormData(prev => ({
+        ...prev,
+        dateOfRegistration: input
+      }))
+      return
+    }
+
+    // Remove all non-digits
+    let value = input.replace(/\D/g, '')
+
+    // Format: DD-MM-YYYY (10-8-2022 format)
     if (value.length >= 2) {
-      value = value.slice(0, 2) + '/' + value.slice(2)
+      value = value.slice(0, 2) + '-' + value.slice(2)
     }
     if (value.length >= 5) {
-      value = value.slice(0, 5) + '/' + value.slice(5)
+      value = value.slice(0, 5) + '-' + value.slice(5)
     }
-    if (value.length > 10) {
-      value = value.slice(0, 10)
-    }
-
-    // Auto-expand 2-digit year to 4-digit year
-    const parts = value.split('/')
-    if (parts.length === 3 && parts[2].length === 2) {
-      const yearPrefix = '20'
-      value = `${parts[0]}/${parts[1]}/${yearPrefix}${parts[2]}`
+    if (value.length > 11) {
+      value = value.slice(0, 11)
     }
 
     setFormData(prev => ({
@@ -105,12 +114,18 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
       const method = editData ? 'PUT' : 'POST'
 
+      // Set vehicleNumber same as registrationNumber for backend compatibility
+      const submitData = {
+        ...formData,
+        vehicleNumber: formData.registrationNumber
+      }
+
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       })
 
       const data = await response.json()
@@ -191,33 +206,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               <div className='bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-2xl border border-indigo-100'>
 
                 <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5'>
-                  {/* Vehicle Number */}
-                  <div className='group'>
-                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Vehicle Number <span className='text-red-500'>*</span>
-                    </label>
-                    <div className='relative'>
-                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
-                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' />
-                        </svg>
-                      </div>
-                      <input
-                        type='text'
-                        name='vehicleNumber'
-                        value={formData.vehicleNumber}
-                        onChange={handleChange}
-                        required
-                        placeholder='CG01AB1234'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
-                      />
-                    </div>
-                  </div>
-
                   {/* Registration Number */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Registration Number
+                      Registration Number <span className='text-red-500'>*</span>
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
@@ -230,6 +222,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='registrationNumber'
                         value={formData.registrationNumber}
                         onChange={handleChange}
+                        required
                         placeholder='CG01AB1234'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -252,7 +245,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='dateOfRegistration'
                         value={formData.dateOfRegistration}
                         onChange={handleDateChange}
-                        placeholder='DD/MM/YYYY'
+                        placeholder='DD-MM-YYYY'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>

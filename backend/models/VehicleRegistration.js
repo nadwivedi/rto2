@@ -1,17 +1,19 @@
 const mongoose = require('mongoose')
 
 const vehicleRegistrationSchema = new mongoose.Schema({
-  vehicleNumber: {
+  registrationNumber: {
     type: String,
     required: true,
     unique: true,
     uppercase: true,
     trim: true
   },
-  registrationNumber: {
+  vehicleNumber: {
     type: String,
+    unique: true,
     uppercase: true,
-    trim: true
+    trim: true,
+    sparse: true
   },
   dateOfRegistration: {
     type: String

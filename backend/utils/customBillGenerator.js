@@ -44,6 +44,12 @@ function generateCustomBillHTML(customBill) {
     year: 'numeric'
   })
 
+  // Helper function to convert newlines to <br> tags for HTML
+  const formatDescription = (text) => {
+    if (!text) return ''
+    return text.replace(/\n/g, '<br>')
+  }
+
   // Build items HTML
   let itemsHTML = ''
 
@@ -52,7 +58,7 @@ function generateCustomBillHTML(customBill) {
       itemsHTML += `
         <tr class="item-row">
           <td class="sl-no-col">${index + 1}</td>
-          <td class="description-col">${item.description || ''}</td>
+          <td class="description-col">${formatDescription(item.description || '')}</td>
           <td class="qty-col">${item.quantity || 1}</td>
           <td class="rate-col">${item.rate ? item.rate.toLocaleString('en-IN') : '-'}</td>
           <td style="text-align: right; padding-right: 8px;">${item.amount ? item.amount.toLocaleString('en-IN') : '-'}</td>
@@ -84,105 +90,106 @@ function generateCustomBillHTML(customBill) {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: Arial, sans-serif;
-          padding: 40px;
+          padding: 50px;
           background: white;
           color: #000;
         }
         .bill-container {
-          max-width: 800px;
+          max-width: 850px;
           margin: 0 auto;
-          border: 2px solid #000;
-          padding: 30px;
+          border: 3px solid #000;
+          padding: 40px;
           background: white;
         }
         .bill-header {
           text-align: center;
-          margin-bottom: 25px;
+          margin-bottom: 35px;
         }
         .bill-badge {
           display: inline-block;
           background: #2c3e50;
           color: white;
-          padding: 6px 20px;
-          border-radius: 15px;
-          font-size: 11px;
+          padding: 8px 24px;
+          border-radius: 18px;
+          font-size: 13px;
           font-weight: bold;
-          letter-spacing: 1px;
-          margin-bottom: 12px;
+          letter-spacing: 1.5px;
+          margin-bottom: 15px;
         }
         .company-name {
-          font-size: 40px;
+          font-size: 48px;
           font-weight: bold;
           color: #000;
           font-style: italic;
-          margin-bottom: 5px;
-          letter-spacing: 1px;
+          margin-bottom: 8px;
+          letter-spacing: 2px;
           white-space: nowrap;
         }
         .company-subtitle {
-          font-size: 14px;
+          font-size: 16px;
           color: #000;
           font-style: italic;
-          margin-bottom: 10px;
+          margin-bottom: 12px;
         }
         .company-address {
-          font-size: 11px;
+          font-size: 13px;
           color: #000;
-          line-height: 1.6;
-          margin-bottom: 15px;
+          line-height: 1.8;
+          margin-bottom: 20px;
         }
         .bill-info {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 20px;
-          font-size: 12px;
+          margin-bottom: 25px;
+          font-size: 14px;
+          padding: 10px 0;
         }
         .bill-number {
           font-weight: bold;
         }
         .bill-number-value {
           color: #c0392b;
-          font-size: 20px;
+          font-size: 24px;
           font-weight: bold;
         }
         .customer-section {
-          margin-bottom: 20px;
-          padding-bottom: 10px;
-          border-bottom: 1px solid #000;
+          margin-bottom: 25px;
+          padding-bottom: 12px;
+          border-bottom: 2px solid #000;
           display: flex;
           align-items: baseline;
-          gap: 10px;
+          gap: 12px;
         }
         .customer-label {
-          font-size: 12px;
+          font-size: 14px;
           font-weight: bold;
           white-space: nowrap;
         }
         .customer-name {
-          font-size: 12px;
+          font-size: 14px;
           border-bottom: 1px solid #000;
-          padding-bottom: 2px;
-          min-height: 20px;
+          padding-bottom: 4px;
+          min-height: 24px;
           flex: 1;
         }
         .items-table {
           width: 100%;
-          border: 2px solid #000;
+          border: 3px solid #000;
           border-collapse: collapse;
-          margin-bottom: 20px;
+          margin-bottom: 25px;
         }
         .items-table th {
           background: #ecf0f1;
-          border: 1px solid #000;
-          padding: 10px 8px;
-          font-size: 12px;
+          border: 2px solid #000;
+          padding: 14px 10px;
+          font-size: 14px;
           font-weight: bold;
           text-align: center;
         }
         .items-table td {
-          border: 1px solid #000;
-          padding: 8px;
-          font-size: 12px;
+          border: 2px solid #000;
+          padding: 12px 10px;
+          font-size: 14px;
           vertical-align: top;
         }
         .sl-no-col {
@@ -191,6 +198,9 @@ function generateCustomBillHTML(customBill) {
         }
         .description-col {
           width: 52%;
+          line-height: 1.5;
+          white-space: pre-wrap;
+          word-wrap: break-word;
         }
         .qty-col {
           width: 10%;
@@ -204,7 +214,8 @@ function generateCustomBillHTML(customBill) {
           width: 15%;
         }
         .item-row {
-          height: 80px;
+          height: auto;
+          min-height: 70px;
         }
         .total-row {
           font-weight: bold;
@@ -213,33 +224,36 @@ function generateCustomBillHTML(customBill) {
         .total-label {
           text-align: right;
           font-weight: bold;
-          padding-right: 10px;
+          padding-right: 12px;
         }
         .amount-words {
-          margin-bottom: 30px;
-          font-size: 12px;
+          margin-bottom: 40px;
+          font-size: 14px;
+          line-height: 2;
         }
         .amount-words-label {
           font-weight: bold;
           display: inline;
         }
         .amount-words-value {
-          border-bottom: 1px solid #000;
+          border-bottom: 1.5px solid #000;
           display: inline-block;
-          min-width: 400px;
-          padding-bottom: 3px;
+          min-width: 450px;
+          padding-bottom: 5px;
+          padding-left: 8px;
         }
         .signature-section {
           text-align: right;
-          margin-top: 40px;
-          font-size: 12px;
+          margin-top: 60px;
+          font-size: 14px;
         }
         .signature-line {
-          margin-top: 50px;
-          padding-top: 5px;
+          margin-top: 65px;
+          padding-top: 8px;
         }
         .signature-label {
           font-weight: bold;
+          font-size: 15px;
         }
       </style>
     </head>
@@ -369,19 +383,15 @@ async function generateCustomBillPDF(customBill) {
 
 /**
  * Generate unique custom bill number
+ * Format: Simple sequential numbers (01, 02, 03, etc.)
  */
 async function generateCustomBillNumber(CustomBill) {
   try {
-    const currentYear = new Date().getFullYear()
+    // Count all custom bills to get the next number
+    const count = await CustomBill.countDocuments()
 
-    const count = await CustomBill.countDocuments({
-      createdAt: {
-        $gte: new Date(`${currentYear}-01-01`),
-        $lt: new Date(`${currentYear + 1}-01-01`)
-      }
-    })
-
-    const billNumber = `CUSTOM-BILL-${currentYear}-${String(count + 1).padStart(4, '0')}`
+    // Generate simple sequential bill number starting from 01
+    const billNumber = String(count + 1).padStart(2, '0')
 
     return billNumber
   } catch (error) {

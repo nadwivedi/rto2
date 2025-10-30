@@ -403,12 +403,6 @@ function generatePermitMessage(permit) {
 =Å Valid To: ${permit.validTo}
 ñ Validity Period: ${permit.validityPeriod} months
 
-*Vehicle Information:*
-=— Vehicle Model: ${permit.vehicleModel || 'N/A'}
-<í Class: ${permit.vehicleClass || 'N/A'}
-™ Engine No: ${permit.engineNumber || 'N/A'}
-=" Chassis No: ${permit.chassisNumber || 'N/A'}
-
 *Purpose:*
 =Ì ${permit.purpose || 'Temporary Use'}
 
@@ -417,7 +411,6 @@ function generatePermitMessage(permit) {
 
 
 *Status:* ${permit.status}
-=Í Issuing Authority: ${permit.issuingAuthority}
 
 Thank you for using our services!
 `.trim()

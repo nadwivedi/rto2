@@ -39,24 +39,16 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
 
     // Vehicle details
     vehicleNumber: '',
-    vehicleModel: '',
-    vehicleType: '',
-    unladenWeight: '',
-    grossWeight: '',
-    chassisNumber: '',
-    engineNumber: '',
-    yearOfManufacture: '',
-    seatingCapacity: '2',
 
     // Type B Authorization details
     authorizationNumber: '',
     typeBValidFrom: '',
     typeBValidTo: '',
-    goodsType: '',
-    route: 'All India',
 
     // Fees
-    fees: '15000'
+    totalFee: '15000',
+    paid: '0',
+    balance: '15000'
   })
 
   // Populate form when permit changes
@@ -74,20 +66,12 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         mobileNumber: permit.partA.ownerMobile?.replace('+91 ', '') || '',
         email: permit.partA.email || '',
         vehicleNumber: permit.vehicleNo || '',
-        vehicleModel: permit.partA.makerModel || '',
-        vehicleType: permit.partA.vehicleType || '',
-        unladenWeight: permit.partA.unladenWeight || '',
-        grossWeight: permit.partA.grossWeight || '',
-        chassisNumber: permit.partA.chassisNumber || '',
-        engineNumber: permit.partA.engineNumber || '',
-        yearOfManufacture: permit.partA.yearOfManufacture || '',
-        seatingCapacity: permit.partA.seatingCapacity || '2',
         authorizationNumber: permit.partB?.authorizationNumber || '',
         typeBValidFrom: permit.partB?.validFrom || '',
         typeBValidTo: permit.partB?.validTo || '',
-        goodsType: permit.partB?.goodsType || '',
-        route: permit.partA.route || 'All India',
-        fees: permit.partA.fees?.replace(/[₹,]/g, '') || '15000'
+        totalFee: permit.totalFee?.toString() || '15000',
+        paid: permit.paid?.toString() || '0',
+        balance: permit.balance?.toString() || '15000'
       })
     }
   }, [permit])
@@ -192,6 +176,22 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       return
     }
 
+    // Auto-calculate balance when totalFee or paid changes
+    if (name === 'totalFee' || name === 'paid') {
+      setFormData(prev => {
+        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
+        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
+        const balance = totalFee - paid
+
+        return {
+          ...prev,
+          [name]: value,
+          balance: balance.toString()
+        }
+      })
+      return
+    }
+
     // For date fields, just store the value as-is during typing
     // Formatting happens on blur (when user leaves the field)
     setFormData(prev => ({
@@ -264,18 +264,12 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       mobileNumber: '',
       email: '',
       vehicleNumber: '',
-      vehicleModel: '',
-      vehicleType: '',
-      unladenWeight: '',
-      grossWeight: '',
-      chassisNumber: '',
-      engineNumber: '',
       authorizationNumber: '',
       typeBValidFrom: '', // Reset to empty
       typeBValidTo: '', // Reset to empty
-      goodsType: '',
-      route: 'All India',
-      fees: '15000'
+      totalFee: '15000',
+      paid: '0',
+      balance: '15000'
     })
     setPartAImage(null)
     setPartBImage(null)
@@ -326,7 +320,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='vehicleNumber'
                     value={formData.vehicleNumber}
                     onChange={handleChange}
-                    placeholder='MH-12-AB-1234'
+                    placeholder='MH12AB1234'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
                     autoFocus
                   />
@@ -476,19 +470,50 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
 
             {/* Fees Section */}
             <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
-              <div className='flex flex-col md:flex-row md:items-center gap-3 md:gap-4'>
-                <h3 className='text-base md:text-lg font-bold text-gray-800 flex items-center gap-2 whitespace-nowrap'>
-                  <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
-                  Permit Fees <span className='text-red-500'>*</span>
-                </h3>
-                <div className='relative flex-1'>
-                  <span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold'>₹</span>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
+                Permit Fees
+              </h3>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Total Fee (₹) <span className='text-red-500'>*</span>
+                  </label>
                   <input
                     type='number'
-                    name='fees'
-                    value={formData.fees}
+                    name='totalFee'
+                    value={formData.totalFee}
                     onChange={handleChange}
-                    className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-base md:text-lg'
+                    placeholder='15000'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Paid (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='paid'
+                    value={formData.paid}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Balance (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='balance'
+                    value={formData.balance}
+                    onChange={handleChange}
+                    placeholder='15000'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
                 </div>
@@ -557,102 +582,6 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                           onChange={handleChange}
                           rows='2'
                           placeholder='Complete address with street, area, landmark'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vehicle Information */}
-                  <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-purple-600'>Vehicle Information</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Vehicle Model
-                        </label>
-                        <input
-                          type='text'
-                          name='vehicleModel'
-                          value={formData.vehicleModel}
-                          onChange={handleChange}
-                          placeholder='TATA LPT 1616'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Vehicle Type
-                        </label>
-                        <select
-                          name='vehicleType'
-                          value={formData.vehicleType}
-                          onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        >
-                          <option value=''>Select Type</option>
-                          <option value='Truck'>Truck</option>
-                          <option value='Container Truck'>Container Truck</option>
-                          <option value='Multi-axle Truck'>Multi-axle Truck</option>
-                          <option value='Tanker'>Tanker</option>
-                          <option value='Bus'>Bus</option>
-                          <option value='Tempo'>Tempo</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Chassis Number
-                        </label>
-                        <input
-                          type='text'
-                          name='chassisNumber'
-                          value={formData.chassisNumber}
-                          onChange={handleChange}
-                          placeholder='MB1234567890ABCDE'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Engine Number
-                        </label>
-                        <input
-                          type='text'
-                          name='engineNumber'
-                          value={formData.engineNumber}
-                          onChange={handleChange}
-                          placeholder='ENG12345678'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Unladen Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='unladenWeight'
-                          value={formData.unladenWeight}
-                          onChange={handleChange}
-                          placeholder='5000'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Gross Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='grossWeight'
-                          value={formData.grossWeight}
-                          onChange={handleChange}
-                          placeholder='16000'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                         />
                       </div>

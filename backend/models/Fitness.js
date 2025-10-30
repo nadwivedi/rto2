@@ -21,6 +21,11 @@ const fitnessSchema = new mongoose.Schema({
     type: Number,
     required: true,
     default: 0
+  },
+  status: {
+    type: String,
+    enum: ['active', 'expired', 'expiring_soon'],
+    default: 'active'
   }
 }, {
   timestamps: true

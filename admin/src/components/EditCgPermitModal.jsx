@@ -18,17 +18,6 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     mobileNumber: '',
     email: '',
 
-    // Vehicle details
-    vehicleModel: '',
-    vehicleType: '',
-    unladenWeight: '',
-    grossWeight: '',
-    chassisNumber: '',
-    engineNumber: '',
-
-    // Goods details
-    goodsType: '',
-
     // Fees
     fees: '10000'
   })
@@ -47,13 +36,6 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         address: permit.address || '',
         mobileNumber: permit.mobileNumber?.replace('+91 ', '') || '',
         email: permit.email || '',
-        vehicleModel: permit.vehicleModel || '',
-        vehicleType: permit.vehicleType || '',
-        unladenWeight: permit.unladenWeight || '',
-        grossWeight: permit.grossWeight || '',
-        chassisNumber: permit.chassisNumber || '',
-        engineNumber: permit.engineNumber || '',
-        goodsType: permit.goodsType || '',
         fees: permit.fees?.toString() || '10000'
       })
     }
@@ -242,7 +224,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='vehicleNumber'
                     value={formData.vehicleNumber}
                     onChange={handleChange}
-                    placeholder='CG-01-AB-1234'
+                    placeholder='CG01AB1234'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
                     required
                   />
@@ -417,115 +399,6 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     </div>
                   </div>
 
-                  {/* Vehicle Information */}
-                  <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-purple-600'>Vehicle Information</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Vehicle Model
-                        </label>
-                        <input
-                          type='text'
-                          name='vehicleModel'
-                          value={formData.vehicleModel}
-                          onChange={handleChange}
-                          placeholder='TATA LPT 1616'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Vehicle Type
-                        </label>
-                        <select
-                          name='vehicleType'
-                          value={formData.vehicleType}
-                          onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        >
-                          <option value=''>Select Type</option>
-                          <option value='Truck'>Truck</option>
-                          <option value='Container Truck'>Container Truck</option>
-                          <option value='Multi-axle Truck'>Multi-axle Truck</option>
-                          <option value='Tanker'>Tanker</option>
-                          <option value='Bus'>Bus</option>
-                          <option value='Tempo'>Tempo</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Chassis Number
-                        </label>
-                        <input
-                          type='text'
-                          name='chassisNumber'
-                          value={formData.chassisNumber}
-                          onChange={handleChange}
-                          placeholder='MB1234567890ABCDE'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Engine Number
-                        </label>
-                        <input
-                          type='text'
-                          name='engineNumber'
-                          value={formData.engineNumber}
-                          onChange={handleChange}
-                          placeholder='ENG12345678'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Unladen Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='unladenWeight'
-                          value={formData.unladenWeight}
-                          onChange={handleChange}
-                          placeholder='5000'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Gross Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='grossWeight'
-                          value={formData.grossWeight}
-                          onChange={handleChange}
-                          placeholder='16000'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Goods Type
-                        </label>
-                        <input
-                          type='text'
-                          name='goodsType'
-                          value={formData.goodsType}
-                          onChange={handleChange}
-                          placeholder='General Goods'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>

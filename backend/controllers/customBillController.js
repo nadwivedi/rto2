@@ -48,15 +48,48 @@ exports.createCustomBill = async (req, res) => {
   }
 }
 
-// Get all custom bills
+// Get all custom bills with pagination and search
 exports.getAllCustomBills = async (req, res) => {
   try {
-    const customBills = await CustomBill.find().sort({ createdAt: -1 })
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const search = req.query.search || ''
+    const sortBy = req.query.sortBy || 'createdAt'
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1
+
+    // Build search query
+    let query = {}
+    if (search) {
+      query = {
+        $or: [
+          { billNumber: { $regex: search, $options: 'i' } },
+          { customerName: { $regex: search, $options: 'i' } }
+        ]
+      }
+    }
+
+    // Calculate skip value for pagination
+    const skip = (page - 1) * limit
+
+    // Get total count for pagination
+    const totalItems = await CustomBill.countDocuments(query)
+    const totalPages = Math.ceil(totalItems / limit)
+
+    // Fetch custom bills with pagination and sorting
+    const customBills = await CustomBill.find(query)
+      .sort({ [sortBy]: sortOrder })
+      .skip(skip)
+      .limit(limit)
 
     res.status(200).json({
       success: true,
-      count: customBills.length,
-      data: customBills
+      data: customBills,
+      pagination: {
+        currentPage: page,
+        totalPages: totalPages,
+        totalItems: totalItems,
+        itemsPerPage: limit
+      }
     })
   } catch (error) {
     console.error('Error fetching custom bills:', error)
@@ -115,6 +148,58 @@ exports.deleteCustomBill = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to delete custom bill',
+      error: error.message
+    })
+  }
+}
+
+// Download custom bill PDF
+exports.downloadCustomBillPDF = async (req, res) => {
+  try {
+    const customBill = await CustomBill.findById(req.params.id)
+
+    if (!customBill) {
+      return res.status(404).json({
+        success: false,
+        message: 'Custom bill not found'
+      })
+    }
+
+    if (!customBill.billPdfPath) {
+      return res.status(404).json({
+        success: false,
+        message: 'PDF not found for this bill'
+      })
+    }
+
+    // Construct file path
+    const path = require('path')
+    const fs = require('fs')
+    const filePath = path.join(__dirname, '..', customBill.billPdfPath)
+
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'PDF file not found on server'
+      })
+    }
+
+    // Send file
+    res.download(filePath, `${customBill.billNumber}.pdf`, (err) => {
+      if (err) {
+        console.error('Error downloading file:', err)
+        res.status(500).json({
+          success: false,
+          message: 'Error downloading file'
+        })
+      }
+    })
+  } catch (error) {
+    console.error('Error downloading custom bill PDF:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download custom bill PDF',
       error: error.message
     })
   }

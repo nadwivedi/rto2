@@ -1,5 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 import RegisterVehicleModal from '../components/RegisterVehicleModal'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const VehicleRegistration = () => {
   const [registrations, setRegistrations] = useState([])
@@ -23,11 +27,10 @@ const VehicleRegistration = () => {
   const fetchRegistrations = async () => {
     try {
       setLoading(true)
-      const response = await fetch('http://localhost:5000/api/vehicle-registrations')
-      const data = await response.json()
+      const response = await axios.get(`${API_URL}/api/vehicle-registrations`)
 
-      if (data.success) {
-        setRegistrations(data.data)
+      if (response.data.success) {
+        setRegistrations(response.data.data)
       }
     } catch (error) {
       console.error('Error fetching registrations:', error)
@@ -38,11 +41,10 @@ const VehicleRegistration = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/vehicle-registrations/statistics')
-      const data = await response.json()
+      const response = await axios.get(`${API_URL}/api/vehicle-registrations/statistics`)
 
-      if (data.success) {
-        setStatistics(data.data)
+      if (response.data.success) {
+        setStatistics(response.data.data)
       }
     } catch (error) {
       console.error('Error fetching statistics:', error)
@@ -55,21 +57,17 @@ const VehicleRegistration = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/api/vehicle-registrations/${id}`, {
-        method: 'DELETE',
-      })
+      const response = await axios.delete(`${API_URL}/api/vehicle-registrations/${id}`)
 
-      const data = await response.json()
-
-      if (data.success) {
-        alert('Vehicle registration deleted successfully!')
+      if (response.data.success) {
+        toast.success('Vehicle registration deleted successfully!', { position: 'top-right', autoClose: 3000 })
         fetchRegistrations()
         fetchStatistics()
       } else {
-        alert(data.message || 'Failed to delete vehicle registration')
+        toast.error(response.data.message || 'Failed to delete vehicle registration', { position: 'top-right', autoClose: 3000 })
       }
     } catch (error) {
-      alert('Error deleting vehicle registration. Please try again.')
+      toast.error('Error deleting vehicle registration. Please try again.', { position: 'top-right', autoClose: 3000 })
       console.error('Error:', error)
     }
   }
@@ -84,23 +82,17 @@ const VehicleRegistration = () => {
     if (!phoneNumber) return
 
     try {
-      const response = await fetch(`http://localhost:5000/api/vehicle-registrations/${registration._id}/share`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ phoneNumber }),
+      const response = await axios.post(`${API_URL}/api/vehicle-registrations/${registration._id}/share`, {
+        phoneNumber
       })
 
-      const data = await response.json()
-
-      if (data.success) {
-        window.open(data.data.whatsappUrl, '_blank')
+      if (response.data.success) {
+        window.open(response.data.data.whatsappUrl, '_blank')
       } else {
-        alert(data.message || 'Failed to share vehicle registration')
+        toast.error(response.data.message || 'Failed to share vehicle registration', { position: 'top-right', autoClose: 3000 })
       }
     } catch (error) {
-      alert('Error sharing vehicle registration. Please try again.')
+      toast.error('Error sharing vehicle registration. Please try again.', { position: 'top-right', autoClose: 3000 })
       console.error('Error:', error)
     }
   }
@@ -329,16 +321,16 @@ const VehicleRegistration = () => {
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5'>
+            <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Registrations */}
-              <div className='bg-white rounded-lg shadow-md border border-gray-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-gray-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Vehicles</p>
-                    <h3 className='text-2xl font-black text-gray-800'>{statistics.total}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Vehicles</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.total}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' />
                     </svg>
                   </div>
@@ -346,14 +338,14 @@ const VehicleRegistration = () => {
               </div>
 
               {/* Active */}
-              <div className='bg-white rounded-lg shadow-md border border-green-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-green-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Active</p>
-                    <h3 className='text-2xl font-black text-green-600'>{statistics.active}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-green-600'>{statistics.active}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
@@ -361,14 +353,14 @@ const VehicleRegistration = () => {
               </div>
 
               {/* Transferred */}
-              <div className='bg-white rounded-lg shadow-md border border-blue-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-blue-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Transferred</p>
-                    <h3 className='text-2xl font-black text-blue-600'>{statistics.transferred}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Transferred</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-blue-600'>{statistics.transferred}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' />
                     </svg>
                   </div>
@@ -376,14 +368,14 @@ const VehicleRegistration = () => {
               </div>
 
               {/* Cancelled */}
-              <div className='bg-white rounded-lg shadow-md border border-red-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-red-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Cancelled</p>
-                    <h3 className='text-2xl font-black text-red-600'>{statistics.cancelled}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Cancelled</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-red-600'>{statistics.cancelled}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                     </svg>
                   </div>

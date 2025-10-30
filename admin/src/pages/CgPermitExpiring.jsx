@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const CgPermitExpiring = () => {
   const navigate = useNavigate()
@@ -22,23 +23,18 @@ const CgPermitExpiring = () => {
   const fetchPermits = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams({
+      const params = {
         page: currentPage,
         limit: itemsPerPage,
         days: 30
-      })
-
-      const response = await fetch(`${API_BASE_URL}/cg-permits/expiring?${params}`)
-      const data = await response.json()
-
-      console.log('CG Expiring API Response:', data)
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch expiring permits')
       }
 
+      const response = await axios.get(`${API_URL}/api/cg-permits/expiring`, { params })
+
+      console.log('CG Expiring API Response:', response.data)
+
       // Transform backend data to match frontend format
-      const transformedData = (data.data || []).map(permit => {
+      const transformedData = (response.data.data || []).map(permit => {
         // Calculate days until expiry
         let daysUntilExpiry = '-'
         try {
@@ -76,8 +72,8 @@ const CgPermitExpiring = () => {
       console.log('Transformed Data:', transformedData)
 
       setPermits(transformedData)
-      setTotalPages(data.pagination?.totalPages || 0)
-      setTotalItems(data.pagination?.totalItems || 0)
+      setTotalPages(response.data.pagination?.totalPages || 0)
+      setTotalItems(response.data.pagination?.totalItems || 0)
     } catch (error) {
       console.error('Error fetching CG expiring permits:', error)
       toast.error('Failed to fetch permits. Please try again.', { autoClose: 700 })

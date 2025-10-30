@@ -16,17 +16,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
     mobileNumber: '',
     email: '',
 
-    // Vehicle details
-    vehicleModel: '',
-    vehicleClass: '',
-    chassisNumber: '',
-    engineNumber: '',
-    unladenWeight: '',
-    grossWeight: '',
-    seatingCapacity: '',
-
     // Permit details
-    route: '',
     purpose: '',
 
     // Fees
@@ -144,14 +134,6 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
       address: '',
       mobileNumber: '',
       email: '',
-      vehicleModel: '',
-      vehicleClass: '',
-      chassisNumber: '',
-      engineNumber: '',
-      unladenWeight: '',
-      grossWeight: '',
-      seatingCapacity: '',
-      route: '',
       purpose: '',
       fees: '1000'
     })
@@ -202,7 +184,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='vehicleNumber'
                     value={formData.vehicleNumber}
                     onChange={handleChange}
-                    placeholder='MH-12-AB-1234'
+                    placeholder='MH12AB1234'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
                     required
                     autoFocus
@@ -407,128 +389,10 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     </div>
                   </div>
 
-                  {/* Vehicle Information */}
-                  <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-sm font-bold text-gray-800 mb-3 uppercase text-purple-600'>Vehicle Information</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Vehicle Model
-                        </label>
-                        <input
-                          type='text'
-                          name='vehicleModel'
-                          value={formData.vehicleModel}
-                          onChange={handleChange}
-                          placeholder='TATA LPT 1616'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Vehicle Class
-                        </label>
-                        <input
-                          type='text'
-                          name='vehicleClass'
-                          value={formData.vehicleClass}
-                          onChange={handleChange}
-                          placeholder='Goods Vehicle'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Chassis Number
-                        </label>
-                        <input
-                          type='text'
-                          name='chassisNumber'
-                          value={formData.chassisNumber}
-                          onChange={handleChange}
-                          placeholder='MB1234567890ABCDE'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Engine Number
-                        </label>
-                        <input
-                          type='text'
-                          name='engineNumber'
-                          value={formData.engineNumber}
-                          onChange={handleChange}
-                          placeholder='ENG12345678'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Unladen Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='unladenWeight'
-                          value={formData.unladenWeight}
-                          onChange={handleChange}
-                          placeholder='5000'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Gross Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='grossWeight'
-                          value={formData.grossWeight}
-                          onChange={handleChange}
-                          placeholder='16000'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Seating Capacity
-                        </label>
-                        <input
-                          type='text'
-                          name='seatingCapacity'
-                          value={formData.seatingCapacity}
-                          onChange={handleChange}
-                          placeholder='2'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
-                        />
-                      </div>
-                    </div>
-                  </div>
-
                   {/* Permit Details */}
                   <div className='border-t border-gray-200 pt-4'>
                     <h4 className='text-sm font-bold text-gray-800 mb-3 uppercase text-blue-600'>Permit Details</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Route
-                        </label>
-                        <input
-                          type='text'
-                          name='route'
-                          value={formData.route}
-                          onChange={handleChange}
-                          placeholder='Mumbai to Pune'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
-                        />
-                      </div>
-
                       <div>
                         <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                           Purpose

@@ -1,5 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 import IssueNewPermitModal from '../components/IssueNewPermitModal'
 import EditNationalPermitModal from '../components/EditNationalPermitModal'
 import PermitBillModal from '../components/PermitBillModal'
@@ -7,7 +9,7 @@ import RenewPartBModal from '../components/RenewPartBModal'
 import RenewPartAModal from '../components/RenewPartAModal'
 import { isPartBExpiringSoon, isPartAExpiringSoon, getDaysRemaining } from '../utils/dateHelpers'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const NationalPermit = () => {
   const navigate = useNavigate()
@@ -52,18 +54,20 @@ const NationalPermit = () => {
       console.log('Fetching National Permit expiring counts...')
 
       // Fetch Part A expiring count
-      const partAResponse = await fetch(`${API_BASE_URL}/national-permits/part-a-expiring-soon?page=1&limit=1`)
-      const partAData = await partAResponse.json()
-      console.log('Part A Response:', partAData)
-      const partACount = partAData.pagination?.totalItems || 0
+      const partAResponse = await axios.get(`${API_URL}/api/national-permits/part-a-expiring-soon`, {
+        params: { page: 1, limit: 1 }
+      })
+      console.log('Part A Response:', partAResponse.data)
+      const partACount = partAResponse.data.pagination?.totalItems || 0
       console.log('Part A Count:', partACount)
       setPartAExpiringCount(partACount)
 
       // Fetch Part B expiring count
-      const partBResponse = await fetch(`${API_BASE_URL}/national-permits/part-b-expiring-soon?page=1&limit=1`)
-      const partBData = await partBResponse.json()
-      console.log('Part B Response:', partBData)
-      const partBCount = partBData.pagination?.totalItems || 0
+      const partBResponse = await axios.get(`${API_URL}/api/national-permits/part-b-expiring-soon`, {
+        params: { page: 1, limit: 1 }
+      })
+      console.log('Part B Response:', partBResponse.data)
+      const partBCount = partBResponse.data.pagination?.totalItems || 0
       console.log('Part B Count:', partBCount)
       setPartBExpiringCount(partBCount)
 
@@ -89,22 +93,18 @@ const NationalPermit = () => {
         params.append('dateFilter', dateFilter)
       }
 
-      const url = `${API_BASE_URL}/national-permits?${params.toString()}`
-      const response = await fetch(url)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch permits')
-      }
+      const response = await axios.get(`${API_URL}/api/national-permits`, {
+        params: Object.fromEntries(params)
+      })
 
       // Update pagination info
-      if (data.pagination) {
-        setTotalPages(data.pagination.totalPages)
-        setTotalItems(data.pagination.totalItems)
+      if (response.data.pagination) {
+        setTotalPages(response.data.pagination.totalPages)
+        setTotalItems(response.data.pagination.totalItems)
       }
 
       // Transform backend data to match frontend structure
-      const transformedPermits = data.data.map(permit => ({
+      const transformedPermits = response.data.data.map(permit => ({
         id: permit._id,
         permitNumber: permit.permitNumber,
         permitHolder: permit.permitHolder,
@@ -236,17 +236,13 @@ const NationalPermit = () => {
         pdfUrl = `http://localhost:5000${permit.partA.billPdfPath}`
       } else {
         // Need to generate PDF
-        const response = await fetch(`${API_BASE_URL}/national-permits/${permit.id}/generate-bill-pdf`, {
-          method: 'POST'
-        })
+        const response = await axios.post(`${API_URL}/api/national-permits/${permit.id}/generate-bill-pdf`)
 
-        const data = await response.json()
-
-        if (!response.ok || !data.success) {
-          throw new Error(data.message || 'Failed to generate PDF')
+        if (!response.data.success) {
+          throw new Error(response.data.message || 'Failed to generate PDF')
         }
 
-        pdfUrl = data.data.pdfUrl || `http://localhost:5000${data.data.pdfPath}`
+        pdfUrl = response.data.data.pdfUrl || `http://localhost:5000${response.data.data.pdfPath}`
       }
 
       // Create WhatsApp message
@@ -367,18 +363,10 @@ Thank you for your business!
       }
 
       // Make POST request to backend
-      const response = await fetch(`${API_BASE_URL}/national-permits`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(permitData)
-      })
+      const response = await axios.post(`${API_URL}/api/national-permits`, permitData)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create permit')
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to create permit')
       }
 
       // Show success message
@@ -432,18 +420,10 @@ Thank you for your business!
       }
 
       // Make PUT request to backend
-      const response = await fetch(`${API_BASE_URL}/national-permits/${editingPermit.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(permitData)
-      })
+      const response = await axios.put(`${API_URL}/api/national-permits/${editingPermit.id}`, permitData)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update permit')
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to update permit')
       }
 
       // Show success message
@@ -1028,7 +1008,7 @@ Thank you for your business!
                           <button
                             onClick={async () => {
                               try {
-                                const downloadUrl = `${API_BASE_URL}/national-permits/${selectedPermit.id}/part-b-renewals/${latestRenewal._id}/download-pdf`
+                                const downloadUrl = `${API_URL}/api/national-permits/${selectedPermit.id}/part-b-renewals/${latestRenewal._id}/download-pdf`
                                 const link = document.createElement('a')
                                 link.href = downloadUrl
                                 link.download = `${latestRenewal.billNumber}.pdf`
@@ -1396,7 +1376,7 @@ Thank you for your business!
                                         <button
                                           onClick={async () => {
                                             try {
-                                              const downloadUrl = `${API_BASE_URL}/national-permits/${selectedPermit.id}/part-a-renewals/${renewal._id}/download-pdf`
+                                              const downloadUrl = `${API_URL}/api/national-permits/${selectedPermit.id}/part-a-renewals/${renewal._id}/download-pdf`
                                               const link = document.createElement('a')
                                               link.href = downloadUrl
                                               link.download = `${renewal.billNumber}.pdf`
@@ -1550,7 +1530,7 @@ Thank you for your business!
                                         <button
                                           onClick={async () => {
                                             try {
-                                              const downloadUrl = `${API_BASE_URL}/national-permits/${selectedPermit.id}/part-b-renewals/${renewal._id}/download-pdf`
+                                              const downloadUrl = `${API_URL}/api/national-permits/${selectedPermit.id}/part-b-renewals/${renewal._id}/download-pdf`
                                               const link = document.createElement('a')
                                               link.href = downloadUrl
                                               link.download = `${renewal.billNumber}.pdf`

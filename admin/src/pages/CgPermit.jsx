@@ -1,11 +1,13 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 import PermitBillModal from '../components/PermitBillModal'
 import SharePermitModal from '../components/SharePermitModal'
 import IssueCgPermitModal from '../components/IssueCgPermitModal'
 import EditCgPermitModal from '../components/EditCgPermitModal'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const CgPermit = () => {
   // Demo data for when backend is not available
@@ -154,15 +156,10 @@ const CgPermit = () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await fetch(`${API_BASE_URL}/cg-permits`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch CG permits')
-      }
+      const response = await axios.get(`${API_URL}/api/cg-permits`)
 
       // Transform backend data to match frontend structure
-      const transformedPermits = data.data.map(permit => ({
+      const transformedPermits = response.data.data.map(permit => ({
         id: permit._id,
         permitNumber: permit.permitNumber,
         permitType: permit.permitType,
@@ -209,11 +206,12 @@ const CgPermit = () => {
 
   const fetchExpiringCount = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/cg-permits/expiring?days=30`)
-      const data = await response.json()
+      const response = await axios.get(`${API_URL}/api/cg-permits/expiring`, {
+        params: { days: 30 }
+      })
 
-      if (response.ok && data.pagination) {
-        setExpiringCount(data.pagination.totalItems || 0)
+      if (response.data.pagination) {
+        setExpiringCount(response.data.pagination.totalItems || 0)
       }
     } catch (error) {
       console.error('Error fetching expiring count:', error)
@@ -320,28 +318,20 @@ const CgPermit = () => {
       }
 
       // Make POST request to backend
-      const response = await fetch(`${API_BASE_URL}/cg-permits`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(permitData)
-      })
+      const response = await axios.post(`${API_URL}/api/cg-permits`, permitData)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create CG permit')
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to create CG permit')
       }
 
       // Show success message
-      alert('CG Permit added successfully!')
+      toast.success('CG Permit added successfully!', { position: 'top-right', autoClose: 3000 })
 
       // Refresh the permits list
       await fetchPermits()
     } catch (error) {
       console.error('Error creating CG permit:', error)
-      alert(`Failed to create CG permit: ${error.message}`)
+      toast.error(`Failed to create CG permit: ${error.message}`, { position: 'top-right', autoClose: 3000 })
     }
   }
 
@@ -374,22 +364,14 @@ const CgPermit = () => {
       }
 
       // Make PUT request to backend
-      const response = await fetch(`${API_BASE_URL}/cg-permits/${editingPermit.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(permitData)
-      })
+      const response = await axios.put(`${API_URL}/api/cg-permits/${editingPermit.id}`, permitData)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update CG permit')
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to update CG permit')
       }
 
       // Show success message
-      alert('CG Permit updated successfully!')
+      toast.success('CG Permit updated successfully!', { position: 'top-right', autoClose: 3000 })
 
       // Refresh the permits list
       await fetchPermits()
@@ -400,7 +382,7 @@ const CgPermit = () => {
       setEditingPermit(null)
     } catch (error) {
       console.error('Error updating CG permit:', error)
-      alert(`Failed to update CG permit: ${error.message}`)
+      toast.error(`Failed to update CG permit: ${error.message}`, { position: 'top-right', autoClose: 3000 })
     }
   }
 
@@ -411,16 +393,16 @@ const CgPermit = () => {
 
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5'>
+            <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Permits */}
-              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total CG Permits</p>
-                    <h3 className='text-2xl font-black text-gray-800'>{stats.total}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total CG Permits</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.total}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                     </svg>
                   </div>
@@ -428,14 +410,14 @@ const CgPermit = () => {
               </div>
 
               {/* Active Permits */}
-              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Active Permits</p>
-                    <h3 className='text-2xl font-black text-emerald-600'>{stats.active}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active Permits</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-emerald-600'>{stats.active}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
@@ -445,16 +427,16 @@ const CgPermit = () => {
               {/* Expiring Soon */}
               <div
                 onClick={() => navigate('/cg-permit-expiring')}
-                className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+                className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
               >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Expiring Soon</p>
-                    <h3 className='text-2xl font-black text-orange-600'>{expiringCount}</h3>
-                    <p className='text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{expiringCount}</h3>
+                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
@@ -462,14 +444,14 @@ const CgPermit = () => {
               </div>
 
               {/* Total Revenue */}
-              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Revenue</p>
-                    <h3 className='text-2xl font-black text-gray-800'>₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Revenue</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>

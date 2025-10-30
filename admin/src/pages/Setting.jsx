@@ -221,44 +221,46 @@ const Setting = () => {
             </div>
           </div>
 
-          <div className='space-y-4 max-w-2xl'>
-            <div>
-              <label className='text-sm font-semibold text-gray-700 block mb-2'>
-                Current Password
-              </label>
-              <input
-                type='password'
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder='Enter current password'
-                className='w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
-              />
-            </div>
+          <div className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+              <div>
+                <label className='text-sm font-semibold text-gray-700 block mb-2'>
+                  Current Password
+                </label>
+                <input
+                  type='password'
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder='Enter current password'
+                  className='w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
+                />
+              </div>
 
-            <div>
-              <label className='text-sm font-semibold text-gray-700 block mb-2'>
-                New Password
-              </label>
-              <input
-                type='password'
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder='Enter new password'
-                className='w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
-              />
-            </div>
+              <div>
+                <label className='text-sm font-semibold text-gray-700 block mb-2'>
+                  New Password
+                </label>
+                <input
+                  type='password'
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder='Enter new password'
+                  className='w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
+                />
+              </div>
 
-            <div>
-              <label className='text-sm font-semibold text-gray-700 block mb-2'>
-                Confirm New Password
-              </label>
-              <input
-                type='password'
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder='Confirm new password'
-                className='w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
-              />
+              <div>
+                <label className='text-sm font-semibold text-gray-700 block mb-2'>
+                  Confirm New Password
+                </label>
+                <input
+                  type='password'
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder='Confirm new password'
+                  className='w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
+                />
+              </div>
             </div>
 
             <div className='flex gap-3 pt-2'>

@@ -24,7 +24,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 // CORS middleware (allow admin panel to connect)
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept')
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200)
@@ -40,23 +40,23 @@ mongoose.connect(MONGODB_URI)
   .catch((err) => console.error('MongoDB connection error:', err))
 
 // Import Routes
+const authRoutes = require('./routes/auth')
 const drivingLicenseRoutes = require('./routes/drivingLicense')
 const nationalPermitRoutes = require('./routes/nationalPermit')
 const cgPermitRoutes = require('./routes/cgPermit')
 const temporaryPermitRoutes = require('./routes/temporaryPermit')
 const vehicleRegistrationRoutes = require('./routes/vehicleRegistration')
 const fitnessRoutes = require('./routes/fitness')
-const dealerBillRoutes = require('./routes/dealerBill')
 const customBillRoutes = require('./routes/customBill')
 
 // Use Routes
+app.use('/api/auth', authRoutes)
 app.use('/api/driving-licenses', drivingLicenseRoutes)
 app.use('/api/national-permits', nationalPermitRoutes)
 app.use('/api/cg-permits', cgPermitRoutes)
 app.use('/api/temporary-permits', temporaryPermitRoutes)
 app.use('/api/vehicle-registrations', vehicleRegistrationRoutes)
 app.use('/api/fitness', fitnessRoutes)
-app.use('/api/dealer-bills', dealerBillRoutes)
 app.use('/api/custom-bills', customBillRoutes)
 
 // Root route
@@ -71,7 +71,7 @@ app.get('/', (req, res) => {
       temporaryPermits: '/api/temporary-permits',
       vehicleRegistrations: '/api/vehicle-registrations',
       fitness: '/api/fitness',
-      dealerBills: '/api/dealer-bills'
+      customBills: '/api/custom-bills'
     }
   })
 })

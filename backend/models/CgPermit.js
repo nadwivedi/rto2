@@ -31,7 +31,6 @@ const CgPermitSchema = new mongoose.Schema({
   },
 
 
-
   // Additional Details (Optional)
   fatherName: {
     type: String,
@@ -47,55 +46,6 @@ const CgPermitSchema = new mongoose.Schema({
     trim: true
   },
 
-  // Vehicle Details (Optional)
-  vehicleModel: {
-    type: String,
-    trim: true
-  },
-  vehicleType: {
-    type: String,
-    trim: true
-  },
-  vehicleClass: {
-    type: String,
-    default: 'Goods Vehicle'
-  },
-  chassisNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  engineNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  unladenWeight: {
-    type: Number
-  },
-  grossWeight: {
-    type: Number
-  },
-  yearOfManufacture: {
-    type: String
-  },
-  seatingCapacity: {
-    type: String,
-    default: '2'
-  },
-
-  // Route & Goods
-  goodsType: {
-    type: String,
-    default: 'General Goods'
-  },
-  route: {
-    type: String,
-    default: 'Chhattisgarh State'
-  },
-  maxLoadCapacity: {
-    type: String
-  },
   // Fees
   fees: {
     type: Number,

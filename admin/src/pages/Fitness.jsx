@@ -1,5 +1,9 @@
 import { useState, useMemo } from 'react'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 import AddFitnessModal from '../components/AddFitnessModal'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const Fitness = () => {
   // Demo data for when backend is not available
@@ -123,12 +127,54 @@ const Fitness = () => {
     )
   }, [fitnessRecords, searchQuery])
 
-  const handleAddFitness = (formData) => {
-    const newRecord = {
-      id: `FIT-${Date.now()}`,
-      ...formData
+  const handleAddFitness = async (formData) => {
+    setLoading(true)
+    try {
+      const response = await axios.post(`${API_URL}/api/fitness`, {
+        vehicleNumber: formData.vehicleNumber,
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        fee: parseFloat(formData.fee)
+      })
+
+      if (response.data.success) {
+        // Add the new record to the list
+        const newRecord = {
+          id: response.data.data._id,
+          vehicleNumber: response.data.data.vehicleNumber,
+          validFrom: response.data.data.validFrom,
+          validTo: response.data.data.validTo,
+          fees: response.data.data.fee,
+          // Mock data for display (these fields are not in the backend model)
+          vehicleType: 'Vehicle',
+          ownerName: 'Owner',
+          certificateNumber: `FIT${response.data.data._id.slice(-8)}`,
+          issueDate: response.data.data.validFrom,
+          issuingAuthority: 'RTO',
+          mobileNumber: 'N/A',
+          chassisNumber: 'N/A',
+          engineNumber: 'N/A'
+        }
+        setFitnessRecords([newRecord, ...fitnessRecords])
+        toast.success('Fitness certificate added successfully!', {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      } else {
+        toast.error(`Error: ${response.data.message}`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      }
+    } catch (error) {
+      console.error('Error adding fitness record:', error)
+      toast.error('Failed to add fitness certificate. Please check if the backend server is running.', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } finally {
+      setLoading(false)
     }
-    setFitnessRecords([newRecord, ...fitnessRecords])
   }
 
   const statistics = useMemo(() => {
@@ -146,16 +192,16 @@ const Fitness = () => {
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
-            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5'>
+            <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Fitness Records */}
-              <div className='bg-white rounded-lg shadow-md border border-gray-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-gray-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Fitness</p>
-                    <h3 className='text-2xl font-black text-gray-800'>{statistics.total}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Fitness</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.total}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                     </svg>
                   </div>
@@ -163,14 +209,14 @@ const Fitness = () => {
               </div>
 
               {/* Active */}
-              <div className='bg-white rounded-lg shadow-md border border-green-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-green-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Active</p>
-                    <h3 className='text-2xl font-black text-green-600'>{statistics.active}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-green-600'>{statistics.active}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
@@ -178,14 +224,14 @@ const Fitness = () => {
               </div>
 
               {/* Expiring Soon */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Expiring Soon</p>
-                    <h3 className='text-2xl font-black text-orange-600'>{statistics.expiring}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{statistics.expiring}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
@@ -193,14 +239,14 @@ const Fitness = () => {
               </div>
 
               {/* Expired */}
-              <div className='bg-white rounded-lg shadow-md border border-red-100 p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-red-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1'>Expired</p>
-                    <h3 className='text-2xl font-black text-red-600'>{statistics.expired}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expired</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-red-600'>{statistics.expired}</h3>
                   </div>
-                  <div className='w-11 h-11 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                     </svg>
                   </div>

@@ -541,23 +541,12 @@ function generatePermitMessage(permit) {
 📅 Valid From: ${permit.validFrom}
 📅 Valid To: ${permit.validTo}
 ⏱️ Validity Period: ${permit.validityPeriod} years
-🛣️ Route: ${permit.route}
-
-*Vehicle Information:*
-🚗 Vehicle Type: ${permit.vehicleType || 'N/A'}
-🏭 Model: ${permit.vehicleModel || 'N/A'}
-⚙️ Engine No: ${permit.engineNumber || 'N/A'}
-🔢 Chassis No: ${permit.chassisNumber || 'N/A'}
-
-*Goods Type:*
-📦 ${permit.goodsType || 'General Goods'}
 
 *Fees:*
 💰 Amount Paid: ₹${permit.fees}
 
 ━━━━━━━━━━━━━━━━━━━━
 *Status:* ${permit.status}
-📍 Issuing Authority: ${permit.issuingAuthority}
 
 Thank you for using our services!
 `.trim()

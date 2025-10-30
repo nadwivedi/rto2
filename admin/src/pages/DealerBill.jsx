@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import AddDealerBillModal from '../components/AddDealerBillModal'
-import BlankBillModal from '../components/BlankBillModal'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const DealerBill = () => {
   const [dealerBills, setDealerBills] = useState([])
@@ -12,7 +12,8 @@ const DealerBill = () => {
   const [totalPages, setTotalPages] = useState(0)
   const [totalItems, setTotalItems] = useState(0)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [isBlankBillModalOpen, setIsBlankBillModalOpen] = useState(false)
+  const [previewBill, setPreviewBill] = useState(null)
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const itemsPerPage = 10
 
   // Fetch dealer bills
@@ -23,26 +24,21 @@ const DealerBill = () => {
   const fetchDealerBills = async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams({
+      const params = {
         page: currentPage,
         limit: itemsPerPage,
         search: searchQuery,
         sortBy: 'createdAt',
         sortOrder: 'desc'
-      })
-
-      const response = await fetch(`${API_BASE_URL}/dealer-bills?${params}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch dealer bills')
       }
 
-      setDealerBills(data.data || [])
-      setTotalPages(data.pagination?.totalPages || 0)
-      setTotalItems(data.pagination?.totalItems || 0)
+      const response = await axios.get(`${API_URL}/api/custom-bills`, { params })
+
+      setDealerBills(response.data.data || [])
+      setTotalPages(response.data.pagination?.totalPages || 0)
+      setTotalItems(response.data.pagination?.totalItems || 0)
     } catch (error) {
-      console.error('Error fetching dealer bills:', error)
+      console.error('Error fetching bills:', error)
       setDealerBills([])
     } finally {
       setLoading(false)
@@ -58,16 +54,18 @@ const DealerBill = () => {
     setCurrentPage(page)
   }
 
+  const handlePreviewBill = (bill) => {
+    setPreviewBill(bill)
+    setIsPreviewOpen(true)
+  }
+
   const handleDownloadBill = async (billId, billNumber) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/dealer-bills/${billId}/download-bill-pdf`)
+      const response = await axios.get(`${API_URL}/api/custom-bills/${billId}/download`, {
+        responseType: 'blob'
+      })
 
-      if (!response.ok) {
-        throw new Error('Failed to download bill')
-      }
-
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
+      const url = window.URL.createObjectURL(new Blob([response.data]))
       const a = document.createElement('a')
       a.href = url
       a.download = `${billNumber}.pdf`
@@ -82,53 +80,28 @@ const DealerBill = () => {
   }
 
   const handleDeleteBill = async (billId) => {
-    if (!confirm('Are you sure you want to delete this dealer bill?')) {
+    if (!confirm('Are you sure you want to delete this bill?')) {
       return
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/dealer-bills/${billId}`, {
-        method: 'DELETE'
-      })
+      const response = await axios.delete(`${API_URL}/api/custom-bills/${billId}`)
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to delete dealer bill')
+      if (response.data.success) {
+        alert('Bill deleted successfully')
+        fetchDealerBills()
+      } else {
+        throw new Error(response.data.message || 'Failed to delete bill')
       }
-
-      alert('Dealer bill deleted successfully')
-      fetchDealerBills()
     } catch (error) {
-      console.error('Error deleting dealer bill:', error)
-      alert('Failed to delete dealer bill. Please try again.')
+      console.error('Error deleting bill:', error)
+      alert('Failed to delete bill. Please try again.')
     }
   }
 
   const getIncludedItems = (items) => {
-    const includedList = []
-    if (items.permit && items.permit.isIncluded) {
-      includedList.push('Permit')
-    }
-    if (items.fitness && items.fitness.isIncluded) {
-      includedList.push('Fitness')
-    }
-    if (items.vehicleRegistration && items.vehicleRegistration.isIncluded) {
-      includedList.push('Vehicle Registration')
-    }
-    if (items.temporaryRegistration && items.temporaryRegistration.isIncluded) {
-      includedList.push('Temporary Registration')
-    }
-    return includedList
-  }
-
-  const getPaymentStatusBadge = (status) => {
-    const statusConfig = {
-      'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      'Paid': 'bg-green-100 text-green-800 border-green-200',
-      'Cancelled': 'bg-red-100 text-red-800 border-red-200'
-    }
-    return statusConfig[status] || 'bg-gray-100 text-gray-800 border-gray-200'
+    if (!items || !Array.isArray(items)) return []
+    return items.map(item => item.description).filter(desc => desc && desc.trim() !== '')
   }
 
   const formatDate = (dateString) => {
@@ -150,26 +123,15 @@ const DealerBill = () => {
               <h1 className='text-2xl md:text-3xl font-black text-gray-800'>Dealer Bills</h1>
               <p className='text-sm text-gray-600 mt-1'>Manage dealer bills for Permit, Fitness, and Registration</p>
             </div>
-            <div className='flex gap-3'>
-              <button
-                onClick={() => setIsBlankBillModalOpen(true)}
-                className='px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-xl hover:shadow-lg transition-all font-bold flex items-center gap-2'
-              >
-                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                </svg>
-                Blank Bill
-              </button>
-              <button
-                onClick={() => setIsAddModalOpen(true)}
-                className='px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all font-bold flex items-center gap-2'
-              >
-                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                </svg>
-                Add Dealer Bill
-              </button>
-            </div>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className='px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all font-bold flex items-center gap-2'
+            >
+              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              Add Dealer Bill
+            </button>
           </div>
         </div>
 
@@ -177,15 +139,6 @@ const DealerBill = () => {
         <AddDealerBillModal
           isOpen={isAddModalOpen}
           onClose={() => setIsAddModalOpen(false)}
-          onSuccess={() => {
-            fetchDealerBills()
-          }}
-        />
-
-        {/* Blank Bill Modal */}
-        <BlankBillModal
-          isOpen={isBlankBillModalOpen}
-          onClose={() => setIsBlankBillModalOpen(false)}
           onSuccess={() => {
             fetchDealerBills()
           }}
@@ -227,9 +180,8 @@ const DealerBill = () => {
                 <tr>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Bill Number</th>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Customer Name</th>
-                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Included Items</th>
-                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Fees</th>
-                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Payment Status</th>
+                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Items</th>
+                  <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Amount</th>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Date</th>
                   <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                 </tr>
@@ -237,12 +189,12 @@ const DealerBill = () => {
               <tbody className='divide-y divide-gray-200'>
                 {loading ? (
                   <tr>
-                    <td colSpan='7' className='px-4 py-8 text-center'>
+                    <td colSpan='6' className='px-4 py-8 text-center'>
                       <div className='text-gray-400'>
                         <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
                         </svg>
-                        <p className='text-sm font-semibold text-gray-600'>Loading dealer bills...</p>
+                        <p className='text-sm font-semibold text-gray-600'>Loading bills...</p>
                       </div>
                     </td>
                   </tr>
@@ -270,21 +222,28 @@ const DealerBill = () => {
                       </td>
                       <td className='px-4 py-4'>
                         <div className='text-lg font-bold text-indigo-600'>
-                          ₹{bill.totalFees ? bill.totalFees.toLocaleString('en-IN') : '0'}
+                          ₹{bill.totalAmount ? bill.totalAmount.toLocaleString('en-IN') : '0'}
                         </div>
                       </td>
                       <td className='px-4 py-4'>
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border ${getPaymentStatusBadge(bill.paymentStatus)}`}>
-                          {bill.paymentStatus || 'Pending'}
-                        </span>
-                      </td>
-                      <td className='px-4 py-4'>
                         <div className='text-sm text-gray-600'>
-                          {bill.createdAt ? formatDate(bill.createdAt) : 'N/A'}
+                          {bill.billDate || (bill.createdAt ? formatDate(bill.createdAt) : 'N/A')}
                         </div>
                       </td>
                       <td className='px-4 py-4'>
                         <div className='flex items-center justify-center gap-2'>
+                          {/* Preview Button */}
+                          <button
+                            onClick={() => handlePreviewBill(bill)}
+                            className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all'
+                            title='Preview Bill'
+                          >
+                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                            </svg>
+                          </button>
+
                           {/* Download Button */}
                           <button
                             onClick={() => handleDownloadBill(bill._id, bill.billNumber)}
@@ -312,12 +271,12 @@ const DealerBill = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan='7' className='px-4 py-8 text-center'>
+                    <td colSpan='6' className='px-4 py-8 text-center'>
                       <div className='text-gray-400'>
                         <svg className='mx-auto h-12 w-12 mb-3 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                         </svg>
-                        <p className='text-sm font-semibold text-gray-600'>No dealer bills found</p>
+                        <p className='text-sm font-semibold text-gray-600'>No bills found</p>
                         <p className='text-xs text-gray-500 mt-1'>Click "Add Dealer Bill" to create your first bill</p>
                       </div>
                     </td>
@@ -354,6 +313,68 @@ const DealerBill = () => {
             </div>
           )}
         </div>
+
+        {/* Preview Modal */}
+        {isPreviewOpen && previewBill && (
+          <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
+            <div className='bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden'>
+              {/* Header */}
+              <div className='bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4 text-white flex justify-between items-center'>
+                <div>
+                  <h2 className='text-xl font-bold'>Bill Preview - {previewBill.billNumber}</h2>
+                  <p className='text-sm text-blue-100 mt-1'>{previewBill.customerName}</p>
+                </div>
+                <button
+                  onClick={() => setIsPreviewOpen(false)}
+                  className='w-10 h-10 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-all'
+                >
+                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                </button>
+              </div>
+
+              {/* PDF Preview */}
+              <div className='p-4 bg-gray-100 overflow-auto' style={{ height: 'calc(90vh - 100px)' }}>
+                {previewBill.billPdfPath ? (
+                  <iframe
+                    src={`http://localhost:5000${previewBill.billPdfPath}`}
+                    className='w-full h-full rounded-lg border-2 border-gray-300'
+                    title='Bill Preview'
+                  />
+                ) : (
+                  <div className='flex items-center justify-center h-full'>
+                    <div className='text-center text-gray-500'>
+                      <svg className='mx-auto h-16 w-16 mb-4 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                      </svg>
+                      <p className='text-lg font-semibold'>PDF not available</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer with Action Buttons */}
+              <div className='px-6 py-4 bg-gray-50 border-t border-gray-200 flex gap-3'>
+                <button
+                  onClick={() => handleDownloadBill(previewBill._id, previewBill.billNumber)}
+                  className='flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-teal-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold flex items-center justify-center gap-2'
+                >
+                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                  </svg>
+                  Download PDF
+                </button>
+                <button
+                  onClick={() => setIsPreviewOpen(false)}
+                  className='px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-semibold'
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

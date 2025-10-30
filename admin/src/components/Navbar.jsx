@@ -1,9 +1,17 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const menuItems = [
     {
@@ -211,6 +219,24 @@ const Navbar = () => {
               )}
             </Link>
           ))}
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group hover:bg-red-600/20 hover:border border-transparent hover:border-red-400/20 w-full mt-4"
+          >
+            <span className="text-xl text-red-400 group-hover:text-red-300">
+              🚪
+            </span>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-semibold text-purple-100 group-hover:text-white">
+                Logout
+              </div>
+              <div className="text-xs text-purple-400 group-hover:text-purple-300">
+                Sign out of account
+              </div>
+            </div>
+          </button>
         </nav>
       </div>
 
@@ -253,6 +279,20 @@ const Navbar = () => {
                 )}
               </Link>
             ))}
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 group flex-shrink-0 hover:bg-red-600/20 hover:border border-transparent hover:border-red-400/20 ml-auto"
+              title="Sign out of account"
+            >
+              <span className="text-lg text-red-400 group-hover:text-red-300">
+                🚪
+              </span>
+              <span className="text-sm font-semibold whitespace-nowrap text-purple-100 group-hover:text-white">
+                Logout
+              </span>
+            </button>
           </div>
         </div>
       </nav>

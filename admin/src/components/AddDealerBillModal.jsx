@@ -3,104 +3,91 @@ import { useState } from 'react'
 const API_BASE_URL = 'http://localhost:5000/api'
 
 const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
-  // Customer name
+  const [billDate, setBillDate] = useState(new Date().toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }))
   const [customerName, setCustomerName] = useState('')
-
-  // Items with checkbox approach and amounts
-  const [items, setItems] = useState({
-    permit: {
-      isIncluded: false,
-      amount: ''
-    },
-    fitness: {
-      isIncluded: false,
-      amount: ''
-    },
-    vehicleRegistration: {
-      isIncluded: false,
-      amount: ''
-    },
-    temporaryRegistration: {
-      isIncluded: false,
-      amount: ''
-    }
-  })
-
-  // Total amount (calculated from item amounts)
-  const [totalAmount, setTotalAmount] = useState('')
-
+  const [items, setItems] = useState([
+    { description: '', quantity: 1, rate: '', amount: '' },
+    { description: '', quantity: 1, rate: '', amount: '' },
+    { description: '', quantity: 1, rate: '', amount: '' }
+  ])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Handle checkbox change
-  const handleCheckboxChange = (itemName) => {
-    setItems(prev => ({
-      ...prev,
-      [itemName]: {
-        ...prev[itemName],
-        isIncluded: !prev[itemName].isIncluded
-      }
-    }))
-    setError('')
-  }
+  // Quick add predefined items
+  const quickAddItem = (description) => {
+    // Check if item already exists
+    const exists = items.some(item => item.description === description)
+    if (exists) return
 
-  // Handle amount change
-  const handleAmountChange = (itemName, value) => {
-    setItems(prev => ({
-      ...prev,
-      [itemName]: {
-        ...prev[itemName],
-        amount: value
-      }
-    }))
-    setError('')
+    // Find first empty row
+    const emptyIndex = items.findIndex(item => !item.description || item.description.trim() === '')
 
-    // Calculate total amount from all included items
-    calculateTotalAmount(itemName, value)
+    if (emptyIndex !== -1) {
+      // Fill the empty row
+      const newItems = [...items]
+      newItems[emptyIndex] = { description, quantity: 1, rate: '', amount: '' }
+      setItems(newItems)
+    } else {
+      // All rows filled, add new row
+      setItems([...items, { description, quantity: 1, rate: '', amount: '' }])
+    }
   }
 
   // Calculate total amount
-  const calculateTotalAmount = (changedItem, changedValue) => {
-    let total = 0
-
-    Object.keys(items).forEach(key => {
-      if (items[key].isIncluded || key === changedItem) {
-        const amount = key === changedItem ? changedValue : items[key].amount
-        total += parseFloat(amount) || 0
-      }
-    })
-
-    setTotalAmount(total.toString())
+  const calculateTotal = () => {
+    return items.reduce((sum, item) => {
+      const amount = parseFloat(item.amount) || 0
+      return sum + amount
+    }, 0)
   }
 
-  // Check if form is valid
-  const isFormValid = () => {
-    // Customer name is required
-    if (!customerName || customerName.trim() === '') {
-      return false
+  // Handle item change
+  const handleItemChange = (index, field, value) => {
+    const newItems = [...items]
+    newItems[index][field] = value
+
+    // Auto-calculate amount if quantity and rate are provided
+    if (field === 'quantity' || field === 'rate') {
+      const quantity = parseFloat(field === 'quantity' ? value : newItems[index].quantity) || 0
+      const rate = parseFloat(field === 'rate' ? value : newItems[index].rate) || 0
+      newItems[index].amount = (quantity * rate).toString()
     }
 
-    // At least one item must be included
-    const hasIncludedItem = items.permit.isIncluded || items.fitness.isIncluded || items.vehicleRegistration.isIncluded || items.temporaryRegistration.isIncluded
+    setItems(newItems)
+    setError('')
+  }
 
-    if (!hasIncludedItem) {
-      return false
+  // Add new custom item row
+  const addItem = () => {
+    setItems([...items, { description: '', quantity: 1, rate: '', amount: '' }])
+  }
+
+  // Remove item row
+  const removeItem = (index) => {
+    if (items.length > 1) {
+      const newItems = items.filter((_, i) => i !== index)
+      setItems(newItems)
     }
-
-    // Total amount must be valid
-    if (!totalAmount || parseFloat(totalAmount) <= 0) {
-      return false
-    }
-
-    return true
   }
 
   // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!isFormValid()) {
-      setError('Please fill all required fields')
+    if (!customerName || customerName.trim() === '') {
+      setError('Customer name is required')
+      return
+    }
+
+    // Filter out empty items
+    const filledItems = items.filter(item => item.description && item.description.trim() !== '')
+
+    if (filledItems.length === 0) {
+      setError('At least one item with description is required')
       return
     }
 
@@ -108,35 +95,21 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
     setError('')
 
     try {
-      // Prepare items with amounts
-      const itemsToSend = {
-        permit: {
-          isIncluded: items.permit.isIncluded,
-          amount: items.permit.isIncluded ? parseFloat(items.permit.amount) || 0 : 0
-        },
-        fitness: {
-          isIncluded: items.fitness.isIncluded,
-          amount: items.fitness.isIncluded ? parseFloat(items.fitness.amount) || 0 : 0
-        },
-        vehicleRegistration: {
-          isIncluded: items.vehicleRegistration.isIncluded,
-          amount: items.vehicleRegistration.isIncluded ? parseFloat(items.vehicleRegistration.amount) || 0 : 0
-        },
-        temporaryRegistration: {
-          isIncluded: items.temporaryRegistration.isIncluded,
-          amount: items.temporaryRegistration.isIncluded ? parseFloat(items.temporaryRegistration.amount) || 0 : 0
-        }
-      }
-
-      const response = await fetch(`${API_BASE_URL}/dealer-bills`, {
+      const response = await fetch(`${API_BASE_URL}/custom-bills`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          billDate,
           customerName: customerName.trim(),
-          items: itemsToSend,
-          totalFees: parseFloat(totalAmount)
+          items: filledItems.map(item => ({
+            description: item.description.trim(),
+            quantity: parseFloat(item.quantity) || 1,
+            rate: parseFloat(item.rate) || 0,
+            amount: parseFloat(item.amount) || 0
+          })),
+          totalAmount: calculateTotal()
         })
       })
 
@@ -149,26 +122,17 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
       alert('Dealer bill created successfully! Bill number: ' + data.data.billNumber)
 
       // Reset form
+      setBillDate(new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }))
       setCustomerName('')
-      setItems({
-        permit: {
-          isIncluded: false,
-          amount: ''
-        },
-        fitness: {
-          isIncluded: false,
-          amount: ''
-        },
-        vehicleRegistration: {
-          isIncluded: false,
-          amount: ''
-        },
-        temporaryRegistration: {
-          isIncluded: false,
-          amount: ''
-        }
-      })
-      setTotalAmount('')
+      setItems([
+        { description: '', quantity: 1, rate: '', amount: '' },
+        { description: '', quantity: 1, rate: '', amount: '' },
+        { description: '', quantity: 1, rate: '', amount: '' }
+      ])
 
       onSuccess && onSuccess(data.data)
       onClose()
@@ -183,204 +147,251 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4'>
-      <div className='bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col'>
+    <div className='fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto'>
+      <div className='bg-white rounded-3xl shadow-2xl max-w-5xl w-full my-8'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 p-6 text-white flex-shrink-0'>
-          <div className='flex justify-between items-center'>
+        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-white flex-shrink-0 rounded-t-3xl'>
+          <div className='flex justify-between items-center gap-4'>
             <div>
-              <h2 className='text-2xl font-black mb-1'>Add Dealer Bill</h2>
-              <p className='text-blue-100 text-sm'>Create a combined bill for Permit, Fitness, and Registration</p>
+              <h2 className='text-lg font-bold'>Dealer Bill Generator</h2>
+            </div>
+            {/* Quick Add Buttons */}
+            <div className='flex gap-2 flex-1 justify-center'>
+              <button type='button' onClick={() => quickAddItem('Permit')} className='px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-semibold transition-all'>+ Permit</button>
+              <button type='button' onClick={() => quickAddItem('Fitness')} className='px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-semibold transition-all'>+ Fitness</button>
+              <button type='button' onClick={() => quickAddItem('Vehicle Registration')} className='px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-semibold transition-all'>+ Vehicle Regt</button>
+              <button type='button' onClick={() => quickAddItem('Temporary Registration')} className='px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-xs font-semibold transition-all'>+ Temp Regt</button>
             </div>
             <button
               type='button'
               onClick={onClose}
-              className='w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-all'
+              className='w-8 h-8 bg-white/20 hover:bg-white/30 rounded-lg flex items-center justify-center transition-all flex-shrink-0'
             >
-              <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
               </svg>
             </button>
           </div>
         </div>
 
-        {/* Scrollable Content */}
-        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
-          <div className='flex-1 overflow-y-auto p-6'>
-            <div className='mb-4 p-4 border-2 border-indigo-200 rounded-xl bg-indigo-50'>
-              <p className='text-sm font-semibold text-gray-700'>
-                Enter customer name, select items to include in the bill, and enter the total amount.
-              </p>
+        {/* Bill Form styled like actual bill */}
+        <form onSubmit={handleSubmit} className='p-8'>
+          {/* Bill Preview - Scaled down */}
+          <div className='origin-top' style={{ transform: 'scale(0.85)', transformOrigin: 'top center' }}>
+            <div className='border-2 border-black p-6 bg-white' style={{ fontFamily: 'Arial, sans-serif' }}>
+            {/* Bill Header */}
+            <div className='text-center mb-6'>
+              <div className='flex justify-between items-start mb-3'>
+                <div className='flex-1'></div>
+                <div className='flex-1 text-center'>
+                  <div className='inline-block bg-gray-800 text-white px-4 py-1 rounded-full text-xs font-bold mb-3'>
+                    BILL / CASH MEMO
+                  </div>
+                </div>
+                <div className='flex-1 text-right text-xs font-bold'>
+                  Mob.: 99934-48850<br />
+                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;98271-46175
+                </div>
+              </div>
+              <div>
+                <h1 className='text-4xl font-bold italic mb-1' style={{ whiteSpace: 'nowrap' }}>ASHOK KUMAR</h1>
+                <p className='text-sm italic mb-2'>(Transport Consultant)</p>
+                <p className='text-xs mb-3'>
+                  GF-17, Ground Floor, Shyam Plaza, Opp. Bus Stand, Pandri, RAIPUR<br />
+                  Email : ashok123kumarbhatt@gmail.com
+                </p>
+              </div>
             </div>
 
-            {/* Customer Name Section */}
-            <div className='mb-6 p-4 border-2 border-purple-200 rounded-xl bg-purple-50'>
-              <h3 className='text-lg font-bold text-gray-800 mb-3 flex items-center gap-2'>
-                <span className='w-8 h-8 bg-purple-500 text-white rounded-lg flex items-center justify-center text-sm font-black'>👤</span>
-                Customer Name
-              </h3>
+            {/* Bill No and Date */}
+            <div className='flex justify-between mb-4 text-sm'>
+              <div>
+                <span className='font-bold'>No.</span>
+                <span className='ml-2 text-red-700 font-bold'>PENDING</span>
+              </div>
+              <div>
+                <span className='font-bold'>Date</span>
+                <input
+                  type='text'
+                  value={billDate}
+                  onChange={(e) => setBillDate(e.target.value)}
+                  className='ml-2 border-b border-black px-2 py-0.5 text-sm w-32'
+                  placeholder='DD/MM/YYYY'
+                />
+              </div>
+            </div>
+
+            {/* Customer Name */}
+            <div className='mb-4 pb-2 border-b border-black flex items-baseline gap-2'>
+              <label className='text-sm font-bold whitespace-nowrap'>M/s.</label>
               <input
                 type='text'
                 value={customerName}
-                onChange={(e) => {
-                  setCustomerName(e.target.value)
-                  setError('')
-                }}
-                placeholder='Enter customer name'
-                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base font-semibold'
+                onChange={(e) => setCustomerName(e.target.value)}
+                className='flex-1 border-b border-black px-2 py-0.5 text-sm'
+                placeholder='Customer Name'
                 required
               />
             </div>
 
-            {/* Items Selection Title */}
-            <div className='mb-4'>
-              <h3 className='text-md font-bold text-gray-800'>Select Items to Include:</h3>
-            </div>
+            {/* Items Table */}
+            <table className='w-full border-2 border-black mb-4' style={{ borderCollapse: 'collapse' }}>
+              <thead>
+                <tr className='bg-gray-200'>
+                  <th className='border border-black px-2 py-2 text-xs font-bold text-center' style={{ width: '8%' }}>
+                    SI<br />No.
+                  </th>
+                  <th className='border border-black px-2 py-2 text-xs font-bold text-center' style={{ width: '52%' }}>
+                    DESCRIPTION
+                  </th>
+                  <th className='border border-black px-2 py-2 text-xs font-bold text-center' style={{ width: '10%' }}>
+                    Qty.
+                  </th>
+                  <th className='border border-black px-2 py-2 text-xs font-bold text-center' style={{ width: '15%' }}>
+                    Rate
+                  </th>
+                  <th className='border border-black px-2 py-2 text-xs font-bold text-center' style={{ width: '15%' }}>
+                    AMOUNT<br />Rs.
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, index) => (
+                  <tr key={index}>
+                    <td className='border border-black px-2 text-center align-top pt-2 text-sm font-bold text-blue-600'>
+                      {index + 1}
+                    </td>
+                    <td className='border border-black px-2 align-top pt-2'>
+                      <textarea
+                        value={item.description}
+                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                        className='w-full text-sm px-1 py-0.5 focus:outline-none focus:bg-yellow-50 resize-none overflow-hidden'
+                        rows={1}
+                        style={{
+                          lineHeight: '1.4',
+                          height: 'auto',
+                          minHeight: '24px'
+                        }}
+                        onInput={(e) => {
+                          e.target.style.height = 'auto'
+                          e.target.style.height = e.target.scrollHeight + 'px'
+                        }}
+                      />
+                    </td>
+                    <td className='border border-black px-2 text-center align-top pt-2'>
+                      <input
+                        type='number'
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                        className='w-full text-sm text-center px-1 py-0.5 focus:outline-none focus:bg-yellow-50'
+                        min='0'
+                        step='1'
+                      />
+                    </td>
+                    <td className='border border-black px-2 text-right align-top pt-2'>
+                      <input
+                        type='number'
+                        value={item.rate}
+                        onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
+                        className='w-full text-sm text-right px-1 py-0.5 focus:outline-none focus:bg-yellow-50'
+                        placeholder='0'
+                        min='0'
+                        step='0.01'
+                      />
+                    </td>
+                    <td className='border border-black px-2 text-right align-top pt-2'>
+                      <input
+                        type='number'
+                        value={item.amount}
+                        onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
+                        className='w-full text-sm text-right px-1 py-0.5 focus:outline-none focus:bg-yellow-50'
+                        placeholder='0'
+                        min='0'
+                        step='0.01'
+                      />
+                    </td>
+                  </tr>
+                ))}
+                <tr className='bg-gray-100'>
+                  <td colSpan='4' className='border border-black px-2 py-2 text-right font-bold text-sm'>
+                    TOTAL
+                  </td>
+                  <td className='border border-black px-2 py-2 text-right font-bold text-sm'>
+                    ₹{calculateTotal().toLocaleString('en-IN')}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-            {/* Permit Checkbox */}
-            <div className='mb-4 p-3 border-2 border-blue-200 rounded-xl bg-blue-50'>
-              <label className='flex items-center gap-3 cursor-pointer mb-2'>
-                <input
-                  type='checkbox'
-                  checked={items.permit.isIncluded}
-                  onChange={() => handleCheckboxChange('permit')}
-                  className='w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500'
-                />
-                <span className='text-base font-bold text-gray-800'>Permit</span>
-              </label>
-              {items.permit.isIncluded && (
-                <input
-                  type='number'
-                  value={items.permit.amount}
-                  onChange={(e) => handleAmountChange('permit', e.target.value)}
-                  placeholder='Enter amount for Permit'
-                  min='0'
-                  step='100'
-                  className='w-full px-3 py-2 border-2 border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base font-semibold'
-                />
-              )}
-            </div>
-
-            {/* Fitness Checkbox */}
-            <div className='mb-4 p-3 border-2 border-green-200 rounded-xl bg-green-50'>
-              <label className='flex items-center gap-3 cursor-pointer mb-2'>
-                <input
-                  type='checkbox'
-                  checked={items.fitness.isIncluded}
-                  onChange={() => handleCheckboxChange('fitness')}
-                  className='w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500'
-                />
-                <span className='text-base font-bold text-gray-800'>Fitness</span>
-              </label>
-              {items.fitness.isIncluded && (
-                <input
-                  type='number'
-                  value={items.fitness.amount}
-                  onChange={(e) => handleAmountChange('fitness', e.target.value)}
-                  placeholder='Enter amount for Fitness'
-                  min='0'
-                  step='100'
-                  className='w-full px-3 py-2 border-2 border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base font-semibold'
-                />
-              )}
-            </div>
-
-            {/* Vehicle Registration Checkbox */}
-            <div className='mb-4 p-3 border-2 border-orange-200 rounded-xl bg-orange-50'>
-              <label className='flex items-center gap-3 cursor-pointer mb-2'>
-                <input
-                  type='checkbox'
-                  checked={items.vehicleRegistration.isIncluded}
-                  onChange={() => handleCheckboxChange('vehicleRegistration')}
-                  className='w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500'
-                />
-                <span className='text-base font-bold text-gray-800'>Vehicle Registration</span>
-              </label>
-              {items.vehicleRegistration.isIncluded && (
-                <input
-                  type='number'
-                  value={items.vehicleRegistration.amount}
-                  onChange={(e) => handleAmountChange('vehicleRegistration', e.target.value)}
-                  placeholder='Enter amount for Vehicle Registration'
-                  min='0'
-                  step='100'
-                  className='w-full px-3 py-2 border-2 border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-base font-semibold'
-                />
-              )}
-            </div>
-
-            {/* Temporary Registration Checkbox */}
-            <div className='mb-6 p-3 border-2 border-pink-200 rounded-xl bg-pink-50'>
-              <label className='flex items-center gap-3 cursor-pointer mb-2'>
-                <input
-                  type='checkbox'
-                  checked={items.temporaryRegistration.isIncluded}
-                  onChange={() => handleCheckboxChange('temporaryRegistration')}
-                  className='w-5 h-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500'
-                />
-                <span className='text-base font-bold text-gray-800'>Temporary Registration</span>
-              </label>
-              {items.temporaryRegistration.isIncluded && (
-                <input
-                  type='number'
-                  value={items.temporaryRegistration.amount}
-                  onChange={(e) => handleAmountChange('temporaryRegistration', e.target.value)}
-                  placeholder='Enter amount for Temporary Registration'
-                  min='0'
-                  step='100'
-                  className='w-full px-3 py-2 border-2 border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent text-base font-semibold'
-                />
-              )}
-            </div>
-
-            {/* Total Amount Section */}
-            <div className='mb-6 p-4 border-2 border-indigo-200 rounded-xl bg-gradient-to-r from-indigo-50 to-purple-50'>
-              <h3 className='text-lg font-bold text-gray-800 mb-3 flex items-center gap-2'>
-                <span className='w-8 h-8 bg-indigo-500 text-white rounded-lg flex items-center justify-center text-sm font-black'>₹</span>
-                Total Amount (Auto-calculated)
-              </h3>
-              <div className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-gray-100 text-2xl font-bold text-gray-700'>
-                ₹{totalAmount || '0'}
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className='bg-red-50 border-2 border-red-500 rounded-xl p-4 mb-4'>
-                <p className='text-sm text-red-700 font-semibold'>{error}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Fixed Bottom Action Bar */}
-          <div className='flex-shrink-0 border-t border-gray-200 bg-gray-50 p-4'>
-            <div className='flex gap-3'>
+            {/* Add/Remove Item Buttons */}
+            <div className='flex gap-2 mb-4'>
               <button
                 type='button'
-                onClick={onClose}
-                className='flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-semibold'
-                disabled={loading}
+                onClick={addItem}
+                className='px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors'
               >
-                Cancel
+                + Add Row
               </button>
-              <button
-                type='submit'
-                disabled={loading || !isFormValid()}
-                className='flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed'
-              >
-                {loading ? (
-                  <span className='flex items-center justify-center gap-2'>
-                    <svg className='animate-spin h-5 w-5' viewBox='0 0 24 24'>
-                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' fill='none'></circle>
-                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
-                    </svg>
-                    Creating...
-                  </span>
-                ) : (
-                  'Create Dealer Bill'
-                )}
-              </button>
+              {items.length > 1 && (
+                <button
+                  type='button'
+                  onClick={() => removeItem(items.length - 1)}
+                  className='px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition-colors'
+                >
+                  - Remove Last Row
+                </button>
+              )}
             </div>
+
+            {/* Amount in Words */}
+            <div className='mb-6 text-sm'>
+              <span className='font-bold'>Rs</span>
+              <span className='ml-2 border-b border-black inline-block px-2' style={{ minWidth: '400px' }}>
+                {/* Amount in words will be shown on PDF */}
+              </span>
+            </div>
+
+            {/* Signature */}
+            <div className='text-right mt-12'>
+              <div className='text-sm font-bold'>For, ASHOK KUMAR</div>
+            </div>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className='bg-red-50 border-2 border-red-500 rounded-xl p-4 mt-4'>
+              <p className='text-sm text-red-700 font-semibold'>{error}</p>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <div className='flex gap-3 mt-6'>
+            <button
+              type='button'
+              onClick={onClose}
+              className='flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all font-semibold'
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type='submit'
+              disabled={loading || !customerName.trim()}
+              className='flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed'
+            >
+              {loading ? (
+                <span className='flex items-center justify-center gap-2'>
+                  <svg className='animate-spin h-5 w-5' viewBox='0 0 24 24'>
+                    <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' fill='none'></circle>
+                    <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                  </svg>
+                  Creating...
+                </span>
+              ) : (
+                'Generate Dealer Bill'
+              )}
+            </button>
           </div>
         </form>
       </div>

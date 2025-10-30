@@ -19,19 +19,25 @@ const PartARenewalSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  fees: {
+  totalFee: {
     type: Number,
     required: true,
     default: 15000 // Part A renewal fee (5 years)
   },
-  billNumber: {
-    type: String,
+  paid: {
+    type: Number,
     required: true,
-    trim: true
+    default: 0
   },
-  billPdfPath: {
-    type: String,
-    default: null
+  balance: {
+    type: Number,
+    required: true,
+    default: 15000
+  },
+  bill: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CustomBill',
+    required: true
   },
   paymentStatus: {
     type: String,
@@ -67,19 +73,25 @@ const PartBRenewalSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  fees: {
+  totalFee: {
     type: Number,
     required: true,
     default: 5000 // Part B renewal fee
   },
-  billNumber: {
-    type: String,
+  paid: {
+    type: Number,
     required: true,
-    trim: true
+    default: 0
   },
-  billPdfPath: {
-    type: String,
-    default: null
+  balance: {
+    type: Number,
+    required: true,
+    default: 5000
+  },
+  bill: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CustomBill',
+    required: true
   },
   paymentStatus: {
     type: String,
@@ -194,20 +206,27 @@ const NationalPermitSchema = new mongoose.Schema({
 
 
   // Fees
-  fees: {
+  totalFee: {
+    type: Number,
+    required: true,
+    default: 15000
+  },
+  paid: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  balance: {
     type: Number,
     required: true,
     default: 15000
   },
 
-  // Bill Information
-  billNumber: {
-    type: String,
-    trim: true
-  },
-  billPdfPath: {
-    type: String,
-    default: null // Path to generated PDF: /uploads/bills/BILL-2025-0001.pdf
+  // Bill Reference
+  bill: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CustomBill',
+    default: null
   },
 
   // Document Uploads

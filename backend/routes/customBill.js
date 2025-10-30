@@ -8,6 +8,9 @@ router.post('/', customBillController.createCustomBill)
 // GET /api/custom-bills - Get all custom bills
 router.get('/', customBillController.getAllCustomBills)
 
+// GET /api/custom-bills/:id/download - Download custom bill PDF
+router.get('/:id/download', customBillController.downloadCustomBillPDF)
+
 // GET /api/custom-bills/:id - Get custom bill by ID
 router.get('/:id', customBillController.getCustomBillById)
 
