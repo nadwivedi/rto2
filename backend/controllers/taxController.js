@@ -1,20 +1,23 @@
-const Fitness = require('../models/Fitness')
+const Tax = require('../models/Tax')
 const CustomBill = require('../models/CustomBill')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
 const path = require('path')
 const fs = require('fs')
 
-// Get all fitness records
-exports.getAllFitness = async (req, res) => {
+// Get all tax records
+exports.getAllTax = async (req, res) => {
   try {
     const { search, status, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
     // Build query
     const query = {}
 
-    // Search by vehicle number
+    // Search by vehicle number or receipt number
     if (search) {
-      query.vehicleNumber = { $regex: search, $options: 'i' }
+      query.$or = [
+        { vehicleNumber: { $regex: search, $options: 'i' } },
+        { receiptNo: { $regex: search, $options: 'i' } }
+      ]
     }
 
     // Filter by status
@@ -30,91 +33,91 @@ exports.getAllFitness = async (req, res) => {
     sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
 
     // Execute query
-    const fitnessRecords = await Fitness.find(query)
+    const taxRecords = await Tax.find(query)
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
 
     // Get total count for pagination
-    const total = await Fitness.countDocuments(query)
+    const total = await Tax.countDocuments(query)
 
     res.json({
       success: true,
-      data: fitnessRecords,
+      data: taxRecords,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
         totalRecords: total,
-        hasMore: skip + fitnessRecords.length < total
+        hasMore: skip + taxRecords.length < total
       }
     })
   } catch (error) {
-    console.error('Error fetching fitness records:', error)
+    console.error('Error fetching tax records:', error)
     res.status(500).json({
       success: false,
-      message: 'Error fetching fitness records',
+      message: 'Error fetching tax records',
       error: error.message
     })
   }
 }
 
-// Get single fitness record by ID
-exports.getFitnessById = async (req, res) => {
+// Get single tax record by ID
+exports.getTaxById = async (req, res) => {
   try {
-    const fitness = await Fitness.findById(req.params.id)
+    const tax = await Tax.findById(req.params.id)
 
-    if (!fitness) {
+    if (!tax) {
       return res.status(404).json({
         success: false,
-        message: 'Fitness record not found'
+        message: 'Tax record not found'
       })
     }
 
     res.json({
       success: true,
-      data: fitness
+      data: tax
     })
   } catch (error) {
-    console.error('Error fetching fitness record:', error)
+    console.error('Error fetching tax record:', error)
     res.status(500).json({
       success: false,
-      message: 'Error fetching fitness record',
+      message: 'Error fetching tax record',
       error: error.message
     })
   }
 }
 
-// Create new fitness record
-exports.createFitness = async (req, res) => {
+// Create new tax record
+exports.createTax = async (req, res) => {
   try {
-    const { vehicleNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { receiptNo, vehicleNumber, ownerName, taxAmount, taxFrom, taxTo } = req.body
 
     // Validate required fields
-    if (!vehicleNumber || !validFrom || !validTo) {
+    if (!receiptNo || !vehicleNumber || !taxFrom || !taxTo) {
       return res.status(400).json({
         success: false,
-        message: 'Vehicle number, valid from, and valid to are required'
+        message: 'Receipt number, vehicle number, tax from, and tax to are required'
       })
     }
 
-    // Create new fitness record without bill reference first
-    const fitness = new Fitness({
+    // Create new tax record without bill reference first
+    const tax = new Tax({
+      receiptNo,
       vehicleNumber,
-      validFrom,
-      validTo,
-      totalFee: totalFee || 0,
-      paid: paid || 0,
-      balance: balance || 0,
+      ownerName,
+      taxAmount: taxAmount || 0,
+      taxFrom,
+      taxTo,
       status: 'active'
     })
 
-    await fitness.save()
+    await tax.save()
 
     // Create CustomBill document
     const billNumber = await generateCustomBillNumber(CustomBill)
     const customBill = new CustomBill({
       billNumber,
-      customerName: `Vehicle: ${fitness.vehicleNumber}`,
+      customerName: `Vehicle: ${tax.vehicleNumber}`,
       billDate: new Date().toLocaleDateString('en-IN', {
         day: '2-digit',
         month: '2-digit',
@@ -122,19 +125,19 @@ exports.createFitness = async (req, res) => {
       }),
       items: [
         {
-          description: `Fitness Certificate\nVehicle No: ${fitness.vehicleNumber}\nValid From: ${fitness.validFrom}\nValid To: ${fitness.validTo}`,
+          description: `Tax Payment\nReceipt No: ${tax.receiptNo}\nVehicle No: ${tax.vehicleNumber}\nTax Period: ${tax.taxFrom} to ${tax.taxTo}`,
           quantity: 1,
-          rate: fitness.totalFee,
-          amount: fitness.totalFee
+          rate: tax.taxAmount,
+          amount: tax.taxAmount
         }
       ],
-      totalAmount: fitness.totalFee
+      totalAmount: tax.taxAmount
     })
     await customBill.save()
 
-    // Update fitness with bill reference
-    fitness.bill = customBill._id
-    await fitness.save()
+    // Update tax with bill reference
+    tax.bill = customBill._id
+    await tax.save()
 
     // Fire PDF generation in background (don't wait for it)
     generateCustomBillPDF(customBill)
@@ -143,104 +146,104 @@ exports.createFitness = async (req, res) => {
         return customBill.save()
       })
       .then(() => {
-        console.log('Bill PDF generated successfully for fitness:', fitness.vehicleNumber)
+        console.log('Bill PDF generated successfully for tax:', tax.receiptNo)
       })
       .catch(pdfError => {
         console.error('Error generating PDF (non-critical):', pdfError)
-        // Don't fail the fitness creation if PDF generation fails
+        // Don't fail the tax creation if PDF generation fails
       })
 
     // Send response immediately without waiting for PDF
     res.status(201).json({
       success: true,
-      message: 'Fitness record created successfully. Bill is being generated in background.',
-      data: fitness
+      message: 'Tax record created successfully. Bill is being generated in background.',
+      data: tax
     })
   } catch (error) {
-    console.error('Error creating fitness record:', error)
+    console.error('Error creating tax record:', error)
     res.status(500).json({
       success: false,
-      message: 'Error creating fitness record',
+      message: 'Error creating tax record',
       error: error.message
     })
   }
 }
 
-// Update fitness record
-exports.updateFitness = async (req, res) => {
+// Update tax record
+exports.updateTax = async (req, res) => {
   try {
-    const { vehicleNumber, validFrom, validTo, totalFee, paid, balance, status } = req.body
+    const { receiptNo, vehicleNumber, ownerName, taxAmount, taxFrom, taxTo, status } = req.body
 
-    const fitness = await Fitness.findById(req.params.id)
+    const tax = await Tax.findById(req.params.id)
 
-    if (!fitness) {
+    if (!tax) {
       return res.status(404).json({
         success: false,
-        message: 'Fitness record not found'
+        message: 'Tax record not found'
       })
     }
 
     // Update fields
-    if (vehicleNumber) fitness.vehicleNumber = vehicleNumber
-    if (validFrom) fitness.validFrom = validFrom
-    if (validTo) fitness.validTo = validTo
-    if (totalFee !== undefined) fitness.totalFee = totalFee
-    if (paid !== undefined) fitness.paid = paid
-    if (balance !== undefined) fitness.balance = balance
-    if (status) fitness.status = status
+    if (receiptNo) tax.receiptNo = receiptNo
+    if (vehicleNumber) tax.vehicleNumber = vehicleNumber
+    if (ownerName !== undefined) tax.ownerName = ownerName
+    if (taxFrom) tax.taxFrom = taxFrom
+    if (taxTo) tax.taxTo = taxTo
+    if (taxAmount !== undefined) tax.taxAmount = taxAmount
+    if (status) tax.status = status
 
-    await fitness.save()
+    await tax.save()
 
     res.json({
       success: true,
-      message: 'Fitness record updated successfully',
-      data: fitness
+      message: 'Tax record updated successfully',
+      data: tax
     })
   } catch (error) {
-    console.error('Error updating fitness record:', error)
+    console.error('Error updating tax record:', error)
     res.status(500).json({
       success: false,
-      message: 'Error updating fitness record',
+      message: 'Error updating tax record',
       error: error.message
     })
   }
 }
 
-// Delete fitness record
-exports.deleteFitness = async (req, res) => {
+// Delete tax record
+exports.deleteTax = async (req, res) => {
   try {
-    const fitness = await Fitness.findById(req.params.id)
+    const tax = await Tax.findById(req.params.id)
 
-    if (!fitness) {
+    if (!tax) {
       return res.status(404).json({
         success: false,
-        message: 'Fitness record not found'
+        message: 'Tax record not found'
       })
     }
 
-    await fitness.deleteOne()
+    await tax.deleteOne()
 
     res.json({
       success: true,
-      message: 'Fitness record deleted successfully'
+      message: 'Tax record deleted successfully'
     })
   } catch (error) {
-    console.error('Error deleting fitness record:', error)
+    console.error('Error deleting tax record:', error)
     res.status(500).json({
       success: false,
-      message: 'Error deleting fitness record',
+      message: 'Error deleting tax record',
       error: error.message
     })
   }
 }
 
-// Get fitness statistics
-exports.getFitnessStatistics = async (req, res) => {
+// Get tax statistics
+exports.getTaxStatistics = async (req, res) => {
   try {
-    const total = await Fitness.countDocuments()
-    const active = await Fitness.countDocuments({ status: 'active' })
-    const expired = await Fitness.countDocuments({ status: 'expired' })
-    const expiring = await Fitness.countDocuments({ status: 'expiring_soon' })
+    const total = await Tax.countDocuments()
+    const active = await Tax.countDocuments({ status: 'active' })
+    const expired = await Tax.countDocuments({ status: 'expired' })
+    const expiring = await Tax.countDocuments({ status: 'expiring_soon' })
 
     res.json({
       success: true,
@@ -252,36 +255,67 @@ exports.getFitnessStatistics = async (req, res) => {
       }
     })
   } catch (error) {
-    console.error('Error fetching fitness statistics:', error)
+    console.error('Error fetching tax statistics:', error)
     res.status(500).json({
       success: false,
-      message: 'Error fetching fitness statistics',
+      message: 'Error fetching tax statistics',
       error: error.message
     })
   }
 }
 
-// Generate or regenerate bill PDF for a fitness record
+// Get expiring tax records (expiring within 15 days)
+exports.getExpiringTax = async (req, res) => {
+  try {
+    const today = new Date()
+    const fifteenDaysLater = new Date()
+    fifteenDaysLater.setDate(today.getDate() + 15)
+
+    const allTax = await Tax.find()
+    const expiringTax = allTax.filter(tax => {
+      // Parse taxTo date (assuming DD/MM/YYYY or DD-MM-YYYY format)
+      const dateParts = tax.taxTo.split(/[/-]/)
+      const taxToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
+
+      return taxToDate >= today && taxToDate <= fifteenDaysLater
+    })
+
+    res.json({
+      success: true,
+      data: expiringTax,
+      count: expiringTax.length
+    })
+  } catch (error) {
+    console.error('Error fetching expiring tax records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expiring tax records',
+      error: error.message
+    })
+  }
+}
+
+// Generate or regenerate bill PDF for a tax record
 exports.generateBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const fitness = await Fitness.findById(id).populate('bill')
-    if (!fitness) {
+    const tax = await Tax.findById(id).populate('bill')
+    if (!tax) {
       return res.status(404).json({
         success: false,
-        message: 'Fitness record not found'
+        message: 'Tax record not found'
       })
     }
 
-    let customBill = fitness.bill
+    let customBill = tax.bill
 
     // If bill doesn't exist, create it
     if (!customBill) {
       const billNumber = await generateCustomBillNumber(CustomBill)
       customBill = new CustomBill({
         billNumber,
-        customerName: `Vehicle: ${fitness.vehicleNumber}`,
+        customerName: `Vehicle: ${tax.vehicleNumber}`,
         billDate: new Date().toLocaleDateString('en-IN', {
           day: '2-digit',
           month: '2-digit',
@@ -289,18 +323,18 @@ exports.generateBillPDF = async (req, res) => {
         }),
         items: [
           {
-            description: `Fitness Certificate\nVehicle No: ${fitness.vehicleNumber}\nValid From: ${fitness.validFrom}\nValid To: ${fitness.validTo}`,
+            description: `Tax Payment\nReceipt No: ${tax.receiptNo}\nVehicle No: ${tax.vehicleNumber}\nTax Period: ${tax.taxFrom} to ${tax.taxTo}`,
             quantity: 1,
-            rate: fitness.totalFee,
-            amount: fitness.totalFee
+            rate: tax.taxAmount,
+            amount: tax.taxAmount
           }
         ],
-        totalAmount: fitness.totalFee
+        totalAmount: tax.taxAmount
       })
       await customBill.save()
 
-      fitness.bill = customBill._id
-      await fitness.save()
+      tax.bill = customBill._id
+      await tax.save()
     }
 
     // Generate or regenerate PDF
@@ -332,16 +366,16 @@ exports.downloadBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const fitness = await Fitness.findById(id).populate('bill')
-    if (!fitness) {
+    const tax = await Tax.findById(id).populate('bill')
+    if (!tax) {
       return res.status(404).json({
         success: false,
-        message: 'Fitness record not found'
+        message: 'Tax record not found'
       })
     }
 
     // Check if bill exists
-    if (!fitness.bill) {
+    if (!tax.bill) {
       return res.status(404).json({
         success: false,
         message: 'Bill not found. Please generate it first.'
@@ -349,7 +383,7 @@ exports.downloadBillPDF = async (req, res) => {
     }
 
     // Check if PDF exists
-    if (!fitness.bill.billPdfPath) {
+    if (!tax.bill.billPdfPath) {
       return res.status(404).json({
         success: false,
         message: 'Bill PDF not found. Please generate it first.'
@@ -357,7 +391,7 @@ exports.downloadBillPDF = async (req, res) => {
     }
 
     // Get absolute path to PDF
-    const pdfPath = path.join(__dirname, '..', fitness.bill.billPdfPath)
+    const pdfPath = path.join(__dirname, '..', tax.bill.billPdfPath)
 
     // Check if file exists
     if (!fs.existsSync(pdfPath)) {
@@ -368,7 +402,7 @@ exports.downloadBillPDF = async (req, res) => {
     }
 
     // Set headers for download
-    const fileName = `${fitness.bill.billNumber}_${fitness.vehicleNumber}.pdf`
+    const fileName = `${tax.bill.billNumber}_${tax.vehicleNumber}.pdf`
     res.setHeader('Content-Type', 'application/pdf')
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
     res.setHeader('Access-Control-Allow-Origin', '*')

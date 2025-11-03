@@ -48,6 +48,7 @@ const temporaryPermitRoutes = require('./routes/temporaryPermit')
 const vehicleRegistrationRoutes = require('./routes/vehicleRegistration')
 const fitnessRoutes = require('./routes/fitness')
 const customBillRoutes = require('./routes/customBill')
+const taxRoutes = require('./routes/tax')
 
 // Use Routes
 app.use('/api/auth', authRoutes)
@@ -58,6 +59,7 @@ app.use('/api/temporary-permits', temporaryPermitRoutes)
 app.use('/api/vehicle-registrations', vehicleRegistrationRoutes)
 app.use('/api/fitness', fitnessRoutes)
 app.use('/api/custom-bills', customBillRoutes)
+app.use('/api/tax', taxRoutes)
 
 // Root route
 app.get('/', (req, res) => {
@@ -71,7 +73,8 @@ app.get('/', (req, res) => {
       temporaryPermits: '/api/temporary-permits',
       vehicleRegistrations: '/api/vehicle-registrations',
       fitness: '/api/fitness',
-      customBills: '/api/custom-bills'
+      customBills: '/api/custom-bills',
+      tax: '/api/tax'
     }
   })
 })

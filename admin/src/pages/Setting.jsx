@@ -1,13 +1,22 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import { usePWAInstall } from '../hooks/usePWAInstall'
 
 const Setting = () => {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
   const [theme, setTheme] = useState('light')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
   const { isInstallable, isInstalled, installPWA } = usePWAInstall()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   const handleInstallClick = async () => {
     const success = await installPWA()
@@ -318,6 +327,34 @@ const Setting = () => {
                 <input type='checkbox' className='sr-only peer' defaultChecked />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
               </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Logout Section */}
+        <div className='bg-white rounded-xl p-6 shadow-lg border border-red-200'>
+          <div className='flex items-center gap-3 mb-4'>
+            <div className='w-10 h-10 bg-gradient-to-br from-red-500 to-red-700 rounded-lg flex items-center justify-center text-white text-xl'>
+              🚪
+            </div>
+            <div>
+              <h2 className='text-lg font-bold text-gray-800'>Logout</h2>
+              <p className='text-xs text-gray-500'>Sign out of your account</p>
+            </div>
+          </div>
+
+          <div className='space-y-3'>
+            <div className='p-4 bg-red-50 border border-red-200 rounded-lg'>
+              <p className='text-sm text-red-800 mb-4'>
+                You will be signed out of your account and redirected to the login page. Make sure you have saved any unsaved work before logging out.
+              </p>
+              <button
+                onClick={handleLogout}
+                className='w-full flex items-center justify-center gap-3 p-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg transition font-semibold text-sm shadow-lg hover:shadow-xl transform hover:scale-105'
+              >
+                <span className='text-xl'>🚪</span>
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         </div>

@@ -47,7 +47,17 @@ const CgPermitSchema = new mongoose.Schema({
   },
 
   // Fees
-  fees: {
+  totalFee: {
+    type: Number,
+    required: true,
+    default: 10000
+  },
+  paid: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  balance: {
     type: Number,
     required: true,
     default: 10000
@@ -60,6 +70,11 @@ const CgPermitSchema = new mongoose.Schema({
     default: 'Active'
   },
 
+  // Bill Reference
+  bill: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CustomBill'
+  },
 
   // Document Uploads
   documents: {

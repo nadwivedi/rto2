@@ -98,7 +98,17 @@ const TemporaryPermitSchema = new mongoose.Schema({
   },
 
   // Fees
-  fees: {
+  totalFee: {
+    type: Number,
+    required: true,
+    default: 1000
+  },
+  paid: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  balance: {
     type: Number,
     required: true,
     default: 1000
@@ -109,6 +119,12 @@ const TemporaryPermitSchema = new mongoose.Schema({
     type: String,
     enum: ['Active', 'Expiring Soon', 'Expired', 'Cancelled'],
     default: 'Active'
+  },
+
+  // Bill Reference
+  bill: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CustomBill'
   },
 
   // Insurance Details

@@ -1,28 +1,20 @@
 import { useState, useEffect } from 'react'
 
-// Helper function to format date as DD-MM-YYYY
-const formatDate = (date) => {
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}-${month}-${year}`
-}
-
-const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
+const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
+    receiptNo: '',
     vehicleNumber: '',
-    validFrom: '',
-    validTo: '',
-    totalFee: '0',
-    paid: '0',
-    balance: '0'
+    ownerName: '',
+    taxAmount: '0',
+    taxFrom: '',
+    taxTo: ''
   })
 
-  // Calculate valid to date (1 year from valid from)
+  // Calculate tax to date (3 months from tax from)
   useEffect(() => {
-    if (formData.validFrom) {
+    if (formData.taxFrom) {
       // Parse DD-MM-YYYY or DD/MM/YYYY format
-      const parts = formData.validFrom.split(/[/-]/)  // Splits on both "/" and "-"
+      const parts = formData.taxFrom.split(/[/-]/)
       if (parts.length === 3) {
         const day = parseInt(parts[0], 10)
         const month = parseInt(parts[1], 10) - 1 // Month is 0-indexed
@@ -30,29 +22,29 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
 
         // Check if date is valid
         if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
-          const validFromDate = new Date(year, month, day)
+          const taxFromDate = new Date(year, month, day)
 
           // Check if the date object is valid
-          if (!isNaN(validFromDate.getTime())) {
-            const validToDate = new Date(validFromDate)
-            validToDate.setFullYear(validToDate.getFullYear() + 1)
+          if (!isNaN(taxFromDate.getTime())) {
+            const taxToDate = new Date(taxFromDate)
+            taxToDate.setMonth(taxToDate.getMonth() + 3)
             // Subtract 1 day
-            validToDate.setDate(validToDate.getDate() - 1)
+            taxToDate.setDate(taxToDate.getDate() - 1)
 
             // Format date to DD-MM-YYYY
-            const newDay = String(validToDate.getDate()).padStart(2, '0')
-            const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
-            const newYear = validToDate.getFullYear()
+            const newDay = String(taxToDate.getDate()).padStart(2, '0')
+            const newMonth = String(taxToDate.getMonth() + 1).padStart(2, '0')
+            const newYear = taxToDate.getFullYear()
 
             setFormData(prev => ({
               ...prev,
-              validTo: `${newDay}-${newMonth}-${newYear}`
+              taxTo: `${newDay}-${newMonth}-${newYear}`
             }))
           }
         }
       }
     }
-  }, [formData.validFrom])
+  }, [formData.taxFrom])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -77,24 +69,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Auto-calculate balance when totalFee or paid changes
-    if (name === 'totalFee' || name === 'paid') {
-      setFormData(prev => {
-        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
-        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
-        const balance = totalFee - paid
-
-        return {
-          ...prev,
-          [name]: value,
-          balance: balance.toString()
-        }
-      })
-      return
-    }
-
-    // Remove dashes from vehicle number to store as CG04AB1234 instead of CG-04-AB-1234
-    if (name === 'vehicleNumber') {
+    // Remove dashes from vehicle number and receipt number to store as uppercase
+    if (name === 'vehicleNumber' || name === 'receiptNo') {
       const cleanedValue = value.replace(/-/g, '').toUpperCase()
       setFormData(prev => ({
         ...prev,
@@ -113,8 +89,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     const { name, value } = e.target
 
     // Only format date fields
-    if (name === 'validFrom' || name === 'validTo') {
-      const parts = value.split(/[/-]/)  // Splits on both "/" and "-"
+    if (name === 'taxFrom' || name === 'taxTo') {
+      const parts = value.split(/[/-]/)
 
       // Only format if we have a complete date with 3 parts
       if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
@@ -125,7 +101,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
         // Auto-expand 2-digit year to 4-digit (only when exactly 2 digits)
         if (year.length === 2 && /^\d{2}$/.test(year)) {
           const yearNum = parseInt(year, 10)
-          // Convert 2-digit year to 4-digit (00-50 → 2000-2050, 51-99 → 1951-1999)
+          // Convert 2-digit year to 4-digit (00-50 � 2000-2050, 51-99 � 1951-1999)
           year = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
         }
 
@@ -148,12 +124,12 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     }
     // Reset form
     setFormData({
+      receiptNo: '',
       vehicleNumber: '',
-      validFrom: '',
-      validTo: '',
-      totalFee: '0',
-      paid: '0',
-      balance: '0'
+      ownerName: '',
+      taxAmount: '0',
+      taxFrom: '',
+      taxTo: ''
     })
     onClose()
   }
@@ -164,11 +140,11 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
       <div className='bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-hidden'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-green-600 to-emerald-600 p-4 text-white'>
+        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-2xl font-bold'>Add New Fitness Certificate</h2>
-              <p className='text-green-100 text-sm mt-1'>Add vehicle fitness certificate record</p>
+              <h2 className='text-2xl font-bold'>Add New Tax Record</h2>
+              <p className='text-blue-100 text-sm mt-1'>Add vehicle tax payment record (Quarterly - 3 months)</p>
             </div>
             <button
               onClick={onClose}
@@ -184,14 +160,31 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
         {/* Form Content */}
         <form onSubmit={handleSubmit} className='overflow-y-auto max-h-[calc(95vh-140px)]'>
           <div className='p-6'>
-            {/* Fitness Details Section */}
-            <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6'>
+            {/* Tax Details Section */}
+            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6'>
               <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm'>1</span>
-                Fitness Certificate Details
+                <span className='bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm'>1</span>
+                Tax Payment Details
               </h3>
 
               <div className='space-y-4'>
+                {/* Receipt Number */}
+                <div>
+                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                    Receipt Number <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='text'
+                    name='receiptNo'
+                    value={formData.receiptNo}
+                    onChange={handleChange}
+                    placeholder='RCP001 (will be converted to uppercase)'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono uppercase'
+                    required
+                    autoFocus
+                  />
+                </div>
+
                 {/* Vehicle Number */}
                 <div>
                   <label className='block text-sm font-semibold text-gray-700 mb-1'>
@@ -203,93 +196,86 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.vehicleNumber}
                     onChange={handleChange}
                     placeholder='CG04AB1234 (dashes will be removed automatically)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono uppercase'
                     required
-                    autoFocus
+                  />
+                </div>
+
+                {/* Owner Name */}
+                <div>
+                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                    Owner Name
+                  </label>
+                  <input
+                    type='text'
+                    name='ownerName'
+                    value={formData.ownerName}
+                    onChange={handleChange}
+                    placeholder='Enter owner name'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                  />
+                </div>
+
+                {/* Tax Amount */}
+                <div>
+                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                    Tax Amount (�) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='taxAmount'
+                    value={formData.taxAmount}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-semibold'
+                    required
                   />
                 </div>
 
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  {/* Valid From */}
+                  {/* Tax From */}
                   <div>
                     <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                      Valid From <span className='text-red-500'>*</span>
+                      Tax From <span className='text-red-500'>*</span>
                     </label>
                     <input
                       type='text'
-                      name='validFrom'
-                      value={formData.validFrom}
+                      name='taxFrom'
+                      value={formData.taxFrom}
                       onChange={handleChange}
                       onBlur={handleDateBlur}
                       placeholder='24-01-25 or 24/01/2025'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                       required
                     />
                   </div>
 
-                  {/* Valid To (Auto-calculated) */}
+                  {/* Tax To (Auto-calculated) */}
                   <div>
                     <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                      Valid To (Auto-calculated - 1 Year)
+                      Tax To (Auto-calculated - 3 Months)
                     </label>
                     <input
                       type='text'
-                      name='validTo'
-                      value={formData.validTo}
+                      name='taxTo'
+                      value={formData.taxTo}
                       onChange={handleChange}
                       onBlur={handleDateBlur}
                       placeholder='Will be calculated automatically'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                     />
                   </div>
                 </div>
 
-                {/* Fee Fields */}
-                <div className='col-span-2'>
-                  <h4 className='text-sm font-bold text-gray-800 mb-3 uppercase text-green-600'>Fitness Fees</h4>
-                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Total Fee (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='totalFee'
-                        value={formData.totalFee}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Paid (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='paid'
-                        value={formData.paid}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Balance (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='balance'
-                        value={formData.balance}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold bg-gray-50'
-                        readOnly
-                      />
-                    </div>
+                {/* Alert Info */}
+                <div className='bg-orange-50 border-l-4 border-orange-500 p-3 rounded'>
+                  <div className='flex items-center gap-2'>
+                    <svg className='w-5 h-5 text-orange-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
+                    </svg>
+                    <p className='text-sm font-semibold text-orange-700'>
+                      Alert: You will be notified 15 days before the tax expiry date
+                    </p>
                   </div>
                 </div>
               </div>
@@ -313,12 +299,12 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
 
               <button
                 type='submit'
-                className='px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center gap-2 cursor-pointer'
+                className='px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center gap-2 cursor-pointer'
               >
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                 </svg>
-                Add Fitness Certificate
+                Add Tax Record
               </button>
             </div>
           </div>
@@ -328,4 +314,4 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
   )
 }
 
-export default AddFitnessModal
+export default AddTaxModal

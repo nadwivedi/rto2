@@ -17,7 +17,17 @@ const fitnessSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  fee: {
+  totalFee: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  paid: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  balance: {
     type: Number,
     required: true,
     default: 0
@@ -26,6 +36,10 @@ const fitnessSchema = new mongoose.Schema({
     type: String,
     enum: ['active', 'expired', 'expiring_soon'],
     default: 'active'
+  },
+  bill: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'CustomBill'
   }
 }, {
   timestamps: true

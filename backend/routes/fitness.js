@@ -20,4 +20,10 @@ router.put('/:id', fitnessController.updateFitness)
 // Delete fitness record
 router.delete('/:id', fitnessController.deleteFitness)
 
+// POST generate bill PDF
+router.post('/:id/generate-bill-pdf', fitnessController.generateBillPDF)
+
+// GET download bill PDF
+router.get('/:id/download-bill-pdf', fitnessController.downloadBillPDF)
+
 module.exports = router

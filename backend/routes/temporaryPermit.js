@@ -32,4 +32,10 @@ router.delete('/:id', temporaryPermitController.deletePermit)
 // PATCH update permit status
 router.patch('/:id/status', temporaryPermitController.updatePermitStatus)
 
+// POST generate bill PDF
+router.post('/:id/generate-bill-pdf', temporaryPermitController.generateBillPDF)
+
+// GET download bill PDF
+router.get('/:id/download-bill-pdf', temporaryPermitController.downloadBillPDF)
+
 module.exports = router

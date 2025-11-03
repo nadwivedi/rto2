@@ -15,7 +15,8 @@
       "Bash(node -e:*)",
       "Bash(for:*)",
       "Bash(do sed -i '/^[[:space:]]*<MobileHeader/d' \"$file\")",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(touch:*)"
     ],
     "deny": [],
     "ask": []

@@ -8,13 +8,6 @@ const vehicleRegistrationSchema = new mongoose.Schema({
     uppercase: true,
     trim: true
   },
-  vehicleNumber: {
-    type: String,
-    unique: true,
-    uppercase: true,
-    trim: true,
-    sparse: true
-  },
   dateOfRegistration: {
     type: String
   },
@@ -41,11 +34,16 @@ const vehicleRegistrationSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  makerName: {
+  mobileNumber: {
     type: String,
     trim: true
   },
-  modelName: {
+  email: {
+    type: String,
+    trim: true,
+    lowercase: true
+  },
+  makerName: {
     type: String,
     trim: true
   },
@@ -61,6 +59,10 @@ const vehicleRegistrationSchema = new mongoose.Schema({
     type: Number
   },
   vehicleClass: {
+    type: String,
+    trim: true
+  },
+  vehicleType: {
     type: String,
     trim: true
   },
@@ -82,11 +84,6 @@ const vehicleRegistrationSchema = new mongoose.Schema({
   },
   saleAmount: {
     type: Number
-  },
-  status: {
-    type: String,
-    enum: ['Active', 'Transferred', 'Cancelled', 'Scrapped'],
-    default: 'Active'
   }
 }, {
   timestamps: true

@@ -19,7 +19,9 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     email: '',
 
     // Fees
-    fees: '10000'
+    totalFee: '10000',
+    paid: '0',
+    balance: '10000'
   })
 
   // Populate form when permit changes
@@ -36,7 +38,9 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         address: permit.address || '',
         mobileNumber: permit.mobileNumber?.replace('+91 ', '') || '',
         email: permit.email || '',
-        fees: permit.fees?.toString() || '10000'
+        totalFee: permit.totalFee?.toString() || '10000',
+        paid: permit.paid?.toString() || '0',
+        balance: permit.balance?.toString() || '10000'
       })
     }
   }, [permit])
@@ -99,6 +103,22 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    // Auto-calculate balance when totalFee or paid changes
+    if (name === 'totalFee' || name === 'paid') {
+      setFormData(prev => {
+        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
+        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
+        const balance = totalFee - paid
+
+        return {
+          ...prev,
+          [name]: value,
+          balance: balance.toString()
+        }
+      })
+      return
+    }
 
     // For date fields, just store the value as-is during typing
     // Formatting happens on blur (when user leaves the field)
@@ -308,25 +328,51 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
             <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                Fees
+                Permit Fees
               </h3>
 
-              <div className='space-y-3'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Permit Fees <span className='text-red-500'>*</span>
+                    Total Fee (₹) <span className='text-red-500'>*</span>
                   </label>
-                  <div className='relative'>
-                    <span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold'>₹</span>
-                    <input
-                      type='number'
-                      name='fees'
-                      value={formData.fees}
-                      onChange={handleChange}
-                      className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-lg'
-                      required
-                    />
-                  </div>
+                  <input
+                    type='number'
+                    name='totalFee'
+                    value={formData.totalFee}
+                    onChange={handleChange}
+                    placeholder='10000'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Paid (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='paid'
+                    value={formData.paid}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Balance (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='balance'
+                    value={formData.balance}
+                    onChange={handleChange}
+                    placeholder='10000'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    required
+                  />
                 </div>
               </div>
             </div>

@@ -75,6 +75,21 @@ const InsuranceSchema = new mongoose.Schema({
     type: Number,
     min: 0
   },
+  totalFee: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  paid: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  balance: {
+    type: Number,
+    required: true,
+    default: 0
+  },
 
   // Agent Information
   agentName: {

@@ -8,7 +8,6 @@ exports.getAllRegistrations = async (req, res) => {
 
     if (search) {
       query.$or = [
-        { vehicleNumber: { $regex: search, $options: 'i' } },
         { registrationNumber: { $regex: search, $options: 'i' } },
         { ownerName: { $regex: search, $options: 'i' } },
         { chassisNumber: { $regex: search, $options: 'i' } },
@@ -61,11 +60,11 @@ exports.getRegistrationById = async (req, res) => {
   }
 }
 
-// Get vehicle registration by vehicle number
+// Get vehicle registration by registration number
 exports.getRegistrationByNumber = async (req, res) => {
   try {
     const registration = await VehicleRegistration.findOne({
-      vehicleNumber: req.params.registrationNumber.toUpperCase()
+      registrationNumber: req.params.registrationNumber.toUpperCase()
     })
 
     if (!registration) {
@@ -91,13 +90,7 @@ exports.getRegistrationByNumber = async (req, res) => {
 // Create new vehicle registration
 exports.createRegistration = async (req, res) => {
   try {
-    // Ensure vehicleNumber is set from registrationNumber
-    const registrationData = {
-      ...req.body,
-      vehicleNumber: req.body.registrationNumber || req.body.vehicleNumber
-    }
-
-    const registration = await VehicleRegistration.create(registrationData)
+    const registration = await VehicleRegistration.create(req.body)
 
     res.status(201).json({
       success: true,
@@ -108,7 +101,7 @@ exports.createRegistration = async (req, res) => {
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
-        message: 'Vehicle number already exists'
+        message: 'Registration number already exists'
       })
     }
 
@@ -123,15 +116,9 @@ exports.createRegistration = async (req, res) => {
 // Update vehicle registration
 exports.updateRegistration = async (req, res) => {
   try {
-    // Ensure vehicleNumber is set from registrationNumber
-    const updateData = {
-      ...req.body,
-      vehicleNumber: req.body.registrationNumber || req.body.vehicleNumber
-    }
-
     const registration = await VehicleRegistration.findByIdAndUpdate(
       req.params.id,
-      updateData,
+      req.body,
       { new: true, runValidators: true }
     )
 
@@ -252,8 +239,7 @@ exports.shareRegistration = async (req, res) => {
     }
 
     const message = `*VEHICLE REGISTRATION CERTIFICATE*\n\n` +
-      `Vehicle No: ${registration.vehicleNumber}\n` +
-      `Registration No: ${registration.registrationNumber || 'N/A'}\n` +
+      `Registration No: ${registration.registrationNumber}\n` +
       `Date of Registration: ${registration.dateOfRegistration || 'N/A'}\n\n` +
       `*Vehicle Details*\n` +
       `Chassis No: ${registration.chassisNumber}\n` +

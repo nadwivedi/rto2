@@ -8,7 +8,7 @@ const formatDate = (date) => {
   return `${day}-${month}-${year}`
 }
 
-const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
+const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     validFrom: '',
@@ -17,6 +17,20 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     paid: '0',
     balance: '0'
   })
+
+  // Populate form when fitness record changes
+  useEffect(() => {
+    if (fitness) {
+      setFormData({
+        vehicleNumber: fitness.vehicleNumber || '',
+        validFrom: fitness.validFrom || '',
+        validTo: fitness.validTo || '',
+        totalFee: fitness.totalFee?.toString() || '0',
+        paid: fitness.paid?.toString() || '0',
+        balance: fitness.balance?.toString() || '0'
+      })
+    }
+  }, [fitness])
 
   // Calculate valid to date (1 year from valid from)
   useEffect(() => {
@@ -146,15 +160,6 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     if (onSubmit) {
       onSubmit(formData)
     }
-    // Reset form
-    setFormData({
-      vehicleNumber: '',
-      validFrom: '',
-      validTo: '',
-      totalFee: '0',
-      paid: '0',
-      balance: '0'
-    })
     onClose()
   }
 
@@ -167,8 +172,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
         <div className='bg-gradient-to-r from-green-600 to-emerald-600 p-4 text-white'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-2xl font-bold'>Add New Fitness Certificate</h2>
-              <p className='text-green-100 text-sm mt-1'>Add vehicle fitness certificate record</p>
+              <h2 className='text-2xl font-bold'>Edit Fitness Certificate</h2>
+              <p className='text-green-100 text-sm mt-1'>Update vehicle fitness certificate record</p>
             </div>
             <button
               onClick={onClose}
@@ -299,7 +304,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Footer Actions */}
           <div className='border-t border-gray-200 p-4 bg-gray-50 flex justify-between items-center'>
             <div className='text-sm text-gray-600'>
-              <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
+              <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to save quickly
             </div>
 
             <div className='flex gap-3'>
@@ -318,7 +323,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                 </svg>
-                Add Fitness Certificate
+                Save Changes
               </button>
             </div>
           </div>
@@ -328,4 +333,4 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
   )
 }
 
-export default AddFitnessModal
+export default EditFitnessModal

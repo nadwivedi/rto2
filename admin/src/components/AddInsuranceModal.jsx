@@ -6,7 +6,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit }) => {
     policyNumber: '',
     validFrom: '',
     validTo: '',
-    fee: ''
+    totalFee: '0',
+    paid: '0',
+    balance: '0'
   })
 
   // Calculate valid to date (1 year from valid from)
@@ -68,6 +70,22 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
+    // Auto-calculate balance when totalFee or paid changes
+    if (name === 'totalFee' || name === 'paid') {
+      setFormData(prev => {
+        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
+        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
+        const balance = totalFee - paid
+
+        return {
+          ...prev,
+          [name]: value,
+          balance: balance.toString()
+        }
+      })
+      return
+    }
+
     // Auto-format year in validFrom field
     if (name === 'validFrom') {
       // Check if the format matches DD/MM/YY (2-digit year)
@@ -102,7 +120,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit }) => {
       policyNumber: '',
       validFrom: '',
       validTo: '',
-      fee: ''
+      totalFee: '0',
+      paid: '0',
+      balance: '0'
     })
     onClose()
   }
@@ -207,22 +227,52 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit }) => {
                   <p className='text-xs text-gray-500 mt-1'>Auto-calculated (1 year - 1 day). You can edit manually if needed.</p>
                 </div>
 
-                {/* Fee */}
+                {/* Fee Fields */}
                 <div className='md:col-span-2'>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                    Insurance Fee <span className='text-red-500'>*</span>
-                  </label>
-                  <div className='relative'>
-                    <span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold'>₹</span>
-                    <input
-                      type='number'
-                      name='fee'
-                      value={formData.fee}
-                      onChange={handleChange}
-                      placeholder='Enter fee amount'
-                      className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-semibold text-lg'
-                      required
-                    />
+                  <h4 className='text-sm font-bold text-gray-800 mb-3 uppercase text-indigo-600'>Insurance Fees</h4>
+                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+                    <div>
+                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                        Total Fee (₹) <span className='text-red-500'>*</span>
+                      </label>
+                      <input
+                        type='number'
+                        name='totalFee'
+                        value={formData.totalFee}
+                        onChange={handleChange}
+                        placeholder='0'
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-semibold'
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                        Paid (₹) <span className='text-red-500'>*</span>
+                      </label>
+                      <input
+                        type='number'
+                        name='paid'
+                        value={formData.paid}
+                        onChange={handleChange}
+                        placeholder='0'
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-semibold'
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                        Balance (₹) <span className='text-red-500'>*</span>
+                      </label>
+                      <input
+                        type='number'
+                        name='balance'
+                        value={formData.balance}
+                        onChange={handleChange}
+                        placeholder='0'
+                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-semibold bg-gray-50'
+                        readOnly
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

@@ -153,9 +153,10 @@ const Insurance = () => {
     const active = insurances.filter(ins => getStatusText(ins.validTo) === 'Active').length
     const expiring = insurances.filter(ins => getStatusText(ins.validTo) === 'Expiring Soon').length
     const expired = insurances.filter(ins => getStatusText(ins.validTo) === 'Expired').length
-    const totalPremium = insurances.reduce((sum, ins) => sum + (ins.premiumAmount || 0), 0)
+    const pendingPaymentCount = insurances.filter(ins => (ins.balance || 0) > 0).length
+    const pendingPaymentAmount = insurances.reduce((sum, ins) => sum + (ins.balance || 0), 0)
 
-    return { total, active, expiring, expired, totalPremium }
+    return { total, active, expiring, expired, pendingPaymentCount, pendingPaymentAmount }
   }, [insurances])
 
   return (
@@ -211,16 +212,21 @@ const Insurance = () => {
                 </div>
               </div>
 
-              {/* Total Premium */}
-              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* Pending Payment */}
+              <div className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Premium</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>₹{stats.totalPremium.toLocaleString('en-IN')}</h3>
+                  <div className='flex-1'>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-yellow-600'>{stats.pendingPaymentCount}</h3>
+                    {stats.pendingPaymentAmount > 0 && (
+                      <p className='text-[7px] lg:text-[9px] text-gray-500 font-semibold mt-0.5'>
+                        ₹{stats.pendingPaymentAmount.toLocaleString('en-IN')}
+                      </p>
+                    )}
                   </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>

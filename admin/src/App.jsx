@@ -20,6 +20,7 @@ import Insurance from './pages/Insurance'
 import Fitness from './pages/Fitness'
 import VehicleTransfer from './pages/VehicleTransfer'
 import DealerBill from './pages/DealerBill'
+import Tax from './pages/Tax'
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
                         <Route path='/vehicle-registration' element={<VehicleRegistration />} />
                         <Route path='/insurance' element={<Insurance />} />
                         <Route path='/fitness' element={<Fitness />} />
+                        <Route path='/tax' element={<Tax />} />
                         <Route path='/vehicle-transfer' element={<VehicleTransfer />} />
                         <Route path='/dealer-bill' element={<DealerBill />} />
                       </Routes>

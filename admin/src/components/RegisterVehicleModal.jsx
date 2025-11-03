@@ -9,19 +9,20 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     ownerName: '',
     sonWifeDaughterOf: '',
     address: '',
+    mobileNumber: '',
+    email: '',
     makerName: '',
-    modelName: '',
     makerModel: '',
     colour: '',
     seatingCapacity: '',
     vehicleClass: '',
+    vehicleType: '',
     ladenWeight: '',
     unladenWeight: '',
     manufactureYear: '',
     vehicleCategory: '',
     purchaseDeliveryDate: '',
-    saleAmount: '',
-    status: 'Active'
+    saleAmount: ''
   })
 
   const [loading, setLoading] = useState(false)
@@ -43,19 +44,20 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         ownerName: '',
         sonWifeDaughterOf: '',
         address: '',
+        mobileNumber: '',
+        email: '',
         makerName: '',
-        modelName: '',
         makerModel: '',
         colour: '',
         seatingCapacity: '',
         vehicleClass: '',
+        vehicleType: '',
         ladenWeight: '',
         unladenWeight: '',
         manufactureYear: '',
         vehicleCategory: '',
         purchaseDeliveryDate: '',
-        saleAmount: '',
-        status: 'Active'
+        saleAmount: ''
       })
     }
     setError('')
@@ -318,28 +320,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                     </div>
                   </div>
 
-                  {/* Model Name */}
-                  <div className='group'>
-                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                      Model Name
-                    </label>
-                    <div className='relative'>
-                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
-                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' />
-                        </svg>
-                      </div>
-                      <input
-                        type='text'
-                        name='modelName'
-                        value={formData.modelName}
-                        onChange={handleChange}
-                        placeholder='e.g., Swift, Nexon, City'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
-                      />
-                    </div>
-                  </div>
-
                   {/* Maker Model */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
@@ -417,14 +397,75 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                         </svg>
                       </div>
-                      <input
-                        type='text'
+                      <select
                         name='vehicleClass'
                         value={formData.vehicleClass}
                         onChange={handleChange}
-                        placeholder='e.g., Goods Carrier, Passenger, Private'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
-                      />
+                        className='w-full pl-12 pr-10 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
+                      >
+                        <option value=''>Select Vehicle Class</option>
+                        <option value='Motor Cycle'>Motor Cycle</option>
+                        <option value='Motor Car'>Motor Car</option>
+                        <option value='Auto Rickshaw'>Auto Rickshaw</option>
+                        <option value='Maxi Cab'>Maxi Cab</option>
+                        <option value='Omni Bus'>Omni Bus</option>
+                        <option value='Tractor'>Tractor</option>
+                        <option value='Light Motor Vehicle'>Light Motor Vehicle</option>
+                        <option value='Medium Motor Vehicle'>Medium Motor Vehicle</option>
+                        <option value='Heavy Motor Vehicle'>Heavy Motor Vehicle</option>
+                        <option value='Light Goods Vehicle'>Light Goods Vehicle</option>
+                        <option value='Medium Goods Vehicle'>Medium Goods Vehicle</option>
+                        <option value='Heavy Goods Vehicle'>Heavy Goods Vehicle</option>
+                        <option value='Invalid Carriage'>Invalid Carriage</option>
+                        <option value='E-Rickshaw'>E-Rickshaw</option>
+                        <option value='E-Cart'>E-Cart</option>
+                      </select>
+                      <div className='absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vehicle Type */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Vehicle Type
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' />
+                        </svg>
+                      </div>
+                      <select
+                        name='vehicleType'
+                        value={formData.vehicleType}
+                        onChange={handleChange}
+                        className='w-full pl-12 pr-10 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
+                      >
+                        <option value=''>Select Vehicle Type</option>
+                        <option value='Two Wheeler'>Two Wheeler</option>
+                        <option value='Three Wheeler'>Three Wheeler</option>
+                        <option value='Four Wheeler'>Four Wheeler</option>
+                        <option value='Six Wheeler'>Six Wheeler</option>
+                        <option value='Multi Axle Vehicle'>Multi Axle Vehicle</option>
+                        <option value='Articulated Vehicle'>Articulated Vehicle</option>
+                        <option value='Transport Vehicle'>Transport Vehicle</option>
+                        <option value='Non-Transport Vehicle'>Non-Transport Vehicle</option>
+                        <option value='Commercial Vehicle'>Commercial Vehicle</option>
+                        <option value='Private Vehicle'>Private Vehicle</option>
+                        <option value='Goods Carrier'>Goods Carrier</option>
+                        <option value='Passenger Carrier'>Passenger Carrier</option>
+                        <option value='Agricultural Vehicle'>Agricultural Vehicle</option>
+                        <option value='Construction Equipment'>Construction Equipment</option>
+                      </select>
+                      <div className='absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                        </svg>
+                      </div>
                     </div>
                   </div>
 
@@ -582,38 +623,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                       />
                     </div>
                   </div>
-
-                  {/* Status */}
-                  {editData && (
-                    <div className='group'>
-                      <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                        Status
-                      </label>
-                      <div className='relative'>
-                        <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
-                          <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                          </svg>
-                        </div>
-                        <select
-                          name='status'
-                          value={formData.status}
-                          onChange={handleChange}
-                          className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
-                        >
-                          <option value='Active'>Active</option>
-                          <option value='Transferred'>Transferred</option>
-                          <option value='Cancelled'>Cancelled</option>
-                          <option value='Scrapped'>Scrapped</option>
-                        </select>
-                        <div className='absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none'>
-                          <svg className='w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -696,6 +705,51 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         rows='4'
                         placeholder='Enter complete address with pin code'
                         className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 resize-none font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Mobile Number */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Mobile Number
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-purple-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='tel'
+                        name='mobileNumber'
+                        value={formData.mobileNumber}
+                        onChange={handleChange}
+                        maxLength='10'
+                        placeholder='Enter 10-digit mobile number'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div className='group'>
+                    <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                      Email Address
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-5 h-5 text-purple-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='email'
+                        name='email'
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder='Enter email address'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>

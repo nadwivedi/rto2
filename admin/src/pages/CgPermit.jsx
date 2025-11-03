@@ -170,7 +170,9 @@ const CgPermit = () => {
         validTill: permit.validTo,
         validityPeriod: permit.validityPeriod,
         status: permit.status,
-        fees: permit.fees,
+        fees: permit.totalFee || permit.fees || 0,
+        balance: permit.balance || 0,
+        paid: permit.paid || 0,
         address: permit.address || 'N/A',
         mobileNumber: permit.mobileNumber || 'N/A',
         route: permit.route,
@@ -250,13 +252,15 @@ const CgPermit = () => {
     const total = permits.length
     const active = permits.filter(p => p.status === 'Active').length
     const expiring = permits.filter(p => p.status === 'Expiring Soon').length
-    const totalRevenue = permits.reduce((sum, permit) => sum + (permit.fees || 0), 0)
+    const pendingPaymentCount = permits.filter(p => (p.balance || 0) > 0).length
+    const pendingPaymentAmount = permits.reduce((sum, permit) => sum + (permit.balance || 0), 0)
 
     return {
       total,
       active,
       expiring,
-      totalRevenue
+      pendingPaymentCount,
+      pendingPaymentAmount
     }
   }, [permits])
 
@@ -443,16 +447,21 @@ const CgPermit = () => {
                 </div>
               </div>
 
-              {/* Total Revenue */}
-              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* Pending Payment */}
+              <div className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Revenue</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>₹{stats.totalRevenue.toLocaleString('en-IN')}</h3>
+                  <div className='flex-1'>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-yellow-600'>{stats.pendingPaymentCount}</h3>
+                    {stats.pendingPaymentAmount > 0 && (
+                      <p className='text-[7px] lg:text-[9px] text-gray-500 font-semibold mt-0.5'>
+                        ₹{stats.pendingPaymentAmount.toLocaleString('en-IN')}
+                      </p>
+                    )}
                   </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>
@@ -717,6 +726,259 @@ const CgPermit = () => {
           }}
           permitType="CG"
         />
+      )}
+
+      {/* View Details Modal */}
+      {showDetailsModal && selectedPermit && (
+        <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn'>
+          <div className='bg-white rounded-3xl shadow-2xl w-[90%] max-h-[95vh] overflow-hidden animate-slideUp'>
+            {/* Header */}
+            <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white p-5 z-10 shadow-lg'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='bg-white/20 backdrop-blur-lg p-2 rounded-xl'>
+                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className='text-xl font-bold'>CG Permit Details</h2>
+                    <p className='text-white/80 text-sm mt-0.5'>{selectedPermit.permitNumber}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className='text-white/90 hover:text-white hover:bg-white/20 p-2.5 rounded-xl transition-all duration-200 hover:rotate-90'
+                >
+                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className='overflow-y-auto max-h-[calc(95vh-130px)] p-5'>
+              <div className='grid grid-cols-1 lg:grid-cols-4 gap-4'>
+                {/* Column 1: Permit Details */}
+                <div className='bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border-2 border-indigo-200'>
+                  <h3 className='text-base font-bold text-indigo-900 mb-3 flex items-center gap-2'>
+                    <svg className='w-4 h-4 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                    Permit Information
+                  </h3>
+                  <div className='grid grid-cols-2 gap-2'>
+                    {selectedPermit.permitNumber && (
+                      <div className='bg-white/80 p-2 rounded-lg col-span-2'>
+                        <div className='text-xs font-semibold text-gray-600'>Permit Number</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.permitNumber}</div>
+                      </div>
+                    )}
+                    {selectedPermit.permitType && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Permit Type</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.permitType}</div>
+                      </div>
+                    )}
+                    {selectedPermit.status && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Status</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${
+                            selectedPermit.status === 'Active' ? 'bg-green-100 text-green-700' :
+                            selectedPermit.status === 'Expiring Soon' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {selectedPermit.status}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {selectedPermit.issueDate && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Issue Date</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.issueDate}</div>
+                      </div>
+                    )}
+                    {selectedPermit.validFrom && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Valid From</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.validFrom}</div>
+                      </div>
+                    )}
+                    {selectedPermit.validTill && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Valid Till</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.validTill}</div>
+                      </div>
+                    )}
+                    {selectedPermit.validityPeriod && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Validity Period</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.validityPeriod} months</div>
+                      </div>
+                    )}
+                    {selectedPermit.issuingAuthority && (
+                      <div className='bg-white/80 p-2 rounded-lg col-span-2'>
+                        <div className='text-xs font-semibold text-gray-600'>Issuing Authority</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.issuingAuthority}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 2: Holder & Vehicle Details */}
+                <div className='bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border-2 border-purple-200'>
+                  <h3 className='text-base font-bold text-purple-900 mb-3 flex items-center gap-2'>
+                    <svg className='w-4 h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+                    </svg>
+                    Holder & Vehicle
+                  </h3>
+                  <div className='space-y-2'>
+                    {selectedPermit.permitHolder && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Permit Holder</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.permitHolder}</div>
+                      </div>
+                    )}
+                    {selectedPermit.address && selectedPermit.address !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Address</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5 leading-relaxed'>{selectedPermit.address}</div>
+                      </div>
+                    )}
+                    {selectedPermit.mobileNumber && selectedPermit.mobileNumber !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Mobile Number</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.mobileNumber}</div>
+                      </div>
+                    )}
+                    {selectedPermit.vehicleNo && selectedPermit.vehicleNo !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Vehicle Number</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.vehicleNo}</div>
+                      </div>
+                    )}
+                    {selectedPermit.vehicleType && selectedPermit.vehicleType !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Vehicle Type</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.vehicleType}</div>
+                      </div>
+                    )}
+                    {selectedPermit.vehicleModel && selectedPermit.vehicleModel !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Vehicle Model</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.vehicleModel}</div>
+                      </div>
+                    )}
+                    {selectedPermit.chassisNumber && selectedPermit.chassisNumber !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Chassis Number</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.chassisNumber}</div>
+                      </div>
+                    )}
+                    {selectedPermit.engineNumber && selectedPermit.engineNumber !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Engine Number</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.engineNumber}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 3 & 4: Route & Additional Details */}
+                <div className='bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border-2 border-blue-200 lg:col-span-2'>
+                  <h3 className='text-base font-bold text-blue-900 mb-3 flex items-center gap-2'>
+                    <svg className='w-4 h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    Route & Additional Details
+                  </h3>
+                  <div className='grid grid-cols-3 gap-2'>
+                    {selectedPermit.route && (
+                      <div className='bg-white/80 p-2 rounded-lg col-span-3'>
+                        <div className='text-xs font-semibold text-gray-600'>Route</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.route}</div>
+                      </div>
+                    )}
+                    {selectedPermit.goodsType && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Goods Type</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.goodsType}</div>
+                      </div>
+                    )}
+                    {selectedPermit.fees !== undefined && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Total Fee</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>₹{selectedPermit.fees.toLocaleString('en-IN')}</div>
+                      </div>
+                    )}
+                    {selectedPermit.paid !== undefined && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Paid Amount</div>
+                        <div className='text-sm font-bold text-green-700 mt-0.5'>₹{selectedPermit.paid.toLocaleString('en-IN')}</div>
+                      </div>
+                    )}
+                    {selectedPermit.balance !== undefined && selectedPermit.balance > 0 && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Balance</div>
+                        <div className='text-sm font-bold text-orange-600 mt-0.5'>₹{selectedPermit.balance.toLocaleString('en-IN')}</div>
+                      </div>
+                    )}
+
+                    {selectedPermit.insuranceDetails && selectedPermit.insuranceDetails.policyNumber !== 'N/A' && (
+                      <>
+                        <div className='bg-white/80 p-2 rounded-lg col-span-3 mt-2'>
+                          <div className='text-xs font-semibold text-indigo-600'>Insurance Details</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-xs font-semibold text-gray-600'>Policy Number</div>
+                          <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.insuranceDetails.policyNumber}</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-xs font-semibold text-gray-600'>Company</div>
+                          <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.insuranceDetails.company}</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-xs font-semibold text-gray-600'>Valid Upto</div>
+                          <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.insuranceDetails.validUpto}</div>
+                        </div>
+                      </>
+                    )}
+
+                    {selectedPermit.taxDetails && selectedPermit.taxDetails.taxPaidUpto !== 'N/A' && (
+                      <>
+                        <div className='bg-white/80 p-2 rounded-lg col-span-3 mt-2'>
+                          <div className='text-xs font-semibold text-indigo-600'>Tax Details</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-xs font-semibold text-gray-600'>Tax Paid Upto</div>
+                          <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.taxDetails.taxPaidUpto}</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-xs font-semibold text-gray-600'>Tax Amount</div>
+                          <div className='text-sm font-bold text-gray-900 mt-0.5'>₹{selectedPermit.taxDetails.taxAmount}</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className='sticky bottom-0 bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-end'>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className='px-6 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all duration-200 font-bold text-sm shadow-md hover:shadow-lg'
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
         </div>
       </div>

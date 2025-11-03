@@ -11,13 +11,11 @@ const VehicleRegistration = () => {
   const [showModal, setShowModal] = useState(false)
   const [editData, setEditData] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterStatus, setFilterStatus] = useState('')
   const [statistics, setStatistics] = useState({
-    total: 0,
-    active: 0,
-    transferred: 0,
-    cancelled: 0
+    total: 0
   })
+  const [selectedRegistration, setSelectedRegistration] = useState(null)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
 
   useEffect(() => {
     fetchRegistrations()
@@ -77,217 +75,9 @@ const VehicleRegistration = () => {
     setShowModal(true)
   }
 
-  const handleShare = async (registration) => {
-    const phoneNumber = prompt('Enter WhatsApp number (with country code):')
-    if (!phoneNumber) return
-
-    try {
-      const response = await axios.post(`${API_URL}/api/vehicle-registrations/${registration._id}/share`, {
-        phoneNumber
-      })
-
-      if (response.data.success) {
-        window.open(response.data.data.whatsappUrl, '_blank')
-      } else {
-        toast.error(response.data.message || 'Failed to share vehicle registration', { position: 'top-right', autoClose: 3000 })
-      }
-    } catch (error) {
-      toast.error('Error sharing vehicle registration. Please try again.', { position: 'top-right', autoClose: 3000 })
-      console.error('Error:', error)
-    }
-  }
-
-  const handlePrintBill = (registration) => {
-    const billWindow = window.open('', '_blank')
-    billWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>Vehicle Registration Certificate - ${registration.vehicleNumber}</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            padding: 40px;
-            max-width: 800px;
-            margin: 0 auto;
-          }
-          .header {
-            text-align: center;
-            border-bottom: 3px solid #333;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-          }
-          .header h1 {
-            margin: 0;
-            color: #333;
-            font-size: 28px;
-          }
-          .header p {
-            margin: 5px 0;
-            color: #666;
-          }
-          .section {
-            margin-bottom: 25px;
-          }
-          .section h2 {
-            background: #f0f0f0;
-            padding: 10px;
-            margin: 0 0 15px 0;
-            font-size: 18px;
-            color: #333;
-          }
-          .field {
-            display: flex;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-          }
-          .field-label {
-            font-weight: bold;
-            width: 200px;
-            color: #555;
-          }
-          .field-value {
-            flex: 1;
-            color: #333;
-          }
-          .status {
-            display: inline-block;
-            padding: 5px 15px;
-            background: #4CAF50;
-            color: white;
-            border-radius: 4px;
-            font-weight: bold;
-          }
-          .footer {
-            margin-top: 50px;
-            text-align: center;
-            font-size: 12px;
-            color: #999;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-          }
-          @media print {
-            body { padding: 20px; }
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>VEHICLE REGISTRATION CERTIFICATE</h1>
-          <p>Regional Transport Office</p>
-          <p>Government Authority</p>
-        </div>
-
-        <div class="section">
-          <h2>Registration Details</h2>
-          <div class="field">
-            <div class="field-label">Vehicle Number:</div>
-            <div class="field-value"><strong>${registration.vehicleNumber}</strong></div>
-          </div>
-          ${registration.registrationNumber ? `<div class="field">
-            <div class="field-label">Registration Number:</div>
-            <div class="field-value">${registration.registrationNumber}</div>
-          </div>` : ''}
-          ${registration.dateOfRegistration ? `<div class="field">
-            <div class="field-label">Date of Registration:</div>
-            <div class="field-value">${registration.dateOfRegistration}</div>
-          </div>` : ''}
-          <div class="field">
-            <div class="field-label">Status:</div>
-            <div class="field-value"><span class="status">${registration.status}</span></div>
-          </div>
-        </div>
-
-        <div class="section">
-          <h2>Vehicle Details</h2>
-          <div class="field">
-            <div class="field-label">Chassis Number:</div>
-            <div class="field-value">${registration.chassisNumber}</div>
-          </div>
-          ${registration.engineNumber ? `<div class="field">
-            <div class="field-label">Engine Number:</div>
-            <div class="field-value">${registration.engineNumber}</div>
-          </div>` : ''}
-          ${registration.makerName ? `<div class="field">
-            <div class="field-label">Maker Name:</div>
-            <div class="field-value">${registration.makerName}</div>
-          </div>` : ''}
-          ${registration.modelName ? `<div class="field">
-            <div class="field-label">Model Name:</div>
-            <div class="field-value">${registration.modelName}</div>
-          </div>` : ''}
-          ${registration.makerModel ? `<div class="field">
-            <div class="field-label">Maker Model:</div>
-            <div class="field-value">${registration.makerModel}</div>
-          </div>` : ''}
-          ${registration.colour ? `<div class="field">
-            <div class="field-label">Colour:</div>
-            <div class="field-value">${registration.colour}</div>
-          </div>` : ''}
-          ${registration.seatingCapacity ? `<div class="field">
-            <div class="field-label">Seating Capacity:</div>
-            <div class="field-value">${registration.seatingCapacity}</div>
-          </div>` : ''}
-          ${registration.vehicleClass ? `<div class="field">
-            <div class="field-label">Vehicle Class:</div>
-            <div class="field-value">${registration.vehicleClass}</div>
-          </div>` : ''}
-          ${registration.vehicleCategory ? `<div class="field">
-            <div class="field-label">Vehicle Category:</div>
-            <div class="field-value">${registration.vehicleCategory}</div>
-          </div>` : ''}
-          ${registration.ladenWeight ? `<div class="field">
-            <div class="field-label">Laden Weight:</div>
-            <div class="field-value">${registration.ladenWeight} kg</div>
-          </div>` : ''}
-          ${registration.unladenWeight ? `<div class="field">
-            <div class="field-label">Unladen Weight:</div>
-            <div class="field-value">${registration.unladenWeight} kg</div>
-          </div>` : ''}
-          ${registration.manufactureYear ? `<div class="field">
-            <div class="field-label">Manufacture Year:</div>
-            <div class="field-value">${registration.manufactureYear}</div>
-          </div>` : ''}
-          ${registration.purchaseDeliveryDate ? `<div class="field">
-            <div class="field-label">Purchase/Delivery Date:</div>
-            <div class="field-value">${registration.purchaseDeliveryDate}</div>
-          </div>` : ''}
-          ${registration.saleAmount ? `<div class="field">
-            <div class="field-label">Sale Amount:</div>
-            <div class="field-value">₹${registration.saleAmount}</div>
-          </div>` : ''}
-        </div>
-
-        <div class="section">
-          <h2>Owner Details</h2>
-          ${registration.ownerName ? `<div class="field">
-            <div class="field-label">Owner Name:</div>
-            <div class="field-value">${registration.ownerName}</div>
-          </div>` : ''}
-          ${registration.sonWifeDaughterOf ? `<div class="field">
-            <div class="field-label">S/W/D of:</div>
-            <div class="field-value">${registration.sonWifeDaughterOf}</div>
-          </div>` : ''}
-          ${registration.address ? `<div class="field">
-            <div class="field-label">Address:</div>
-            <div class="field-value">${registration.address}</div>
-          </div>` : ''}
-        </div>
-
-        <div class="footer">
-          <p>This is a computer-generated document.</p>
-          <p>For verification, please contact the Regional Transport Office.</p>
-        </div>
-
-        <script>
-          window.onload = function() {
-            window.print();
-          }
-        </script>
-      </body>
-      </html>
-    `)
-    billWindow.document.close()
+  const handleViewDetails = (registration) => {
+    setSelectedRegistration(registration)
+    setShowDetailsModal(true)
   }
 
   const filteredRegistrations = useMemo(() => {
@@ -299,21 +89,9 @@ const VehicleRegistration = () => {
         (registration.chassisNumber && registration.chassisNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (registration.engineNumber && registration.engineNumber.toLowerCase().includes(searchTerm.toLowerCase()))
 
-      const matchesStatus = !filterStatus || registration.status === filterStatus
-
-      return matchesSearch && matchesStatus
+      return matchesSearch
     })
-  }, [registrations, searchTerm, filterStatus])
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active': return 'bg-green-100 text-green-700 border border-green-200'
-      case 'Transferred': return 'bg-blue-100 text-blue-700 border border-blue-200'
-      case 'Cancelled': return 'bg-red-100 text-red-700 border border-red-200'
-      case 'Scrapped': return 'bg-gray-100 text-gray-700 border border-gray-200'
-      default: return 'bg-gray-100 text-gray-700 border border-gray-200'
-    }
-  }
+  }, [registrations, searchTerm])
 
   return (
     <>
@@ -321,7 +99,7 @@ const VehicleRegistration = () => {
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
-            <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
+            <div className='grid grid-cols-1 gap-2 lg:gap-3 mb-5 max-w-sm'>
               {/* Total Registrations */}
               <div className='bg-white rounded-lg shadow-md border border-gray-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
@@ -332,51 +110,6 @@ const VehicleRegistration = () => {
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active */}
-              <div className='bg-white rounded-lg shadow-md border border-green-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-green-600'>{statistics.active}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Transferred */}
-              <div className='bg-white rounded-lg shadow-md border border-blue-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Transferred</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-blue-600'>{statistics.transferred}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Cancelled */}
-              <div className='bg-white rounded-lg shadow-md border border-red-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Cancelled</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-red-600'>{statistics.cancelled}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                     </svg>
                   </div>
                 </div>
@@ -394,7 +127,7 @@ const VehicleRegistration = () => {
                     type='text'
                     placeholder='Search by regn no, owner, chassis, engine...'
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
                     className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
                   />
                   <svg
@@ -406,19 +139,6 @@ const VehicleRegistration = () => {
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
                   </svg>
                 </div>
-
-                {/* Status Filter */}
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                  className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
-                >
-                  <option value=''>All Status</option>
-                  <option value='Active'>Active</option>
-                  <option value='Transferred'>Transferred</option>
-                  <option value='Cancelled'>Cancelled</option>
-                  <option value='Scrapped'>Scrapped</option>
-                </select>
 
                 {/* Register Button */}
                 <button
@@ -466,79 +186,64 @@ const VehicleRegistration = () => {
                 <table className='w-full'>
                   <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
                     <tr>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Registration Details</th>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Owner Info</th>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle Details</th>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Regn. Date</th>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Status</th>
+                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Registration Number</th>
+                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Chassis Number</th>
+                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Engine Number</th>
+                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Owner Name</th>
+                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Laden Weight</th>
+                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Unladen Weight</th>
                       <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                     </tr>
                   </thead>
                   <tbody className='divide-y divide-gray-200'>
-                    {filteredRegistrations.map((registration, index) => (
+                    {filteredRegistrations.map((registration) => (
                       <tr key={registration._id} className='hover:bg-gradient-to-r hover:from-indigo-50/50 hover:via-purple-50/50 hover:to-pink-50/50 transition-all duration-200 group'>
                         <td className='px-4 py-4'>
                           <div className='flex items-center gap-3'>
                             <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
-                              {registration.vehicleNumber?.substring(0, 2) || 'VH'}
+                              {registration.vehicleNumber?.substring(0, 2) || registration.registrationNumber?.substring(0, 2) || 'VH'}
                             </div>
                             <div>
-                              <div className='text-sm font-mono font-bold text-gray-900'>{registration.vehicleNumber}</div>
-                              <div className='text-xs text-gray-500 mt-0.5'>Chassis: {registration.chassisNumber}</div>
+                              <div className='text-sm font-mono font-bold text-gray-900'>{registration.vehicleNumber || registration.registrationNumber}</div>
+                              <div className='text-xs text-gray-500 mt-0.5'>
+                                {registration.dateOfRegistration && `Regn: ${registration.dateOfRegistration}`}
+                              </div>
                             </div>
                           </div>
+                        </td>
+                        <td className='px-4 py-4'>
+                          <div className='text-sm font-semibold text-gray-900'>{registration.chassisNumber || 'N/A'}</div>
+                        </td>
+                        <td className='px-4 py-4'>
+                          <div className='text-sm font-semibold text-gray-900'>{registration.engineNumber || 'N/A'}</div>
                         </td>
                         <td className='px-4 py-4'>
                           <div className='text-sm font-bold text-gray-900'>{registration.ownerName || 'N/A'}</div>
-                          <div className='text-xs text-gray-500 mt-0.5'>S/W/D of {registration.sonWifeDaughterOf || 'N/A'}</div>
+                          {registration.sonWifeDaughterOf && (
+                            <div className='text-xs text-gray-500 mt-0.5'>S/W/D of {registration.sonWifeDaughterOf}</div>
+                          )}
                         </td>
                         <td className='px-4 py-4'>
-                          <div className='text-sm font-semibold text-gray-900'>{registration.makerName || 'N/A'} {registration.modelName || ''}</div>
-                          <div className='text-xs text-gray-500 mt-0.5'>
-                            <span className='inline-flex items-center'>
-                              <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
-                                <circle cx='10' cy='10' r='6'></circle>
-                              </svg>
-                              {registration.colour || 'N/A'}
-                            </span>
-                          </div>
+                          <div className='text-sm font-semibold text-gray-900'>{registration.ladenWeight ? `${registration.ladenWeight} kg` : 'N/A'}</div>
                         </td>
                         <td className='px-4 py-4'>
-                          <div className='flex items-center text-sm text-gray-600 font-semibold'>
-                            <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                            </svg>
-                            {registration.dateOfRegistration || 'N/A'}
-                          </div>
+                          <div className='text-sm font-semibold text-gray-900'>{registration.unladenWeight ? `${registration.unladenWeight} kg` : 'N/A'}</div>
                         </td>
                         <td className='px-4 py-4'>
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(registration.status)}`}>
-                            {registration.status}
-                          </span>
-                        </td>
-                        <td className='px-4 py-4'>
-                          <div className='flex items-center justify-center gap-2'>
+                          <div className='flex items-center justify-center gap-1.5'>
                             <button
-                              onClick={() => handlePrintBill(registration)}
-                              className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all duration-200'
-                              title='Print Bill'
+                              onClick={() => handleViewDetails(registration)}
+                              className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                              title='View Details'
                             >
                               <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z' />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleShare(registration)}
-                              className='p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200'
-                              title='Share on WhatsApp'
-                            >
-                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' />
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
                               </svg>
                             </button>
                             <button
                               onClick={() => handleEdit(registration)}
-                              className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all duration-200'
+                              className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                               title='Edit'
                             >
                               <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -547,7 +252,7 @@ const VehicleRegistration = () => {
                             </button>
                             <button
                               onClick={() => handleDelete(registration._id)}
-                              className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all duration-200'
+                              className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                               title='Delete'
                             >
                               <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -566,7 +271,7 @@ const VehicleRegistration = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Register/Edit Modal */}
       <RegisterVehicleModal
         isOpen={showModal}
         onClose={() => {
@@ -579,6 +284,203 @@ const VehicleRegistration = () => {
         }}
         editData={editData}
       />
+
+      {/* View Details Modal */}
+      {showDetailsModal && selectedRegistration && (
+        <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn'>
+          <div className='bg-white rounded-3xl shadow-2xl w-[90%] max-h-[95vh] overflow-hidden animate-slideUp'>
+            {/* Header */}
+            <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white p-5 z-10 shadow-lg'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='bg-white/20 backdrop-blur-lg p-2 rounded-xl'>
+                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className='text-xl font-bold'>Vehicle Registration Details</h2>
+                    <p className='text-white/80 text-sm mt-0.5'>{selectedRegistration.vehicleNumber || selectedRegistration.registrationNumber}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className='text-white/90 hover:text-white hover:bg-white/20 p-2.5 rounded-xl transition-all duration-200 hover:rotate-90'
+                >
+                  <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className='overflow-y-auto max-h-[calc(95vh-130px)] p-5'>
+              <div className='grid grid-cols-1 lg:grid-cols-4 gap-4'>
+                {/* Column 1: Registration & Vehicle Details */}
+                <div className='bg-gradient-to-br from-indigo-50 to-purple-50 p-4 rounded-xl border-2 border-indigo-200'>
+                  <h3 className='text-base font-bold text-indigo-900 mb-3 flex items-center gap-2'>
+                    <svg className='w-4 h-4 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                    Registration & Vehicle
+                  </h3>
+                  <div className='grid grid-cols-2 gap-2'>
+                    {selectedRegistration.registrationNumber && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Registration Number</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.registrationNumber}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.chassisNumber && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Chassis Number</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.chassisNumber}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.engineNumber && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Engine Number</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.engineNumber}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.dateOfRegistration && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Date of Registration</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.dateOfRegistration}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.makerName && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Maker Name</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.makerName}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.makerModel && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Maker Model</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.makerModel}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.colour && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Colour</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.colour}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.vehicleClass && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Vehicle Class</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.vehicleClass}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.vehicleType && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Vehicle Type</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.vehicleType}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.vehicleCategory && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Vehicle Category</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.vehicleCategory}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 2: Owner Details */}
+                <div className='bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border-2 border-purple-200'>
+                  <h3 className='text-base font-bold text-purple-900 mb-3 flex items-center gap-2'>
+                    <svg className='w-4 h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+                    </svg>
+                    Owner Details
+                  </h3>
+                  <div className='space-y-2'>
+                    {selectedRegistration.ownerName && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Owner Name</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.ownerName}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.sonWifeDaughterOf && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Son/Wife/Daughter of</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.sonWifeDaughterOf}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.address && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Address</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5 leading-relaxed'>{selectedRegistration.address}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 3 & 4: Additional Details */}
+                <div className='bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border-2 border-blue-200 lg:col-span-2'>
+                  <h3 className='text-base font-bold text-blue-900 mb-3 flex items-center gap-2'>
+                    <svg className='w-4 h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    Additional Details
+                  </h3>
+                  <div className='grid grid-cols-3 gap-2'>
+                    {selectedRegistration.seatingCapacity && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Seating Capacity</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.seatingCapacity} seats</div>
+                      </div>
+                    )}
+                    {selectedRegistration.manufactureYear && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Manufacture Year</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.manufactureYear}</div>
+                      </div>
+                    )}
+                    {(selectedRegistration.ladenWeight !== undefined && selectedRegistration.ladenWeight !== null) && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Laden Weight</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.ladenWeight} kg</div>
+                      </div>
+                    )}
+                    {(selectedRegistration.unladenWeight !== undefined && selectedRegistration.unladenWeight !== null) && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Unladen Weight</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.unladenWeight} kg</div>
+                      </div>
+                    )}
+                    {selectedRegistration.purchaseDeliveryDate && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Purchase/Delivery Date</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.purchaseDeliveryDate}</div>
+                      </div>
+                    )}
+                    {selectedRegistration.saleAmount && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-xs font-semibold text-gray-600'>Sale Amount</div>
+                        <div className='text-sm font-bold text-gray-900 mt-0.5'>₹{selectedRegistration.saleAmount.toLocaleString()}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className='sticky bottom-0 bg-gray-50 px-5 py-3 border-t border-gray-200 flex justify-end'>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className='px-6 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-all duration-200 font-bold text-sm shadow-md hover:shadow-lg'
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

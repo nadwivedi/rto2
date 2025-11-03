@@ -15,11 +15,74 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
     mobileNumber: '',
     email: '',
 
+    // Vehicle details
+    chassisNumber: '',
+    engineNumber: '',
+    ladenWeight: '',
+    unladenWeight: '',
+
     // Fees
-    fees: '10000'
+    totalFee: '10000',
+    paid: '0',
+    balance: '10000'
   })
 
   const [showOptionalFields, setShowOptionalFields] = useState(false)
+  const [fetchingVehicle, setFetchingVehicle] = useState(false)
+  const [vehicleError, setVehicleError] = useState('')
+
+  // Fetch vehicle details when registration number is entered
+  useEffect(() => {
+    const fetchVehicleDetails = async () => {
+      const registrationNum = formData.vehicleNumber.trim()
+
+      // Only fetch if registration number has at least 10 characters (complete registration number like CG12AA4793)
+      if (registrationNum.length < 10) {
+        setVehicleError('')
+        return
+      }
+
+      setFetchingVehicle(true)
+      setVehicleError('')
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/vehicle-registrations/number/${registrationNum}`)
+        const data = await response.json()
+
+        if (response.ok && data.success) {
+          // Auto-fill the permit holder name with the owner name from vehicle registration
+          setFormData(prev => ({
+            ...prev,
+            permitHolderName: data.data.ownerName || prev.permitHolderName,
+            address: data.data.address || prev.address,
+            chassisNumber: data.data.chassisNumber || prev.chassisNumber,
+            engineNumber: data.data.engineNumber || prev.engineNumber,
+            ladenWeight: data.data.ladenWeight || prev.ladenWeight,
+            unladenWeight: data.data.unladenWeight || prev.unladenWeight,
+            mobileNumber: data.data.mobileNumber || prev.mobileNumber,
+            email: data.data.email || prev.email
+          }))
+          setVehicleError('')
+        } else {
+          setVehicleError('Vehicle not found in registration database')
+        }
+      } catch (error) {
+        console.error('Error fetching vehicle details:', error)
+        setVehicleError('Error fetching vehicle details')
+      } finally {
+        setFetchingVehicle(false)
+      }
+    }
+
+    // Debounce the API call - wait 500ms after user stops typing
+    const timeoutId = setTimeout(() => {
+      if (formData.vehicleNumber) {
+        fetchVehicleDetails()
+      }
+    }, 500) // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.vehicleNumber])
 
   // Calculate valid to date (5 years from valid from)
   useEffect(() => {
@@ -80,6 +143,22 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
+    // Auto-calculate balance when totalFee or paid changes
+    if (name === 'totalFee' || name === 'paid') {
+      setFormData(prev => {
+        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
+        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
+        const balance = totalFee - paid
+
+        return {
+          ...prev,
+          [name]: value,
+          balance: balance.toString()
+        }
+      })
+      return
+    }
+
     // For date fields, just store the value as-is during typing
     // Formatting happens on blur (when user leaves the field)
     setFormData(prev => ({
@@ -137,9 +216,17 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
       address: '',
       mobileNumber: '',
       email: '',
-      fees: '10000'
+      chassisNumber: '',
+      engineNumber: '',
+      ladenWeight: '',
+      unladenWeight: '',
+      totalFee: '10000',
+      paid: '0',
+      balance: '10000'
     })
     setShowOptionalFields(false)
+    setVehicleError('')
+    setFetchingVehicle(false)
     onClose()
   }
 
@@ -176,6 +263,39 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+                {/* Vehicle Number */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Vehicle Number <span className='text-red-500'>*</span>
+                  </label>
+                  <div className='relative'>
+                    <input
+                      type='text'
+                      name='vehicleNumber'
+                      value={formData.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder='CG01AB1234'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                      required
+                      autoFocus
+                    />
+                    {fetchingVehicle && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='animate-spin h-5 w-5 text-indigo-500' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {vehicleError && (
+                    <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
+                  )}
+                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.permitHolderName && (
+                    <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner details auto-filled</p>
+                  )}
+                </div>
+
                 {/* Permit Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -189,7 +309,6 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder='CG001234567'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
                     required
-                    autoFocus
                   />
                 </div>
 
@@ -205,22 +324,6 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     onChange={handleChange}
                     placeholder='Rajesh Transport Services'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                    required
-                  />
-                </div>
-
-                {/* Vehicle Number */}
-                <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Vehicle Number <span className='text-red-500'>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    name='vehicleNumber'
-                    value={formData.vehicleNumber}
-                    onChange={handleChange}
-                    placeholder='CG01AB1234'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
                     required
                   />
                 </div>
@@ -283,25 +386,51 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
             <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                Fees
+                Permit Fees
               </h3>
 
-              <div className='space-y-3'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Permit Fees <span className='text-red-500'>*</span>
+                    Total Fee (₹) <span className='text-red-500'>*</span>
                   </label>
-                  <div className='relative'>
-                    <span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold'>₹</span>
-                    <input
-                      type='number'
-                      name='fees'
-                      value={formData.fees}
-                      onChange={handleChange}
-                      className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-lg'
-                      required
-                    />
-                  </div>
+                  <input
+                    type='number'
+                    name='totalFee'
+                    value={formData.totalFee}
+                    onChange={handleChange}
+                    placeholder='10000'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Paid (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='paid'
+                    value={formData.paid}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Balance (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='balance'
+                    value={formData.balance}
+                    onChange={handleChange}
+                    placeholder='10000'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    required
+                  />
                 </div>
               </div>
             </div>
@@ -368,6 +497,68 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           onChange={handleChange}
                           rows='2'
                           placeholder='Complete address with street, area, landmark'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vehicle Details */}
+                  <div className='border-t border-gray-200 pt-4'>
+                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-blue-600'>Vehicle Details</h4>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Chassis Number
+                        </label>
+                        <input
+                          type='text'
+                          name='chassisNumber'
+                          value={formData.chassisNumber}
+                          onChange={handleChange}
+                          placeholder='Enter chassis number'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                        />
+                      </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Engine Number
+                        </label>
+                        <input
+                          type='text'
+                          name='engineNumber'
+                          value={formData.engineNumber}
+                          onChange={handleChange}
+                          placeholder='Enter engine number'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                        />
+                      </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Laden Weight (kg)
+                        </label>
+                        <input
+                          type='number'
+                          name='ladenWeight'
+                          value={formData.ladenWeight}
+                          onChange={handleChange}
+                          placeholder='Enter laden weight'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                        />
+                      </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Unladen Weight (kg)
+                        </label>
+                        <input
+                          type='number'
+                          name='unladenWeight'
+                          value={formData.unladenWeight}
+                          onChange={handleChange}
+                          placeholder='Enter unladen weight'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                         />
                       </div>

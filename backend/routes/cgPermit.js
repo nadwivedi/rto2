@@ -41,4 +41,10 @@ router.patch('/:id/insurance', cgPermitController.updateInsurance)
 // PATCH update tax details
 router.patch('/:id/tax', cgPermitController.updateTax)
 
+// POST generate bill PDF
+router.post('/:id/generate-bill-pdf', cgPermitController.generateBillPDF)
+
+// GET download bill PDF
+router.get('/:id/download-bill-pdf', cgPermitController.downloadBillPDF)
+
 module.exports = router
