@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
 import Login from './pages/Login'
@@ -26,8 +27,9 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        <ToastContainer />
-        <Routes>
+        <ThemeProvider>
+          <ToastContainer />
+          <Routes>
           {/* Public Routes */}
           <Route path='/login' element={<Login />} />
 
@@ -70,6 +72,7 @@ function App() {
             }
           />
         </Routes>
+        </ThemeProvider>
       </AuthProvider>
     </Router>
   )

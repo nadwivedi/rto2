@@ -6,7 +6,6 @@ import { usePWAInstall } from '../hooks/usePWAInstall'
 const Setting = () => {
   const navigate = useNavigate()
   const { logout } = useAuth()
-  const [theme, setTheme] = useState('light')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -97,84 +96,6 @@ const Setting = () => {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-
-        {/* Theme Settings */}
-        <div className='bg-white rounded-xl p-6 shadow-lg border border-gray-200'>
-          <div className='flex items-center gap-3 mb-4'>
-            <div className='w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-xl'>
-              🎨
-            </div>
-            <div>
-              <h2 className='text-lg font-bold text-gray-800'>Theme Settings</h2>
-              <p className='text-xs text-gray-500'>Change the appearance of the application</p>
-            </div>
-          </div>
-
-          <div className='space-y-3'>
-            <label className='text-sm font-semibold text-gray-700'>Select Theme</label>
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
-              <button
-                onClick={() => setTheme('light')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  theme === 'light'
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-200 hover:border-indigo-300'
-                }`}
-              >
-                <div className='flex items-center gap-3'>
-                  <div className='text-2xl'>☀️</div>
-                  <div className='text-left'>
-                    <div className='font-semibold text-gray-800 text-sm'>Light Mode</div>
-                    <div className='text-xs text-gray-500'>Default theme</div>
-                  </div>
-                  {theme === 'light' && (
-                    <div className='ml-auto text-indigo-600'>✓</div>
-                  )}
-                </div>
-              </button>
-
-              <button
-                onClick={() => setTheme('dark')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  theme === 'dark'
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-200 hover:border-indigo-300'
-                }`}
-              >
-                <div className='flex items-center gap-3'>
-                  <div className='text-2xl'>🌙</div>
-                  <div className='text-left'>
-                    <div className='font-semibold text-gray-800 text-sm'>Dark Mode</div>
-                    <div className='text-xs text-gray-500'>Easy on eyes</div>
-                  </div>
-                  {theme === 'dark' && (
-                    <div className='ml-auto text-indigo-600'>✓</div>
-                  )}
-                </div>
-              </button>
-
-              <button
-                onClick={() => setTheme('auto')}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  theme === 'auto'
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-gray-200 hover:border-indigo-300'
-                }`}
-              >
-                <div className='flex items-center gap-3'>
-                  <div className='text-2xl'>🔄</div>
-                  <div className='text-left'>
-                    <div className='font-semibold text-gray-800 text-sm'>Auto Mode</div>
-                    <div className='text-xs text-gray-500'>System based</div>
-                  </div>
-                  {theme === 'auto' && (
-                    <div className='ml-auto text-indigo-600'>✓</div>
-                  )}
-                </div>
-              </button>
-            </div>
           </div>
         </div>
 

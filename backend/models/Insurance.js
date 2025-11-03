@@ -19,10 +19,6 @@ const InsuranceSchema = new mongoose.Schema({
     uppercase: true,
     index: true
   },
-  vehicleType: {
-    type: String,
-    trim: true
-  },
 
   // Owner Information
   ownerName: {
@@ -33,18 +29,6 @@ const InsuranceSchema = new mongoose.Schema({
   mobileNumber: {
     type: String,
     trim: true
-  },
-
-  // Insurance Company Details
-  insuranceCompany: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  policyType: {
-    type: String,
-    enum: ['Comprehensive', 'Third Party', 'Own Damage'],
-    default: 'Comprehensive'
   },
 
   // Validity Period
@@ -67,14 +51,7 @@ const InsuranceSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  premiumAmount: {
-    type: Number,
-    min: 0
-  },
-  coverageAmount: {
-    type: Number,
-    min: 0
-  },
+
   totalFee: {
     type: Number,
     required: true,
@@ -89,16 +66,6 @@ const InsuranceSchema = new mongoose.Schema({
     type: Number,
     required: true,
     default: 0
-  },
-
-  // Agent Information
-  agentName: {
-    type: String,
-    trim: true
-  },
-  agentContact: {
-    type: String,
-    trim: true
   },
 
   // Status

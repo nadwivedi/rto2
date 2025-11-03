@@ -154,7 +154,120 @@ const CgPermitExpiring = () => {
               </div>
             </div>
 
-            <div className='overflow-x-auto'>
+            {/* Mobile Card View */}
+            <div className='block lg:hidden'>
+              {loading ? (
+                <div className='p-6 text-center'>
+                  <div className='text-gray-400'>
+                    <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                    </svg>
+                    <p className='text-sm font-semibold text-gray-600'>Loading permits...</p>
+                  </div>
+                </div>
+              ) : filteredPermits.length > 0 ? (
+                <div className='p-3 space-y-3'>
+                  {filteredPermits.map((permit) => (
+                    <div key={permit.id} className='bg-white rounded-xl shadow-md border-2 border-orange-200 overflow-hidden hover:shadow-lg transition-shadow'>
+                      {/* Card Header with Avatar and Days Left Badge */}
+                      <div className='bg-gradient-to-r from-orange-50 via-red-50 to-pink-50 p-3 flex items-start justify-between'>
+                        <div className='flex items-center gap-3'>
+                          <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
+                            {permit.permitHolder?.charAt(0) || 'P'}
+                          </div>
+                          <div>
+                            <div className='text-xs font-mono font-bold text-gray-900'>{permit.permitNumber}</div>
+                            <div className='text-xs text-gray-600 mt-0.5'>{permit.permitHolder}</div>
+                            <div className='text-xs text-gray-500 flex items-center mt-1'>
+                              <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                              </svg>
+                              {permit.mobile}
+                            </div>
+                          </div>
+                        </div>
+                        {/* Days Left Badge */}
+                        <div className='flex-shrink-0'>
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold ${
+                            permit.daysUntilExpiry <= 7
+                              ? 'bg-red-100 text-red-700 border-2 border-red-300'
+                              : permit.daysUntilExpiry <= 15
+                              ? 'bg-orange-100 text-orange-700 border-2 border-orange-300'
+                              : 'bg-yellow-100 text-yellow-700 border-2 border-yellow-300'
+                          }`}>
+                            {permit.daysUntilExpiry} days
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Card Body */}
+                      <div className='p-3 space-y-2.5'>
+                        {/* Vehicle Info */}
+                        <div className='bg-blue-50 rounded-lg p-2 border border-blue-200'>
+                          <div className='text-xs text-blue-600 font-medium mb-0.5'>Vehicle Details</div>
+                          <div className='flex items-center justify-between'>
+                            <div className='text-sm font-mono font-bold text-gray-900'>{permit.vehicleNumber}</div>
+                            <div className='text-xs font-semibold text-gray-600'>{permit.vehicleType}</div>
+                          </div>
+                        </div>
+
+                        {/* Validity Period */}
+                        <div className='grid grid-cols-2 gap-2'>
+                          <div className='bg-green-50 rounded-lg p-2 border border-green-200'>
+                            <div className='text-xs text-green-600 font-medium mb-0.5 flex items-center gap-1'>
+                              <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                              </svg>
+                              Valid From
+                            </div>
+                            <div className='text-sm font-bold text-green-900'>{permit.validFrom}</div>
+                          </div>
+                          <div className='bg-red-50 rounded-lg p-2 border border-red-200'>
+                            <div className='text-xs text-red-600 font-medium mb-0.5 flex items-center gap-1'>
+                              <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                              </svg>
+                              Valid To
+                            </div>
+                            <div className='text-sm font-bold text-red-900'>{permit.validTo}</div>
+                          </div>
+                        </div>
+
+                        {/* Fees and Status */}
+                        <div className='flex items-center justify-between pt-1 border-t border-gray-100'>
+                          <div className='flex items-center gap-2'>
+                            <svg className='w-4 h-4 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                            </svg>
+                            <span className='text-sm font-bold text-gray-800'>₹{permit.fees.toLocaleString('en-IN')}</span>
+                          </div>
+                          <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
+                            {permit.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className='p-6 text-center'>
+                  <div className='flex flex-col items-center justify-center py-12'>
+                    <div className='w-20 h-20 bg-gradient-to-br from-orange-100 to-red-100 rounded-full flex items-center justify-center mb-4 shadow-lg'>
+                      <svg className='w-10 h-10 text-orange-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                      </svg>
+                    </div>
+                    <h3 className='text-lg font-black text-gray-700 mb-2'>No CG permits expiring soon</h3>
+                    <p className='text-sm text-gray-500 text-center max-w-xs'>
+                      All permits are valid for more than 30 days
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className='hidden lg:block overflow-x-auto'>
               <table className='w-full'>
                 <thead className='bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600'>
                   <tr>

@@ -551,7 +551,158 @@ const CgPermit = () => {
           </div>
         </div>
 
-        <div className='overflow-x-auto'>
+        {/* Mobile Card View */}
+        <div className='block lg:hidden'>
+          {filteredPermits.length > 0 ? (
+            <div className='p-3 space-y-3'>
+              {filteredPermits.map((permit) => (
+                <div key={permit.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
+                  {/* Card Header with Avatar and Actions */}
+                  <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
+                    <div className='flex items-center gap-3'>
+                      <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
+                        {permit.permitHolder?.substring(0, 2)?.toUpperCase() || 'CG'}
+                      </div>
+                      <div>
+                        <div className='text-xs font-mono font-bold text-gray-900'>{permit.permitNumber}</div>
+                        <div className='text-xs text-gray-600 mt-0.5'>{permit.permitHolder || '-'}</div>
+                      </div>
+                    </div>
+                    {/* Action Buttons on top right */}
+                    <div className='flex items-center gap-1.5'>
+                      <button
+                        onClick={() => handleViewDetails(permit)}
+                        className='p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-all cursor-pointer'
+                        title='View Details'
+                      >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleEditPermit(permit)}
+                        className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all cursor-pointer'
+                        title='Edit'
+                      >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleShare(permit)}
+                        className='p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-all cursor-pointer'
+                        title='Share'
+                      >
+                        <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
+                          <path d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z' />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className='p-3 space-y-2.5'>
+                    {/* Status and Vehicle */}
+                    <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${getStatusColor(permit.status)}`}>
+                        {permit.status}
+                      </span>
+                      <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
+                        <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
+                          <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                          <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                        </svg>
+                        {permit.vehicleNo}
+                      </span>
+                    </div>
+
+                    {/* Payment Details */}
+                    <div className='grid grid-cols-3 gap-2'>
+                      <div className='bg-gray-50 rounded-lg p-2 border border-gray-200'>
+                        <div className='text-xs text-gray-500 font-medium mb-0.5'>Total Fee</div>
+                        <div className='text-sm font-bold text-gray-900'>₹{(permit.fees || 0).toLocaleString('en-IN')}</div>
+                      </div>
+                      <div className='bg-emerald-50 rounded-lg p-2 border border-emerald-200'>
+                        <div className='text-xs text-emerald-600 font-medium mb-0.5'>Paid</div>
+                        <div className='text-sm font-bold text-emerald-700'>₹{(permit.paid || 0).toLocaleString('en-IN')}</div>
+                      </div>
+                      <div className={`rounded-lg p-2 border ${(permit.balance || 0) > 0 ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'}`}>
+                        <div className={`text-xs font-medium mb-0.5 ${(permit.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>Balance</div>
+                        <div className={`text-sm font-bold ${(permit.balance || 0) > 0 ? 'text-orange-700' : 'text-gray-500'}`}>₹{(permit.balance || 0).toLocaleString('en-IN')}</div>
+                      </div>
+                    </div>
+
+                    {/* Validity Period */}
+                    <div className='grid grid-cols-2 gap-2 pt-1'>
+                      <div className='bg-blue-50 rounded-lg p-2 border border-blue-200'>
+                        <div className='text-xs text-blue-600 font-medium mb-0.5 flex items-center gap-1'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                          </svg>
+                          Valid From
+                        </div>
+                        <div className='text-sm font-bold text-blue-900'>{permit.validFrom}</div>
+                      </div>
+                      <div className='bg-purple-50 rounded-lg p-2 border border-purple-200'>
+                        <div className='text-xs text-purple-600 font-medium mb-0.5 flex items-center gap-1'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                          </svg>
+                          Valid Till
+                        </div>
+                        <div className='text-sm font-bold text-purple-900'>{permit.validTill}</div>
+                      </div>
+                    </div>
+
+                    {/* Route and Goods Type */}
+                    {(permit.route || permit.goodsType) && (
+                      <div className='bg-indigo-50 rounded-lg p-2 border border-indigo-200'>
+                        <div className='text-xs text-indigo-600 font-medium mb-1'>Route & Goods</div>
+                        <div className='space-y-0.5'>
+                          {permit.route && (
+                            <div className='text-xs font-semibold text-gray-700 flex items-start gap-1'>
+                              <svg className='w-3 h-3 mt-0.5 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z' />
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 11a3 3 0 11-6 0 3 3 0 016 0z' />
+                              </svg>
+                              {permit.route}
+                            </div>
+                          )}
+                          {permit.goodsType && (
+                            <div className='text-xs font-semibold text-gray-700 flex items-start gap-1'>
+                              <svg className='w-3 h-3 mt-0.5 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' />
+                              </svg>
+                              {permit.goodsType}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className='p-6'>
+              <div className='flex flex-col items-center justify-center py-12'>
+                <div className='w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-4 shadow-lg'>
+                  <svg className='w-10 h-10 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                  </svg>
+                </div>
+                <h3 className='text-lg font-black text-gray-700 mb-2'>No CG Permits Found</h3>
+                <p className='text-sm text-gray-500 text-center max-w-xs'>
+                  {searchQuery ? 'No permits match your search criteria.' : 'Get started by adding your first CG permit.'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className='hidden lg:block overflow-x-auto'>
           <table className='w-full'>
             <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
               <tr>
@@ -560,7 +711,9 @@ const CgPermit = () => {
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle No.</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid From</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid Till</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Fee</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Total Fee (₹)</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Paid (₹)</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Balance (₹)</th>
                 <th className='px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider'>Actions</th>
               </tr>
             </thead>
@@ -615,9 +768,23 @@ const CgPermit = () => {
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-md text-sm font-bold bg-purple-100 text-purple-700 border border-purple-200'>
-                        ₹{permit.fees?.toLocaleString('en-IN') || '0'}
+                      <span className='text-sm font-bold text-gray-800'>₹{(permit.fees || 0).toLocaleString('en-IN')}</span>
+                    </td>
+                    <td className='px-6 py-5'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
+                        ₹{(permit.paid || 0).toLocaleString('en-IN')}
                       </span>
+                    </td>
+                    <td className='px-6 py-5'>
+                      {(permit.balance || 0) > 0 ? (
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200'>
+                          ₹{(permit.balance || 0).toLocaleString('en-IN')}
+                        </span>
+                      ) : (
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200'>
+                          ₹0
+                        </span>
+                      )}
                     </td>
                     <td className='px-6 py-5'>
                       <div className='flex items-center justify-center gap-2'>
@@ -664,7 +831,7 @@ const CgPermit = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='7' className='px-6 py-16'>
+                  <td colSpan='9' className='px-6 py-16'>
                     <div className='flex flex-col items-center justify-center'>
                       <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg'>
                         <svg className='w-12 h-12 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

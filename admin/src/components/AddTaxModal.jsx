@@ -1,14 +1,65 @@
 import { useState, useEffect } from 'react'
 
 const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
+  const [fetchingVehicle, setFetchingVehicle] = useState(false)
+  const [vehicleError, setVehicleError] = useState('')
+
   const [formData, setFormData] = useState({
     receiptNo: '',
     vehicleNumber: '',
     ownerName: '',
-    taxAmount: '0',
+    totalAmount: '0',
+    paidAmount: '0',
+    balance: '0',
     taxFrom: '',
     taxTo: ''
   })
+
+  // Fetch vehicle details when registration number is entered
+  useEffect(() => {
+    const fetchVehicleDetails = async () => {
+      const registrationNum = formData.vehicleNumber.trim()
+
+      // Only fetch if registration number has at least 10 characters (complete registration number like CG12AA4793)
+      if (registrationNum.length < 10) {
+        setVehicleError('')
+        return
+      }
+
+      setFetchingVehicle(true)
+      setVehicleError('')
+
+      try {
+        const response = await fetch(`http://localhost:5000/api/vehicle-registrations/number/${registrationNum}`)
+        const data = await response.json()
+
+        if (response.ok && data.success) {
+          // Auto-fill the owner name from vehicle registration
+          setFormData(prev => ({
+            ...prev,
+            ownerName: data.data.ownerName || prev.ownerName
+          }))
+          setVehicleError('')
+        } else {
+          setVehicleError('Vehicle not found in registration database')
+        }
+      } catch (error) {
+        console.error('Error fetching vehicle details:', error)
+        setVehicleError('Error fetching vehicle details')
+      } finally {
+        setFetchingVehicle(false)
+      }
+    }
+
+    // Debounce the API call - wait 500ms after user stops typing
+    const timeoutId = setTimeout(() => {
+      if (formData.vehicleNumber) {
+        fetchVehicleDetails()
+      }
+    }, 500) // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.vehicleNumber])
 
   // Calculate tax to date (3 months from tax from)
   useEffect(() => {
@@ -45,6 +96,18 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
       }
     }
   }, [formData.taxFrom])
+
+  // Auto-calculate balance when total amount or paid amount changes
+  useEffect(() => {
+    const total = parseFloat(formData.totalAmount) || 0
+    const paid = parseFloat(formData.paidAmount) || 0
+    const calculatedBalance = total - paid
+
+    setFormData(prev => ({
+      ...prev,
+      balance: calculatedBalance.toString()
+    }))
+  }, [formData.totalAmount, formData.paidAmount])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -127,30 +190,34 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
       receiptNo: '',
       vehicleNumber: '',
       ownerName: '',
-      taxAmount: '0',
+      totalAmount: '0',
+      paidAmount: '0',
+      balance: '0',
       taxFrom: '',
       taxTo: ''
     })
+    setVehicleError('')
+    setFetchingVehicle(false)
     onClose()
   }
 
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
-      <div className='bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-hidden'>
+    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
+      <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white'>
+        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-3 md:p-4 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-2xl font-bold'>Add New Tax Record</h2>
-              <p className='text-blue-100 text-sm mt-1'>Add vehicle tax payment record (Quarterly - 3 months)</p>
+              <h2 className='text-lg md:text-2xl font-bold'>Add New Tax Record</h2>
+              <p className='text-blue-100 text-xs md:text-sm mt-1'>Quarterly vehicle tax payment record (3 months)</p>
             </div>
             <button
               onClick={onClose}
-              className='text-white hover:bg-white/20 rounded-lg p-2 transition cursor-pointer'
+              className='text-white hover:bg-white/20 rounded-lg p-1.5 md:p-2 transition cursor-pointer'
             >
-              <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
               </svg>
             </button>
@@ -158,19 +225,19 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className='overflow-y-auto max-h-[calc(95vh-140px)]'>
-          <div className='p-6'>
-            {/* Tax Details Section */}
-            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6'>
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm'>1</span>
-                Tax Payment Details
+        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
+          <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+            {/* Section 1: Vehicle & Receipt Details */}
+            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
+                Vehicle & Receipt Details
               </h3>
 
-              <div className='space-y-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                 {/* Receipt Number */}
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Receipt Number <span className='text-red-500'>*</span>
                   </label>
                   <input
@@ -178,8 +245,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     name='receiptNo'
                     value={formData.receiptNo}
                     onChange={handleChange}
-                    placeholder='RCP001 (will be converted to uppercase)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono uppercase'
+                    placeholder='RCP001'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
                     required
                     autoFocus
                   />
@@ -187,23 +254,39 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
 
                 {/* Vehicle Number */}
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
                   </label>
-                  <input
-                    type='text'
-                    name='vehicleNumber'
-                    value={formData.vehicleNumber}
-                    onChange={handleChange}
-                    placeholder='CG04AB1234 (dashes will be removed automatically)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono uppercase'
-                    required
-                  />
+                  <div className='relative'>
+                    <input
+                      type='text'
+                      name='vehicleNumber'
+                      value={formData.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder='CG04AB1234'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                      required
+                    />
+                    {fetchingVehicle && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='animate-spin h-5 w-5 text-indigo-500' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {vehicleError && (
+                    <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
+                  )}
+                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.ownerName && (
+                    <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner name auto-filled</p>
+                  )}
                 </div>
 
                 {/* Owner Name */}
-                <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                <div className='md:col-span-2'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Owner Name
                   </label>
                   <input
@@ -212,96 +295,167 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.ownerName}
                     onChange={handleChange}
                     placeholder='Enter owner name'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                 </div>
+              </div>
+            </div>
 
-                {/* Tax Amount */}
+            {/* Section 2: Payment Information */}
+            <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-emerald-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-emerald-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
+                Payment Information
+              </h3>
+
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
+                {/* Total Amount */}
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                    Tax Amount (�) <span className='text-red-500'>*</span>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Total Amount (₹) <span className='text-red-500'>*</span>
                   </label>
                   <input
                     type='number'
-                    name='taxAmount'
-                    value={formData.taxAmount}
+                    name='totalAmount'
+                    value={formData.totalAmount}
                     onChange={handleChange}
                     placeholder='0'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  {/* Tax From */}
-                  <div>
-                    <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                      Tax From <span className='text-red-500'>*</span>
-                    </label>
-                    <input
-                      type='text'
-                      name='taxFrom'
-                      value={formData.taxFrom}
-                      onChange={handleChange}
-                      onBlur={handleDateBlur}
-                      placeholder='24-01-25 or 24/01/2025'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                      required
-                    />
-                  </div>
-
-                  {/* Tax To (Auto-calculated) */}
-                  <div>
-                    <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                      Tax To (Auto-calculated - 3 Months)
-                    </label>
-                    <input
-                      type='text'
-                      name='taxTo'
-                      value={formData.taxTo}
-                      onChange={handleChange}
-                      onBlur={handleDateBlur}
-                      placeholder='Will be calculated automatically'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
-                    />
-                  </div>
+                {/* Paid Amount */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Paid Amount (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='paidAmount'
+                    value={formData.paidAmount}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    required
+                  />
                 </div>
 
-                {/* Alert Info */}
-                <div className='bg-orange-50 border-l-4 border-orange-500 p-3 rounded'>
-                  <div className='flex items-center gap-2'>
-                    <svg className='w-5 h-5 text-orange-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                {/* Balance (Auto-calculated) */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Balance (₹) <span className='text-xs text-gray-500'>(Auto)</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='balance'
+                    value={formData.balance}
+                    readOnly
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-emerald-50 font-semibold text-gray-700'
+                  />
+                </div>
+              </div>
+
+              {/* Payment Status Indicator */}
+              {parseFloat(formData.balance) > 0 && parseFloat(formData.paidAmount) > 0 && (
+                <div className='mt-3 bg-amber-50 border-l-4 border-amber-500 p-2 md:p-3 rounded'>
+                  <p className='text-xs md:text-sm font-semibold text-amber-700 flex items-center gap-1'>
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
                     </svg>
-                    <p className='text-sm font-semibold text-orange-700'>
-                      Alert: You will be notified 15 days before the tax expiry date
-                    </p>
-                  </div>
+                    Partial Payment - Balance: ₹{formData.balance}
+                  </p>
+                </div>
+              )}
+              {parseFloat(formData.balance) === 0 && parseFloat(formData.totalAmount) > 0 && (
+                <div className='mt-3 bg-green-50 border-l-4 border-green-500 p-2 md:p-3 rounded'>
+                  <p className='text-xs md:text-sm font-semibold text-green-700 flex items-center gap-1'>
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    Fully Paid
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Section 3: Tax Period */}
+            <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
+                Tax Period (Quarterly - 3 Months)
+              </h3>
+
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+                {/* Tax From */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Tax From <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='text'
+                    name='taxFrom'
+                    value={formData.taxFrom}
+                    onChange={handleChange}
+                    onBlur={handleDateBlur}
+                    placeholder='24-01-25 or 24/01/2025'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                    required
+                  />
+                </div>
+
+                {/* Tax To (Auto-calculated) */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Tax To <span className='text-xs text-gray-500'>(Auto-calculated)</span>
+                  </label>
+                  <input
+                    type='text'
+                    name='taxTo'
+                    value={formData.taxTo}
+                    onChange={handleChange}
+                    onBlur={handleDateBlur}
+                    placeholder='Auto-calculated'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-purple-50 font-semibold text-gray-700'
+                    readOnly
+                  />
+                </div>
+              </div>
+
+              {/* Alert Info */}
+              <div className='mt-3 bg-orange-50 border-l-4 border-orange-500 p-2 md:p-3 rounded'>
+                <div className='flex items-center gap-2'>
+                  <svg className='w-4 h-4 md:w-5 md:h-5 text-orange-500 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
+                  </svg>
+                  <p className='text-xs md:text-sm font-semibold text-orange-700'>
+                    You will be notified 15 days before the tax expiry date
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className='border-t border-gray-200 p-4 bg-gray-50 flex justify-between items-center'>
-            <div className='text-sm text-gray-600'>
+          <div className='border-t border-gray-200 p-3 md:p-4 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3 flex-shrink-0'>
+            <div className='text-xs md:text-sm text-gray-600'>
               <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
             </div>
 
-            <div className='flex gap-3'>
+            <div className='flex gap-2 md:gap-3 w-full md:w-auto'>
               <button
                 type='button'
                 onClick={onClose}
-                className='px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer'
+                className='flex-1 md:flex-none px-4 md:px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer'
               >
                 Cancel
               </button>
 
               <button
                 type='submit'
-                className='px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center gap-2 cursor-pointer'
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
               >
-                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                 </svg>
                 Add Tax Record

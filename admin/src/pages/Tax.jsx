@@ -13,6 +13,7 @@ const Tax = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedTax, setSelectedTax] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'expired'
 
   // Fetch tax records from API
   const fetchTaxRecords = async () => {
@@ -27,7 +28,9 @@ const Tax = () => {
           receiptNo: record.receiptNo,
           vehicleNumber: record.vehicleNumber,
           ownerName: record.ownerName,
-          taxAmount: record.taxAmount || 0,
+          totalAmount: record.totalAmount || 0,
+          paidAmount: record.paidAmount || 0,
+          balanceAmount: record.balanceAmount || 0,
           taxFrom: record.taxFrom,
           taxTo: record.taxTo,
           status: record.status
@@ -78,18 +81,69 @@ const Tax = () => {
     return 'Active'
   }
 
-  // Filter tax records based on search query
+  // Helper function to parse date string (DD-MM-YYYY or DD/MM/YYYY)
+  const parseDateString = (dateStr) => {
+    if (!dateStr) return new Date(0)
+    const parts = dateStr.split(/[/-]/)
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10) - 1
+      const year = parseInt(parts[2], 10)
+      return new Date(year, month, day)
+    }
+    return new Date(0)
+  }
+
+  // Filter tax records based on search query and status filter
   const filteredRecords = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return taxRecords
+    let filtered = taxRecords
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((record) => {
+        const status = getStatusText(record.taxTo)
+        if (statusFilter === 'active') return status === 'Active'
+        if (statusFilter === 'expiring') return status === 'Expiring Soon'
+        if (statusFilter === 'expired') return status === 'Expired'
+        return true
+      })
+
+      // For expired filter, show only the latest expired tax per vehicle
+      if (statusFilter === 'expired') {
+        const vehicleMap = new Map()
+
+        filtered.forEach((record) => {
+          const vehicleNum = record.vehicleNumber
+          const existingRecord = vehicleMap.get(vehicleNum)
+
+          if (!existingRecord) {
+            vehicleMap.set(vehicleNum, record)
+          } else {
+            // Compare dates to keep the latest (most recent) expired tax
+            const currentDate = parseDateString(record.taxTo)
+            const existingDate = parseDateString(existingRecord.taxTo)
+
+            if (currentDate > existingDate) {
+              vehicleMap.set(vehicleNum, record)
+            }
+          }
+        })
+
+        filtered = Array.from(vehicleMap.values())
+      }
     }
 
-    const searchLower = searchQuery.toLowerCase()
-    return taxRecords.filter((record) =>
-      record.vehicleNumber.toLowerCase().includes(searchLower) ||
-      record.receiptNo.toLowerCase().includes(searchLower)
-    )
-  }, [taxRecords, searchQuery])
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const searchLower = searchQuery.toLowerCase()
+      filtered = filtered.filter((record) =>
+        record.vehicleNumber.toLowerCase().includes(searchLower) ||
+        record.receiptNo.toLowerCase().includes(searchLower)
+      )
+    }
+
+    return filtered
+  }, [taxRecords, searchQuery, statusFilter])
 
   const handleAddTax = async (formData) => {
     setLoading(true)
@@ -98,7 +152,9 @@ const Tax = () => {
         receiptNo: formData.receiptNo,
         vehicleNumber: formData.vehicleNumber,
         ownerName: formData.ownerName,
-        taxAmount: parseFloat(formData.taxAmount),
+        totalAmount: parseFloat(formData.totalAmount),
+        paidAmount: parseFloat(formData.paidAmount),
+        balanceAmount: parseFloat(formData.balance),
         taxFrom: formData.taxFrom,
         taxTo: formData.taxTo
       })
@@ -134,7 +190,9 @@ const Tax = () => {
         receiptNo: formData.receiptNo,
         vehicleNumber: formData.vehicleNumber,
         ownerName: formData.ownerName,
-        taxAmount: parseFloat(formData.taxAmount),
+        totalAmount: parseFloat(formData.totalAmount),
+        paidAmount: parseFloat(formData.paidAmount),
+        balanceAmount: parseFloat(formData.balance),
         taxFrom: formData.taxFrom,
         taxTo: formData.taxTo
       })
@@ -161,11 +219,6 @@ const Tax = () => {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleViewTax = (record) => {
-    // For now, just show an alert with the details
-    alert(`Receipt No: ${record.receiptNo}\nVehicle Number: ${record.vehicleNumber}\nOwner Name: ${record.ownerName || 'N/A'}\nTax Amount: �${(record.taxAmount || 0).toLocaleString('en-IN')}\n\nTax Period:\n${record.taxFrom} to ${record.taxTo}\n\nStatus: ${getStatusText(record.taxTo)}`)
   }
 
   const handleEditClick = (record) => {
@@ -202,45 +255,69 @@ const Tax = () => {
     }
   }
 
+  // Calculate statistics based on unique vehicles (latest tax record per vehicle)
   const statistics = useMemo(() => {
-    const total = taxRecords.length
-    const active = taxRecords.filter(rec => getStatusText(rec.taxTo) === 'Active').length
-    const expiring = taxRecords.filter(rec => getStatusText(rec.taxTo) === 'Expiring Soon').length
-    const expired = taxRecords.filter(rec => getStatusText(rec.taxTo) === 'Expired').length
+    // Group records by vehicle number
+    const vehicleGroups = taxRecords.reduce((acc, record) => {
+      if (!acc[record.vehicleNumber]) {
+        acc[record.vehicleNumber] = []
+      }
+      acc[record.vehicleNumber].push(record)
+      return acc
+    }, {})
 
-    return { total, active, expiring, expired }
+    // For each vehicle, get the latest tax record
+    const uniqueVehicleStatuses = Object.keys(vehicleGroups).map(vehicleNumber => {
+      const records = vehicleGroups[vehicleNumber]
+
+      // Categorize records by status
+      const activeRecords = records.filter(r => getStatusText(r.taxTo) === 'Active')
+      const expiringRecords = records.filter(r => getStatusText(r.taxTo) === 'Expiring Soon')
+      const expiredRecords = records.filter(r => getStatusText(r.taxTo) === 'Expired')
+
+      // Priority: Active > Expiring Soon > Latest Expired
+      if (activeRecords.length > 0) {
+        return 'Active'
+      } else if (expiringRecords.length > 0) {
+        return 'Expiring Soon'
+      } else {
+        return 'Expired'
+      }
+    })
+
+    // Count unique vehicles by status
+    const total = uniqueVehicleStatuses.length
+    const active = uniqueVehicleStatuses.filter(status => status === 'Active').length
+    const expiring = uniqueVehicleStatuses.filter(status => status === 'Expiring Soon').length
+    const expired = uniqueVehicleStatuses.filter(status => status === 'Expired').length
+
+    // Calculate pending payment statistics (from all tax records)
+    const pendingPaymentCount = taxRecords.filter(record => (record.balanceAmount || 0) > 0).length
+    const pendingPaymentAmount = taxRecords.reduce((sum, record) => sum + (record.balanceAmount || 0), 0)
+
+    return { total, active, expiring, expired, pendingPaymentCount, pendingPaymentAmount }
   }, [taxRecords])
 
   return (
     <>
-      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50'>
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
-              {/* Total Tax Records */}
-              <div className='bg-white rounded-lg shadow-md border border-gray-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* Active (Valid) */}
+              <div
+                onClick={() => setStatusFilter('active')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'active' ? 'border-emerald-500 ring-2 ring-emerald-300 shadow-xl' : 'border-emerald-100'
+                }`}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Tax</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.total}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Valid & Active</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-emerald-600'>{statistics.active}</h3>
                   </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active */}
-              <div className='bg-white rounded-lg shadow-md border border-green-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-green-600'>{statistics.active}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
@@ -248,12 +325,18 @@ const Tax = () => {
                 </div>
               </div>
 
-              {/* Expiring Soon */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* Tax Due Soon */}
+              <div
+                onClick={() => setStatusFilter('expiring')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'expiring' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                }`}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Tax Due Soon</p>
                     <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{statistics.expiring}</h3>
+                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 15 days</p>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -263,16 +346,42 @@ const Tax = () => {
                 </div>
               </div>
 
-              {/* Expired */}
-              <div className='bg-white rounded-lg shadow-md border border-red-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              {/* Tax Expired */}
+              <div
+                onClick={() => setStatusFilter('expired')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
+                }`}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expired</p>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Tax Expired</p>
                     <h3 className='text-lg lg:text-2xl font-black text-red-600'>{statistics.expired}</h3>
+                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Tax expired</p>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pending Payment */}
+              <div className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+                <div className='flex items-center justify-between'>
+                  <div className='flex-1'>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-yellow-600'>{statistics.pendingPaymentCount}</h3>
+                    {statistics.pendingPaymentAmount > 0 && (
+                      <p className='text-[7px] lg:text-[9px] text-gray-500 font-semibold mt-0.5'>
+                        ₹{statistics.pendingPaymentAmount.toLocaleString('en-IN')}
+                      </p>
+                    )}
+                  </div>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>
@@ -282,7 +391,7 @@ const Tax = () => {
 
           {/* Tax Table */}
           <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
-            <div className='px-6 py-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b border-gray-200'>
+            <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
               <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center'>
                 {/* Search Bar */}
                 <div className='relative flex-1 lg:max-w-md'>
@@ -317,8 +426,31 @@ const Tax = () => {
               </div>
 
               {/* Results count */}
-              <div className='mt-3 text-xs text-gray-600 font-semibold'>
-                Showing {filteredRecords.length} of {taxRecords.length} records
+              <div className='mt-3 text-xs text-gray-600 font-semibold flex items-center gap-2'>
+                <span>
+                  Showing {filteredRecords.length} of {taxRecords.length} records
+                </span>
+                {statusFilter !== 'all' && (
+                  <span className='inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px]'>
+                    <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z' />
+                    </svg>
+                    {statusFilter === 'active' && 'Active Only'}
+                    {statusFilter === 'expiring' && 'Due Soon Only'}
+                    {statusFilter === 'expired' && 'Expired Only'}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setStatusFilter('all')
+                      }}
+                      className='ml-1 hover:bg-blue-200 rounded-full p-0.5'
+                    >
+                      <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                      </svg>
+                    </button>
+                  </span>
+                )}
               </div>
             </div>
 
@@ -330,14 +462,127 @@ const Tax = () => {
               </div>
             )}
 
-            <div className='overflow-x-auto'>
+            {/* Mobile Card View */}
+            <div className='block lg:hidden'>
+              {filteredRecords.length > 0 ? (
+                <div className='p-3 space-y-3'>
+                  {filteredRecords.map((record) => (
+                    <div key={record.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
+                      {/* Card Header with Avatar and Actions */}
+                      <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
+                        <div className='flex items-center gap-3'>
+                          <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
+                            {record.vehicleNumber?.substring(0, 2) || 'V'}
+                          </div>
+                          <div>
+                            <div className='text-sm font-mono font-bold text-gray-900'>{record.vehicleNumber}</div>
+                            <div className='text-xs text-gray-600'>{record.ownerName || '-'}</div>
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className='flex items-center gap-1.5'>
+                          <button
+                            onClick={() => handleEditClick(record)}
+                            className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all cursor-pointer'
+                            title='Edit'
+                          >
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTax(record.id)}
+                            className='p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all cursor-pointer'
+                            title='Delete'
+                          >
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Card Body */}
+                      <div className='p-3 space-y-2.5'>
+                        {/* Receipt & Status Row */}
+                        <div className='flex items-center justify-between'>
+                          <div>
+                            <p className='text-[10px] text-gray-500 font-semibold uppercase'>Receipt No</p>
+                            <p className='text-sm font-mono font-bold text-gray-900'>{record.receiptNo}</p>
+                          </div>
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(record.taxTo)}`}>
+                            {getStatusText(record.taxTo)}
+                          </span>
+                        </div>
+
+                        {/* Payment Details */}
+                        <div className='grid grid-cols-3 gap-2 pt-2 border-t border-gray-100'>
+                          <div>
+                            <p className='text-[10px] text-gray-500 font-semibold uppercase'>Total</p>
+                            <p className='text-sm font-bold text-gray-800'>₹{(record.totalAmount || 0).toLocaleString('en-IN')}</p>
+                          </div>
+                          <div>
+                            <p className='text-[10px] text-gray-500 font-semibold uppercase'>Paid</p>
+                            <p className='text-sm font-bold text-emerald-600'>₹{(record.paidAmount || 0).toLocaleString('en-IN')}</p>
+                          </div>
+                          <div>
+                            <p className='text-[10px] text-gray-500 font-semibold uppercase'>Balance</p>
+                            <p className={`text-sm font-bold ${record.balanceAmount > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                              ₹{(record.balanceAmount || 0).toLocaleString('en-IN')}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Tax Period */}
+                        <div className='grid grid-cols-2 gap-2 pt-2 border-t border-gray-100'>
+                          <div>
+                            <p className='text-[10px] text-gray-500 font-semibold uppercase flex items-center gap-1'>
+                              <svg className='w-3 h-3 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                              </svg>
+                              Tax From
+                            </p>
+                            <p className='text-xs font-semibold text-gray-700'>{record.taxFrom}</p>
+                          </div>
+                          <div>
+                            <p className='text-[10px] text-gray-500 font-semibold uppercase flex items-center gap-1'>
+                              <svg className='w-3 h-3 text-red-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                              </svg>
+                              Tax To
+                            </p>
+                            <p className='text-xs font-semibold text-gray-700'>{record.taxTo}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className='p-8 text-center'>
+                  <div className='text-gray-400'>
+                    <svg className='mx-auto h-12 w-12 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    <p className='text-sm font-semibold text-gray-600'>No tax records found</p>
+                    <p className='text-xs text-gray-500 mt-1'>Click "Add New" to add your first record</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className='hidden lg:block overflow-x-auto'>
               <table className='w-full'>
-                <thead className='bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600'>
+                <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
                   <tr>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Receipt No</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle Number</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Owner Name</th>
-                    <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Tax Amount (�)</th>
+                    <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Amount (₹)</th>
+                    <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Paid (₹)</th>
+                    <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Balance (₹)</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Tax From</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Tax To</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Status</th>
@@ -347,7 +592,7 @@ const Tax = () => {
                 <tbody className='divide-y divide-gray-200'>
                   {filteredRecords.length > 0 ? (
                     filteredRecords.map((record) => (
-                      <tr key={record.id} className='hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group'>
+                      <tr key={record.id} className='hover:bg-gradient-to-r hover:from-indigo-50/50 hover:via-purple-50/50 hover:to-pink-50/50 transition-all duration-200 group'>
                         {/* Receipt No */}
                         <td className='px-4 py-4'>
                           <div className='text-sm font-mono font-bold text-gray-900'>{record.receiptNo}</div>
@@ -356,7 +601,7 @@ const Tax = () => {
                         {/* Vehicle Number */}
                         <td className='px-4 py-4'>
                           <div className='flex items-center gap-3'>
-                            <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
+                            <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
                               {record.vehicleNumber?.substring(0, 2) || 'V'}
                             </div>
                             <div className='text-sm font-mono font-bold text-gray-900'>{record.vehicleNumber}</div>
@@ -368,9 +613,29 @@ const Tax = () => {
                           <div className='text-sm font-semibold text-gray-900'>{record.ownerName || '-'}</div>
                         </td>
 
-                        {/* Tax Amount */}
+                        {/* Total Amount */}
                         <td className='px-4 py-4'>
-                          <span className='text-sm font-bold text-gray-800'>�{(record.taxAmount || 0).toLocaleString('en-IN')}</span>
+                          <span className='text-sm font-bold text-gray-800'>₹{(record.totalAmount || 0).toLocaleString('en-IN')}</span>
+                        </td>
+
+                        {/* Paid Amount */}
+                        <td className='px-4 py-4'>
+                          <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
+                            ₹{(record.paidAmount || 0).toLocaleString('en-IN')}
+                          </span>
+                        </td>
+
+                        {/* Balance Amount */}
+                        <td className='px-4 py-4'>
+                          {record.balanceAmount > 0 ? (
+                            <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200'>
+                              ₹{record.balanceAmount.toLocaleString('en-IN')}
+                            </span>
+                          ) : (
+                            <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200'>
+                              ₹0
+                            </span>
+                          )}
                         </td>
 
                         {/* Tax From */}
@@ -403,17 +668,6 @@ const Tax = () => {
                         {/* Actions */}
                         <td className='px-4 py-4'>
                           <div className='flex items-center justify-center gap-2'>
-                            {/* View Button */}
-                            <button
-                              onClick={() => handleViewTax(record)}
-                              className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
-                              title='View Details'
-                            >
-                              <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
-                              </svg>
-                            </button>
                             {/* Edit Button */}
                             <button
                               onClick={() => handleEditClick(record)}
@@ -440,7 +694,7 @@ const Tax = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan='8' className='px-4 py-8 text-center'>
+                      <td colSpan='10' className='px-4 py-8 text-center'>
                         <div className='text-gray-400'>
                           <svg className='mx-auto h-8 w-8 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />

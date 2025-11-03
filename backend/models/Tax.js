@@ -20,7 +20,18 @@ const taxSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  taxAmount: {
+  // Payment Information
+  totalAmount: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  paidAmount: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  balanceAmount: {
     type: Number,
     required: true,
     default: 0
