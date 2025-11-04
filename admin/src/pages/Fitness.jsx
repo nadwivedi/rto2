@@ -13,6 +13,7 @@ const Fitness = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedFitness, setSelectedFitness] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'expired'
 
   // Fetch fitness records from API
   const fetchFitnessRecords = async () => {
@@ -78,17 +79,37 @@ const Fitness = () => {
     return 'Active'
   }
 
-  // Filter fitness records based on search query
+  // Filter fitness records based on status and search query
   const filteredRecords = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return fitnessRecords
+    let filtered = fitnessRecords
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((record) => {
+        const status = getStatusText(record.validTo)
+        if (statusFilter === 'active') {
+          return status === 'Active'
+        }
+        if (statusFilter === 'expiring') {
+          return status === 'Expiring Soon'
+        }
+        if (statusFilter === 'expired') {
+          return status === 'Expired'
+        }
+        return true
+      })
     }
 
-    const searchLower = searchQuery.toLowerCase()
-    return fitnessRecords.filter((record) =>
-      record.vehicleNumber.toLowerCase().includes(searchLower)
-    )
-  }, [fitnessRecords, searchQuery])
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const searchLower = searchQuery.toLowerCase()
+      filtered = filtered.filter((record) =>
+        record.vehicleNumber.toLowerCase().includes(searchLower)
+      )
+    }
+
+    return filtered
+  }, [fitnessRecords, searchQuery, statusFilter])
 
   const handleAddFitness = async (formData) => {
     setLoading(true)
@@ -190,7 +211,13 @@ const Fitness = () => {
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Fitness Records */}
-              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter('all')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'all' ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl' : 'border-indigo-100'
+                }`}
+                title={statusFilter === 'all' ? 'Currently showing all records' : 'Click to show all records'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Fitness</p>
@@ -205,7 +232,13 @@ const Fitness = () => {
               </div>
 
               {/* Active */}
-              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'active' ? 'all' : 'active')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'active' ? 'border-purple-500 ring-2 ring-purple-300 shadow-xl' : 'border-purple-100'
+                }`}
+                title={statusFilter === 'active' ? 'Click to clear filter' : 'Click to filter active records'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active</p>
@@ -220,7 +253,13 @@ const Fitness = () => {
               </div>
 
               {/* Expiring Soon */}
-              <div className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'expiring' ? 'all' : 'expiring')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'expiring' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
+                }`}
+                title={statusFilter === 'expiring' ? 'Click to clear filter' : 'Click to filter expiring records'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
@@ -235,7 +274,13 @@ const Fitness = () => {
               </div>
 
               {/* Expired */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-orange-100'
+                }`}
+                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired records'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expired</p>

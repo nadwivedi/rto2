@@ -136,6 +136,7 @@ const TemporaryPermit = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [dateFilter, setDateFilter] = useState('All')
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'pending'
 
   // Fetch permits from backend on component mount
   useEffect(() => {
@@ -202,19 +203,66 @@ const TemporaryPermit = () => {
     }
   }
 
-  // Filter permits based on search query
-  const filteredPermits = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return permits
+  // Helper to convert DD-MM-YYYY to Date object
+  const parseDate = (dateStr) => {
+    if (!dateStr) return null
+
+    // If it's already a valid date string (YYYY-MM-DD or ISO format)
+    const standardDate = new Date(dateStr)
+    if (!isNaN(standardDate.getTime())) {
+      return standardDate
     }
 
-    const searchLower = searchQuery.toLowerCase()
-    return permits.filter((permit) =>
-      permit.permitNumber.toLowerCase().includes(searchLower) ||
-      permit.permitHolder.toLowerCase().includes(searchLower) ||
-      permit.vehicleNo.toLowerCase().includes(searchLower)
-    )
-  }, [permits, searchQuery])
+    // Try DD-MM-YYYY format
+    const parts = dateStr.split(/[/-]/)
+    if (parts.length === 3) {
+      const [day, month, year] = parts
+      const parsedDate = new Date(year, month - 1, day)
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate
+      }
+    }
+
+    return null
+  }
+
+  // Filter permits based on status and search query
+  const filteredPermits = useMemo(() => {
+    let filtered = permits
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((permit) => {
+        if (statusFilter === 'active') {
+          return permit.status === 'Active'
+        }
+        if (statusFilter === 'expiring') {
+          const expiryDate = parseDate(permit.validTill)
+          if (!expiryDate) return false
+
+          const today = new Date()
+          const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
+          return daysRemaining >= 0 && daysRemaining <= 7 // Temporary permits are short-term
+        }
+        if (statusFilter === 'pending') {
+          return (permit.balance || 0) > 0
+        }
+        return true
+      })
+    }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const searchLower = searchQuery.toLowerCase()
+      filtered = filtered.filter((permit) =>
+        permit.permitNumber.toLowerCase().includes(searchLower) ||
+        permit.permitHolder.toLowerCase().includes(searchLower) ||
+        permit.vehicleNo.toLowerCase().includes(searchLower)
+      )
+    }
+
+    return filtered
+  }, [permits, searchQuery, statusFilter])
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -312,7 +360,13 @@ const TemporaryPermit = () => {
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Permits */}
-              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter('all')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'all' ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl' : 'border-indigo-100'
+                }`}
+                title={statusFilter === 'all' ? 'Currently showing all permits' : 'Click to show all permits'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Temporary Permits</p>
@@ -327,7 +381,13 @@ const TemporaryPermit = () => {
               </div>
 
               {/* Active Permits */}
-              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'active' ? 'all' : 'active')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'active' ? 'border-emerald-500 ring-2 ring-emerald-300 shadow-xl' : 'border-emerald-100'
+                }`}
+                title={statusFilter === 'active' ? 'Click to clear filter' : 'Click to filter active permits'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active Permits</p>
@@ -342,7 +402,13 @@ const TemporaryPermit = () => {
               </div>
 
               {/* Expiring Soon */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'expiring' ? 'all' : 'expiring')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'expiring' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                }`}
+                title={statusFilter === 'expiring' ? 'Click to clear filter' : 'Click to filter expiring permits'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
@@ -357,7 +423,13 @@ const TemporaryPermit = () => {
               </div>
 
               {/* Pending Payment */}
-              <div className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'pending' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
+                }`}
+                title={statusFilter === 'pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
+              >
                 <div className='flex items-center justify-between'>
                   <div className='flex-1'>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>

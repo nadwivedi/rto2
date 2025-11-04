@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import IssueNewPermitModal from '../components/IssueNewPermitModal'
@@ -12,7 +11,6 @@ import { isPartBExpiringSoon, isPartAExpiringSoon, getDaysRemaining } from '../u
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const NationalPermit = () => {
-  const navigate = useNavigate()
   const [permits, setPermits] = useState([])
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -30,6 +28,7 @@ const NationalPermit = () => {
   const [showAdditionalDetails, setShowAdditionalDetails] = useState(false)
   const [dateFilter, setDateFilter] = useState('All')
   const [whatsappLoading, setWhatsappLoading] = useState(null) // Track which permit is loading
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'partAExpiring', 'partBExpiring', 'pending'
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -170,9 +169,68 @@ const NationalPermit = () => {
     }
   }
 
-  // Filter permits based on search query only (date filtering is done on backend)
+  // Helper to convert DD-MM-YYYY to Date object
+  const parseDate = (dateStr) => {
+    if (!dateStr) return null
+
+    // If it's already a valid date string (YYYY-MM-DD or ISO format)
+    const standardDate = new Date(dateStr)
+    if (!isNaN(standardDate.getTime())) {
+      return standardDate
+    }
+
+    // Try DD-MM-YYYY format
+    const parts = dateStr.split(/[/-]/)
+    if (parts.length === 3) {
+      const [day, month, year] = parts
+      const parsedDate = new Date(year, month - 1, day)
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate
+      }
+    }
+
+    return null
+  }
+
+  // Filter permits based on status and search query
   const filteredPermits = useMemo(() => {
     let filtered = permits
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((permit) => {
+        if (statusFilter === 'partAExpiring') {
+          // Part A expiry date is in permit.validTill or permit.partA.permitValidUpto
+          const partAExpiryDate = permit.validTill || permit.partA?.permitValidUpto
+          if (!partAExpiryDate) return false
+
+          const expiryDate = parseDate(partAExpiryDate)
+          if (!expiryDate) return false
+
+          const today = new Date()
+          const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
+          return daysRemaining >= 0 && daysRemaining <= 60
+        }
+        if (statusFilter === 'partBExpiring') {
+          // Part B expiry date is in permit.partB.validTo
+          const partBExpiryDate = permit.partB?.validTo
+          if (!partBExpiryDate) return false
+
+          const expiryDate = parseDate(partBExpiryDate)
+          if (!expiryDate) return false
+
+          const today = new Date()
+          const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
+          return daysRemaining >= 0 && daysRemaining <= 30
+        }
+        if (statusFilter === 'pending') {
+          // Check if there's a balance/pending amount
+          const balance = permit.balance || permit.partA?.balance || 0
+          return balance > 0
+        }
+        return true
+      })
+    }
 
     // Apply search filter (client-side for better UX)
     if (searchQuery.trim()) {
@@ -185,22 +243,32 @@ const NationalPermit = () => {
     }
 
     return filtered
-  }, [permits, searchQuery])
+  }, [permits, searchQuery, statusFilter])
 
   // Calculate statistics
   const stats = useMemo(() => {
     const total = totalItems
-    const active = permits.filter(p => p.status === 'Active').length
 
     // Use the fetched counts instead of calculating from current page
     const expiring = partAExpiringCount
     const partBExpiring = partBExpiringCount
 
+    // Calculate pending payment statistics
+    const pendingPaymentCount = permits.filter(p => {
+      const balance = p.balance || p.partA?.balance || 0
+      return balance > 0
+    }).length
+    const pendingPaymentAmount = permits.reduce((sum, permit) => {
+      const balance = permit.balance || permit.partA?.balance || 0
+      return sum + balance
+    }, 0)
+
     return {
       total,
-      active,
       expiring,
-      partBExpiring
+      partBExpiring,
+      pendingPaymentCount,
+      pendingPaymentAmount
     }
   }, [permits, totalItems, partAExpiringCount, partBExpiringCount])
 
@@ -452,7 +520,13 @@ Thank you for your business!
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Permits */}
-              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter('all')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'all' ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl' : 'border-indigo-100'
+                }`}
+                title={statusFilter === 'all' ? 'Currently showing all permits' : 'Click to show all permits'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Permits</p>
@@ -466,25 +540,14 @@ Thank you for your business!
                 </div>
               </div>
 
-              {/* Active Permits */}
-              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active Permits</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-emerald-600'>{stats.active}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
 
               {/* Part A - Expiring Soon */}
               <div
-                onClick={() => navigate('/national-part-a-expiring')}
-                className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+                onClick={() => setStatusFilter(statusFilter === 'partAExpiring' ? 'all' : 'partAExpiring')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'partAExpiring' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                }`}
+                title={statusFilter === 'partAExpiring' ? 'Click to clear filter' : 'Click to filter Part A expiring permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -502,8 +565,11 @@ Thank you for your business!
 
               {/* Part B - Expiring Soon */}
               <div
-                onClick={() => navigate('/national-part-b-expiring')}
-                className='bg-white rounded-lg shadow-md border border-purple-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+                onClick={() => setStatusFilter(statusFilter === 'partBExpiring' ? 'all' : 'partBExpiring')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'partBExpiring' ? 'border-purple-500 ring-2 ring-purple-300 shadow-xl' : 'border-purple-100'
+                }`}
+                title={statusFilter === 'partBExpiring' ? 'Click to clear filter' : 'Click to filter Part B expiring permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -512,6 +578,32 @@ Thank you for your business!
                     <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pending Payment */}
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'pending' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
+                }`}
+                title={statusFilter === 'pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
+              >
+                <div className='flex items-center justify-between'>
+                  <div className='flex-1'>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-yellow-600'>{stats.pendingPaymentCount}</h3>
+                    {stats.pendingPaymentAmount > 0 && (
+                      <p className='text-[7px] lg:text-[9px] text-gray-500 font-semibold mt-0.5'>
+                        ₹{stats.pendingPaymentAmount.toLocaleString('en-IN')}
+                      </p>
+                    )}
+                  </div>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>

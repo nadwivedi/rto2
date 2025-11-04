@@ -110,8 +110,24 @@ const Tax = () => {
         return true
       })
 
-      // For expired filter, show only the latest expired tax per vehicle
+      // For expired filter, show only vehicles that don't have any active tax
       if (statusFilter === 'expired') {
+        // First, find all vehicles that have active or expiring soon tax
+        const vehiclesWithActiveTax = new Set()
+
+        taxRecords.forEach((record) => {
+          const status = getStatusText(record.taxTo)
+          if (status === 'Active' || status === 'Expiring Soon') {
+            vehiclesWithActiveTax.add(record.vehicleNumber)
+          }
+        })
+
+        // Filter out expired records for vehicles that have active tax
+        filtered = filtered.filter((record) => {
+          return !vehiclesWithActiveTax.has(record.vehicleNumber)
+        })
+
+        // Then show only the latest expired tax per remaining vehicle
         const vehicleMap = new Map()
 
         filtered.forEach((record) => {
@@ -235,6 +251,57 @@ const Tax = () => {
       ownerName: record.ownerName || ''
     })
     setIsAddModalOpen(true)
+  }
+
+  // Determine if renew button should be shown for a record
+  const shouldShowRenewButton = (record) => {
+    const status = getStatusText(record.taxTo)
+
+    // Always show for expiring soon
+    if (status === 'Expiring Soon') {
+      return true
+    }
+
+    // For expired records, apply smart logic
+    if (status === 'Expired') {
+      // Check if this vehicle has any active or expiring soon tax
+      const hasActiveTax = taxRecords.some((r) => {
+        if (r.vehicleNumber === record.vehicleNumber) {
+          const rStatus = getStatusText(r.taxTo)
+          return rStatus === 'Active' || rStatus === 'Expiring Soon'
+        }
+        return false
+      })
+
+      // If vehicle has active tax, don't show renew button on expired records
+      if (hasActiveTax) {
+        return false
+      }
+
+      // Vehicle has no active tax - show renew button only on latest expired record
+      const expiredRecordsForVehicle = taxRecords.filter((r) => {
+        return r.vehicleNumber === record.vehicleNumber && getStatusText(r.taxTo) === 'Expired'
+      })
+
+      // Find the latest expired record
+      let latestExpired = null
+      expiredRecordsForVehicle.forEach((r) => {
+        if (!latestExpired) {
+          latestExpired = r
+        } else {
+          const currentDate = parseDateString(r.taxTo)
+          const latestDate = parseDateString(latestExpired.taxTo)
+          if (currentDate > latestDate) {
+            latestExpired = r
+          }
+        }
+      })
+
+      // Show button only if this is the latest expired record
+      return latestExpired && latestExpired.id === record.id
+    }
+
+    return false
   }
 
   const handleDeleteTax = async (id) => {
@@ -502,8 +569,8 @@ const Tax = () => {
 
                         {/* Action Buttons */}
                         <div className='flex items-center gap-1.5'>
-                          {/* Renew Button - Show only for expired or expiring soon */}
-                          {(getStatusText(record.taxTo) === 'Expired' || getStatusText(record.taxTo) === 'Expiring Soon') && (
+                          {/* Renew Button - Smart logic based on vehicle tax status */}
+                          {shouldShowRenewButton(record) && (
                             <button
                               onClick={() => handleRenewClick(record)}
                               className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all cursor-pointer'
@@ -700,8 +767,8 @@ const Tax = () => {
                         {/* Actions */}
                         <td className='px-4 py-4'>
                           <div className='flex items-center justify-center gap-2'>
-                            {/* Renew Button - Show only for expired or expiring soon */}
-                            {(getStatusText(record.taxTo) === 'Expired' || getStatusText(record.taxTo) === 'Expiring Soon') && (
+                            {/* Renew Button - Smart logic based on vehicle tax status */}
+                            {shouldShowRenewButton(record) && (
                               <button
                                 onClick={() => handleRenewClick(record)}
                                 className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group'

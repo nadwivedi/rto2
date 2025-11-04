@@ -8,13 +8,8 @@ import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Setting from './pages/Setting'
 import DrivingLicence from './pages/DrivingLicence'
-import LLExpiring from './pages/LLExpiring'
-import DLExpiring from './pages/DLExpiring'
 import NationalPermit from './pages/NationalPermit'
-import NationalPartAExpiring from './pages/NationalPartAExpiring'
-import NationalPartBExpiring from './pages/NationalPartBExpiring'
 import CgPermit from './pages/CgPermit'
-import CgPermitExpiring from './pages/CgPermitExpiring'
 import TemporaryPermit from './pages/TemporaryPermit'
 import VehicleRegistration from './pages/VehicleRegistration'
 import Insurance from './pages/Insurance'
@@ -50,13 +45,8 @@ function App() {
                         <Route path='/' element={<Navigate to='/dashboard' replace />} />
                         <Route path='/dashboard' element={<DrivingLicence />} />
                         <Route path='/setting' element={<Setting />} />
-                        <Route path='/ll-expiring' element={<LLExpiring />} />
-                        <Route path='/dl-expiring' element={<DLExpiring />} />
                         <Route path='/national-permit' element={<NationalPermit />} />
-                        <Route path='/national-part-a-expiring' element={<NationalPartAExpiring />} />
-                        <Route path='/national-part-b-expiring' element={<NationalPartBExpiring />} />
                         <Route path='/cg-permit' element={<CgPermit />} />
-                        <Route path='/cg-permit-expiring' element={<CgPermitExpiring />} />
                         <Route path='/temporary-permit' element={<TemporaryPermit />} />
                         <Route path='/vehicle-registration' element={<VehicleRegistration />} />
                         <Route path='/insurance' element={<Insurance />} />

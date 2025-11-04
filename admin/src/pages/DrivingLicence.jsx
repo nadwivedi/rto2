@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import QuickDLApplicationForm from '../components/QuickDLApplicationForm'
 import EditDLApplicationForm from '../components/EditDLApplicationForm'
@@ -7,7 +6,6 @@ import ApplicationDetailModal from '../components/ApplicationDetailModal'
 import { drivingLicenseAPI } from '../services/api'
 
 const DrivingLicence = () => {
-  const navigate = useNavigate()
   // Demo data for when backend is not available
   const demoApplications = [
     {
@@ -470,7 +468,23 @@ const DrivingLicence = () => {
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Applications */}
-              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => {
+                  setDlExpiryFilter('All')
+                  setLlExpiryFilter('All')
+                  setPaymentStatusFilter('All')
+                }}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  dlExpiryFilter === 'All' && llExpiryFilter === 'All' && paymentStatusFilter === 'All'
+                    ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl'
+                    : 'border-indigo-100'
+                }`}
+                title={
+                  dlExpiryFilter === 'All' && llExpiryFilter === 'All' && paymentStatusFilter === 'All'
+                    ? 'Currently showing all applications'
+                    : 'Click to show all applications'
+                }
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Applications</p>
@@ -486,8 +500,15 @@ const DrivingLicence = () => {
 
               {/* DL Expiring Soon */}
               <div
-                onClick={() => navigate('/dl-expiring')}
-                className='bg-white rounded-lg shadow-md border border-purple-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+                onClick={() => {
+                  setDlExpiryFilter(dlExpiryFilter === '30' ? 'All' : '30')
+                  setLlExpiryFilter('All')
+                  setPaymentStatusFilter('All')
+                }}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  dlExpiryFilter === '30' ? 'border-purple-500 ring-2 ring-purple-300 shadow-xl' : 'border-purple-100'
+                }`}
+                title={dlExpiryFilter === '30' ? 'Click to clear filter' : 'Click to filter DL expiring soon'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -505,8 +526,15 @@ const DrivingLicence = () => {
 
               {/* LL Expiring Soon */}
               <div
-                onClick={() => navigate('/ll-expiring')}
-                className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300 cursor-pointer hover:scale-105 transform transition-transform'
+                onClick={() => {
+                  setLlExpiryFilter(llExpiryFilter === '30' ? 'All' : '30')
+                  setDlExpiryFilter('All')
+                  setPaymentStatusFilter('All')
+                }}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  llExpiryFilter === '30' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
+                }`}
+                title={llExpiryFilter === '30' ? 'Click to clear filter' : 'Click to filter LL expiring soon'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -523,7 +551,17 @@ const DrivingLicence = () => {
               </div>
 
               {/* Pending Amount */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => {
+                  setPaymentStatusFilter(paymentStatusFilter === 'Pending' ? 'All' : 'Pending')
+                  setDlExpiryFilter('All')
+                  setLlExpiryFilter('All')
+                }}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  paymentStatusFilter === 'Pending' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                }`}
+                title={paymentStatusFilter === 'Pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Amount</p>
