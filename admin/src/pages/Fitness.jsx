@@ -599,6 +599,7 @@ const Fitness = () => {
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Fee (₹)</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Paid (₹)</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Balance (₹)</th>
+                    <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Payment Status</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Status</th>
                     <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                   </tr>
@@ -652,6 +653,25 @@ const Fitness = () => {
                           <span className='text-sm font-bold text-orange-600'>₹{(record.balance || 0).toLocaleString('en-IN')}</span>
                         </td>
 
+                        {/* Payment Status */}
+                        <td className='px-4 py-4'>
+                          {(record.balance || 0) > 0 ? (
+                            <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200'>
+                              <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                              </svg>
+                              Pending
+                            </span>
+                          ) : (
+                            <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
+                              <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                              </svg>
+                              Paid
+                            </span>
+                          )}
+                        </td>
+
                         {/* Status */}
                         <td className='px-4 py-4'>
                           <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(record.validTo)}`}>
@@ -701,7 +721,7 @@ const Fitness = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan='8' className='px-4 py-8 text-center'>
+                      <td colSpan='9' className='px-4 py-8 text-center'>
                         <div className='text-gray-400'>
                           <svg className='mx-auto h-8 w-8 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
