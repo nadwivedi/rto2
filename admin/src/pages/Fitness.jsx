@@ -13,7 +13,8 @@ const Fitness = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedFitness, setSelectedFitness] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'expired'
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'expiring', 'expired', 'pending'
+  const [initialFitnessData, setInitialFitnessData] = useState(null) // For pre-filling renewal data
 
   // Fetch fitness records from API
   const fetchFitnessRecords = async () => {
@@ -61,7 +62,7 @@ const Fitness = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
     if (diffDays < 0) return 'bg-red-100 text-red-700'
-    if (diffDays <= 30) return 'bg-orange-100 text-orange-700'
+    if (diffDays <= 15) return 'bg-orange-100 text-orange-700'
     return 'bg-green-100 text-green-700'
   }
 
@@ -75,8 +76,21 @@ const Fitness = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
     if (diffDays < 0) return 'Expired'
-    if (diffDays <= 30) return 'Expiring Soon'
+    if (diffDays <= 15) return 'Expiring Soon'
     return 'Active'
+  }
+
+  // Helper function to parse date string (DD-MM-YYYY or DD/MM/YYYY)
+  const parseDateString = (dateStr) => {
+    if (!dateStr) return new Date(0)
+    const parts = dateStr.split(/[/-]/)
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10)
+      const month = parseInt(parts[1], 10) - 1
+      const year = parseInt(parts[2], 10)
+      return new Date(year, month, day)
+    }
+    return new Date(0)
   }
 
   // Filter fitness records based on status and search query
@@ -87,17 +101,51 @@ const Fitness = () => {
     if (statusFilter !== 'all') {
       filtered = filtered.filter((record) => {
         const status = getStatusText(record.validTo)
-        if (statusFilter === 'active') {
-          return status === 'Active'
-        }
-        if (statusFilter === 'expiring') {
-          return status === 'Expiring Soon'
-        }
-        if (statusFilter === 'expired') {
-          return status === 'Expired'
-        }
+        if (statusFilter === 'expiring') return status === 'Expiring Soon'
+        if (statusFilter === 'expired') return status === 'Expired'
+        if (statusFilter === 'pending') return (record.balance || 0) > 0
         return true
       })
+
+      // For expired filter, show only vehicles that don't have any active fitness
+      if (statusFilter === 'expired') {
+        // First, find all vehicles that have active or expiring soon fitness
+        const vehiclesWithActiveFitness = new Set()
+
+        fitnessRecords.forEach((record) => {
+          const status = getStatusText(record.validTo)
+          if (status === 'Active' || status === 'Expiring Soon') {
+            vehiclesWithActiveFitness.add(record.vehicleNumber)
+          }
+        })
+
+        // Filter out expired records for vehicles that have active fitness
+        filtered = filtered.filter((record) => {
+          return !vehiclesWithActiveFitness.has(record.vehicleNumber)
+        })
+
+        // Then show only the latest expired fitness per remaining vehicle
+        const vehicleMap = new Map()
+
+        filtered.forEach((record) => {
+          const vehicleNum = record.vehicleNumber
+          const existingRecord = vehicleMap.get(vehicleNum)
+
+          if (!existingRecord) {
+            vehicleMap.set(vehicleNum, record)
+          } else {
+            // Compare dates to keep the latest (most recent) expired fitness
+            const currentDate = parseDateString(record.validTo)
+            const existingDate = parseDateString(existingRecord.validTo)
+
+            if (currentDate > existingDate) {
+              vehicleMap.set(vehicleNum, record)
+            }
+          }
+        })
+
+        filtered = Array.from(vehicleMap.values())
+      }
     }
 
     // Apply search filter
@@ -194,13 +242,75 @@ const Fitness = () => {
     setIsEditModalOpen(true)
   }
 
+  const handleRenewClick = (record) => {
+    // Pre-fill vehicle number for renewal
+    setInitialFitnessData({
+      vehicleNumber: record.vehicleNumber
+    })
+    setIsAddModalOpen(true)
+  }
+
+  // Determine if renew button should be shown for a record
+  const shouldShowRenewButton = (record) => {
+    const status = getStatusText(record.validTo)
+
+    // Always show for expiring soon
+    if (status === 'Expiring Soon') {
+      return true
+    }
+
+    // For expired records, apply smart logic
+    if (status === 'Expired') {
+      // Check if this vehicle has any active or expiring soon fitness
+      const hasActiveFitness = fitnessRecords.some((r) => {
+        if (r.vehicleNumber === record.vehicleNumber) {
+          const rStatus = getStatusText(r.validTo)
+          return rStatus === 'Active' || rStatus === 'Expiring Soon'
+        }
+        return false
+      })
+
+      // If vehicle has active fitness, don't show renew button on expired records
+      if (hasActiveFitness) {
+        return false
+      }
+
+      // Vehicle has no active fitness - show renew button only on latest expired record
+      const expiredRecordsForVehicle = fitnessRecords.filter((r) => {
+        return r.vehicleNumber === record.vehicleNumber && getStatusText(r.validTo) === 'Expired'
+      })
+
+      // Find the latest expired record
+      let latestExpired = null
+      expiredRecordsForVehicle.forEach((r) => {
+        if (!latestExpired) {
+          latestExpired = r
+        } else {
+          const currentDate = parseDateString(r.validTo)
+          const latestDate = parseDateString(latestExpired.validTo)
+          if (currentDate > latestDate) {
+            latestExpired = r
+          }
+        }
+      })
+
+      // Show button only if this is the latest expired record
+      return latestExpired && latestExpired.id === record.id
+    }
+
+    return false
+  }
+
   const statistics = useMemo(() => {
     const total = fitnessRecords.length
-    const active = fitnessRecords.filter(rec => getStatusText(rec.validTo) === 'Active').length
     const expiring = fitnessRecords.filter(rec => getStatusText(rec.validTo) === 'Expiring Soon').length
     const expired = fitnessRecords.filter(rec => getStatusText(rec.validTo) === 'Expired').length
 
-    return { total, active, expiring, expired }
+    // Calculate pending payment statistics
+    const pendingPaymentCount = fitnessRecords.filter(record => (record.balance || 0) > 0).length
+    const pendingPaymentAmount = fitnessRecords.reduce((sum, record) => sum + (record.balance || 0), 0)
+
+    return { total, expiring, expired, pendingPaymentCount, pendingPaymentAmount }
   }, [fitnessRecords])
 
   return (
@@ -226,27 +336,6 @@ const Fitness = () => {
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active */}
-              <div
-                onClick={() => setStatusFilter(statusFilter === 'active' ? 'all' : 'active')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'active' ? 'border-purple-500 ring-2 ring-purple-300 shadow-xl' : 'border-purple-100'
-                }`}
-                title={statusFilter === 'active' ? 'Click to clear filter' : 'Click to filter active records'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.active}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>
@@ -289,6 +378,28 @@ const Fitness = () => {
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pending Payment */}
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'pending' ? 'border-amber-500 ring-2 ring-amber-300 shadow-xl' : 'border-amber-100'
+                }`}
+                title={statusFilter === 'pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
+              >
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.pendingPaymentCount}</h3>
+                    <p className='text-[8px] lg:text-xs text-amber-600 font-bold mt-0.5'>₹{statistics.pendingPaymentAmount.toLocaleString('en-IN')}</p>
+                  </div>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>
@@ -366,6 +477,18 @@ const Fitness = () => {
 
                         {/* Action Buttons */}
                         <div className='flex items-center gap-1.5'>
+                          {/* Renew Button - Smart logic based on vehicle fitness status */}
+                          {shouldShowRenewButton(record) && (
+                            <button
+                              onClick={() => handleRenewClick(record)}
+                              className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all cursor-pointer'
+                              title='Renew Fitness'
+                            >
+                              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                              </svg>
+                            </button>
+                          )}
                           <button
                             onClick={() => {
                               setSelectedFitness(record)
@@ -530,10 +653,22 @@ const Fitness = () => {
                         {/* Actions */}
                         <td className='px-4 py-4'>
                           <div className='flex items-center justify-center gap-2'>
+                            {/* Renew Button - Smart logic based on vehicle fitness status */}
+                            {shouldShowRenewButton(record) && (
+                              <button
+                                onClick={() => handleRenewClick(record)}
+                                className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
+                                title='Renew Fitness'
+                              >
+                                <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                                </svg>
+                              </button>
+                            )}
                             {/* View Button */}
                             <button
                               onClick={() => handleViewFitness(record)}
-                              className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
+                              className='p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
                               title='View Details'
                             >
                               <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -578,8 +713,12 @@ const Fitness = () => {
       {/* Add Fitness Modal */}
       <AddFitnessModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false)
+          setInitialFitnessData(null) // Reset initial data when closing
+        }}
         onSubmit={handleAddFitness}
+        initialData={initialFitnessData}
       />
 
       {/* Edit Fitness Modal */}

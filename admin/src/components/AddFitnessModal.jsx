@@ -8,7 +8,7 @@ const formatDate = (date) => {
   return `${day}-${month}-${year}`
 }
 
-const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
+const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     validFrom: '',
@@ -17,6 +17,26 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     paid: '0',
     balance: '0'
   })
+
+  // Pre-fill form when initialData is provided (for renewal)
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: initialData.vehicleNumber || ''
+      }))
+    } else if (!isOpen) {
+      // Reset form when modal closes
+      setFormData({
+        vehicleNumber: '',
+        validFrom: '',
+        validTo: '',
+        totalFee: '0',
+        paid: '0',
+        balance: '0'
+      })
+    }
+  }, [initialData, isOpen])
 
   // Calculate valid to date (1 year from valid from)
   useEffect(() => {
@@ -167,8 +187,12 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
         <div className='bg-gradient-to-r from-green-600 to-emerald-600 p-4 text-white'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-2xl font-bold'>Add New Fitness Certificate</h2>
-              <p className='text-green-100 text-sm mt-1'>Add vehicle fitness certificate record</p>
+              <h2 className='text-2xl font-bold'>
+                {initialData ? 'Renew Fitness Certificate' : 'Add New Fitness Certificate'}
+              </h2>
+              <p className='text-green-100 text-sm mt-1'>
+                {initialData ? 'Renew vehicle fitness certificate' : 'Add vehicle fitness certificate record'}
+              </p>
             </div>
             <button
               onClick={onClose}
@@ -196,6 +220,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                 <div>
                   <label className='block text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
+                    {initialData && <span className='text-xs text-gray-500 ml-2'>(Pre-filled for renewal)</span>}
                   </label>
                   <input
                     type='text'
@@ -203,9 +228,12 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.vehicleNumber}
                     onChange={handleChange}
                     placeholder='CG04AB1234 (dashes will be removed automatically)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono uppercase'
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono uppercase ${
+                      initialData ? 'bg-gray-100 cursor-not-allowed' : ''
+                    }`}
                     required
-                    autoFocus
+                    autoFocus={!initialData}
+                    readOnly={!!initialData}
                   />
                 </div>
 
@@ -318,7 +346,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                 </svg>
-                Add Fitness Certificate
+                {initialData ? 'Renew Fitness Certificate' : 'Add Fitness Certificate'}
               </button>
             </div>
           </div>
