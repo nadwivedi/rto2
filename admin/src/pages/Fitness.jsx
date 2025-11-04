@@ -184,19 +184,19 @@ const Fitness = () => {
 
   return (
     <>
-      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-green-50 to-emerald-50'>
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
         <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Fitness Records */}
-              <div className='bg-white rounded-lg shadow-md border border-gray-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Fitness</p>
                     <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.total}</h3>
                   </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-gray-500 to-gray-700 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                     </svg>
@@ -205,13 +205,13 @@ const Fitness = () => {
               </div>
 
               {/* Active */}
-              <div className='bg-white rounded-lg shadow-md border border-green-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-purple-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-green-600'>{statistics.active}</h3>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.active}</h3>
                   </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
@@ -220,13 +220,13 @@ const Fitness = () => {
               </div>
 
               {/* Expiring Soon */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{statistics.expiring}</h3>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.expiring}</h3>
                   </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
@@ -235,13 +235,13 @@ const Fitness = () => {
               </div>
 
               {/* Expired */}
-              <div className='bg-white rounded-lg shadow-md border border-red-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expired</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-red-600'>{statistics.expired}</h3>
+                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{statistics.expired}</h3>
                   </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                     </svg>
@@ -253,7 +253,7 @@ const Fitness = () => {
 
           {/* Fitness Table */}
           <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
-            <div className='px-6 py-5 bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 border-b border-gray-200'>
+            <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
               <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center'>
                 {/* Search Bar */}
                 <div className='relative flex-1 lg:max-w-md'>
@@ -262,10 +262,10 @@ const Fitness = () => {
                     placeholder='Search by vehicle number...'
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className='w-full pl-11 pr-4 py-3 text-sm border-2 border-green-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-400 transition-all bg-white shadow-sm'
+                    className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
                   />
                   <svg
-                    className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-400'
+                    className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
                     fill='none'
                     stroke='currentColor'
                     viewBox='0 0 24 24'
@@ -277,7 +277,7 @@ const Fitness = () => {
                 {/* Add Button */}
                 <button
                   onClick={() => setIsAddModalOpen(true)}
-                  className='px-4 lg:px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:shadow-xl font-bold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 cursor-pointer'
+                  className='px-4 lg:px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl font-bold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 cursor-pointer'
                 >
                   <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
@@ -296,7 +296,7 @@ const Fitness = () => {
             {/* Loading Indicator */}
             {loading && (
               <div className='p-8 text-center'>
-                <div className='inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600'></div>
+                <div className='inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600'></div>
                 <p className='mt-4 text-gray-600 font-semibold'>Loading fitness records...</p>
               </div>
             )}
@@ -308,9 +308,9 @@ const Fitness = () => {
                   {filteredRecords.map((record) => (
                     <div key={record.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
                       {/* Card Header with Avatar and Actions */}
-                      <div className='bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 p-3 flex items-start justify-between'>
+                      <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
                         <div className='flex items-center gap-3'>
-                          <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
+                          <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
                             {record.vehicleNumber?.substring(0, 2) || 'V'}
                           </div>
                           <div>
@@ -414,7 +414,7 @@ const Fitness = () => {
             {/* Desktop Table View */}
             <div className='hidden lg:block overflow-x-auto'>
               <table className='w-full'>
-                <thead className='bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600'>
+                <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
                   <tr>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle Number</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>
@@ -429,11 +429,11 @@ const Fitness = () => {
                 <tbody className='divide-y divide-gray-200'>
                   {filteredRecords.length > 0 ? (
                     filteredRecords.map((record, index) => (
-                      <tr key={record.id} className='hover:bg-gradient-to-r hover:from-green-50/50 hover:via-emerald-50/50 hover:to-teal-50/50 transition-all duration-200 group'>
+                      <tr key={record.id} className='hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group'>
                         {/* Vehicle Number */}
                         <td className='px-4 py-4'>
                           <div className='flex items-center gap-3'>
-                            <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
+                            <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
                               {record.vehicleNumber?.substring(0, 2) || 'V'}
                             </div>
                             <div className='text-sm font-mono font-bold text-gray-900'>{record.vehicleNumber}</div>

@@ -90,7 +90,7 @@ exports.getTaxById = async (req, res) => {
 // Create new tax record
 exports.createTax = async (req, res) => {
   try {
-    const { receiptNo, vehicleNumber, ownerName, taxAmount, taxFrom, taxTo } = req.body
+    const { receiptNo, vehicleNumber, ownerName, totalAmount, paidAmount, balanceAmount, taxFrom, taxTo } = req.body
 
     // Validate required fields
     if (!receiptNo || !vehicleNumber || !taxFrom || !taxTo) {
@@ -105,7 +105,9 @@ exports.createTax = async (req, res) => {
       receiptNo,
       vehicleNumber,
       ownerName,
-      taxAmount: taxAmount || 0,
+      totalAmount: totalAmount || 0,
+      paidAmount: paidAmount || 0,
+      balanceAmount: balanceAmount || 0,
       taxFrom,
       taxTo,
       status: 'active'
@@ -127,11 +129,11 @@ exports.createTax = async (req, res) => {
         {
           description: `Tax Payment\nReceipt No: ${tax.receiptNo}\nVehicle No: ${tax.vehicleNumber}\nTax Period: ${tax.taxFrom} to ${tax.taxTo}`,
           quantity: 1,
-          rate: tax.taxAmount,
-          amount: tax.taxAmount
+          rate: tax.totalAmount,
+          amount: tax.totalAmount
         }
       ],
-      totalAmount: tax.taxAmount
+      totalAmount: tax.totalAmount
     })
     await customBill.save()
 
@@ -172,7 +174,7 @@ exports.createTax = async (req, res) => {
 // Update tax record
 exports.updateTax = async (req, res) => {
   try {
-    const { receiptNo, vehicleNumber, ownerName, taxAmount, taxFrom, taxTo, status } = req.body
+    const { receiptNo, vehicleNumber, ownerName, totalAmount, paidAmount, balanceAmount, taxFrom, taxTo, status } = req.body
 
     const tax = await Tax.findById(req.params.id)
 
@@ -189,7 +191,9 @@ exports.updateTax = async (req, res) => {
     if (ownerName !== undefined) tax.ownerName = ownerName
     if (taxFrom) tax.taxFrom = taxFrom
     if (taxTo) tax.taxTo = taxTo
-    if (taxAmount !== undefined) tax.taxAmount = taxAmount
+    if (totalAmount !== undefined) tax.totalAmount = totalAmount
+    if (paidAmount !== undefined) tax.paidAmount = paidAmount
+    if (balanceAmount !== undefined) tax.balanceAmount = balanceAmount
     if (status) tax.status = status
 
     await tax.save()
@@ -325,11 +329,11 @@ exports.generateBillPDF = async (req, res) => {
           {
             description: `Tax Payment\nReceipt No: ${tax.receiptNo}\nVehicle No: ${tax.vehicleNumber}\nTax Period: ${tax.taxFrom} to ${tax.taxTo}`,
             quantity: 1,
-            rate: tax.taxAmount,
-            amount: tax.taxAmount
+            rate: tax.totalAmount || 0,
+            amount: tax.totalAmount || 0
           }
         ],
-        totalAmount: tax.taxAmount
+        totalAmount: tax.totalAmount || 0
       })
       await customBill.save()
 

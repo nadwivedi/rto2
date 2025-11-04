@@ -14,6 +14,7 @@ const Tax = () => {
   const [selectedTax, setSelectedTax] = useState(null)
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'expired'
+  const [initialTaxData, setInitialTaxData] = useState(null) // For pre-filling renewal data
 
   // Fetch tax records from API
   const fetchTaxRecords = async () => {
@@ -105,6 +106,7 @@ const Tax = () => {
         if (statusFilter === 'active') return status === 'Active'
         if (statusFilter === 'expiring') return status === 'Expiring Soon'
         if (statusFilter === 'expired') return status === 'Expired'
+        if (statusFilter === 'pending') return (record.balanceAmount || 0) > 0
         return true
       })
 
@@ -226,6 +228,15 @@ const Tax = () => {
     setIsEditModalOpen(true)
   }
 
+  const handleRenewClick = (record) => {
+    // Pre-fill vehicle number and owner name for renewal
+    setInitialTaxData({
+      vehicleNumber: record.vehicleNumber,
+      ownerName: record.ownerName || ''
+    })
+    setIsAddModalOpen(true)
+  }
+
   const handleDeleteTax = async (id) => {
     if (!window.confirm('Are you sure you want to delete this tax record?')) {
       return
@@ -305,21 +316,22 @@ const Tax = () => {
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
-              {/* Active (Valid) */}
+              {/* Total Tax Records */}
               <div
-                onClick={() => setStatusFilter('active')}
+                onClick={() => setStatusFilter('all')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'active' ? 'border-emerald-500 ring-2 ring-emerald-300 shadow-xl' : 'border-emerald-100'
+                  statusFilter === 'all' ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl' : 'border-blue-100'
                 }`}
+                title={statusFilter === 'all' ? 'Currently showing all records' : 'Click to show all records'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Valid & Active</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-emerald-600'>{statistics.active}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Tax Records</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-blue-600'>{statistics.total}</h3>
                   </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                     </svg>
                   </div>
                 </div>
@@ -327,10 +339,11 @@ const Tax = () => {
 
               {/* Tax Due Soon */}
               <div
-                onClick={() => setStatusFilter('expiring')}
+                onClick={() => setStatusFilter(statusFilter === 'expiring' ? 'all' : 'expiring')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
                   statusFilter === 'expiring' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
                 }`}
+                title={statusFilter === 'expiring' ? 'Click to clear filter' : 'Click to filter expiring records'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -348,10 +361,11 @@ const Tax = () => {
 
               {/* Tax Expired */}
               <div
-                onClick={() => setStatusFilter('expired')}
+                onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
                   statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
                 }`}
+                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired records'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -368,7 +382,13 @@ const Tax = () => {
               </div>
 
               {/* Pending Payment */}
-              <div className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'pending' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
+                }`}
+                title={statusFilter === 'pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
+              >
                 <div className='flex items-center justify-between'>
                   <div className='flex-1'>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
@@ -435,9 +455,9 @@ const Tax = () => {
                     <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z' />
                     </svg>
-                    {statusFilter === 'active' && 'Active Only'}
                     {statusFilter === 'expiring' && 'Due Soon Only'}
                     {statusFilter === 'expired' && 'Expired Only'}
+                    {statusFilter === 'pending' && 'Pending Payment Only'}
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -482,6 +502,18 @@ const Tax = () => {
 
                         {/* Action Buttons */}
                         <div className='flex items-center gap-1.5'>
+                          {/* Renew Button - Show only for expired or expiring soon */}
+                          {(getStatusText(record.taxTo) === 'Expired' || getStatusText(record.taxTo) === 'Expiring Soon') && (
+                            <button
+                              onClick={() => handleRenewClick(record)}
+                              className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all cursor-pointer'
+                              title='Renew Tax'
+                            >
+                              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                              </svg>
+                            </button>
+                          )}
                           <button
                             onClick={() => handleEditClick(record)}
                             className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all cursor-pointer'
@@ -668,6 +700,18 @@ const Tax = () => {
                         {/* Actions */}
                         <td className='px-4 py-4'>
                           <div className='flex items-center justify-center gap-2'>
+                            {/* Renew Button - Show only for expired or expiring soon */}
+                            {(getStatusText(record.taxTo) === 'Expired' || getStatusText(record.taxTo) === 'Expiring Soon') && (
+                              <button
+                                onClick={() => handleRenewClick(record)}
+                                className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
+                                title='Renew Tax'
+                              >
+                                <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                                </svg>
+                              </button>
+                            )}
                             {/* Edit Button */}
                             <button
                               onClick={() => handleEditClick(record)}
@@ -715,8 +759,12 @@ const Tax = () => {
       {/* Add Tax Modal */}
       <AddTaxModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false)
+          setInitialTaxData(null) // Clear initial data when closing
+        }}
         onSubmit={handleAddTax}
+        initialData={initialTaxData}
       />
 
       {/* Edit Tax Modal */}

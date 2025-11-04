@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
+const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
 
@@ -14,6 +14,31 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     taxFrom: '',
     taxTo: ''
   })
+
+  // Pre-fill form when initialData is provided (for renewal)
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: initialData.vehicleNumber || '',
+        ownerName: initialData.ownerName || ''
+      }))
+    } else if (!isOpen) {
+      // Reset form when modal closes
+      setFormData({
+        receiptNo: '',
+        vehicleNumber: '',
+        ownerName: '',
+        totalAmount: '0',
+        paidAmount: '0',
+        balance: '0',
+        taxFrom: '',
+        taxTo: ''
+      })
+      setVehicleError('')
+      setFetchingVehicle(false)
+    }
+  }, [initialData, isOpen])
 
   // Fetch vehicle details when registration number is entered
   useEffect(() => {
@@ -210,8 +235,14 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
         <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-3 md:p-4 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-lg md:text-2xl font-bold'>Add New Tax Record</h2>
-              <p className='text-blue-100 text-xs md:text-sm mt-1'>Quarterly vehicle tax payment record (3 months)</p>
+              <h2 className='text-lg md:text-2xl font-bold'>
+                {initialData ? 'Renew Tax Record' : 'Add New Tax Record'}
+              </h2>
+              <p className='text-blue-100 text-xs md:text-sm mt-1'>
+                {initialData
+                  ? `Renewing tax for ${initialData.vehicleNumber}`
+                  : 'Quarterly vehicle tax payment record (3 months)'}
+              </p>
             </div>
             <button
               onClick={onClose}
@@ -256,6 +287,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
+                    {initialData && (
+                      <span className='ml-2 text-xs text-blue-600 font-normal'>(Pre-filled for renewal)</span>
+                    )}
                   </label>
                   <div className='relative'>
                     <input
@@ -264,7 +298,10 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                       value={formData.vehicleNumber}
                       onChange={handleChange}
                       placeholder='CG04AB1234'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                      className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase ${
+                        initialData ? 'bg-blue-50' : ''
+                      }`}
+                      readOnly={!!initialData}
                       required
                     />
                     {fetchingVehicle && (
@@ -288,6 +325,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                 <div className='md:col-span-2'>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Owner Name
+                    {initialData && formData.ownerName && (
+                      <span className='ml-2 text-xs text-blue-600 font-normal'>(Pre-filled for renewal)</span>
+                    )}
                   </label>
                   <input
                     type='text'
@@ -295,7 +335,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.ownerName}
                     onChange={handleChange}
                     placeholder='Enter owner name'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
+                      initialData && formData.ownerName ? 'bg-blue-50' : ''
+                    }`}
                   />
                 </div>
               </div>
@@ -455,10 +497,21 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                 type='submit'
                 className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
               >
-                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                </svg>
-                Add Tax Record
+                {initialData ? (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                    </svg>
+                    Renew Tax
+                  </>
+                ) : (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    Add Tax Record
+                  </>
+                )}
               </button>
             </div>
           </div>
