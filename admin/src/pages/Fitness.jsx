@@ -62,7 +62,7 @@ const Fitness = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
     if (diffDays < 0) return 'bg-red-100 text-red-700'
-    if (diffDays <= 15) return 'bg-orange-100 text-orange-700'
+    if (diffDays <= 30) return 'bg-orange-100 text-orange-700'
     return 'bg-green-100 text-green-700'
   }
 
@@ -76,7 +76,7 @@ const Fitness = () => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
     if (diffDays < 0) return 'Expired'
-    if (diffDays <= 15) return 'Expiring Soon'
+    if (diffDays <= 30) return 'Expiring Soon'
     return 'Active'
   }
 
@@ -252,10 +252,19 @@ const Fitness = () => {
 
   // Determine if renew button should be shown for a record
   const shouldShowRenewButton = (record) => {
+    if (!record.validTo) return false
+
+    // Calculate days remaining
+    const today = new Date()
+    const dateParts = record.validTo.split(/[/-]/)
+    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
+    const diffTime = validToDate - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
     const status = getStatusText(record.validTo)
 
-    // Always show for expiring soon
-    if (status === 'Expiring Soon') {
+    // Show for expiring soon BUT only if within 15 days
+    if (status === 'Expiring Soon' && diffDays <= 15) {
       return true
     }
 
