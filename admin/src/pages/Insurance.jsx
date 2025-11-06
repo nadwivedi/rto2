@@ -649,7 +649,6 @@ const Insurance = () => {
             <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
               <tr>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Policy Number</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Owner Name</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle No.</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid From</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid To</th>
@@ -670,22 +669,6 @@ const Insurance = () => {
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex items-center'>
-                        <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
-                          {insurance.ownerName?.charAt(0) || 'O'}
-                        </div>
-                        <div className='ml-4'>
-                          <div className='text-sm font-bold text-gray-900'>{insurance.ownerName}</div>
-                          <div className='text-xs text-gray-500 flex items-center mt-1'>
-                            <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
-                            </svg>
-                            {insurance.mobileNumber || 'N/A'}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className='px-6 py-5'>
                       <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
                         <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
                           <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
@@ -695,19 +678,23 @@ const Insurance = () => {
                       </span>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex items-center text-sm text-gray-700'>
-                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                        </svg>
-                        {insurance.validFrom}
+                      <div className='flex items-center text-sm'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200'>
+                          <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                          </svg>
+                          {insurance.validFrom}
+                        </span>
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex items-center text-sm text-gray-700'>
-                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                        </svg>
-                        {insurance.validTo}
+                      <div className='flex items-center text-sm'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200'>
+                          <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                          </svg>
+                          {insurance.validTo}
+                        </span>
                       </div>
                     </td>
                     <td className='px-6 py-5'>
@@ -737,33 +724,35 @@ const Insurance = () => {
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex items-center justify-center gap-2'>
-                        {shouldShowRenewButton(insurance) && (
+                      <div className='grid grid-cols-3 gap-2 w-[140px] mx-auto'>
+                        {shouldShowRenewButton(insurance) ? (
                           <button
                             onClick={() => handleRenewClick(insurance)}
-                            className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                            className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
                             title='Renew Insurance'
                           >
-                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
                             </svg>
                           </button>
+                        ) : (
+                          <div></div>
                         )}
                         <button
                           onClick={() => handleEditClick(insurance)}
-                          className='p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
                           title='Edit Insurance'
                         >
-                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
                           </svg>
                         </button>
                         <button
                           onClick={() => handleDeleteInsurance(insurance)}
-                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
                           title='Delete Insurance'
                         >
-                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                           </svg>
                         </button>
@@ -773,7 +762,7 @@ const Insurance = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='10' className='px-6 py-16'>
+                  <td colSpan='9' className='px-6 py-16'>
                     <div className='flex flex-col items-center justify-center'>
                       <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg'>
                         <svg className='w-12 h-12 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

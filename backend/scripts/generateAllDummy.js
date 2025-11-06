@@ -4,6 +4,7 @@ const path = require('path')
 console.log('🚀 Starting dummy data generation for all modules...\n')
 
 const scripts = [
+  { name: 'Vehicle Registration', file: 'generateVehicleRegistrationDummy.js' },
   { name: 'Fitness', file: 'generateFitnessDummy.js' },
   { name: 'Tax', file: 'generateTaxDummy.js' },
   { name: 'Insurance', file: 'generateInsuranceDummy.js' },
@@ -48,12 +49,13 @@ const runAllScripts = async () => {
     console.log('✨ ALL DUMMY DATA GENERATED SUCCESSFULLY!')
     console.log('='.repeat(60))
     console.log('\n📊 Summary:')
+    console.log('   ✅ Vehicle Registration: 50 records')
     console.log('   ✅ Fitness: 30 records')
     console.log('   ✅ Tax: 30 records')
     console.log('   ✅ Insurance: 30 records')
     console.log('   ✅ CG Permit: 30 records')
     console.log('   ✅ Temporary Permit: 30 records')
-    console.log('   📦 Total: 150 records\n')
+    console.log('   📦 Total: 200 records\n')
 
   } catch (error) {
     console.error('\n❌ Failed to generate all dummy data')

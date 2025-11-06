@@ -98,6 +98,22 @@ const VehicleRegistration = () => {
     setShowModal(true)
   }
 
+  const handleCopyChassisNumber = (chassisNumber) => {
+    if (!chassisNumber || chassisNumber === 'N/A') {
+      toast.warning('No chassis number to copy', { position: 'top-right', autoClose: 2000 })
+      return
+    }
+
+    navigator.clipboard.writeText(chassisNumber)
+      .then(() => {
+        toast.success('Chassis number copied to clipboard!', { position: 'top-right', autoClose: 2000 })
+      })
+      .catch((err) => {
+        console.error('Failed to copy:', err)
+        toast.error('Failed to copy chassis number', { position: 'top-right', autoClose: 2000 })
+      })
+  }
+
   const handleViewDetails = (registration) => {
     setSelectedRegistration(registration)
     setShowDetailsModal(true)
@@ -209,14 +225,11 @@ const VehicleRegistration = () => {
                       <div key={registration._id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
                         {/* Card Header with Avatar and Actions */}
                         <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
-                          <div className='flex items-center gap-3'>
-                            <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
-                              {registration.vehicleNumber?.substring(0, 2) || registration.registrationNumber?.substring(0, 2) || 'VH'}
+                          <div>
+                            <div className='text-base font-mono font-bold text-gray-900 mb-1'>
+                              {registration.vehicleNumber || registration.registrationNumber}
                             </div>
-                            <div>
-                              <div className='text-sm font-mono font-bold text-gray-900'>{registration.vehicleNumber || registration.registrationNumber}</div>
-                              <div className='text-xs text-gray-600'>{registration.ownerName || '-'}</div>
-                            </div>
+                            <div className='text-xs text-gray-600'>{registration.ownerName || '-'}</div>
                           </div>
 
                           {/* Action Buttons */}
@@ -258,11 +271,24 @@ const VehicleRegistration = () => {
                           <div className='grid grid-cols-2 gap-2'>
                             <div>
                               <p className='text-[10px] text-gray-500 font-semibold uppercase'>Chassis No</p>
-                              <p className='text-sm font-mono font-bold text-gray-900'>{registration.chassisNumber || 'N/A'}</p>
+                              <div className='flex items-center gap-1.5'>
+                                <p className='text-sm font-mono text-gray-700'>{registration.chassisNumber || 'N/A'}</p>
+                                {registration.chassisNumber && registration.chassisNumber !== 'N/A' && (
+                                  <button
+                                    onClick={() => handleCopyChassisNumber(registration.chassisNumber)}
+                                    className='p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-all duration-200'
+                                    title='Copy Chassis Number'
+                                  >
+                                    <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z' />
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
                             </div>
                             <div>
                               <p className='text-[10px] text-gray-500 font-semibold uppercase'>Engine No</p>
-                              <p className='text-sm font-mono font-bold text-gray-900'>{registration.engineNumber || 'N/A'}</p>
+                              <p className='text-sm font-mono text-gray-700'>{registration.engineNumber || 'N/A'}</p>
                             </div>
                           </div>
 
@@ -278,11 +304,11 @@ const VehicleRegistration = () => {
                           <div className='grid grid-cols-2 gap-2 pt-2 border-t border-gray-100'>
                             <div>
                               <p className='text-[10px] text-gray-500 font-semibold uppercase'>Laden Weight</p>
-                              <p className='text-sm font-bold text-gray-800'>{registration.ladenWeight ? `${registration.ladenWeight} kg` : 'N/A'}</p>
+                              <p className='text-sm text-gray-700'>{registration.ladenWeight ? `${registration.ladenWeight} kg` : 'N/A'}</p>
                             </div>
                             <div>
                               <p className='text-[10px] text-gray-500 font-semibold uppercase'>Unladen Weight</p>
-                              <p className='text-sm font-bold text-gray-800'>{registration.unladenWeight ? `${registration.unladenWeight} kg` : 'N/A'}</p>
+                              <p className='text-sm text-gray-700'>{registration.unladenWeight ? `${registration.unladenWeight} kg` : 'N/A'}</p>
                             </div>
                           </div>
 
@@ -321,64 +347,78 @@ const VehicleRegistration = () => {
                   <tbody className='divide-y divide-gray-200'>
                     {filteredRegistrations.map((registration) => (
                       <tr key={registration._id} className='hover:bg-gradient-to-r hover:from-indigo-50/50 hover:via-purple-50/50 hover:to-pink-50/50 transition-all duration-200 group'>
-                        <td className='px-4 py-4'>
-                          <div className='flex items-center gap-3'>
-                            <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
-                              {registration.vehicleNumber?.substring(0, 2) || registration.registrationNumber?.substring(0, 2) || 'VH'}
+                        <td className='px-6 py-4'>
+                          <div>
+                            <div className='text-[17px] font-mono font-semibold text-gray-900 mb-1'>
+                              {registration.vehicleNumber || registration.registrationNumber}
                             </div>
-                            <div>
-                              <div className='text-sm font-mono font-bold text-gray-900'>{registration.vehicleNumber || registration.registrationNumber}</div>
-                              <div className='text-xs text-gray-500 mt-0.5'>
-                                {registration.dateOfRegistration && `Regn: ${registration.dateOfRegistration}`}
+                            {registration.dateOfRegistration && (
+                              <div className='text-xs text-gray-500'>
+                                Registered: {registration.dateOfRegistration}
                               </div>
-                            </div>
+                            )}
                           </div>
                         </td>
-                        <td className='px-4 py-4'>
-                          <div className='text-sm font-semibold text-gray-900'>{registration.chassisNumber || 'N/A'}</div>
+                        <td className='px-6 py-4'>
+                          <div className='flex items-center gap-2'>
+                            <span className='text-sm font-mono text-gray-700'>{registration.chassisNumber || 'N/A'}</span>
+                            {registration.chassisNumber && registration.chassisNumber !== 'N/A' && (
+                              <button
+                                onClick={() => handleCopyChassisNumber(registration.chassisNumber)}
+                                className='p-1 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-all duration-200 cursor-pointer'
+                                title='Copy Chassis Number'
+                              >
+                                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z' />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                        <td className='px-6 py-4'>
+                          <span className='text-sm font-mono text-gray-700'>{registration.engineNumber || 'N/A'}</span>
+                        </td>
+                        <td className='px-6 py-4'>
+                          <div>
+                            <div className='text-sm font-semibold text-gray-900'>{registration.ownerName || 'N/A'}</div>
+                            {registration.sonWifeDaughterOf && (
+                              <div className='text-xs text-gray-500 mt-0.5'>S/W/D of {registration.sonWifeDaughterOf}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className='px-6 py-4'>
+                          <span className='text-sm text-gray-700'>{registration.ladenWeight ? `${registration.ladenWeight} kg` : 'N/A'}</span>
+                        </td>
+                        <td className='px-6 py-4'>
+                          <span className='text-sm text-gray-700'>{registration.unladenWeight ? `${registration.unladenWeight} kg` : 'N/A'}</span>
                         </td>
                         <td className='px-4 py-4'>
-                          <div className='text-sm font-semibold text-gray-900'>{registration.engineNumber || 'N/A'}</div>
-                        </td>
-                        <td className='px-4 py-4'>
-                          <div className='text-sm font-bold text-gray-900'>{registration.ownerName || 'N/A'}</div>
-                          {registration.sonWifeDaughterOf && (
-                            <div className='text-xs text-gray-500 mt-0.5'>S/W/D of {registration.sonWifeDaughterOf}</div>
-                          )}
-                        </td>
-                        <td className='px-4 py-4'>
-                          <div className='text-sm font-semibold text-gray-900'>{registration.ladenWeight ? `${registration.ladenWeight} kg` : 'N/A'}</div>
-                        </td>
-                        <td className='px-4 py-4'>
-                          <div className='text-sm font-semibold text-gray-900'>{registration.unladenWeight ? `${registration.unladenWeight} kg` : 'N/A'}</div>
-                        </td>
-                        <td className='px-4 py-4'>
-                          <div className='flex items-center justify-center gap-1.5'>
+                          <div className='flex items-center justify-center gap-2'>
                             <button
                               onClick={() => handleViewDetails(registration)}
-                              className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                              className='p-2 bg-indigo-100 text-indigo-600 hover:bg-indigo-200 rounded-lg transition-all hover:shadow-md duration-200 cursor-pointer group'
                               title='View Details'
                             >
-                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
                               </svg>
                             </button>
                             <button
                               onClick={() => handleEdit(registration)}
-                              className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                              className='p-2 bg-green-100 text-green-600 hover:bg-green-200 rounded-lg transition-all hover:shadow-md duration-200 cursor-pointer group'
                               title='Edit'
                             >
-                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
                               </svg>
                             </button>
                             <button
                               onClick={() => handleDelete(registration._id)}
-                              className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                              className='p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-all hover:shadow-md duration-200 cursor-pointer group'
                               title='Delete'
                             >
-                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                               </svg>
                             </button>

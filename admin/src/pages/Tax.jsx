@@ -719,9 +719,9 @@ const Tax = () => {
 
                         {/* Actions */}
                         <td className='px-4 py-4'>
-                          <div className='flex items-center justify-center gap-2'>
+                          <div className='grid grid-cols-3 gap-2 w-[140px] mx-auto'>
                             {/* Renew Button - Smart logic based on vehicle tax status */}
-                            {shouldShowRenewButton(record) && (
+                            {shouldShowRenewButton(record) ? (
                               <button
                                 onClick={() => handleRenewClick(record)}
                                 className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
@@ -731,6 +731,8 @@ const Tax = () => {
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
                                 </svg>
                               </button>
+                            ) : (
+                              <div></div>
                             )}
                             {/* Edit Button */}
                             <button

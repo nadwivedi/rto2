@@ -73,10 +73,7 @@ const InsuranceSchema = new mongoose.Schema({
   timestamps: true // Automatically adds createdAt and updatedAt fields
 })
 
-// Index for faster searches
-InsuranceSchema.index({ policyNumber: 1 })
-InsuranceSchema.index({ vehicleNumber: 1 })
-InsuranceSchema.index({ validTo: 1 })
+
 
 const Insurance = mongoose.model('Insurance', InsuranceSchema)
 

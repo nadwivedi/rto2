@@ -49,6 +49,7 @@ const insuranceRoutes = require('./routes/insurance')
 const importRoutes = require('./routes/import')
 
 // Use Routes
+
 app.use('/api/auth', authRoutes)
 app.use('/api/driving-licenses', drivingLicenseRoutes)
 app.use('/api/national-permits', nationalPermitRoutes)
