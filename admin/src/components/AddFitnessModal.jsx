@@ -181,24 +181,24 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
-      <div className='bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[95vh] overflow-hidden'>
+    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
+      <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-green-600 to-emerald-600 p-4 text-white'>
+        <div className='bg-gradient-to-r from-green-600 to-emerald-600 p-2 md:p-3 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-2xl font-bold'>
+              <h2 className='text-lg md:text-2xl font-bold'>
                 {initialData ? 'Renew Fitness Certificate' : 'Add New Fitness Certificate'}
               </h2>
-              <p className='text-green-100 text-sm mt-1'>
+              <p className='text-green-100 text-xs md:text-sm mt-1'>
                 {initialData ? 'Renew vehicle fitness certificate' : 'Add vehicle fitness certificate record'}
               </p>
             </div>
             <button
               onClick={onClose}
-              className='text-white hover:bg-white/20 rounded-lg p-2 transition cursor-pointer'
+              className='text-white hover:bg-white/20 rounded-lg p-1.5 md:p-2 transition cursor-pointer'
             >
-              <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
               </svg>
             </button>
@@ -206,21 +206,23 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className='overflow-y-auto max-h-[calc(95vh-140px)]'>
-          <div className='p-6'>
-            {/* Fitness Details Section */}
-            <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6'>
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='bg-green-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm'>1</span>
-                Fitness Certificate Details
+        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
+          <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+            {/* Section 1: Vehicle Details */}
+            <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-emerald-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-emerald-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
+                Vehicle Details
               </h3>
 
-              <div className='space-y-4'>
+              <div className='grid grid-cols-1 gap-3 md:gap-4'>
                 {/* Vehicle Number */}
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
-                    {initialData && <span className='text-xs text-gray-500 ml-2'>(Pre-filled for renewal)</span>}
+                    {initialData && (
+                      <span className='ml-2 text-xs text-blue-600 font-normal'>(Pre-filled for renewal)</span>
+                    )}
                   </label>
                   <input
                     type='text'
@@ -228,125 +230,173 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     value={formData.vehicleNumber}
                     onChange={handleChange}
                     placeholder='CG04AB1234'
-                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono uppercase ${
-                      initialData ? 'bg-gray-100 cursor-not-allowed' : ''
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono uppercase ${
+                      initialData ? 'bg-blue-50' : ''
                     }`}
-                    required
-                    autoFocus={!initialData}
                     readOnly={!!initialData}
+                    required
+                    autoFocus
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section 2: Validity Period */}
+            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
+                Validity Period
+              </h3>
+
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+                {/* Valid From */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Valid From <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='text'
+                    name='validFrom'
+                    value={formData.validFrom}
+                    onChange={handleChange}
+                    onBlur={handleDateBlur}
+                    placeholder='24-01-25 or 24/01/2025'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    required
                   />
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                  {/* Valid From */}
-                  <div>
-                    <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                      Valid From <span className='text-red-500'>*</span>
-                    </label>
-                    <input
-                      type='text'
-                      name='validFrom'
-                      value={formData.validFrom}
-                      onChange={handleChange}
-                      onBlur={handleDateBlur}
-                      placeholder='24-01-25 or 24/01/2025'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent'
-                      required
-                    />
-                  </div>
-
-                  {/* Valid To (Auto-calculated) */}
-                  <div>
-                    <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                      Valid To (Auto-calculated - 1 Year)
-                    </label>
-                    <input
-                      type='text'
-                      name='validTo'
-                      value={formData.validTo}
-                      onChange={handleChange}
-                      onBlur={handleDateBlur}
-                      placeholder='Will be calculated automatically'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent'
-                    />
-                  </div>
-                </div>
-
-                {/* Fee Fields */}
-                <div className='col-span-2'>
-                  <h4 className='text-sm font-bold text-gray-800 mb-3 uppercase text-green-600'>Fitness Fees</h4>
-                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Total Fee (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='totalFee'
-                        value={formData.totalFee}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Paid (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='paid'
-                        value={formData.paid}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Balance (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='balance'
-                        value={formData.balance}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold bg-gray-50'
-                        readOnly
-                      />
-                    </div>
-                  </div>
+                {/* Valid To (Auto-calculated) */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Valid To <span className='text-xs text-blue-500'>(Auto-calculated - 1 Year)</span>
+                  </label>
+                  <input
+                    type='text'
+                    name='validTo'
+                    value={formData.validTo}
+                    onChange={handleChange}
+                    onBlur={handleDateBlur}
+                    placeholder='Auto-calculated or enter manually'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
+                  />
                 </div>
               </div>
+            </div>
+
+            {/* Section 3: Payment Information */}
+            <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
+                Payment Information
+              </h3>
+
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
+                {/* Total Fee */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Total Fee (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='totalFee'
+                    value={formData.totalFee}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+
+                {/* Paid Amount */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Paid (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='paid'
+                    value={formData.paid}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+
+                {/* Balance (Auto-calculated) */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Balance (₹) <span className='text-xs text-gray-500'>(Auto)</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='balance'
+                    value={formData.balance}
+                    readOnly
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-purple-50 font-semibold text-gray-700'
+                  />
+                </div>
+              </div>
+
+              {/* Payment Status Indicator */}
+              {parseFloat(formData.balance) > 0 && parseFloat(formData.paid) > 0 && (
+                <div className='mt-3 bg-amber-50 border-l-4 border-amber-500 p-2 md:p-3 rounded'>
+                  <p className='text-xs md:text-sm font-semibold text-amber-700 flex items-center gap-1'>
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
+                    </svg>
+                    Partial Payment - Balance: ₹{formData.balance}
+                  </p>
+                </div>
+              )}
+              {parseFloat(formData.balance) === 0 && parseFloat(formData.totalFee) > 0 && (
+                <div className='mt-3 bg-green-50 border-l-4 border-green-500 p-2 md:p-3 rounded'>
+                  <p className='text-xs md:text-sm font-semibold text-green-700 flex items-center gap-1'>
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    Fully Paid
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className='border-t border-gray-200 p-4 bg-gray-50 flex justify-between items-center'>
-            <div className='text-sm text-gray-600'>
+          <div className='border-t border-gray-200 p-3 md:p-4 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3 flex-shrink-0'>
+            <div className='text-xs md:text-sm text-gray-600'>
               <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
             </div>
 
-            <div className='flex gap-3'>
+            <div className='flex gap-2 md:gap-3 w-full md:w-auto'>
               <button
                 type='button'
                 onClick={onClose}
-                className='px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer'
+                className='flex-1 md:flex-none px-4 md:px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer'
               >
                 Cancel
               </button>
 
               <button
                 type='submit'
-                className='px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center gap-2 cursor-pointer'
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
               >
-                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                </svg>
-                {initialData ? 'Renew Fitness Certificate' : 'Add Fitness Certificate'}
+                {initialData ? (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                    </svg>
+                    Renew Fitness
+                  </>
+                ) : (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    Add Fitness
+                  </>
+                )}
               </button>
             </div>
           </div>
