@@ -298,4 +298,166 @@ export const nationalPermitAPI = {
   }
 }
 
+// Insurance API
+export const insuranceAPI = {
+  // Get all insurance records
+  getAll: async (params = {}) => {
+    try {
+      const queryString = new URLSearchParams(params).toString()
+      const url = `${API_BASE_URL}/insurance${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch insurance records')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching insurance records:', error)
+      throw error
+    }
+  },
+
+  // Get single insurance record by ID
+  getById: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/insurance/${id}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch insurance record')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching insurance record:', error)
+      throw error
+    }
+  },
+
+  // Get insurance by policy number
+  getByPolicyNumber: async (policyNumber) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/insurance/policy/${policyNumber}`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch insurance record')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching insurance record:', error)
+      throw error
+    }
+  },
+
+  // Create new insurance record
+  create: async (insuranceData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/insurance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(insuranceData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create insurance record')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error creating insurance record:', error)
+      throw error
+    }
+  },
+
+  // Update insurance record
+  update: async (id, insuranceData) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/insurance/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(insuranceData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update insurance record')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error updating insurance record:', error)
+      throw error
+    }
+  },
+
+  // Delete insurance record
+  delete: async (id) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/insurance/${id}`, {
+        method: 'DELETE'
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete insurance record')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error deleting insurance record:', error)
+      throw error
+    }
+  },
+
+  // Get statistics
+  getStatistics: async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/insurance/statistics`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch statistics')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching statistics:', error)
+      throw error
+    }
+  },
+
+  // Get expiring insurance records
+  getExpiringSoon: async (params = {}) => {
+    try {
+      const queryString = new URLSearchParams(params).toString()
+      const url = `${API_BASE_URL}/insurance/expiring${queryString ? `?${queryString}` : ''}`
+
+      const response = await fetch(url)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch expiring insurance records')
+      }
+
+      return data
+    } catch (error) {
+      console.error('Error fetching expiring insurance records:', error)
+      throw error
+    }
+  }
+}
+
 export default drivingLicenseAPI

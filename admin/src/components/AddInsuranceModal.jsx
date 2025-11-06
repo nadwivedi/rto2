@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const AddInsuranceModal = ({ isOpen, onClose, onSubmit }) => {
+const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEditMode = false }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     policyNumber: '',
@@ -10,6 +10,34 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit }) => {
     paid: '0',
     balance: '0'
   })
+
+  // Pre-fill form when initialData is provided (for renewal)
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: initialData.vehicleNumber || '',
+        vehicleType: initialData.vehicleType || '',
+        ownerName: initialData.ownerName || '',
+        insuranceCompany: initialData.insuranceCompany || '',
+        policyType: initialData.policyType || '',
+        mobileNumber: initialData.mobileNumber || '',
+        agentName: initialData.agentName || '',
+        agentContact: initialData.agentContact || ''
+      }))
+    } else if (!isOpen) {
+      // Reset form when modal closes
+      setFormData({
+        vehicleNumber: '',
+        policyNumber: '',
+        validFrom: '',
+        validTo: '',
+        totalFee: '0',
+        paid: '0',
+        balance: '0'
+      })
+    }
+  }, [initialData, isOpen])
 
   // Calculate valid to date (1 year from valid from)
   useEffect(() => {
@@ -136,8 +164,8 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit }) => {
         <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-2xl font-bold'>Add New Insurance</h2>
-              <p className='text-blue-100 text-sm mt-1'>Add vehicle insurance record</p>
+              <h2 className='text-2xl font-bold'>{isEditMode ? 'Edit Insurance' : 'Add New Insurance'}</h2>
+              <p className='text-blue-100 text-sm mt-1'>{isEditMode ? 'Update vehicle insurance record' : 'Add vehicle insurance record'}</p>
             </div>
             <button
               onClick={onClose}
@@ -301,7 +329,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit }) => {
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                 </svg>
-                Add Insurance
+                {isEditMode ? 'Update Insurance' : 'Add Insurance'}
               </button>
             </div>
           </div>

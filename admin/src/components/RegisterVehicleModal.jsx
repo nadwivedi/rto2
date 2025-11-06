@@ -150,7 +150,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   return (
     <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn'>
-      <div className='bg-white rounded-3xl shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-hidden animate-slideUp'>
+      <div className='bg-white rounded-3xl shadow-2xl w-full max-w-[95%] max-h-[90vh] overflow-hidden animate-slideUp'>
         {/* Header with gradient and icon */}
         <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white p-7 z-10 shadow-lg'>
           <div className='flex items-center justify-between'>
@@ -641,7 +641,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 </div>
               </div>
               <div className='bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-100'>
-                <div className='grid grid-cols-1 gap-5'>
+                {/* Row 1: Owner Name and Son/Wife/Daughter of */}
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-5 mb-5'>
                   {/* Owner Name */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
@@ -685,32 +686,35 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                       />
                     </div>
                   </div>
+                </div>
 
-                  {/* Address */}
-                  <div className='group'>
+                {/* Row 2: Address, Mobile Number and Email */}
+                <div className='grid grid-cols-1 md:grid-cols-4 gap-5'>
+                  {/* Address - Takes 2 columns (50%) */}
+                  <div className='group md:col-span-2'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
                       Address
                     </label>
                     <div className='relative'>
-                      <div className='absolute top-3 left-0 pl-4 flex items-start pointer-events-none'>
+                      <div className='absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none'>
                         <svg className='w-5 h-5 text-purple-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z' />
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 11a3 3 0 11-6 0 3 3 0 016 0z' />
                         </svg>
                       </div>
-                      <textarea
+                      <input
+                        type='text'
                         name='address'
                         value={formData.address}
                         onChange={handleChange}
-                        rows='4'
                         placeholder='Enter complete address with pin code'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 resize-none font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
 
-                  {/* Mobile Number */}
-                  <div className='group'>
+                  {/* Mobile Number - Takes 1 column (25%) */}
+                  <div className='group md:col-span-1'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
                       Mobile Number
                     </label>
@@ -732,8 +736,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                     </div>
                   </div>
 
-                  {/* Email */}
-                  <div className='group'>
+                  {/* Email - Takes 1 column (25%) */}
+                  <div className='group md:col-span-1'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
                       Email Address
                     </label>

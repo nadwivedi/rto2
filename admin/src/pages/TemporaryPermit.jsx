@@ -4,6 +4,7 @@ import { toast } from 'react-toastify'
 import PermitBillModal from '../components/PermitBillModal'
 import SharePermitModal from '../components/SharePermitModal'
 import IssueTemporaryPermitModal from '../components/IssueTemporaryPermitModal'
+import EditTemporaryPermitModal from '../components/EditTemporaryPermitModal'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -133,10 +134,13 @@ const TemporaryPermit = () => {
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showBillModal, setShowBillModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showEditPermitModal, setShowEditPermitModal] = useState(false)
+  const [editingPermit, setEditingPermit] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [dateFilter, setDateFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'pending'
+  const [initialPermitData, setInitialPermitData] = useState(null) // For pre-filling renewal data
 
   // Fetch permits from backend on component mount
   useEffect(() => {
@@ -289,6 +293,154 @@ const TemporaryPermit = () => {
   const handleShare = (permit) => {
     setSelectedPermit(permit)
     setShowShareModal(true)
+  }
+
+  const handleEditClick = (permit) => {
+    setEditingPermit(permit)
+    setShowEditPermitModal(true)
+  }
+
+  const handleEditPermit = async (formData) => {
+    try {
+      // Prepare data to match backend model
+      const permitData = {
+        permitNumber: formData.permitNumber,
+        permitHolder: formData.permitHolderName,
+        vehicleNumber: formData.vehicleNumber,
+        vehicleType: formData.vehicleType,
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        validityPeriod: formData.vehicleType === 'CV' ? 3 : 4,
+        issueDate: formData.validFrom,
+        fatherName: formData.fatherName || '',
+        address: formData.address || '',
+        mobileNumber: formData.mobileNumber || '',
+        email: formData.email || '',
+        vehicleModel: formData.vehicleModel || '',
+        vehicleClass: formData.vehicleClass || '',
+        chassisNumber: formData.chassisNumber || '',
+        engineNumber: formData.engineNumber || '',
+        ladenWeight: formData.ladenWeight ? Number(formData.ladenWeight) : 0,
+        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : 0,
+        yearOfManufacture: new Date().getFullYear().toString(),
+        seatingCapacity: formData.seatingCapacity || '',
+        route: formData.route || '',
+        purpose: formData.purpose || 'Temporary Use',
+        fees: Number(formData.totalFee) || 1000,
+        paid: Number(formData.paid) || 0,
+        balance: Number(formData.balance) || 0,
+        status: 'Active'
+      }
+
+      // Make PUT request to backend to update the permit
+      const response = await axios.put(`${API_URL}/api/temporary-permits/${editingPermit._id}`, permitData)
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to update temporary permit')
+      }
+
+      // Show success message
+      toast.success('Temporary Permit updated successfully!', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+
+      // Close modal and refresh
+      setShowEditPermitModal(false)
+      setEditingPermit(null)
+      await fetchPermits()
+    } catch (error) {
+      console.error('Error updating temporary permit:', error)
+      toast.error(`Failed to update temporary permit: ${error.message}`, {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    }
+  }
+
+  const handleRenewClick = (permit) => {
+    // Pre-fill vehicle number and other details for renewal
+    setInitialPermitData({
+      vehicleNumber: permit.vehicleNo,
+      permitHolderName: permit.permitHolder || '',
+      vehicleType: permit.vehicleType || '',
+      address: permit.address || '',
+      mobileNumber: permit.mobileNumber || '',
+      chassisNumber: permit.chassisNumber || '',
+      engineNumber: permit.engineNumber || '',
+      purpose: permit.purpose || ''
+    })
+    setShowIssuePermitModal(true)
+  }
+
+  const handleDeletePermit = async (permit) => {
+    // Show confirmation dialog
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete this temporary permit?\n\n` +
+      `Permit Number: ${permit.permitNumber}\n` +
+      `Vehicle Number: ${permit.vehicleNo}\n` +
+      `Permit Holder: ${permit.permitHolder}\n\n` +
+      `This action cannot be undone.`
+    )
+
+    if (!confirmDelete) {
+      return
+    }
+
+    try {
+      // Make DELETE request to backend
+      const response = await axios.delete(`${API_URL}/api/temporary-permits/${permit._id}`)
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to delete temporary permit')
+      }
+
+      // Show success message
+      toast.success('Temporary Permit deleted successfully!', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+
+      // Refresh the permits list
+      await fetchPermits()
+    } catch (error) {
+      console.error('Error deleting temporary permit:', error)
+      toast.error(`Failed to delete temporary permit: ${error.message}`, {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    }
+  }
+
+  // Helper function to get status based on validTill date
+  const getPermitStatus = (validTill) => {
+    if (!validTill) return 'Unknown'
+    const today = new Date()
+    const dateParts = validTill.split(/[/-]/)
+    const validTillDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
+    const diffTime = validTillDate - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) return 'Expired'
+    if (diffDays <= 15) return 'Expiring Soon'
+    return 'Active'
+  }
+
+  // Determine if renew button should be shown for a permit
+  const shouldShowRenewButton = (permit) => {
+    const status = getPermitStatus(permit.validTill)
+
+    // Show renew button for expiring soon permits
+    if (status === 'Expiring Soon') {
+      return true
+    }
+
+    // Show renew button for expired permits
+    if (status === 'Expired') {
+      return true
+    }
+
+    return false
   }
 
   const handleFilterChange = (filterType, value) => {
@@ -553,6 +705,26 @@ const TemporaryPermit = () => {
                     </div>
                     {/* Action Buttons on top right */}
                     <div className='flex items-center gap-1.5'>
+                      {shouldShowRenewButton(permit) && (
+                        <button
+                          onClick={() => handleRenewClick(permit)}
+                          className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all cursor-pointer'
+                          title='Renew Permit'
+                        >
+                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                          </svg>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleEditClick(permit)}
+                        className='p-2 bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-200 transition-all cursor-pointer'
+                        title='Edit Permit'
+                      >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                        </svg>
+                      </button>
                       <button
                         onClick={() => handleViewBill(permit)}
                         className='p-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-all cursor-pointer'
@@ -569,6 +741,15 @@ const TemporaryPermit = () => {
                       >
                         <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
                           <path d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z' />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeletePermit(permit)}
+                        className='p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all cursor-pointer'
+                        title='Delete Permit'
+                      >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                         </svg>
                       </button>
                     </div>
@@ -775,6 +956,26 @@ const TemporaryPermit = () => {
                     </td>
                     <td className='px-6 py-5'>
                       <div className='flex items-center justify-center gap-2'>
+                        {shouldShowRenewButton(permit) && (
+                          <button
+                            onClick={() => handleRenewClick(permit)}
+                            className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                            title='Renew Permit'
+                          >
+                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                            </svg>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleEditClick(permit)}
+                          className='p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Edit Permit'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                          </svg>
+                        </button>
                         <button
                           onClick={() => handleViewBill(permit)}
                           className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200'
@@ -791,6 +992,15 @@ const TemporaryPermit = () => {
                         >
                           <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
                             <path d='M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z' />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeletePermit(permit)}
+                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Delete Permit'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                           </svg>
                         </button>
                       </div>
@@ -824,8 +1034,23 @@ const TemporaryPermit = () => {
       {/* Add New Temporary Permit Modal */}
       <IssueTemporaryPermitModal
         isOpen={showIssuePermitModal}
-        onClose={() => setShowIssuePermitModal(false)}
+        onClose={() => {
+          setShowIssuePermitModal(false)
+          setInitialPermitData(null) // Clear initial data when closing
+        }}
         onSubmit={handleIssuePermit}
+        initialData={initialPermitData} // Pass initial data for renewal
+      />
+
+      {/* Edit Temporary Permit Modal */}
+      <EditTemporaryPermitModal
+        isOpen={showEditPermitModal}
+        onClose={() => {
+          setShowEditPermitModal(false)
+          setEditingPermit(null) // Clear editing data when closing
+        }}
+        onSubmit={handleEditPermit}
+        permitData={editingPermit} // Pass permit data for editing
       />
 
       {/* Bill Modal */}

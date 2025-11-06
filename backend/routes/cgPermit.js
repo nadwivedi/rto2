@@ -35,9 +35,6 @@ router.patch('/:id/status', cgPermitController.updatePermitStatus)
 // PATCH add renewal entry
 router.patch('/:id/renewal', cgPermitController.addRenewal)
 
-// PATCH update insurance details
-router.patch('/:id/insurance', cgPermitController.updateInsurance)
-
 // PATCH update tax details
 router.patch('/:id/tax', cgPermitController.updateTax)
 

@@ -94,8 +94,11 @@ const Insurance = () => {
   const [insurances, setInsurances] = useState(demoInsurances)
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedInsurance, setSelectedInsurance] = useState(null)
   const [loading, setLoading] = useState(false)
   const [dateFilter, setDateFilter] = useState('All')
+  const [initialInsuranceData, setInitialInsuranceData] = useState(null) // For pre-filling renewal data
 
   const getStatusColor = (validTo) => {
     const today = new Date()
@@ -139,6 +142,73 @@ const Insurance = () => {
       ...formData
     }
     setInsurances([newInsurance, ...insurances])
+  }
+
+  const handleRenewClick = (insurance) => {
+    // Pre-fill vehicle number and other details for renewal
+    setInitialInsuranceData({
+      vehicleNumber: insurance.vehicleNumber,
+      vehicleType: insurance.vehicleType || '',
+      ownerName: insurance.ownerName || '',
+      insuranceCompany: insurance.insuranceCompany || '',
+      policyType: insurance.policyType || '',
+      mobileNumber: insurance.mobileNumber || '',
+      agentName: insurance.agentName || '',
+      agentContact: insurance.agentContact || ''
+    })
+    setIsAddModalOpen(true)
+  }
+
+  const handleEditClick = (insurance) => {
+    setSelectedInsurance(insurance)
+    setIsEditModalOpen(true)
+  }
+
+  const handleEditInsurance = (formData) => {
+    // Update the insurance in the list
+    const updatedInsurances = insurances.map(ins =>
+      ins.id === selectedInsurance.id ? { ...ins, ...formData } : ins
+    )
+    setInsurances(updatedInsurances)
+    setIsEditModalOpen(false)
+    setSelectedInsurance(null)
+  }
+
+  const handleDeleteInsurance = (insurance) => {
+    // Show confirmation dialog
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete this insurance?\n\n` +
+      `Vehicle Number: ${insurance.vehicleNumber}\n` +
+      `Policy Number: ${insurance.policyNumber}\n` +
+      `Owner: ${insurance.ownerName}\n` +
+      `Insurance Company: ${insurance.insuranceCompany}\n\n` +
+      `This action cannot be undone.`
+    )
+
+    if (!confirmDelete) {
+      return
+    }
+
+    // Remove the insurance from the list
+    const updatedInsurances = insurances.filter(ins => ins.id !== insurance.id)
+    setInsurances(updatedInsurances)
+  }
+
+  // Determine if renew button should be shown for an insurance
+  const shouldShowRenewButton = (insurance) => {
+    const status = getStatusText(insurance.validTo)
+
+    // Show renew button for expiring soon insurances
+    if (status === 'Expiring Soon') {
+      return true
+    }
+
+    // Show renew button for expired insurances
+    if (status === 'Expired') {
+      return true
+    }
+
+    return false
   }
 
   const handleFilterChange = (filterType, value) => {
@@ -341,8 +411,37 @@ const Insurance = () => {
                         </div>
                       </div>
                     </div>
-                    {/* Status Badge on top right */}
-                    <div className='flex-shrink-0'>
+                    {/* Action Buttons on top right */}
+                    <div className='flex-shrink-0 flex items-center gap-1.5'>
+                      {shouldShowRenewButton(insurance) && (
+                        <button
+                          onClick={() => handleRenewClick(insurance)}
+                          className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all cursor-pointer'
+                          title='Renew Insurance'
+                        >
+                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                          </svg>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleEditClick(insurance)}
+                        className='p-2 bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-200 transition-all cursor-pointer'
+                        title='Edit Insurance'
+                      >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteInsurance(insurance)}
+                        className='p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all cursor-pointer'
+                        title='Delete Insurance'
+                      >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                        </svg>
+                      </button>
                       <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${getStatusColor(insurance.validTo)} border-2 ${
                         getStatusText(insurance.validTo) === 'Expired' ? 'border-red-300' :
                         getStatusText(insurance.validTo) === 'Expiring Soon' ? 'border-orange-300' :
@@ -439,6 +538,7 @@ const Insurance = () => {
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Paid (₹)</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Balance (₹)</th>
                 <th className='px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider'>Status</th>
+                <th className='px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider'>Actions</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-100'>
@@ -517,11 +617,44 @@ const Insurance = () => {
                         </span>
                       </div>
                     </td>
+                    <td className='px-6 py-5'>
+                      <div className='flex items-center justify-center gap-2'>
+                        {shouldShowRenewButton(insurance) && (
+                          <button
+                            onClick={() => handleRenewClick(insurance)}
+                            className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                            title='Renew Insurance'
+                          >
+                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                            </svg>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleEditClick(insurance)}
+                          className='p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Edit Insurance'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteInsurance(insurance)}
+                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Delete Insurance'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan='9' className='px-6 py-16'>
+                  <td colSpan='10' className='px-6 py-16'>
                     <div className='flex flex-col items-center justify-center'>
                       <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg'>
                         <svg className='w-12 h-12 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -546,8 +679,24 @@ const Insurance = () => {
       {/* Add Insurance Modal */}
       <AddInsuranceModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false)
+          setInitialInsuranceData(null) // Clear initial data when closing
+        }}
         onSubmit={handleAddInsurance}
+        initialData={initialInsuranceData} // Pass initial data for renewal
+      />
+
+      {/* Edit Insurance Modal */}
+      <AddInsuranceModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedInsurance(null) // Clear selected insurance when closing
+        }}
+        onSubmit={handleEditInsurance}
+        initialData={selectedInsurance} // Pass selected insurance data for editing
+        isEditMode={true}
       />
         </div>
       </div>

@@ -49,6 +49,7 @@ const vehicleRegistrationRoutes = require('./routes/vehicleRegistration')
 const fitnessRoutes = require('./routes/fitness')
 const customBillRoutes = require('./routes/customBill')
 const taxRoutes = require('./routes/tax')
+const insuranceRoutes = require('./routes/insurance')
 
 // Use Routes
 app.use('/api/auth', authRoutes)
@@ -60,6 +61,7 @@ app.use('/api/vehicle-registrations', vehicleRegistrationRoutes)
 app.use('/api/fitness', fitnessRoutes)
 app.use('/api/custom-bills', customBillRoutes)
 app.use('/api/tax', taxRoutes)
+app.use('/api/insurance', insuranceRoutes)
 
 // Root route
 app.get('/', (req, res) => {
@@ -74,7 +76,8 @@ app.get('/', (req, res) => {
       vehicleRegistrations: '/api/vehicle-registrations',
       fitness: '/api/fitness',
       customBills: '/api/custom-bills',
-      tax: '/api/tax'
+      tax: '/api/tax',
+      insurance: '/api/insurance'
     }
   })
 })

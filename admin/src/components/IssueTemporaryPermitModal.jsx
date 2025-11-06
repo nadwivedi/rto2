@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 
-const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
+const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [formData, setFormData] = useState({
     // Required fields
     permitNumber: '',
@@ -34,6 +34,47 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const [showOptionalFields, setShowOptionalFields] = useState(false)
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
+
+  // Pre-fill form when initialData is provided (for renewal)
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: initialData.vehicleNumber || '',
+        permitHolderName: initialData.permitHolderName || '',
+        vehicleType: initialData.vehicleType || '',
+        address: initialData.address || '',
+        mobileNumber: initialData.mobileNumber || '',
+        chassisNumber: initialData.chassisNumber || '',
+        engineNumber: initialData.engineNumber || '',
+        purpose: initialData.purpose || ''
+      }))
+    } else if (!isOpen) {
+      // Reset form when modal closes
+      setFormData({
+        permitNumber: '',
+        permitHolderName: '',
+        vehicleNumber: '',
+        vehicleType: '',
+        validFrom: '',
+        validTo: '',
+        fatherName: '',
+        address: '',
+        mobileNumber: '',
+        email: '',
+        chassisNumber: '',
+        engineNumber: '',
+        ladenWeight: '',
+        unladenWeight: '',
+        purpose: '',
+        totalFee: '1000',
+        paid: '0',
+        balance: '1000'
+      })
+      setVehicleError('')
+      setFetchingVehicle(false)
+    }
+  }, [initialData, isOpen])
 
   // Fetch vehicle details when registration number is entered
   useEffect(() => {
@@ -90,40 +131,87 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
   // Calculate valid to date based on vehicle type (CV=3 months, PV=4 months)
   useEffect(() => {
-    if (formData.validFrom && formData.vehicleType) {
-      // Parse DD/MM/YYYY format
-      const parts = formData.validFrom.split('/')
-      if (parts.length === 3) {
-        const day = parseInt(parts[0], 10)
-        const month = parseInt(parts[1], 10) - 1 // Month is 0-indexed
-        const year = parseInt(parts[2], 10)
-
-        // Check if date is valid
-        if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
-          const validFromDate = new Date(year, month, day)
-
-          // Check if the date object is valid
-          if (!isNaN(validFromDate.getTime())) {
-            const validToDate = new Date(validFromDate)
-
-            // Add months based on vehicle type (CV=3, PV=4)
-            const monthsToAdd = formData.vehicleType === 'CV' ? 3 : 4
-            validToDate.setMonth(validToDate.getMonth() + monthsToAdd)
-
-            // Format date to DD/MM/YYYY
-            const newDay = String(validToDate.getDate()).padStart(2, '0')
-            const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
-            const newYear = validToDate.getFullYear()
-
-            setFormData(prev => ({
-              ...prev,
-              validTo: `${newDay}/${newMonth}/${newYear}`
-            }))
-          }
-        }
-      }
+    // Only calculate if both validFrom and vehicleType are present
+    if (!formData.validFrom || !formData.vehicleType) {
+      return
     }
-  }, [formData.validFrom, formData.vehicleType])
+
+    // Parse DD/MM/YYYY format
+    const parts = formData.validFrom.trim().split('/')
+
+    // Need exactly 3 parts (day, month, year)
+    if (parts.length !== 3) {
+      return
+    }
+
+    const day = parseInt(parts[0], 10)
+    const month = parseInt(parts[1], 10)
+    const year = parseInt(parts[2], 10)
+
+    // Validate the parsed values
+    if (isNaN(day) || isNaN(month) || isNaN(year)) {
+      return
+    }
+
+    // Year should be 4 digits and reasonable
+    if (year < 1900 || year > 2100) {
+      return
+    }
+
+    // Month should be 1-12
+    if (month < 1 || month > 12) {
+      return
+    }
+
+    // Day should be 1-31 (basic check)
+    if (day < 1 || day > 31) {
+      return
+    }
+
+    // Create date object (month is 0-indexed in JavaScript)
+    const validFromDate = new Date(year, month - 1, day)
+
+    // Check if the date is valid (handles invalid dates like Feb 30)
+    if (isNaN(validFromDate.getTime())) {
+      return
+    }
+
+    // Verify the date object has the same day/month/year we set
+    // (protects against dates like "31/02/2025" which JavaScript adjusts)
+    if (validFromDate.getDate() !== day ||
+        validFromDate.getMonth() !== month - 1 ||
+        validFromDate.getFullYear() !== year) {
+      return
+    }
+
+    // Determine months to add based on vehicle type
+    let monthsToAdd = 0
+    if (formData.vehicleType === 'CV') {
+      monthsToAdd = 3
+    } else if (formData.vehicleType === 'PV') {
+      monthsToAdd = 4
+    } else {
+      return
+    }
+
+    // Calculate valid to date
+    const validToDate = new Date(validFromDate)
+    validToDate.setMonth(validToDate.getMonth() + monthsToAdd)
+
+    // Format date to DD/MM/YYYY
+    const newDay = String(validToDate.getDate()).padStart(2, '0')
+    const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
+    const newYear = validToDate.getFullYear()
+    const formattedValidTo = `${newDay}/${newMonth}/${newYear}`
+
+    // Only update if the calculated value is different
+    if (formData.validTo !== formattedValidTo) {
+      setFormData(prev => ({
+        ...prev,
+        validTo: formattedValidTo
+      }))
+    }
+  }, [formData.validFrom, formData.vehicleType, formData.validTo])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -231,8 +319,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
-      <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
+    <div className='fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
+      <div className='bg-neutral-800 rounded-xl md:rounded-2xl shadow-2xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='bg-gradient-to-r from-orange-600 to-red-600 p-3 md:p-4 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
@@ -254,8 +342,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
             {/* Essential Fields Section */}
-            <div className='bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
-              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+            <div className='bg-neutral-700/50 border-2 border-orange-600/30 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-100 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-orange-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
                 Essential Information
               </h3>
@@ -263,7 +351,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                 {/* Vehicle Number */}
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
                   </label>
                   <div className='relative'>
@@ -273,7 +361,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                       value={formData.vehicleNumber}
                       onChange={handleChange}
                       placeholder='MH12AB1234'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
+                      className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
                       required
                       autoFocus
                     />
@@ -296,7 +384,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
                 {/* Permit Number */}
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Permit Number <span className='text-red-500'>*</span>
                   </label>
                   <input
@@ -305,14 +393,14 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.permitNumber}
                     onChange={handleChange}
                     placeholder='TP001234567'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono'
+                    className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono'
                     required
                   />
                 </div>
 
                 {/* Permit Holder Name */}
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Name of Permit Holder <span className='text-red-500'>*</span>
                   </label>
                   <input
@@ -321,7 +409,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.permitHolderName}
                     onChange={handleChange}
                     placeholder='Rajesh Transport Services'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                    className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                     required
                   />
                 </div>
@@ -330,7 +418,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
                 {/* Mobile Number */}
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Mobile Number
                   </label>
                   <input
@@ -340,20 +428,20 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     onChange={handleChange}
                     placeholder='10-digit number'
                     maxLength='10'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                    className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                   />
                 </div>
 
                 {/* Vehicle Type */}
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Vehicle Type <span className='text-red-500'>*</span>
                   </label>
                   <select
                     name='vehicleType'
                     value={formData.vehicleType}
                     onChange={handleChange}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold'
                     required
                   >
                     <option value=''>Select Vehicle Type</option>
@@ -364,7 +452,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
                 {/* Valid From */}
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Valid From <span className='text-red-500'>*</span>
                   </label>
                   <input
@@ -373,40 +461,42 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.validFrom}
                     onChange={handleChange}
                     placeholder='24/01/24 or 24/01/2024'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                    className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                     required
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Type 2-digit year (24) to auto-expand to 2024</p>
+                  <p className='text-xs text-gray-400 mt-1'>Type 2-digit year (24) to auto-expand to 2024</p>
                 </div>
 
                 {/* Valid To (Auto-calculated) */}
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid To (Auto-calculated)
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
+                    Valid To (Auto-calculated) <span className='text-green-400'>✓</span>
                   </label>
                   <input
                     type='text'
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
-                    placeholder='Select vehicle type first'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                    placeholder='Will auto-fill after entering date & vehicle type'
+                    className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated based on vehicle type. You can edit manually if needed.</p>
+                  <p className='text-xs text-gray-400 mt-1'>
+                    Auto-calculated: CV = +3 months, PV = +4 months from Valid From date
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Fees Section */}
-            <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
-              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+            <div className='bg-neutral-700/50 border-2 border-green-600/30 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-100 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
                 Permit Fees
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Total Fee (₹) <span className='text-red-500'>*</span>
                   </label>
                   <input
@@ -415,12 +505,12 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.totalFee}
                     onChange={handleChange}
                     placeholder='1000'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
                 </div>
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Paid (₹) <span className='text-red-500'>*</span>
                   </label>
                   <input
@@ -429,12 +519,12 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.paid}
                     onChange={handleChange}
                     placeholder='0'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
                 </div>
                 <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                     Balance (₹) <span className='text-red-500'>*</span>
                   </label>
                   <input
@@ -443,7 +533,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.balance}
                     onChange={handleChange}
                     placeholder='1000'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold bg-gray-50'
+                    className='w-full px-3 py-2 bg-neutral-700 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     readOnly
                   />
                 </div>
@@ -451,17 +541,17 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             {/* Expandable Optional Fields */}
-            <div className='border-2 border-gray-200 rounded-xl p-3 md:p-6'>
+            <div className='border-2 border-neutral-600 rounded-xl p-3 md:p-6'>
               <button
                 type='button'
                 onClick={() => setShowOptionalFields(!showOptionalFields)}
                 className='flex items-center justify-between w-full text-left cursor-pointer'
               >
-                <h3 className='text-base md:text-lg font-bold text-gray-800'>
+                <h3 className='text-base md:text-lg font-bold text-gray-100'>
                   Additional Details (Optional)
                 </h3>
                 <svg
-                  className={`w-5 h-5 md:w-6 md:h-6 transition-transform ${showOptionalFields ? 'rotate-180' : ''}`}
+                  className={`w-5 h-5 md:w-6 md:h-6 transition-transform text-gray-300 ${showOptionalFields ? 'rotate-180' : ''}`}
                   fill='none'
                   stroke='currentColor'
                   viewBox='0 0 24 24'
@@ -474,10 +564,10 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                 <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
                   {/* Personal Information */}
                   <div>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-orange-600'>Personal Information</h4>
+                    <h4 className='text-xs md:text-sm font-bold text-orange-400 mb-3 uppercase'>Personal Information</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                       <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                           Father&apos;s Name
                         </label>
                         <input
@@ -486,11 +576,11 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           value={formData.fatherName}
                           onChange={handleChange}
                           placeholder="Enter father's name"
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                          className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                         />
                       </div>
                       <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                           Email
                         </label>
                         <input
@@ -498,12 +588,12 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           name='email'
                           value={formData.email}
                           onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                          className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                         />
                       </div>
 
                       <div className='md:col-span-2'>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                           Address
                         </label>
                         <textarea
@@ -512,18 +602,18 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           onChange={handleChange}
                           rows='2'
                           placeholder='Complete address with street, area, landmark'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                          className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Vehicle Details */}
-                  <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-blue-600'>Vehicle Details</h4>
+                  <div className='border-t border-neutral-600 pt-4'>
+                    <h4 className='text-xs md:text-sm font-bold text-blue-400 mb-3 uppercase'>Vehicle Details</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                       <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                           Chassis Number
                         </label>
                         <input
@@ -532,12 +622,12 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           value={formData.chassisNumber}
                           onChange={handleChange}
                           placeholder='Enter chassis number'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
+                          className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
                         />
                       </div>
 
                       <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                           Engine Number
                         </label>
                         <input
@@ -546,12 +636,12 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           value={formData.engineNumber}
                           onChange={handleChange}
                           placeholder='Enter engine number'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
+                          className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
                         />
                       </div>
 
                       <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                           Laden Weight (kg)
                         </label>
                         <input
@@ -560,12 +650,12 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           value={formData.ladenWeight}
                           onChange={handleChange}
                           placeholder='Enter laden weight'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                          className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                         />
                       </div>
 
                       <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                           Unladen Weight (kg)
                         </label>
                         <input
@@ -574,18 +664,18 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           value={formData.unladenWeight}
                           onChange={handleChange}
                           placeholder='Enter unladen weight'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                          className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Permit Details */}
-                  <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-sm font-bold text-gray-800 mb-3 uppercase text-purple-600'>Permit Details</h4>
+                  <div className='border-t border-neutral-600 pt-4'>
+                    <h4 className='text-sm font-bold text-purple-400 mb-3 uppercase'>Permit Details</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-300 mb-1'>
                           Purpose
                         </label>
                         <input
@@ -594,7 +684,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
                           value={formData.purpose}
                           onChange={handleChange}
                           placeholder='Temporary Use'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
+                          className='w-full px-3 py-2 bg-neutral-600 border border-neutral-500 text-white placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                         />
                       </div>
                     </div>
@@ -605,16 +695,16 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           {/* Footer Actions - Fixed at Bottom */}
-          <div className='border-t border-gray-200 p-3 md:p-4 bg-gray-50 flex justify-between items-center flex-shrink-0 sticky bottom-0 shadow-lg'>
-            <div className='text-sm text-gray-600 hidden md:block'>
-              <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
+          <div className='border-t border-neutral-700 p-3 md:p-4 bg-neutral-900 flex justify-between items-center flex-shrink-0 sticky bottom-0 shadow-lg'>
+            <div className='text-sm text-gray-300 hidden md:block'>
+              <kbd className='px-2 py-1 bg-neutral-700 text-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
             </div>
 
             <div className='flex gap-2 md:gap-3 w-full md:w-auto'>
               <button
                 type='button'
                 onClick={onClose}
-                className='flex-1 md:flex-none px-4 md:px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer text-sm md:text-base'
+                className='flex-1 md:flex-none px-4 md:px-6 py-2 bg-neutral-700 border border-neutral-600 text-gray-200 rounded-lg hover:bg-neutral-600 font-semibold transition cursor-pointer text-sm md:text-base'
               >
                 Cancel
               </button>

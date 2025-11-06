@@ -326,44 +326,6 @@ exports.addRenewal = async (req, res) => {
   }
 }
 
-// Update insurance details
-exports.updateInsurance = async (req, res) => {
-  try {
-    const { id } = req.params
-    const { policyNumber, company, validUpto } = req.body
-
-    const permit = await CgPermit.findById(id)
-
-    if (!permit) {
-      return res.status(404).json({
-        success: false,
-        message: 'CG permit not found'
-      })
-    }
-
-    permit.insuranceDetails = {
-      policyNumber: policyNumber || permit.insuranceDetails.policyNumber,
-      company: company || permit.insuranceDetails.company,
-      validUpto: validUpto || permit.insuranceDetails.validUpto
-    }
-
-    await permit.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Insurance details updated successfully',
-      data: permit
-    })
-  } catch (error) {
-    console.error('Error updating insurance:', error)
-    res.status(400).json({
-      success: false,
-      message: 'Failed to update insurance details',
-      error: error.message
-    })
-  }
-}
-
 // Update tax details
 exports.updateTax = async (req, res) => {
   try {

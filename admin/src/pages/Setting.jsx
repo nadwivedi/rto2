@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+import * as XLSX from 'xlsx'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const Setting = () => {
   const navigate = useNavigate()
@@ -8,10 +13,138 @@ const Setting = () => {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [isExporting, setIsExporting] = useState(false)
 
   const handleLogout = () => {
     logout()
     navigate('/login')
+  }
+
+  // Export all data as Excel (separate files for each collection)
+  const handleExportExcel = async () => {
+    setIsExporting(true)
+    try {
+      toast.info('Starting Excel export...', { position: 'top-right', autoClose: 2000 })
+
+      // List of all collections to export
+      const collections = [
+        { name: 'Vehicle Registration', endpoint: '/api/vehicle-registrations' },
+        { name: 'National Permit', endpoint: '/api/national-permits' },
+        { name: 'Temporary Permit', endpoint: '/api/temporary-permits' },
+        { name: 'CG Permit', endpoint: '/api/cg-permits' },
+        { name: 'Fitness', endpoint: '/api/fitness' },
+        { name: 'Insurance', endpoint: '/api/insurance' },
+        { name: 'Tax', endpoint: '/api/tax' },
+        { name: 'Driving License', endpoint: '/api/driving-licenses' }
+      ]
+
+      // Fetch data from all collections
+      for (const collection of collections) {
+        try {
+          const response = await axios.get(`${API_URL}${collection.endpoint}`)
+          const data = response.data.data || response.data || []
+
+          if (data.length === 0) {
+            console.log(`No data found for ${collection.name}`)
+            continue
+          }
+
+          // Convert to worksheet
+          const worksheet = XLSX.utils.json_to_sheet(data)
+          const workbook = XLSX.utils.book_new()
+          XLSX.utils.book_append_sheet(workbook, worksheet, 'Data')
+
+          // Generate filename with timestamp
+          const timestamp = new Date().toISOString().split('T')[0]
+          const filename = `${collection.name.replace(/ /g, '_')}_${timestamp}.xlsx`
+
+          // Download the file
+          XLSX.writeFile(workbook, filename)
+
+          await new Promise(resolve => setTimeout(resolve, 500)) // Small delay between downloads
+        } catch (error) {
+          console.error(`Error exporting ${collection.name}:`, error)
+        }
+      }
+
+      toast.success('Excel export completed successfully!', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } catch (error) {
+      console.error('Error during Excel export:', error)
+      toast.error('Failed to export data as Excel', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  // Export all data as JSON (separate files for each collection)
+  const handleExportJSON = async () => {
+    setIsExporting(true)
+    try {
+      toast.info('Starting JSON export...', { position: 'top-right', autoClose: 2000 })
+
+      // List of all collections to export
+      const collections = [
+        { name: 'Vehicle Registration', endpoint: '/api/vehicle-registrations' },
+        { name: 'National Permit', endpoint: '/api/national-permits' },
+        { name: 'Temporary Permit', endpoint: '/api/temporary-permits' },
+        { name: 'CG Permit', endpoint: '/api/cg-permits' },
+        { name: 'Fitness', endpoint: '/api/fitness' },
+        { name: 'Insurance', endpoint: '/api/insurance' },
+        { name: 'Tax', endpoint: '/api/tax' },
+        { name: 'Driving License', endpoint: '/api/driving-licenses' }
+      ]
+
+      // Fetch data from all collections
+      for (const collection of collections) {
+        try {
+          const response = await axios.get(`${API_URL}${collection.endpoint}`)
+          const data = response.data.data || response.data || []
+
+          if (data.length === 0) {
+            console.log(`No data found for ${collection.name}`)
+            continue
+          }
+
+          // Create JSON blob
+          const jsonString = JSON.stringify(data, null, 2)
+          const blob = new Blob([jsonString], { type: 'application/json' })
+          const url = window.URL.createObjectURL(blob)
+
+          // Create download link
+          const link = document.createElement('a')
+          link.href = url
+          const timestamp = new Date().toISOString().split('T')[0]
+          link.download = `${collection.name.replace(/ /g, '_')}_${timestamp}.json`
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+
+          await new Promise(resolve => setTimeout(resolve, 500)) // Small delay between downloads
+        } catch (error) {
+          console.error(`Error exporting ${collection.name}:`, error)
+        }
+      }
+
+      toast.success('JSON export completed successfully!', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } catch (error) {
+      console.error('Error during JSON export:', error)
+      toast.error('Failed to export data as JSON', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   return (
@@ -39,9 +172,20 @@ const Setting = () => {
           <div className='space-y-3'>
             <label className='text-sm font-semibold text-gray-700'>Export Options</label>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-              <button className='flex items-center gap-3 p-4 bg-gradient-to-r from-green-50 to-teal-50 hover:from-green-100 hover:to-teal-100 rounded-lg transition border border-green-200 group'>
+              <button
+                onClick={handleExportExcel}
+                disabled={isExporting}
+                className='flex items-center gap-3 p-4 bg-gradient-to-r from-green-50 to-teal-50 hover:from-green-100 hover:to-teal-100 rounded-lg transition border border-green-200 group disabled:opacity-50 disabled:cursor-not-allowed'
+              >
                 <div className='w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center text-white text-sm font-bold group-hover:scale-110 transition-transform'>
-                  XLS
+                  {isExporting ? (
+                    <svg className='animate-spin h-6 w-6' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                    </svg>
+                  ) : (
+                    'XLS'
+                  )}
                 </div>
                 <div className='text-left flex-1'>
                   <div className='font-semibold text-gray-800 text-sm'>Export as Excel</div>
@@ -50,9 +194,20 @@ const Setting = () => {
                 <div className='text-gray-400 group-hover:text-green-600'>→</div>
               </button>
 
-              <button className='flex items-center gap-3 p-4 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 rounded-lg transition border border-orange-200 group'>
+              <button
+                onClick={handleExportJSON}
+                disabled={isExporting}
+                className='flex items-center gap-3 p-4 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 rounded-lg transition border border-orange-200 group disabled:opacity-50 disabled:cursor-not-allowed'
+              >
                 <div className='w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center text-white text-sm font-bold group-hover:scale-110 transition-transform'>
-                  JSON
+                  {isExporting ? (
+                    <svg className='animate-spin h-6 w-6' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                    </svg>
+                  ) : (
+                    'JSON'
+                  )}
                 </div>
                 <div className='text-left flex-1'>
                   <div className='font-semibold text-gray-800 text-sm'>Export as JSON</div>
