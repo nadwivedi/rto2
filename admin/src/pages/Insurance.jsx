@@ -1,8 +1,13 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 import AddInsuranceModal from '../components/AddInsuranceModal'
+import Pagination from '../components/Pagination'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const Insurance = () => {
-  // Demo data for when backend is not available
+  // Demo data for when backend is not available (kept as fallback)
   const demoInsurances = [
     {
       id: 'INS-2024-001',
@@ -91,7 +96,7 @@ const Insurance = () => {
     }
   ]
 
-  const [insurances, setInsurances] = useState(demoInsurances)
+  const [insurances, setInsurances] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -99,6 +104,59 @@ const Insurance = () => {
   const [loading, setLoading] = useState(false)
   const [dateFilter, setDateFilter] = useState('All')
   const [initialInsuranceData, setInitialInsuranceData] = useState(null) // For pre-filling renewal data
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 20
+  })
+
+  // Fetch insurance records from API
+  const fetchInsurances = async (page = pagination.currentPage) => {
+    setLoading(true)
+    try {
+      const response = await axios.get(`${API_URL}/api/insurance`, {
+        params: {
+          page,
+          limit: pagination.limit,
+          search: searchQuery
+        }
+      })
+
+      if (response.data.success) {
+        setInsurances(response.data.data)
+
+        // Update pagination state
+        if (response.data.pagination) {
+          setPagination({
+            currentPage: response.data.pagination.currentPage,
+            totalPages: response.data.pagination.totalPages,
+            totalRecords: response.data.pagination.totalRecords,
+            limit: pagination.limit
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching insurance records:', error)
+      toast.error('Failed to fetch insurance records. Please check if the backend server is running.', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load insurance records on component mount and when filters change
+  useEffect(() => {
+    fetchInsurances(1) // Reset to page 1 when filters change
+  }, [searchQuery])
+
+  // Page change handler
+  const handlePageChange = (newPage) => {
+    fetchInsurances(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const getStatusColor = (validTo) => {
     const today = new Date()
@@ -122,26 +180,36 @@ const Insurance = () => {
     return 'Active'
   }
 
-  // Filter insurances based on search query
-  const filteredInsurances = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return insurances
-    }
+  // Use insurances directly since filtering is done on backend
+  const filteredInsurances = insurances
 
-    const searchLower = searchQuery.toLowerCase()
-    return insurances.filter((insurance) =>
-      insurance.vehicleNumber.toLowerCase().includes(searchLower) ||
-      insurance.policyNumber.toLowerCase().includes(searchLower) ||
-      insurance.ownerName.toLowerCase().includes(searchLower)
-    )
-  }, [insurances, searchQuery])
+  const handleAddInsurance = async (formData) => {
+    setLoading(true)
+    try {
+      const response = await axios.post(`${API_URL}/api/insurance`, formData)
 
-  const handleAddInsurance = (formData) => {
-    const newInsurance = {
-      id: `INS-${Date.now()}`,
-      ...formData
+      if (response.data.success) {
+        toast.success('Insurance record added successfully!', {
+          position: 'top-right',
+          autoClose: 3000
+        })
+        // Refresh the list from the server
+        await fetchInsurances()
+      } else {
+        toast.error(`Error: ${response.data.message}`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      }
+    } catch (error) {
+      console.error('Error adding insurance record:', error)
+      toast.error('Failed to add insurance record. Please check if the backend server is running.', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } finally {
+      setLoading(false)
     }
-    setInsurances([newInsurance, ...insurances])
   }
 
   const handleRenewClick = (insurance) => {
@@ -164,24 +232,43 @@ const Insurance = () => {
     setIsEditModalOpen(true)
   }
 
-  const handleEditInsurance = (formData) => {
-    // Update the insurance in the list
-    const updatedInsurances = insurances.map(ins =>
-      ins.id === selectedInsurance.id ? { ...ins, ...formData } : ins
-    )
-    setInsurances(updatedInsurances)
-    setIsEditModalOpen(false)
-    setSelectedInsurance(null)
+  const handleEditInsurance = async (formData) => {
+    setLoading(true)
+    try {
+      const response = await axios.put(`${API_URL}/api/insurance/${selectedInsurance._id}`, formData)
+
+      if (response.data.success) {
+        toast.success('Insurance record updated successfully!', {
+          position: 'top-right',
+          autoClose: 3000
+        })
+        // Refresh the list from the server
+        await fetchInsurances()
+        setIsEditModalOpen(false)
+        setSelectedInsurance(null)
+      } else {
+        toast.error(`Error: ${response.data.message}`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      }
+    } catch (error) {
+      console.error('Error updating insurance record:', error)
+      toast.error('Failed to update insurance record.', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const handleDeleteInsurance = (insurance) => {
+  const handleDeleteInsurance = async (insurance) => {
     // Show confirmation dialog
     const confirmDelete = window.confirm(
       `Are you sure you want to delete this insurance?\n\n` +
       `Vehicle Number: ${insurance.vehicleNumber}\n` +
-      `Policy Number: ${insurance.policyNumber}\n` +
-      `Owner: ${insurance.ownerName}\n` +
-      `Insurance Company: ${insurance.insuranceCompany}\n\n` +
+      `Policy Number: ${insurance.policyNumber}\n\n` +
       `This action cannot be undone.`
     )
 
@@ -189,9 +276,28 @@ const Insurance = () => {
       return
     }
 
-    // Remove the insurance from the list
-    const updatedInsurances = insurances.filter(ins => ins.id !== insurance.id)
-    setInsurances(updatedInsurances)
+    try {
+      const response = await axios.delete(`${API_URL}/api/insurance/${insurance._id}`)
+
+      if (response.data.success) {
+        toast.success('Insurance record deleted successfully!', {
+          position: 'top-right',
+          autoClose: 3000
+        })
+        await fetchInsurances()
+      } else {
+        toast.error(response.data.message || 'Failed to delete insurance record', {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      }
+    } catch (error) {
+      toast.error('Error deleting insurance record. Please try again.', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+      console.error('Error:', error)
+    }
   }
 
   // Determine if renew button should be shown for an insurance
@@ -522,6 +628,19 @@ const Insurance = () => {
               </div>
             </div>
           )}
+
+          {/* Pagination for Mobile */}
+          {!loading && filteredInsurances.length > 0 && (
+            <div className='px-3 pb-3'>
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+                totalRecords={pagination.totalRecords}
+                itemsPerPage={pagination.limit}
+              />
+            </div>
+          )}
         </div>
 
         {/* Desktop Table View */}
@@ -672,6 +791,17 @@ const Insurance = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {!loading && filteredInsurances.length > 0 && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+            totalRecords={pagination.totalRecords}
+            itemsPerPage={pagination.limit}
+          />
+        )}
       </div>
       </>
       )}

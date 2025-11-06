@@ -73,7 +73,7 @@ exports.getAllApplications = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       search,
       applicationStatus,
       paymentStatus
@@ -493,7 +493,7 @@ exports.getLearningLicensesExpiringSoon = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10
+      limit = 20
     } = req.query
 
     const today = new Date()
@@ -545,7 +545,7 @@ exports.getDrivingLicensesExpiringSoon = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10
+      limit = 20
     } = req.query
 
     const today = new Date()

@@ -20,12 +20,6 @@ const InsuranceSchema = new mongoose.Schema({
     index: true
   },
 
-  // Owner Information
-  ownerName: {
-    type: String,
-    required: true,
-    trim: true
-  },
   mobileNumber: {
     type: String,
     trim: true
@@ -45,12 +39,7 @@ const InsuranceSchema = new mongoose.Schema({
     required: true
   },
 
-  // Financial Details
-  insuranceFee: {
-    type: Number,
-    required: true,
-    min: 0
-  },
+
 
   totalFee: {
     type: Number,

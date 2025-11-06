@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
+  const [dateError, setDateError] = useState({ taxFrom: '', taxTo: '' })
 
   const [formData, setFormData] = useState({
     receiptNo: '',
@@ -14,6 +15,18 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
     taxFrom: '',
     taxTo: ''
   })
+
+  // Validate date and check if it's valid
+  const isValidDate = (day, month, year) => {
+    // Basic range checks
+    if (day < 1 || day > 31) return false
+    if (month < 1 || month > 12) return false
+    if (year < 1900 || year > 2100) return false
+
+    // Check days in month
+    const daysInMonth = new Date(year, month, 0).getDate()
+    return day <= daysInMonth
+  }
 
   // Populate form when tax prop changes
   useEffect(() => {
@@ -169,29 +182,56 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
 
     // Only format date fields
     if (name === 'taxFrom' || name === 'taxTo') {
+      if (!value.trim()) {
+        setDateError(prev => ({ ...prev, [name]: '' }))
+        return
+      }
+
       const parts = value.split(/[/-]/)
 
       // Only format if we have a complete date with 3 parts
       if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-        const day = parts[0]
-        const month = parts[1]
-        let year = parts[2]
+        let day = parseInt(parts[0], 10)
+        let month = parseInt(parts[1], 10)
+        let year = parseInt(parts[2], 10)
 
         // Auto-expand 2-digit year to 4-digit (only when exactly 2 digits)
-        if (year.length === 2 && /^\d{2}$/.test(year)) {
-          const yearNum = parseInt(year, 10)
+        if (parts[2].length === 2 && /^\d{2}$/.test(parts[2])) {
           // Convert 2-digit year to 4-digit (00-50 → 2000-2050, 51-99 → 1951-1999)
-          year = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+          year = year <= 50 ? 2000 + year : 1900 + year
         }
+
+        // Validate the date
+        if (!isValidDate(day, month, year)) {
+          setDateError(prev => ({
+            ...prev,
+            [name]: `Invalid date. ${month === 2 ? 'February' : month === 4 || month === 6 || month === 9 || month === 11 ? 'This month' : 'This month'} ${
+              month === 2 ? 'has max 28/29 days' : month === 4 || month === 6 || month === 9 || month === 11 ? 'has max 30 days' : 'has max 31 days'
+            }`
+          }))
+          // Clear the invalid date
+          setFormData(prev => ({
+            ...prev,
+            [name]: ''
+          }))
+          return
+        }
+
+        // Clear error if date is valid
+        setDateError(prev => ({ ...prev, [name]: '' }))
 
         // Normalize to DD-MM-YYYY format (if year is 4 digits or was expanded)
         if (year.toString().length === 4) {
-          const formattedValue = `${day}-${month}-${year}`
+          const formattedDay = String(day).padStart(2, '0')
+          const formattedMonth = String(month).padStart(2, '0')
+          const formattedValue = `${formattedDay}-${formattedMonth}-${year}`
           setFormData(prev => ({
             ...prev,
             [name]: formattedValue
           }))
         }
+      } else {
+        setDateError(prev => ({ ...prev, [name]: 'Please enter date in DD-MM-YYYY or DD/MM/YYYY format' }))
       }
     }
   }
@@ -402,15 +442,25 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='24-01-25 or 24/01/2025'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      dateError.taxFrom ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {dateError.taxFrom && (
+                    <p className='text-xs text-red-600 mt-1 flex items-center gap-1'>
+                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                        <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
+                      </svg>
+                      {dateError.taxFrom}
+                    </p>
+                  )}
                 </div>
 
                 {/* Tax To (Auto-calculated) */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Tax To <span className='text-xs text-gray-500'>(Auto-calculated)</span>
+                    Tax To <span className='text-xs text-blue-500'>(Auto-calculated, editable)</span>
                   </label>
                   <input
                     type='text'
@@ -418,22 +468,19 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                     value={formData.taxTo}
                     onChange={handleChange}
                     onBlur={handleDateBlur}
-                    placeholder='Auto-calculated'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-purple-50 font-semibold text-gray-700'
-                    readOnly
+                    placeholder='Auto-calculated or enter manually'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50 ${
+                      dateError.taxTo ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                   />
-                </div>
-              </div>
-
-              {/* Alert Info */}
-              <div className='mt-3 bg-orange-50 border-l-4 border-orange-500 p-2 md:p-3 rounded'>
-                <div className='flex items-center gap-2'>
-                  <svg className='w-4 h-4 md:w-5 md:h-5 text-orange-500 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
-                  </svg>
-                  <p className='text-xs md:text-sm font-semibold text-orange-700'>
-                    You will be notified 15 days before the tax expiry date
-                  </p>
+                  {dateError.taxTo && (
+                    <p className='text-xs text-red-600 mt-1 flex items-center gap-1'>
+                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                        <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
+                      </svg>
+                      {dateError.taxTo}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

@@ -75,7 +75,7 @@ exports.getAllPermits = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       search,
       status,
       vehicleType,
@@ -96,9 +96,15 @@ exports.getAllPermits = async (req, res) => {
       ]
     }
 
-    // Filter by status
+    // Filter by status or pending payment
     if (status) {
-      query.status = status
+      if (status === 'pending') {
+        // Pending payment means balance > 0
+        query.balance = { $gt: 0 }
+      } else {
+        // Normal status filter
+        query.status = status
+      }
     }
 
     // Filter by vehicle type
@@ -304,6 +310,11 @@ exports.getStatistics = async (req, res) => {
     const expiredPermits = await TemporaryPermit.countDocuments({ status: 'Expired' })
     const cancelledPermits = await TemporaryPermit.countDocuments({ status: 'Cancelled' })
 
+    // Pending payment count and amount
+    const pendingPaymentRecords = await TemporaryPermit.find({ balance: { $gt: 0 } })
+    const pendingPaymentCount = pendingPaymentRecords.length
+    const pendingPaymentAmount = pendingPaymentRecords.reduce((sum, record) => sum + (record.balance || 0), 0)
+
     // Count by vehicle type
     const cvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'CV' })
     const pvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'PV' })
@@ -331,7 +342,9 @@ exports.getStatistics = async (req, res) => {
           totalFee: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
           paid: totalRevenue.length > 0 ? totalRevenue[0].paid : 0,
           balance: totalRevenue.length > 0 ? totalRevenue[0].balance : 0
-        }
+        },
+        pendingPaymentCount,
+        pendingPaymentAmount
       }
     })
   } catch (error) {

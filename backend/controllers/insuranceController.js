@@ -29,7 +29,7 @@ exports.getAllInsurance = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       search,
       status,
       sortBy = 'createdAt',
@@ -49,9 +49,15 @@ exports.getAllInsurance = async (req, res) => {
       ]
     }
 
-    // Filter by status
+    // Filter by status or pending payment
     if (status) {
-      query.status = status
+      if (status === 'pending') {
+        // Pending payment means balance > 0
+        query.balance = { $gt: 0 }
+      } else {
+        // Normal status filter
+        query.status = status
+      }
     }
 
     // Calculate pagination
@@ -73,8 +79,8 @@ exports.getAllInsurance = async (req, res) => {
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
+        totalRecords: total,
+        hasMore: skip + insuranceRecords.length < total
       }
     })
   } catch (error) {
@@ -228,7 +234,7 @@ exports.getExpiringInsurance = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       days = 30
     } = req.query
 
@@ -268,8 +274,8 @@ exports.getExpiringInsurance = async (req, res) => {
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
+        totalRecords: total,
+        hasMore: skip + parseInt(limit) < total
       }
     })
   } catch (error) {

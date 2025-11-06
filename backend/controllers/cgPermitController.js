@@ -74,7 +74,7 @@ exports.getAllPermits = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       search,
       status,
       sortBy = 'createdAt',
@@ -94,9 +94,15 @@ exports.getAllPermits = async (req, res) => {
       ]
     }
 
-    // Filter by status
+    // Filter by status or pending payment
     if (status) {
-      query.status = status
+      if (status === 'pending') {
+        // Pending payment means balance > 0
+        query.balance = { $gt: 0 }
+      } else {
+        // Normal status filter
+        query.status = status
+      }
     }
 
     // Calculate pagination
@@ -373,9 +379,14 @@ exports.getStatistics = async (req, res) => {
     const expiredPermits = await CgPermit.countDocuments({ status: 'Expired' })
     const suspendedPermits = await CgPermit.countDocuments({ status: 'Suspended' })
 
+    // Pending payment count and amount
+    const pendingPaymentRecords = await CgPermit.find({ balance: { $gt: 0 } })
+    const pendingPaymentCount = pendingPaymentRecords.length
+    const pendingPaymentAmount = pendingPaymentRecords.reduce((sum, record) => sum + (record.balance || 0), 0)
+
     // Total fees collected
     const totalRevenue = await CgPermit.aggregate([
-      { $group: { _id: null, total: { $sum: '$fees' } } }
+      { $group: { _id: null, total: { $sum: '$totalFee' } } }
     ])
 
     res.status(200).json({
@@ -391,7 +402,9 @@ exports.getStatistics = async (req, res) => {
         },
         revenue: {
           total: totalRevenue.length > 0 ? totalRevenue[0].total : 0
-        }
+        },
+        pendingPaymentCount,
+        pendingPaymentAmount
       }
     })
   } catch (error) {
@@ -426,7 +439,7 @@ exports.getExpiringPermits = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       days = 30
     } = req.query
 

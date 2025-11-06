@@ -91,7 +91,7 @@ exports.getAllPermits = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 20,
       search,
       status,
       route,
@@ -113,9 +113,15 @@ exports.getAllPermits = async (req, res) => {
       ]
     }
 
-    // Filter by status
+    // Filter by status or pending payment
     if (status) {
-      query.status = status
+      if (status === 'pending') {
+        // Pending payment means balance > 0
+        query.balance = { $gt: 0 }
+      } else {
+        // Normal status filter
+        query.status = status
+      }
     }
 
     // Filter by route
@@ -944,7 +950,7 @@ exports.getPartAExpiringSoon = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10
+      limit = 20
     } = req.query
 
     const today = new Date()
@@ -1002,7 +1008,7 @@ exports.getPartBExpiringSoon = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10
+      limit = 20
     } = req.query
 
     const today = new Date()
@@ -1392,7 +1398,7 @@ exports.getPartBExpiringSoon = async (req, res) => {
   try {
     const {
       page = 1,
-      limit = 10
+      limit = 20
     } = req.query
 
     const today = new Date()

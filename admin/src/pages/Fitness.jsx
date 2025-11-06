@@ -3,6 +3,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import AddFitnessModal from '../components/AddFitnessModal'
 import EditFitnessModal from '../components/EditFitnessModal'
+import Pagination from '../components/Pagination'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -15,12 +16,50 @@ const Fitness = () => {
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'expiring', 'expired', 'pending'
   const [initialFitnessData, setInitialFitnessData] = useState(null) // For pre-filling renewal data
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 20
+  })
+  const [statistics, setStatistics] = useState({
+    total: 0,
+    expiring: 0,
+    expired: 0,
+    pendingPaymentCount: 0,
+    pendingPaymentAmount: 0
+  })
+
+  // Fetch fitness statistics from API
+  const fetchStatistics = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/fitness/statistics`)
+      if (response.data.success) {
+        setStatistics({
+          total: response.data.data.total,
+          expiring: response.data.data.expiringSoon,
+          expired: response.data.data.expired,
+          pendingPaymentCount: response.data.data.pendingPaymentCount,
+          pendingPaymentAmount: response.data.data.pendingPaymentAmount
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error)
+    }
+  }
 
   // Fetch fitness records from API
-  const fetchFitnessRecords = async () => {
+  const fetchFitnessRecords = async (page = pagination.currentPage) => {
     setLoading(true)
     try {
-      const response = await axios.get(`${API_URL}/api/fitness`)
+      const response = await axios.get(`${API_URL}/api/fitness`, {
+        params: {
+          page,
+          limit: pagination.limit,
+          search: searchQuery,
+          status: statusFilter !== 'all' ? statusFilter : undefined
+        }
+      })
 
       if (response.data.success) {
         // Transform the data to match the display format
@@ -35,6 +74,16 @@ const Fitness = () => {
           status: record.status
         }))
         setFitnessRecords(transformedRecords)
+
+        // Update pagination state
+        if (response.data.pagination) {
+          setPagination({
+            currentPage: response.data.pagination.currentPage,
+            totalPages: response.data.pagination.totalPages,
+            totalRecords: response.data.pagination.totalRecords,
+            limit: pagination.limit
+          })
+        }
       }
     } catch (error) {
       console.error('Error fetching fitness records:', error)
@@ -47,10 +96,17 @@ const Fitness = () => {
     }
   }
 
-  // Load fitness records on component mount
+  // Load fitness records and statistics on component mount and when filters change
   useEffect(() => {
-    fetchFitnessRecords()
-  }, [])
+    fetchFitnessRecords(1) // Reset to page 1 when filters change
+    fetchStatistics() // Fetch fresh statistics
+  }, [searchQuery, statusFilter])
+
+  // Page change handler
+  const handlePageChange = (newPage) => {
+    fetchFitnessRecords(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const getStatusColor = (validTo) => {
     if (!validTo) return 'bg-gray-100 text-gray-700'
@@ -93,71 +149,8 @@ const Fitness = () => {
     return new Date(0)
   }
 
-  // Filter fitness records based on status and search query
-  const filteredRecords = useMemo(() => {
-    let filtered = fitnessRecords
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((record) => {
-        const status = getStatusText(record.validTo)
-        if (statusFilter === 'expiring') return status === 'Expiring Soon'
-        if (statusFilter === 'expired') return status === 'Expired'
-        if (statusFilter === 'pending') return (record.balance || 0) > 0
-        return true
-      })
-
-      // For expired filter, show only vehicles that don't have any active fitness
-      if (statusFilter === 'expired') {
-        // First, find all vehicles that have active or expiring soon fitness
-        const vehiclesWithActiveFitness = new Set()
-
-        fitnessRecords.forEach((record) => {
-          const status = getStatusText(record.validTo)
-          if (status === 'Active' || status === 'Expiring Soon') {
-            vehiclesWithActiveFitness.add(record.vehicleNumber)
-          }
-        })
-
-        // Filter out expired records for vehicles that have active fitness
-        filtered = filtered.filter((record) => {
-          return !vehiclesWithActiveFitness.has(record.vehicleNumber)
-        })
-
-        // Then show only the latest expired fitness per remaining vehicle
-        const vehicleMap = new Map()
-
-        filtered.forEach((record) => {
-          const vehicleNum = record.vehicleNumber
-          const existingRecord = vehicleMap.get(vehicleNum)
-
-          if (!existingRecord) {
-            vehicleMap.set(vehicleNum, record)
-          } else {
-            // Compare dates to keep the latest (most recent) expired fitness
-            const currentDate = parseDateString(record.validTo)
-            const existingDate = parseDateString(existingRecord.validTo)
-
-            if (currentDate > existingDate) {
-              vehicleMap.set(vehicleNum, record)
-            }
-          }
-        })
-
-        filtered = Array.from(vehicleMap.values())
-      }
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const searchLower = searchQuery.toLowerCase()
-      filtered = filtered.filter((record) =>
-        record.vehicleNumber.toLowerCase().includes(searchLower)
-      )
-    }
-
-    return filtered
-  }, [fitnessRecords, searchQuery, statusFilter])
+  // Use fitnessRecords directly since filtering is done on backend
+  const filteredRecords = fitnessRecords
 
   const handleAddFitness = async (formData) => {
     setLoading(true)
@@ -176,8 +169,9 @@ const Fitness = () => {
           position: 'top-right',
           autoClose: 3000
         })
-        // Refresh the list from the server
+        // Refresh the list and statistics from the server
         await fetchFitnessRecords()
+        await fetchStatistics()
       } else {
         toast.error(`Error: ${response.data.message}`, {
           position: 'top-right',
@@ -212,8 +206,9 @@ const Fitness = () => {
           position: 'top-right',
           autoClose: 3000
         })
-        // Refresh the list from the server
+        // Refresh the list and statistics from the server
         await fetchFitnessRecords()
+        await fetchStatistics()
       } else {
         toast.error(`Error: ${response.data.message}`, {
           position: 'top-right',
@@ -267,8 +262,9 @@ const Fitness = () => {
           position: 'top-right',
           autoClose: 3000
         })
-        // Refresh the list
+        // Refresh the list and statistics
         await fetchFitnessRecords()
+        await fetchStatistics()
       } else {
         throw new Error(response.data.message || 'Failed to delete fitness certificate')
       }
@@ -343,17 +339,7 @@ const Fitness = () => {
     return false
   }
 
-  const statistics = useMemo(() => {
-    const total = fitnessRecords.length
-    const expiring = fitnessRecords.filter(rec => getStatusText(rec.validTo) === 'Expiring Soon').length
-    const expired = fitnessRecords.filter(rec => getStatusText(rec.validTo) === 'Expired').length
-
-    // Calculate pending payment statistics
-    const pendingPaymentCount = fitnessRecords.filter(record => (record.balance || 0) > 0).length
-    const pendingPaymentAmount = fitnessRecords.reduce((sum, record) => sum + (record.balance || 0), 0)
-
-    return { total, expiring, expired, pendingPaymentCount, pendingPaymentAmount }
-  }, [fitnessRecords])
+  // Statistics are now fetched from backend, removed useMemo calculation
 
   return (
     <>
@@ -767,6 +753,17 @@ const Fitness = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {!loading && filteredRecords.length > 0 && (
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+                totalRecords={pagination.totalRecords}
+                itemsPerPage={pagination.limit}
+              />
+            )}
           </div>
         </div>
       </div>

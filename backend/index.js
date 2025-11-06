@@ -1,6 +1,6 @@
 const express = require('express')
-const mongoose = require('mongoose')
 const path = require('path')
+const connectDB = require('./utils/mongodb')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -33,11 +33,7 @@ app.use((req, res, next) => {
 })
 
 // MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/rto'
-
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('MongoDB connected successfully'))
-  .catch((err) => console.error('MongoDB connection error:', err))
+connectDB()
 
 // Import Routes
 const authRoutes = require('./routes/auth')
@@ -50,6 +46,7 @@ const fitnessRoutes = require('./routes/fitness')
 const customBillRoutes = require('./routes/customBill')
 const taxRoutes = require('./routes/tax')
 const insuranceRoutes = require('./routes/insurance')
+const importRoutes = require('./routes/import')
 
 // Use Routes
 app.use('/api/auth', authRoutes)
@@ -62,6 +59,7 @@ app.use('/api/fitness', fitnessRoutes)
 app.use('/api/custom-bills', customBillRoutes)
 app.use('/api/tax', taxRoutes)
 app.use('/api/insurance', insuranceRoutes)
+app.use('/api/import', importRoutes)
 
 // Root route
 app.get('/', (req, res) => {
@@ -77,7 +75,8 @@ app.get('/', (req, res) => {
       fitness: '/api/fitness',
       customBills: '/api/custom-bills',
       tax: '/api/tax',
-      insurance: '/api/insurance'
+      insurance: '/api/insurance',
+      import: '/api/import'
     }
   })
 })

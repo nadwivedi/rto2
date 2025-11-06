@@ -1,10 +1,11 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import PermitBillModal from '../components/PermitBillModal'
 import SharePermitModal from '../components/SharePermitModal'
 import IssueTemporaryPermitModal from '../components/IssueTemporaryPermitModal'
 import EditTemporaryPermitModal from '../components/EditTemporaryPermitModal'
+import Pagination from '../components/Pagination'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -141,17 +142,64 @@ const TemporaryPermit = () => {
   const [dateFilter, setDateFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'pending'
   const [initialPermitData, setInitialPermitData] = useState(null) // For pre-filling renewal data
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 20
+  })
+  const [statistics, setStatistics] = useState({
+    total: 0,
+    active: 0,
+    expiringSoon: 0,
+    expired: 0,
+    pendingPaymentCount: 0,
+    pendingPaymentAmount: 0
+  })
 
-  // Fetch permits from backend on component mount
+  // Fetch temporary permit statistics from API
+  const fetchStatistics = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/temporary-permits/statistics`)
+      if (response.data.success) {
+        setStatistics({
+          total: response.data.data.permits.total,
+          active: response.data.data.permits.active,
+          expiringSoon: response.data.data.permits.expiringSoon,
+          expired: response.data.data.permits.expired,
+          pendingPaymentCount: response.data.data.pendingPaymentCount,
+          pendingPaymentAmount: response.data.data.pendingPaymentAmount
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching temporary permit statistics:', error)
+    }
+  }
+
+  // Fetch permits from backend on component mount and when filters change
   useEffect(() => {
-    fetchPermits()
-  }, [])
+    fetchPermits(1)
+    fetchStatistics()
+  }, [searchQuery, statusFilter])
 
-  const fetchPermits = async () => {
+  // Page change handler
+  const handlePageChange = (newPage) => {
+    fetchPermits(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const fetchPermits = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
       setError(null)
-      const response = await axios.get(`${API_URL}/api/temporary-permits`)
+      const response = await axios.get(`${API_URL}/api/temporary-permits`, {
+        params: {
+          page,
+          limit: pagination.limit,
+          search: searchQuery,
+          status: statusFilter !== 'all' ? statusFilter : undefined
+        }
+      })
 
       // Transform backend data to match frontend structure
       const transformedPermits = response.data.data.map(permit => ({
@@ -186,12 +234,22 @@ const TemporaryPermit = () => {
       }))
 
       setPermits(transformedPermits)
+
+      // Update pagination state
+      if (response.data.pagination) {
+        setPagination({
+          currentPage: response.data.pagination.currentPage,
+          totalPages: response.data.pagination.totalPages,
+          totalRecords: response.data.pagination.totalRecords,
+          limit: pagination.limit
+        })
+      }
     } catch (error) {
       console.error('Error fetching temporary permits:', error)
-      console.log('Using demo data as fallback')
-      // Use demo data when backend is not available
-      setPermits(demoPermits)
-      setError(null)
+      toast.error('Failed to fetch temporary permits. Please check if the backend server is running.', {
+        position: 'top-right',
+        autoClose: 3000
+      })
     } finally {
       setLoading(false)
     }
@@ -230,60 +288,8 @@ const TemporaryPermit = () => {
     return null
   }
 
-  // Filter permits based on status and search query
-  const filteredPermits = useMemo(() => {
-    let filtered = permits
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((permit) => {
-        if (statusFilter === 'active') {
-          return permit.status === 'Active'
-        }
-        if (statusFilter === 'expiring') {
-          const expiryDate = parseDate(permit.validTill)
-          if (!expiryDate) return false
-
-          const today = new Date()
-          const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
-          return daysRemaining >= 0 && daysRemaining <= 7 // Temporary permits are short-term
-        }
-        if (statusFilter === 'pending') {
-          return (permit.balance || 0) > 0
-        }
-        return true
-      })
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const searchLower = searchQuery.toLowerCase()
-      filtered = filtered.filter((permit) =>
-        permit.permitNumber.toLowerCase().includes(searchLower) ||
-        permit.permitHolder.toLowerCase().includes(searchLower) ||
-        permit.vehicleNo.toLowerCase().includes(searchLower)
-      )
-    }
-
-    return filtered
-  }, [permits, searchQuery, statusFilter])
-
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const total = permits.length
-    const active = permits.filter(p => p.status === 'Active').length
-    const expiring = permits.filter(p => p.status === 'Expiring Soon').length
-    const pendingPaymentCount = permits.filter(p => (p.balance || 0) > 0).length
-    const pendingPaymentAmount = permits.reduce((sum, permit) => sum + (permit.balance || 0), 0)
-
-    return {
-      total,
-      active,
-      expiring,
-      pendingPaymentCount,
-      pendingPaymentAmount
-    }
-  }, [permits])
+  // Use permits directly since filtering is done on backend
+  const filteredPermits = permits
 
   const handleViewBill = (permit) => {
     setSelectedPermit(permit)
@@ -349,6 +355,7 @@ const TemporaryPermit = () => {
       setShowEditPermitModal(false)
       setEditingPermit(null)
       await fetchPermits()
+      await fetchStatistics()
     } catch (error) {
       console.error('Error updating temporary permit:', error)
       toast.error(`Failed to update temporary permit: ${error.message}`, {
@@ -492,8 +499,9 @@ const TemporaryPermit = () => {
         autoClose: 3000
       })
 
-      // Refresh the permits list
+      // Refresh the permits list and statistics
       await fetchPermits()
+      await fetchStatistics()
     } catch (error) {
       console.error('Error creating temporary permit:', error)
       toast.error(`Failed to create temporary permit: ${error.message}`, {
@@ -522,32 +530,12 @@ const TemporaryPermit = () => {
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Temporary Permits</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.total}</h3>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.total}</h3>
+                    <p className='text-[7px] lg:text-[9px] text-emerald-600 font-bold mt-0.5'>({statistics.active} active)</p>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Active Permits */}
-              <div
-                onClick={() => setStatusFilter(statusFilter === 'active' ? 'all' : 'active')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'active' ? 'border-emerald-500 ring-2 ring-emerald-300 shadow-xl' : 'border-emerald-100'
-                }`}
-                title={statusFilter === 'active' ? 'Click to clear filter' : 'Click to filter active permits'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active Permits</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-emerald-600'>{stats.active}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
                   </div>
                 </div>
@@ -564,11 +552,32 @@ const TemporaryPermit = () => {
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{stats.expiring}</h3>
+                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{statistics.expiringSoon}</h3>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              {/* Expired */}
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
+                }`}
+                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
+              >
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expired</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-red-600'>{statistics.expired}</h3>
+                  </div>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-red-500 to-red-700 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                     </svg>
                   </div>
                 </div>
@@ -585,10 +594,10 @@ const TemporaryPermit = () => {
                 <div className='flex items-center justify-between'>
                   <div className='flex-1'>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-yellow-600'>{stats.pendingPaymentCount}</h3>
-                    {stats.pendingPaymentAmount > 0 && (
+                    <h3 className='text-lg lg:text-2xl font-black text-yellow-600'>{statistics.pendingPaymentCount}</h3>
+                    {statistics.pendingPaymentAmount > 0 && (
                       <p className='text-[7px] lg:text-[9px] text-gray-500 font-semibold mt-0.5'>
-                        ₹{stats.pendingPaymentAmount.toLocaleString('en-IN')}
+                        ₹{statistics.pendingPaymentAmount.toLocaleString('en-IN')}
                       </p>
                     )}
                   </div>
@@ -1027,6 +1036,17 @@ const TemporaryPermit = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {!loading && filteredPermits.length > 0 && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+            totalRecords={pagination.totalRecords}
+            itemsPerPage={pagination.limit}
+          />
+        )}
       </div>
       </>
       )}

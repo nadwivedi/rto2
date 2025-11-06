@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react'
 const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
+  const [dateError, setDateError] = useState({ taxFrom: '', taxTo: '' })
 
   const [formData, setFormData] = useState({
     receiptNo: '',
@@ -14,6 +15,19 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     taxFrom: '',
     taxTo: ''
   })
+  const [taxPeriod, setTaxPeriod] = useState('Q1') // Q1=3mo, Q2=6mo, Q3=9mo, Q4=12mo
+
+  // Validate date and check if it's valid
+  const isValidDate = (day, month, year) => {
+    // Basic range checks
+    if (day < 1 || day > 31) return false
+    if (month < 1 || month > 12) return false
+    if (year < 1900 || year > 2100) return false
+
+    // Check days in month
+    const daysInMonth = new Date(year, month, 0).getDate()
+    return day <= daysInMonth
+  }
 
   // Pre-fill form when initialData is provided (for renewal)
   useEffect(() => {
@@ -35,6 +49,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         taxFrom: '',
         taxTo: ''
       })
+      setTaxPeriod('Q1') // Reset to Q1
+      setDateError({ taxFrom: '', taxTo: '' })
       setVehicleError('')
       setFetchingVehicle(false)
     }
@@ -86,7 +102,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     return () => clearTimeout(timeoutId)
   }, [formData.vehicleNumber])
 
-  // Calculate tax to date (3 months from tax from)
+  // Calculate tax to date based on selected quarter period
   useEffect(() => {
     if (formData.taxFrom) {
       // Parse DD-MM-YYYY or DD/MM/YYYY format
@@ -103,7 +119,16 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           // Check if the date object is valid
           if (!isNaN(taxFromDate.getTime())) {
             const taxToDate = new Date(taxFromDate)
-            taxToDate.setMonth(taxToDate.getMonth() + 3)
+
+            // Calculate based on selected quarter
+            const monthsToAdd = {
+              'Q1': 3,
+              'Q2': 6,
+              'Q3': 9,
+              'Q4': 12
+            }
+
+            taxToDate.setMonth(taxToDate.getMonth() + monthsToAdd[taxPeriod])
             // Subtract 1 day
             taxToDate.setDate(taxToDate.getDate() - 1)
 
@@ -120,7 +145,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         }
       }
     }
-  }, [formData.taxFrom])
+  }, [formData.taxFrom, taxPeriod])
 
   // Auto-calculate balance when total amount or paid amount changes
   useEffect(() => {
@@ -178,29 +203,56 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
     // Only format date fields
     if (name === 'taxFrom' || name === 'taxTo') {
+      if (!value.trim()) {
+        setDateError(prev => ({ ...prev, [name]: '' }))
+        return
+      }
+
       const parts = value.split(/[/-]/)
 
       // Only format if we have a complete date with 3 parts
       if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-        const day = parts[0]
-        const month = parts[1]
-        let year = parts[2]
+        let day = parseInt(parts[0], 10)
+        let month = parseInt(parts[1], 10)
+        let year = parseInt(parts[2], 10)
 
         // Auto-expand 2-digit year to 4-digit (only when exactly 2 digits)
-        if (year.length === 2 && /^\d{2}$/.test(year)) {
-          const yearNum = parseInt(year, 10)
-          // Convert 2-digit year to 4-digit (00-50 � 2000-2050, 51-99 � 1951-1999)
-          year = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+        if (parts[2].length === 2 && /^\d{2}$/.test(parts[2])) {
+          // Convert 2-digit year to 4-digit (00-50 → 2000-2050, 51-99 → 1951-1999)
+          year = year <= 50 ? 2000 + year : 1900 + year
         }
+
+        // Validate the date
+        if (!isValidDate(day, month, year)) {
+          setDateError(prev => ({
+            ...prev,
+            [name]: `Invalid date. ${month === 2 ? 'February' : month === 4 || month === 6 || month === 9 || month === 11 ? 'This month' : 'This month'} ${
+              month === 2 ? 'has max 28/29 days' : month === 4 || month === 6 || month === 9 || month === 11 ? 'has max 30 days' : 'has max 31 days'
+            }`
+          }))
+          // Clear the invalid date
+          setFormData(prev => ({
+            ...prev,
+            [name]: ''
+          }))
+          return
+        }
+
+        // Clear error if date is valid
+        setDateError(prev => ({ ...prev, [name]: '' }))
 
         // Normalize to DD-MM-YYYY format (if year is 4 digits or was expanded)
         if (year.toString().length === 4) {
-          const formattedValue = `${day}-${month}-${year}`
+          const formattedDay = String(day).padStart(2, '0')
+          const formattedMonth = String(month).padStart(2, '0')
+          const formattedValue = `${formattedDay}-${formattedMonth}-${year}`
           setFormData(prev => ({
             ...prev,
             [name]: formattedValue
           }))
         }
+      } else {
+        setDateError(prev => ({ ...prev, [name]: 'Please enter date in DD-MM-YYYY or DD/MM/YYYY format' }))
       }
     }
   }
@@ -221,6 +273,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       taxFrom: '',
       taxTo: ''
     })
+    setTaxPeriod('Q1') // Reset to Q1
+    setDateError({ taxFrom: '', taxTo: '' })
     setVehicleError('')
     setFetchingVehicle(false)
     onClose()
@@ -425,8 +479,65 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
-                Tax Period (Quarterly - 3 Months)
+                Tax Period
               </h3>
+
+              {/* Quarter Selection */}
+              <div className='mb-4'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
+                  Select Tax Period <span className='text-red-500'>*</span>
+                </label>
+                <div className='grid grid-cols-4 gap-2'>
+                  <button
+                    type='button'
+                    onClick={() => setTaxPeriod('Q1')}
+                    className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
+                      taxPeriod === 'Q1'
+                        ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
+                        : 'bg-white text-gray-700 border-2 border-purple-200 hover:border-purple-400'
+                    }`}
+                  >
+                    Q1
+                    <span className='block text-[10px] font-normal mt-0.5'>3 Months</span>
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setTaxPeriod('Q2')}
+                    className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
+                      taxPeriod === 'Q2'
+                        ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
+                        : 'bg-white text-gray-700 border-2 border-purple-200 hover:border-purple-400'
+                    }`}
+                  >
+                    Q2
+                    <span className='block text-[10px] font-normal mt-0.5'>6 Months</span>
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setTaxPeriod('Q3')}
+                    className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
+                      taxPeriod === 'Q3'
+                        ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
+                        : 'bg-white text-gray-700 border-2 border-purple-200 hover:border-purple-400'
+                    }`}
+                  >
+                    Q3
+                    <span className='block text-[10px] font-normal mt-0.5'>9 Months</span>
+                  </button>
+                  <button
+                    type='button'
+                    onClick={() => setTaxPeriod('Q4')}
+                    className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
+                      taxPeriod === 'Q4'
+                        ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
+                        : 'bg-white text-gray-700 border-2 border-purple-200 hover:border-purple-400'
+                    }`}
+                  >
+                    Q4
+                    <span className='block text-[10px] font-normal mt-0.5'>12 Months</span>
+                  </button>
+                </div>
+              </div>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                 {/* Tax From */}
@@ -441,15 +552,25 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='24-01-25 or 24/01/2025'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      dateError.taxFrom ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                     required
                   />
+                  {dateError.taxFrom && (
+                    <p className='text-xs text-red-600 mt-1 flex items-center gap-1'>
+                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                        <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
+                      </svg>
+                      {dateError.taxFrom}
+                    </p>
+                  )}
                 </div>
 
                 {/* Tax To (Auto-calculated) */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Tax To <span className='text-xs text-gray-500'>(Auto-calculated)</span>
+                    Tax To <span className='text-xs text-blue-500'>(Auto-calculated, editable)</span>
                   </label>
                   <input
                     type='text'
@@ -457,22 +578,19 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     value={formData.taxTo}
                     onChange={handleChange}
                     onBlur={handleDateBlur}
-                    placeholder='Auto-calculated'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-purple-50 font-semibold text-gray-700'
-                    readOnly
+                    placeholder='Auto-calculated or enter manually'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50 ${
+                      dateError.taxTo ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                    }`}
                   />
-                </div>
-              </div>
-
-              {/* Alert Info */}
-              <div className='mt-3 bg-orange-50 border-l-4 border-orange-500 p-2 md:p-3 rounded'>
-                <div className='flex items-center gap-2'>
-                  <svg className='w-4 h-4 md:w-5 md:h-5 text-orange-500 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
-                  </svg>
-                  <p className='text-xs md:text-sm font-semibold text-orange-700'>
-                    You will be notified 15 days before the tax expiry date
-                  </p>
+                  {dateError.taxTo && (
+                    <p className='text-xs text-red-600 mt-1 flex items-center gap-1'>
+                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
+                        <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
+                      </svg>
+                      {dateError.taxTo}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

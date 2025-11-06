@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import RegisterVehicleModal from '../components/RegisterVehicleModal'
+import Pagination from '../components/Pagination'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -16,19 +17,41 @@ const VehicleRegistration = () => {
   })
   const [selectedRegistration, setSelectedRegistration] = useState(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 20
+  })
 
   useEffect(() => {
-    fetchRegistrations()
+    fetchRegistrations(1)
     fetchStatistics()
-  }, [])
+  }, [searchTerm])
 
-  const fetchRegistrations = async () => {
+  const fetchRegistrations = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
-      const response = await axios.get(`${API_URL}/api/vehicle-registrations`)
+      const response = await axios.get(`${API_URL}/api/vehicle-registrations`, {
+        params: {
+          page,
+          limit: pagination.limit,
+          search: searchTerm
+        }
+      })
 
       if (response.data.success) {
         setRegistrations(response.data.data)
+
+        // Update pagination state
+        if (response.data.pagination) {
+          setPagination({
+            currentPage: response.data.pagination.currentPage,
+            totalPages: response.data.pagination.totalPages,
+            totalRecords: response.data.pagination.totalRecords,
+            limit: pagination.limit
+          })
+        }
       }
     } catch (error) {
       console.error('Error fetching registrations:', error)
@@ -80,18 +103,14 @@ const VehicleRegistration = () => {
     setShowDetailsModal(true)
   }
 
-  const filteredRegistrations = useMemo(() => {
-    return registrations.filter((registration) => {
-      const matchesSearch =
-        (registration.vehicleNumber && registration.vehicleNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (registration.registrationNumber && registration.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (registration.ownerName && registration.ownerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (registration.chassisNumber && registration.chassisNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (registration.engineNumber && registration.engineNumber.toLowerCase().includes(searchTerm.toLowerCase()))
+  // Page change handler
+  const handlePageChange = (newPage) => {
+    fetchRegistrations(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
-      return matchesSearch
-    })
-  }, [registrations, searchTerm])
+  // Use registrations directly since filtering is done on backend
+  const filteredRegistrations = registrations
 
   return (
     <>
@@ -370,6 +389,17 @@ const VehicleRegistration = () => {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination */}
+              {!loading && filteredRegistrations.length > 0 && (
+                <Pagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  onPageChange={handlePageChange}
+                  totalRecords={pagination.totalRecords}
+                  itemsPerPage={pagination.limit}
+                />
+              )}
               </>
             )}
           </div>

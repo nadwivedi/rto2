@@ -7,6 +7,7 @@ import PermitBillModal from '../components/PermitBillModal'
 import RenewPartBModal from '../components/RenewPartBModal'
 import RenewPartAModal from '../components/RenewPartAModal'
 import { isPartBExpiringSoon, isPartAExpiringSoon, getDaysRemaining } from '../utils/dateHelpers'
+import Pagination from '../components/Pagination'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -29,19 +30,19 @@ const NationalPermit = () => {
   const [dateFilter, setDateFilter] = useState('All')
   const [whatsappLoading, setWhatsappLoading] = useState(null) // Track which permit is loading
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'partAExpiring', 'partBExpiring', 'pending'
-
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalItems, setTotalItems] = useState(0)
-  const itemsPerPage = 10
   const [partAExpiringCount, setPartAExpiringCount] = useState(0)
   const [partBExpiringCount, setPartBExpiringCount] = useState(0)
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 20
+  })
 
-  // Fetch permits from backend on component mount and when filters or page change
+  // Fetch permits from backend on component mount and when filters change
   useEffect(() => {
-    fetchPermits()
-  }, [dateFilter, currentPage]) // Re-fetch when filters or page change
+    fetchPermits(1)
+  }, [dateFilter]) // Re-fetch when filters change
 
   // Fetch expiring counts on component mount
   useEffect(() => {
@@ -78,15 +79,15 @@ const NationalPermit = () => {
     }
   }
 
-  const fetchPermits = async () => {
+  const fetchPermits = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
       setError(null)
 
       // Build query parameters
       const params = new URLSearchParams()
-      params.append('page', currentPage.toString())
-      params.append('limit', itemsPerPage.toString())
+      params.append('page', page.toString())
+      params.append('limit', pagination.limit.toString())
 
       if (dateFilter && dateFilter !== 'All') {
         params.append('dateFilter', dateFilter)
@@ -98,8 +99,12 @@ const NationalPermit = () => {
 
       // Update pagination info
       if (response.data.pagination) {
-        setTotalPages(response.data.pagination.totalPages)
-        setTotalItems(response.data.pagination.totalItems)
+        setPagination({
+          currentPage: response.data.pagination.currentPage,
+          totalPages: response.data.pagination.totalPages,
+          totalRecords: response.data.pagination.totalItems,
+          limit: pagination.limit
+        })
       }
 
       // Transform backend data to match frontend structure
@@ -247,7 +252,7 @@ const NationalPermit = () => {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const total = totalItems
+    const total = pagination.totalRecords
 
     // Use the fetched counts instead of calculating from current page
     const expiring = partAExpiringCount
@@ -270,7 +275,7 @@ const NationalPermit = () => {
       pendingPaymentCount,
       pendingPaymentAmount
     }
-  }, [permits, totalItems, partAExpiringCount, partBExpiringCount])
+  }, [permits, pagination.totalRecords, partAExpiringCount, partBExpiringCount])
 
   const handleViewDetails = (permit) => {
     setSelectedPermit(permit)
@@ -377,16 +382,13 @@ Thank you for your business!
     fetchPermits()
   }
 
-  // Pagination handlers
+  // Page change handler
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
+    fetchPermits(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleFilterChange = (filterType, value) => {
-    setCurrentPage(1) // Reset to first page when filters change
     if (filterType === 'date') {
       setDateFilter(value)
     }
@@ -1041,75 +1043,14 @@ Thank you for your business!
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className='px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50'>
-            <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
-              <div className='text-sm font-semibold text-gray-700'>
-                Page {currentPage} of {totalPages}
-              </div>
-
-              <div className='flex items-center gap-2'>
-                {/* Previous Button */}
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
-                    currentPage === 1
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
-                  }`}
-                >
-                  Previous
-                </button>
-
-                {/* Page Numbers */}
-                <div className='flex gap-1'>
-                  {[...Array(totalPages)].map((_, index) => {
-                    const pageNumber = index + 1
-                    // Show first page, last page, current page, and pages around current
-                    if (
-                      pageNumber === 1 ||
-                      pageNumber === totalPages ||
-                      (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                    ) {
-                      return (
-                        <button
-                          key={pageNumber}
-                          onClick={() => handlePageChange(pageNumber)}
-                          className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
-                            currentPage === pageNumber
-                              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md transform scale-110'
-                              : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
-                          }`}
-                        >
-                          {pageNumber}
-                        </button>
-                      )
-                    } else if (
-                      pageNumber === currentPage - 2 ||
-                      pageNumber === currentPage + 2
-                    ) {
-                      return <span key={pageNumber} className='px-2 py-2 text-gray-400 font-bold'>...</span>
-                    }
-                    return null
-                  })}
-                </div>
-
-                {/* Next Button */}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all ${
-                    currentPage === totalPages
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
+        {!loading && filteredPermits.length > 0 && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+            totalRecords={pagination.totalRecords}
+            itemsPerPage={pagination.limit}
+          />
         )}
       </div>
       </>

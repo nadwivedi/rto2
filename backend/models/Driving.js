@@ -123,8 +123,6 @@ const DrivingSchema = new mongoose.Schema({
     photo: String,
     signature: String,
     aadharCard: String,
-    learnerLicense: String,
-    medicalCertificate: String
   },
 
   

@@ -3,6 +3,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import AddTaxModal from '../components/AddTaxModal'
 import EditTaxModal from '../components/EditTaxModal'
+import Pagination from '../components/Pagination'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -15,12 +16,52 @@ const Tax = () => {
   const [loading, setLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'expired'
   const [initialTaxData, setInitialTaxData] = useState(null) // For pre-filling renewal data
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 20
+  })
+  const [statistics, setStatistics] = useState({
+    total: 0,
+    active: 0,
+    expiring: 0,
+    expired: 0,
+    pendingPaymentCount: 0,
+    pendingPaymentAmount: 0
+  })
+
+  // Fetch tax statistics from API
+  const fetchStatistics = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/tax/statistics`)
+      if (response.data.success) {
+        setStatistics({
+          total: response.data.data.total,
+          active: response.data.data.active,
+          expiring: response.data.data.expiringSoon,
+          expired: response.data.data.expired,
+          pendingPaymentCount: response.data.data.pendingPaymentCount,
+          pendingPaymentAmount: response.data.data.pendingPaymentAmount
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error)
+    }
+  }
 
   // Fetch tax records from API
-  const fetchTaxRecords = async () => {
+  const fetchTaxRecords = async (page = pagination.currentPage) => {
     setLoading(true)
     try {
-      const response = await axios.get(`${API_URL}/api/tax`)
+      const response = await axios.get(`${API_URL}/api/tax`, {
+        params: {
+          page,
+          limit: pagination.limit,
+          search: searchQuery,
+          status: statusFilter !== 'all' ? statusFilter : undefined
+        }
+      })
 
       if (response.data.success) {
         // Transform the data to match the display format
@@ -37,6 +78,16 @@ const Tax = () => {
           status: record.status
         }))
         setTaxRecords(transformedRecords)
+
+        // Update pagination state
+        if (response.data.pagination) {
+          setPagination({
+            currentPage: response.data.pagination.currentPage,
+            totalPages: response.data.pagination.totalPages,
+            totalRecords: response.data.pagination.totalRecords,
+            limit: pagination.limit
+          })
+        }
       }
     } catch (error) {
       console.error('Error fetching tax records:', error)
@@ -49,10 +100,17 @@ const Tax = () => {
     }
   }
 
-  // Load tax records on component mount
+  // Load tax records and statistics on component mount and when filters change
   useEffect(() => {
-    fetchTaxRecords()
-  }, [])
+    fetchTaxRecords(1) // Reset to page 1 when filters change
+    fetchStatistics() // Fetch fresh statistics
+  }, [searchQuery, statusFilter])
+
+  // Page change handler
+  const handlePageChange = (newPage) => {
+    fetchTaxRecords(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const getStatusColor = (taxTo) => {
     if (!taxTo) return 'bg-gray-100 text-gray-700'
@@ -95,73 +153,8 @@ const Tax = () => {
     return new Date(0)
   }
 
-  // Filter tax records based on search query and status filter
-  const filteredRecords = useMemo(() => {
-    let filtered = taxRecords
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((record) => {
-        const status = getStatusText(record.taxTo)
-        if (statusFilter === 'active') return status === 'Active'
-        if (statusFilter === 'expiring') return status === 'Expiring Soon'
-        if (statusFilter === 'expired') return status === 'Expired'
-        if (statusFilter === 'pending') return (record.balanceAmount || 0) > 0
-        return true
-      })
-
-      // For expired filter, show only vehicles that don't have any active tax
-      if (statusFilter === 'expired') {
-        // First, find all vehicles that have active or expiring soon tax
-        const vehiclesWithActiveTax = new Set()
-
-        taxRecords.forEach((record) => {
-          const status = getStatusText(record.taxTo)
-          if (status === 'Active' || status === 'Expiring Soon') {
-            vehiclesWithActiveTax.add(record.vehicleNumber)
-          }
-        })
-
-        // Filter out expired records for vehicles that have active tax
-        filtered = filtered.filter((record) => {
-          return !vehiclesWithActiveTax.has(record.vehicleNumber)
-        })
-
-        // Then show only the latest expired tax per remaining vehicle
-        const vehicleMap = new Map()
-
-        filtered.forEach((record) => {
-          const vehicleNum = record.vehicleNumber
-          const existingRecord = vehicleMap.get(vehicleNum)
-
-          if (!existingRecord) {
-            vehicleMap.set(vehicleNum, record)
-          } else {
-            // Compare dates to keep the latest (most recent) expired tax
-            const currentDate = parseDateString(record.taxTo)
-            const existingDate = parseDateString(existingRecord.taxTo)
-
-            if (currentDate > existingDate) {
-              vehicleMap.set(vehicleNum, record)
-            }
-          }
-        })
-
-        filtered = Array.from(vehicleMap.values())
-      }
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      const searchLower = searchQuery.toLowerCase()
-      filtered = filtered.filter((record) =>
-        record.vehicleNumber.toLowerCase().includes(searchLower) ||
-        record.receiptNo.toLowerCase().includes(searchLower)
-      )
-    }
-
-    return filtered
-  }, [taxRecords, searchQuery, statusFilter])
+  // Use taxRecords directly since filtering is done on backend
+  const filteredRecords = taxRecords
 
   const handleAddTax = async (formData) => {
     setLoading(true)
@@ -182,8 +175,9 @@ const Tax = () => {
           position: 'top-right',
           autoClose: 3000
         })
-        // Refresh the list from the server
+        // Refresh the list and statistics from the server
         await fetchTaxRecords()
+        await fetchStatistics()
       } else {
         toast.error(`Error: ${response.data.message}`, {
           position: 'top-right',
@@ -220,8 +214,9 @@ const Tax = () => {
           position: 'top-right',
           autoClose: 3000
         })
-        // Refresh the list from the server
+        // Refresh the list and statistics from the server
         await fetchTaxRecords()
+        await fetchStatistics()
       } else {
         toast.error(`Error: ${response.data.message}`, {
           position: 'top-right',
@@ -318,6 +313,7 @@ const Tax = () => {
           autoClose: 3000
         })
         await fetchTaxRecords()
+        await fetchStatistics()
       } else {
         toast.error(response.data.message || 'Failed to delete tax record', {
           position: 'top-right',
@@ -333,48 +329,7 @@ const Tax = () => {
     }
   }
 
-  // Calculate statistics based on unique vehicles (latest tax record per vehicle)
-  const statistics = useMemo(() => {
-    // Group records by vehicle number
-    const vehicleGroups = taxRecords.reduce((acc, record) => {
-      if (!acc[record.vehicleNumber]) {
-        acc[record.vehicleNumber] = []
-      }
-      acc[record.vehicleNumber].push(record)
-      return acc
-    }, {})
-
-    // For each vehicle, get the latest tax record
-    const uniqueVehicleStatuses = Object.keys(vehicleGroups).map(vehicleNumber => {
-      const records = vehicleGroups[vehicleNumber]
-
-      // Categorize records by status
-      const activeRecords = records.filter(r => getStatusText(r.taxTo) === 'Active')
-      const expiringRecords = records.filter(r => getStatusText(r.taxTo) === 'Expiring Soon')
-      const expiredRecords = records.filter(r => getStatusText(r.taxTo) === 'Expired')
-
-      // Priority: Active > Expiring Soon > Latest Expired
-      if (activeRecords.length > 0) {
-        return 'Active'
-      } else if (expiringRecords.length > 0) {
-        return 'Expiring Soon'
-      } else {
-        return 'Expired'
-      }
-    })
-
-    // Count unique vehicles by status
-    const total = uniqueVehicleStatuses.length
-    const active = uniqueVehicleStatuses.filter(status => status === 'Active').length
-    const expiring = uniqueVehicleStatuses.filter(status => status === 'Expiring Soon').length
-    const expired = uniqueVehicleStatuses.filter(status => status === 'Expired').length
-
-    // Calculate pending payment statistics (from all tax records)
-    const pendingPaymentCount = taxRecords.filter(record => (record.balanceAmount || 0) > 0).length
-    const pendingPaymentAmount = taxRecords.reduce((sum, record) => sum + (record.balanceAmount || 0), 0)
-
-    return { total, active, expiring, expired, pendingPaymentCount, pendingPaymentAmount }
-  }, [taxRecords])
+  // Statistics are now fetched from backend, removed useMemo calculation
 
   return (
     <>
@@ -395,6 +350,7 @@ const Tax = () => {
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Tax Records</p>
                     <h3 className='text-lg lg:text-2xl font-black text-blue-600'>{statistics.total}</h3>
+                    <p className='text-[7px] lg:text-[9px] text-emerald-600 font-bold mt-0.5'>({statistics.active} active)</p>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -512,11 +468,8 @@ const Tax = () => {
                 </button>
               </div>
 
-              {/* Results count */}
+              {/* Results count and filter status */}
               <div className='mt-3 text-xs text-gray-600 font-semibold flex items-center gap-2'>
-                <span>
-                  Showing {filteredRecords.length} of {taxRecords.length} records
-                </span>
                 {statusFilter !== 'all' && (
                   <span className='inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px]'>
                     <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -819,6 +772,17 @@ const Tax = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {!loading && filteredRecords.length > 0 && (
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+                totalRecords={pagination.totalRecords}
+                itemsPerPage={pagination.limit}
+              />
+            )}
           </div>
         </div>
       </div>

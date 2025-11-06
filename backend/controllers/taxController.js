@@ -7,7 +7,7 @@ const fs = require('fs')
 // Get all tax records
 exports.getAllTax = async (req, res) => {
   try {
-    const { search, status, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+    const { search, status, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
     // Build query
     const query = {}
@@ -20,9 +20,15 @@ exports.getAllTax = async (req, res) => {
       ]
     }
 
-    // Filter by status
+    // Filter by status or pending payment
     if (status) {
-      query.status = status
+      if (status === 'pending') {
+        // Pending payment means balance > 0
+        query.balanceAmount = { $gt: 0 }
+      } else {
+        // Normal status filter
+        query.status = status
+      }
     }
 
     // Calculate pagination
@@ -245,9 +251,14 @@ exports.deleteTax = async (req, res) => {
 exports.getTaxStatistics = async (req, res) => {
   try {
     const total = await Tax.countDocuments()
-    const active = await Tax.countDocuments({ status: 'active' })
-    const expired = await Tax.countDocuments({ status: 'expired' })
-    const expiring = await Tax.countDocuments({ status: 'expiring_soon' })
+    const active = await Tax.countDocuments({ status: 'Active' })
+    const expired = await Tax.countDocuments({ status: 'Expired' })
+    const expiring = await Tax.countDocuments({ status: 'Expiring Soon' })
+
+    // Pending payment count and amount
+    const pendingPaymentRecords = await Tax.find({ balanceAmount: { $gt: 0 } })
+    const pendingPaymentCount = pendingPaymentRecords.length
+    const pendingPaymentAmount = pendingPaymentRecords.reduce((sum, record) => sum + (record.balanceAmount || 0), 0)
 
     res.json({
       success: true,
@@ -255,7 +266,9 @@ exports.getTaxStatistics = async (req, res) => {
         total,
         active,
         expired,
-        expiringSoon: expiring
+        expiringSoon: expiring,
+        pendingPaymentCount,
+        pendingPaymentAmount
       }
     })
   } catch (error) {

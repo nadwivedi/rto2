@@ -7,7 +7,7 @@ const fs = require('fs')
 // Get all fitness records
 exports.getAllFitness = async (req, res) => {
   try {
-    const { search, status, page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+    const { search, status, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
     // Build query
     const query = {}
@@ -17,9 +17,15 @@ exports.getAllFitness = async (req, res) => {
       query.vehicleNumber = { $regex: search, $options: 'i' }
     }
 
-    // Filter by status
+    // Filter by status or pending payment
     if (status) {
-      query.status = status
+      if (status === 'pending') {
+        // Pending payment means balance > 0
+        query.balance = { $gt: 0 }
+      } else {
+        // Normal status filter
+        query.status = status
+      }
     }
 
     // Calculate pagination
@@ -238,9 +244,14 @@ exports.deleteFitness = async (req, res) => {
 exports.getFitnessStatistics = async (req, res) => {
   try {
     const total = await Fitness.countDocuments()
-    const active = await Fitness.countDocuments({ status: 'active' })
-    const expired = await Fitness.countDocuments({ status: 'expired' })
-    const expiring = await Fitness.countDocuments({ status: 'expiring_soon' })
+    const active = await Fitness.countDocuments({ status: 'Active' })
+    const expired = await Fitness.countDocuments({ status: 'Expired' })
+    const expiring = await Fitness.countDocuments({ status: 'Expiring Soon' })
+
+    // Pending payment count and amount
+    const pendingPaymentRecords = await Fitness.find({ balance: { $gt: 0 } })
+    const pendingPaymentCount = pendingPaymentRecords.length
+    const pendingPaymentAmount = pendingPaymentRecords.reduce((sum, record) => sum + (record.balance || 0), 0)
 
     res.json({
       success: true,
@@ -248,7 +259,9 @@ exports.getFitnessStatistics = async (req, res) => {
         total,
         active,
         expired,
-        expiringSoon: expiring
+        expiringSoon: expiring,
+        pendingPaymentCount,
+        pendingPaymentAmount
       }
     })
   } catch (error) {

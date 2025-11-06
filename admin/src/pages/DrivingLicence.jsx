@@ -4,6 +4,7 @@ import QuickDLApplicationForm from '../components/QuickDLApplicationForm'
 import EditDLApplicationForm from '../components/EditDLApplicationForm'
 import ApplicationDetailModal from '../components/ApplicationDetailModal'
 import { drivingLicenseAPI } from '../services/api'
+import Pagination from '../components/Pagination'
 
 const DrivingLicence = () => {
   // Demo data for when backend is not available
@@ -93,8 +94,6 @@ const DrivingLicence = () => {
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isEditFormOpen, setIsEditFormOpen] = useState(false)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
@@ -103,15 +102,19 @@ const DrivingLicence = () => {
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('All')
   const [dlExpiryFilter, setDlExpiryFilter] = useState('All')
   const [llExpiryFilter, setLlExpiryFilter] = useState('All')
-  const [totalPages, setTotalPages] = useState(0)
-  const [totalItems, setTotalItems] = useState(0)
   const [llExpiringCount, setLlExpiringCount] = useState(0)
   const [dlExpiringCount, setDlExpiringCount] = useState(0)
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    limit: 20
+  })
 
   // Fetch applications from backend
   useEffect(() => {
-    fetchApplications()
-  }, [currentPage, searchQuery, typeFilter, paymentStatusFilter, dlExpiryFilter, llExpiryFilter])
+    fetchApplications(1)
+  }, [searchQuery, typeFilter, paymentStatusFilter, dlExpiryFilter, llExpiryFilter])
 
   // Fetch expiring counts on component mount
   useEffect(() => {
@@ -144,12 +147,12 @@ const DrivingLicence = () => {
     }
   }
 
-  const fetchApplications = async () => {
+  const fetchApplications = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
       const params = {
-        page: currentPage,
-        limit: itemsPerPage
+        page,
+        limit: pagination.limit
       }
 
       if (searchQuery) params.search = searchQuery
@@ -238,15 +241,27 @@ const DrivingLicence = () => {
       console.log('Transformed Data:', transformedData) // Debug log
 
       setApplications(transformedData)
-      setTotalPages(response.pagination?.totalPages || 0)
-      setTotalItems(response.pagination?.totalItems || 0)
+
+      // Update pagination state
+      if (response.pagination) {
+        setPagination({
+          currentPage: response.pagination.currentPage,
+          totalPages: response.pagination.totalPages,
+          totalRecords: response.pagination.totalItems,
+          limit: pagination.limit
+        })
+      }
     } catch (error) {
       console.error('Error fetching applications:', error)
       console.log('Using demo data as fallback')
       // Use demo data when backend is not available
       setApplications(demoApplications)
-      setTotalPages(1)
-      setTotalItems(demoApplications.length)
+      setPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalRecords: demoApplications.length,
+        limit: pagination.limit
+      })
     } finally {
       setLoading(false)
     }
@@ -308,7 +323,7 @@ const DrivingLicence = () => {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const total = totalItems
+    const total = pagination.totalRecords
 
     // Use the fetched counts instead of calculating from current page
     const expiringSoon = dlExpiringCount
@@ -322,16 +337,17 @@ const DrivingLicence = () => {
       llExpiringSoon,
       totalPending
     }
-  }, [applications, totalItems, dlExpiringCount, llExpiringCount])
+  }, [applications, pagination.totalRecords, dlExpiringCount, llExpiringCount])
 
   // Reset to page 1 when search changes
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value)
-    setCurrentPage(1)
   }
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page)
+  // Page change handler
+  const handlePageChange = (newPage) => {
+    fetchApplications(newPage)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleViewDetails = (app) => {
@@ -629,7 +645,6 @@ const DrivingLicence = () => {
                 value={typeFilter}
                 onChange={(e) => {
                   setTypeFilter(e.target.value)
-                  setCurrentPage(1)
                 }}
                 className='w-[calc(50%-0.25rem)] lg:w-auto px-2 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
               >
@@ -647,7 +662,6 @@ const DrivingLicence = () => {
                 value={paymentStatusFilter}
                 onChange={(e) => {
                   setPaymentStatusFilter(e.target.value)
-                  setCurrentPage(1)
                 }}
                 className='w-[calc(50%-0.25rem)] lg:w-auto px-2 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
               >
@@ -661,7 +675,6 @@ const DrivingLicence = () => {
                 value={dlExpiryFilter}
                 onChange={(e) => {
                   setDlExpiryFilter(e.target.value)
-                  setCurrentPage(1)
                 }}
                 className='w-[calc(50%-0.25rem)] lg:w-auto px-2 lg:px-3 py-2 lg:py-3 text-xs lg:text-sm border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-400 font-semibold bg-white hover:border-purple-300 transition-all shadow-sm'
               >
@@ -675,7 +688,6 @@ const DrivingLicence = () => {
                 value={llExpiryFilter}
                 onChange={(e) => {
                   setLlExpiryFilter(e.target.value)
-                  setCurrentPage(1)
                 }}
                 className='w-[calc(50%-0.25rem)] lg:w-auto px-2 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm border-2 border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-400 font-semibold bg-white hover:border-yellow-300 transition-all shadow-sm'
               >
@@ -693,7 +705,6 @@ const DrivingLicence = () => {
                     setPaymentStatusFilter('All')
                     setDlExpiryFilter('All')
                     setLlExpiryFilter('All')
-                    setCurrentPage(1)
                   }}
                   className='px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
                 >
@@ -874,75 +885,14 @@ const DrivingLicence = () => {
         </div>
 
         {/* Pagination */}
-        {totalItems > 0 && (
-          <div className='px-6 py-4 border-t border-gray-200 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50'>
-            <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
-              <div className='text-sm font-bold text-gray-700'>
-                Page {currentPage} of {totalPages}
-              </div>
-
-              <div className='flex items-center gap-2'>
-                {/* Previous Button */}
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                    currentPage === 1
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
-                  }`}
-                >
-                  Previous
-                </button>
-
-                {/* Page Numbers */}
-                <div className='flex gap-1.5'>
-                  {[...Array(totalPages)].map((_, index) => {
-                    const pageNumber = index + 1
-                    // Show first page, last page, current page, and pages around current
-                    if (
-                      pageNumber === 1 ||
-                      pageNumber === totalPages ||
-                      (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
-                    ) {
-                      return (
-                        <button
-                          key={pageNumber}
-                          onClick={() => handlePageChange(pageNumber)}
-                          className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                            currentPage === pageNumber
-                              ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg transform scale-110'
-                              : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
-                          }`}
-                        >
-                          {pageNumber}
-                        </button>
-                      )
-                    } else if (
-                      pageNumber === currentPage - 2 ||
-                      pageNumber === currentPage + 2
-                    ) {
-                      return <span key={pageNumber} className='px-2 py-2 text-gray-400 font-bold text-sm'>...</span>
-                    }
-                    return null
-                  })}
-                </div>
-
-                {/* Next Button */}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`px-4 py-2 rounded-lg font-bold text-sm transition-all ${
-                    currentPage === totalPages
-                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-white border-2 border-indigo-200 text-gray-700 hover:bg-indigo-50 hover:border-indigo-300 shadow-sm'
-                  }`}
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </div>
+        {!loading && currentApplications.length > 0 && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+            totalRecords={pagination.totalRecords}
+            itemsPerPage={pagination.limit}
+          />
         )}
         </div>
         </div>
