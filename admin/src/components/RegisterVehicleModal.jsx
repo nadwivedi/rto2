@@ -150,30 +150,30 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   return (
     <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn'>
-      <div className='bg-white rounded-3xl shadow-2xl w-full max-w-[95%] max-h-[90vh] overflow-hidden animate-slideUp'>
+      <div className='bg-white rounded-3xl shadow-2xl w-full max-w-[90%] max-h-[95vh] overflow-hidden animate-slideUp'>
         {/* Header with gradient and icon */}
-        <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white p-7 z-10 shadow-lg'>
+        <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white px-6 py-3 z-10 shadow-lg'>
           <div className='flex items-center justify-between'>
-            <div className='flex items-center gap-4'>
-              <div className='bg-white/20 backdrop-blur-lg p-3 rounded-xl'>
-                <svg className='w-7 h-7' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+            <div className='flex items-center gap-3'>
+              <div className='bg-white/20 backdrop-blur-lg p-2 rounded-lg'>
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                 </svg>
               </div>
               <div>
-                <h2 className='text-2xl font-bold'>
+                <h2 className='text-lg font-bold'>
                   {editData ? 'Edit Vehicle Registration' : 'Register New Vehicle'}
                 </h2>
-                <p className='text-white/80 text-sm mt-0.5'>
+                <p className='text-white/80 text-xs mt-0.5'>
                   {editData ? 'Update vehicle information' : 'Fill in all the required details'}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className='text-white/90 hover:text-white hover:bg-white/20 p-2.5 rounded-xl transition-all duration-200 hover:rotate-90'
+              className='text-white/90 hover:text-white hover:bg-white/20 p-2 rounded-lg transition-all duration-200 hover:rotate-90'
             >
-              <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
               </svg>
             </button>
@@ -181,8 +181,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         </div>
 
         {/* Form */}
-        <div className='overflow-y-auto max-h-[calc(90vh-120px)] custom-scrollbar'>
-          <form onSubmit={handleSubmit} className='p-8'>
+        <div className='overflow-y-auto max-h-[calc(95vh-140px)] custom-scrollbar'>
+          <form id='vehicle-registration-form' onSubmit={handleSubmit} className='p-8'>
             {error && (
               <div className='mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg flex items-start gap-3 animate-shake'>
                 <svg className='w-5 h-5 text-red-500 flex-shrink-0 mt-0.5' fill='currentColor' viewBox='0 0 20 20'>
@@ -207,7 +207,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               </div>
               <div className='bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-2xl border border-indigo-100'>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5'>
+                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5'>
                   {/* Registration Number */}
                   <div className='group'>
                     <label className='block text-sm font-semibold text-gray-700 mb-2'>
@@ -226,7 +226,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         onChange={handleChange}
                         required
                         placeholder='CG01AB1234'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -248,7 +248,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.dateOfRegistration}
                         onChange={handleDateChange}
                         placeholder='DD-MM-YYYY'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -271,7 +271,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         onChange={handleChange}
                         required
                         placeholder='Enter chassis number'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -293,7 +293,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.engineNumber}
                         onChange={handleChange}
                         placeholder='Enter engine/motor number'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -315,7 +315,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.makerName}
                         onChange={handleChange}
                         placeholder='e.g., Maruti Suzuki, Tata, Honda'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -337,7 +337,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.makerModel}
                         onChange={handleChange}
                         placeholder='e.g., Maruti Swift DXI'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -359,7 +359,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.colour}
                         onChange={handleChange}
                         placeholder='e.g., White, Red, Blue'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -381,7 +381,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.seatingCapacity}
                         onChange={handleChange}
                         placeholder='e.g., 5, 7, 50'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -401,7 +401,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='vehicleClass'
                         value={formData.vehicleClass}
                         onChange={handleChange}
-                        className='w-full pl-12 pr-10 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
+                        className='w-full pl-12 pr-10 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
                       >
                         <option value=''>Select Vehicle Class</option>
                         <option value='Motor Cycle'>Motor Cycle</option>
@@ -443,7 +443,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='vehicleType'
                         value={formData.vehicleType}
                         onChange={handleChange}
-                        className='w-full pl-12 pr-10 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
+                        className='w-full pl-12 pr-10 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
                       >
                         <option value=''>Select Vehicle Type</option>
                         <option value='Two Wheeler'>Two Wheeler</option>
@@ -484,7 +484,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='vehicleCategory'
                         value={formData.vehicleCategory}
                         onChange={handleChange}
-                        className='w-full pl-12 pr-10 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
+                        className='w-full pl-12 pr-10 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
                       >
                         <option value=''>Select Category</option>
                         <option value='LMV'>LMV (Light Motor Vehicle)</option>
@@ -531,7 +531,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.ladenWeight}
                         onChange={handleChange}
                         placeholder='e.g., 2500'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -553,7 +553,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.unladenWeight}
                         onChange={handleChange}
                         placeholder='e.g., 1200'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -575,7 +575,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.manufactureYear}
                         onChange={handleChange}
                         placeholder='e.g., 2020'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -597,7 +597,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.purchaseDeliveryDate}
                         onChange={handleDateChange}
                         placeholder='DD/MM/YYYY'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -619,7 +619,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.saleAmount}
                         onChange={handleChange}
                         placeholder='e.g., 500000'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -660,7 +660,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.ownerName}
                         onChange={handleChange}
                         placeholder='Enter full name of owner'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -682,7 +682,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.sonWifeDaughterOf}
                         onChange={handleChange}
                         placeholder='Enter father/husband/parent name'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -708,7 +708,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.address}
                         onChange={handleChange}
                         placeholder='Enter complete address with pin code'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -731,7 +731,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         onChange={handleChange}
                         maxLength='10'
                         placeholder='Enter 10-digit mobile number'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -753,7 +753,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         value={formData.email}
                         onChange={handleChange}
                         placeholder='Enter email address'
-                        className='w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        className='w-full pl-12 pr-4 py-2 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
                   </div>
@@ -761,44 +761,46 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className='sticky bottom-0 bg-gradient-to-t from-white via-white to-transparent pt-6 pb-2 mt-8'>
-              <div className='flex gap-4 justify-end'>
-                <button
-                  type='button'
-                  onClick={onClose}
-                  className='px-8 py-3.5 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200 font-semibold border-2 border-gray-200 hover:border-gray-300 flex items-center gap-2'
-                >
-                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                  </svg>
-                  Cancel
-                </button>
-                <button
-                  type='submit'
-                  disabled={loading}
-                  className='px-8 py-3.5 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white rounded-xl hover:from-indigo-700 hover:via-purple-700 hover:to-pink-600 transition-all duration-200 font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-xl hover:scale-105 transform'
-                >
-                  {loading ? (
-                    <>
-                      <svg className='animate-spin h-5 w-5' fill='none' viewBox='0 0 24 24'>
-                        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-                        <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
-                      </svg>
-                      <span>Saving...</span>
-                    </>
-                  ) : (
-                    <>
-                      <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                      </svg>
-                      <span>{editData ? 'Update Registration' : 'Register Vehicle'}</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
           </form>
+        </div>
+
+        {/* Action Buttons - Fixed at bottom */}
+        <div className='sticky bottom-0 bg-white border-t border-gray-200 px-6 py-3 shadow-lg z-10'>
+          <div className='flex gap-3 justify-end'>
+            <button
+              type='button'
+              onClick={onClose}
+              className='px-5 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 font-semibold border border-gray-200 hover:border-gray-300 flex items-center gap-2 text-sm'
+            >
+              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+              </svg>
+              Cancel
+            </button>
+            <button
+              type='submit'
+              form='vehicle-registration-form'
+              disabled={loading}
+              className='px-5 py-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white rounded-lg hover:from-indigo-700 hover:via-purple-700 hover:to-pink-600 transition-all duration-200 font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-md hover:shadow-lg text-sm'
+            >
+              {loading ? (
+                <>
+                  <svg className='animate-spin h-4 w-4' fill='none' viewBox='0 0 24 24'>
+                    <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                    <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                  </svg>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                  <span>{editData ? 'Update Registration' : 'Register Vehicle'}</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

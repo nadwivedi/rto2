@@ -227,7 +227,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     name='vehicleNumber'
                     value={formData.vehicleNumber}
                     onChange={handleChange}
-                    placeholder='CG04AB1234 (dashes will be removed automatically)'
+                    placeholder='CG04AB1234'
                     className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono uppercase ${
                       initialData ? 'bg-gray-100 cursor-not-allowed' : ''
                     }`}

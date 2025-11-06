@@ -1,9 +1,36 @@
+require('dotenv').config()
 const express = require('express')
+const cors = require('cors')
 const path = require('path')
 const connectDB = require('./utils/mongodb')
 
 const app = express()
 const PORT = process.env.PORT || 5000
+
+// CORS configuration
+const allowedOrigins = [
+  'https://rtoapi.winners11.in',
+  'https://rto.winners11.in',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175'
+]
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+}))
 
 // Middleware
 app.use(express.json())
@@ -15,22 +42,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
     if (filePath.endsWith('.pdf')) {
       // Allow inline viewing but also enable download
       res.setHeader('Content-Type', 'application/pdf')
-      res.setHeader('Access-Control-Allow-Origin', '*')
       res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
     }
   }
 }))
-
-// CORS middleware (allow admin panel to connect)
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200)
-  }
-  next()
-})
 
 // MongoDB Connection
 connectDB()

@@ -58,18 +58,19 @@ const Navbar = () => {
       path: "/insurance",
       description: "Vehicle Insurance",
     },
-    {
-      name: "Vehicle Transfer",
-      icon: "🔀",
-      path: "/vehicle-transfer",
-      description: "Transfer Ownership",
-    },
 
     {
       name: "Driving Licence",
       icon: "🪪",
       path: "/",
       description: "DL Applications",
+    },
+
+    {
+      name: "Vehicle Transfer",
+      icon: "🔀",
+      path: "/vehicle-transfer",
+      description: "Transfer Ownership",
     },
     {
       name: "Setting",
