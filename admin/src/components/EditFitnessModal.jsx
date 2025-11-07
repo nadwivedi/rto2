@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react'
-
-// Helper function to format date as DD-MM-YYYY
-const formatDate = (date) => {
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}-${month}-${year}`
-}
+import { formatDateInput, handleDateBlur as utilHandleDateBlur } from '../utils/dateFormatter'
 
 const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   const [formData, setFormData] = useState({
@@ -117,6 +110,16 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
       return
     }
 
+    // Auto-format date fields with automatic dash insertion
+    if (name === 'validFrom' || name === 'validTo') {
+      const formatted = formatDateInput(value)
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+      return
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -124,35 +127,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   }
 
   const handleDateBlur = (e) => {
-    const { name, value } = e.target
-
-    // Only format date fields
-    if (name === 'validFrom' || name === 'validTo') {
-      const parts = value.split(/[/-]/)  // Splits on both "/" and "-"
-
-      // Only format if we have a complete date with 3 parts
-      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-        const day = parts[0]
-        const month = parts[1]
-        let year = parts[2]
-
-        // Auto-expand 2-digit year to 4-digit (only when exactly 2 digits)
-        if (year.length === 2 && /^\d{2}$/.test(year)) {
-          const yearNum = parseInt(year, 10)
-          // Convert 2-digit year to 4-digit (00-50 → 2000-2050, 51-99 → 1951-1999)
-          year = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        }
-
-        // Normalize to DD-MM-YYYY format (if year is 4 digits or was expanded)
-        if (year.toString().length === 4) {
-          const formattedValue = `${day}-${month}-${year}`
-          setFormData(prev => ({
-            ...prev,
-            [name]: formattedValue
-          }))
-        }
-      }
-    }
+    utilHandleDateBlur(e, setFormData)
   }
 
   const handleSubmit = (e) => {

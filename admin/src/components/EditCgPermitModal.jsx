@@ -24,6 +24,8 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     balance: '10000'
   })
 
+  const [lastAction, setLastAction] = useState({})
+
   // Populate form when permit changes
   useEffect(() => {
     if (permit) {
@@ -101,6 +103,15 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     }
   }, [isOpen, onClose])
 
+  const handleDateKeyDown = (e) => {
+    const { name } = e.target
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      setLastAction({ [name]: 'delete' })
+    } else {
+      setLastAction({ [name]: 'typing' })
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -120,8 +131,53 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       return
     }
 
-    // For date fields, just store the value as-is during typing
-    // Formatting happens on blur (when user leaves the field)
+    // Auto-format date fields with automatic dash insertion
+    if (name === 'validFrom' || name === 'validTo') {
+      // Remove all non-digit characters
+      let digitsOnly = value.replace(/[^\d]/g, '')
+
+      // Limit to 8 digits (DDMMYYYY)
+      digitsOnly = digitsOnly.slice(0, 8)
+
+      // Check if user was deleting
+      const isDeleting = lastAction[name] === 'delete'
+
+      // Format based on length
+      let formatted = digitsOnly
+
+      if (digitsOnly.length === 0) {
+        formatted = ''
+      } else if (digitsOnly.length <= 2) {
+        formatted = digitsOnly
+        // Only add trailing dash if user just typed the 2nd digit (not deleting)
+        if (digitsOnly.length === 2 && !isDeleting) {
+          formatted = digitsOnly + '-'
+        }
+      } else if (digitsOnly.length <= 4) {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
+        // Only add trailing dash if user just typed the 4th digit (not deleting)
+        if (digitsOnly.length === 4 && !isDeleting) {
+          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
+        }
+      } else {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
+      }
+
+      // Auto-expand 2-digit year (only when typing, not deleting)
+      if (digitsOnly.length === 6 && !isDeleting) {
+        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
+        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+      return
+    }
+
+    // For other fields, just store the value as-is
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -276,6 +332,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     onBlur={handleDateBlur}
                     placeholder='24-01-24 or 24-01-2024'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
@@ -294,6 +351,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     onBlur={handleDateBlur}
                     placeholder='Will be calculated automatically'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50'

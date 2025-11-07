@@ -1,12 +1,5 @@
 import { useState, useEffect } from 'react'
-
-// Helper function to format date as DD-MM-YYYY
-const formatDate = (date) => {
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}-${month}-${year}`
-}
+import { handleDateBlur as utilHandleDateBlur } from '../utils/dateFormatter'
 
 const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [formData, setFormData] = useState({
@@ -17,6 +10,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     paid: '0',
     balance: '0'
   })
+  const [lastAction, setLastAction] = useState({})
 
   // Pre-fill form when initialData is provided (for renewal)
   useEffect(() => {
@@ -94,6 +88,15 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     }
   }, [isOpen, onClose])
 
+  const handleDateKeyDown = (e) => {
+    const { name } = e.target
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      setLastAction({ [name]: 'delete' })
+    } else {
+      setLastAction({ [name]: 'typing' })
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -123,6 +126,52 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       return
     }
 
+    // Auto-format date fields with automatic dash insertion
+    if (name === 'validFrom' || name === 'validTo') {
+      // Remove all non-digit characters
+      let digitsOnly = value.replace(/[^\d]/g, '')
+
+      // Limit to 8 digits (DDMMYYYY)
+      digitsOnly = digitsOnly.slice(0, 8)
+
+      // Check if user was deleting
+      const isDeleting = lastAction[name] === 'delete'
+
+      // Format based on length
+      let formatted = digitsOnly
+
+      if (digitsOnly.length === 0) {
+        formatted = ''
+      } else if (digitsOnly.length <= 2) {
+        formatted = digitsOnly
+        // Only add trailing dash if user just typed the 2nd digit (not deleting)
+        if (digitsOnly.length === 2 && !isDeleting) {
+          formatted = digitsOnly + '-'
+        }
+      } else if (digitsOnly.length <= 4) {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
+        // Only add trailing dash if user just typed the 4th digit (not deleting)
+        if (digitsOnly.length === 4 && !isDeleting) {
+          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
+        }
+      } else {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
+      }
+
+      // Auto-expand 2-digit year (only when typing, not deleting)
+      if (digitsOnly.length === 6 && !isDeleting) {
+        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
+        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+      return
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -130,35 +179,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   }
 
   const handleDateBlur = (e) => {
-    const { name, value } = e.target
-
-    // Only format date fields
-    if (name === 'validFrom' || name === 'validTo') {
-      const parts = value.split(/[/-]/)  // Splits on both "/" and "-"
-
-      // Only format if we have a complete date with 3 parts
-      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-        const day = parts[0]
-        const month = parts[1]
-        let year = parts[2]
-
-        // Auto-expand 2-digit year to 4-digit (only when exactly 2 digits)
-        if (year.length === 2 && /^\d{2}$/.test(year)) {
-          const yearNum = parseInt(year, 10)
-          // Convert 2-digit year to 4-digit (00-50 → 2000-2050, 51-99 → 1951-1999)
-          year = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        }
-
-        // Normalize to DD-MM-YYYY format (if year is 4 digits or was expanded)
-        if (year.toString().length === 4) {
-          const formattedValue = `${day}-${month}-${year}`
-          setFormData(prev => ({
-            ...prev,
-            [name]: formattedValue
-          }))
-        }
-      }
-    }
+    utilHandleDateBlur(e, setFormData)
   }
 
   const handleSubmit = (e) => {
@@ -259,6 +280,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     onBlur={handleDateBlur}
                     placeholder='24-01-25 or 24/01/2025'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
@@ -276,6 +298,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     onBlur={handleDateBlur}
                     placeholder='Auto-calculated or enter manually'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'

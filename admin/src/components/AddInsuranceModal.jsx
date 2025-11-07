@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react'
+import { getTodayDate as utilGetTodayDate } from '../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEditMode = false }) => {
-  // Helper function to get today's date in DD/MM/YYYY format
+  // Helper function to get today's date in DD-MM-YYYY format
   const getTodayDate = () => {
-    const today = new Date()
-    const day = String(today.getDate()).padStart(2, '0')
-    const month = String(today.getMonth() + 1).padStart(2, '0')
-    const year = today.getFullYear()
-    return `${day}/${month}/${year}`
+    return utilGetTodayDate()
   }
 
   const [formData, setFormData] = useState({
@@ -24,6 +21,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
 
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
+  const [lastAction, setLastAction] = useState({})
 
   // Pre-fill form when initialData is provided (for edit/renewal) or reset on open
   useEffect(() => {
@@ -111,8 +109,8 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   // Calculate valid to date (1 year from valid from)
   useEffect(() => {
     if (formData.validFrom) {
-      // Parse DD/MM/YYYY format
-      const parts = formData.validFrom.trim().split('/')
+      // Parse DD-MM-YYYY format
+      const parts = formData.validFrom.trim().split('-')
       if (parts.length === 3) {
         const day = parseInt(parts[0], 10)
         const month = parseInt(parts[1], 10) - 1 // Month is 0-indexed
@@ -134,11 +132,11 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
               // Subtract 1 day
               validToDate.setDate(validToDate.getDate() - 1)
 
-              // Format date to DD/MM/YYYY
+              // Format date to DD-MM-YYYY
               const newDay = String(validToDate.getDate()).padStart(2, '0')
               const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
               const newYear = validToDate.getFullYear()
-              const formattedValidTo = `${newDay}/${newMonth}/${newYear}`
+              const formattedValidTo = `${newDay}-${newMonth}-${newYear}`
 
               // Only update if different to avoid infinite loop
               if (formData.validTo !== formattedValidTo) {
@@ -174,6 +172,15 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     }
   }, [isOpen, onClose])
 
+  const handleDateKeyDown = (e) => {
+    const { name } = e.target
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      setLastAction({ [name]: 'delete' })
+    } else {
+      setLastAction({ [name]: 'typing' })
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -202,21 +209,50 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       return
     }
 
-    // Auto-format year in validFrom field
-    if (name === 'validFrom') {
-      // Check if the format matches DD/MM/YY (2-digit year)
-      const parts = value.split('/')
-      if (parts.length === 3 && parts[2].length === 2 && /^\d{2}$/.test(parts[2])) {
-        const year = parseInt(parts[2], 10)
-        // Convert 2-digit year to 4-digit (00-50 -> 2000-2050, 51-99 -> 1951-1999)
-        const fullYear = year <= 50 ? 2000 + year : 1900 + year
-        const formattedValue = `${parts[0]}/${parts[1]}/${fullYear}`
-        setFormData(prev => ({
-          ...prev,
-          [name]: formattedValue
-        }))
-        return
+    // Auto-format date fields with automatic dash insertion
+    if (name === 'validFrom' || name === 'validTo') {
+      // Remove all non-digit characters
+      let digitsOnly = value.replace(/[^\d]/g, '')
+
+      // Limit to 8 digits (DDMMYYYY)
+      digitsOnly = digitsOnly.slice(0, 8)
+
+      // Check if user was deleting
+      const isDeleting = lastAction[name] === 'delete'
+
+      // Format based on length
+      let formatted = digitsOnly
+
+      if (digitsOnly.length === 0) {
+        formatted = ''
+      } else if (digitsOnly.length <= 2) {
+        formatted = digitsOnly
+        // Only add trailing dash if user just typed the 2nd digit (not deleting)
+        if (digitsOnly.length === 2 && !isDeleting) {
+          formatted = digitsOnly + '-'
+        }
+      } else if (digitsOnly.length <= 4) {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
+        // Only add trailing dash if user just typed the 4th digit (not deleting)
+        if (digitsOnly.length === 4 && !isDeleting) {
+          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
+        }
+      } else {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
       }
+
+      // Auto-expand 2-digit year (only when typing, not deleting)
+      if (digitsOnly.length === 6 && !isDeleting) {
+        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
+        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+      return
     }
 
     setFormData(prev => ({
@@ -356,7 +392,8 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
-                    placeholder='DD/MM/YYYY'
+                    onKeyDown={handleDateKeyDown}
+                    placeholder='DD-MM-YYYY'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                     required
                   />
@@ -373,6 +410,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     placeholder='Auto-calculated based on Valid From'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50'
                   />

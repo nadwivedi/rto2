@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatDateInput } from '../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -190,6 +191,16 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       setFormData(prev => ({
         ...prev,
         [name]: cleanedValue
+      }))
+      return
+    }
+
+    // Auto-format date fields with automatic dash insertion
+    if (name === 'taxFrom' || name === 'taxTo') {
+      const formatted = formatDateInput(value)
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
       }))
       return
     }

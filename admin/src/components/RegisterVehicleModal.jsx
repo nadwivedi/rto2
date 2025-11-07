@@ -31,6 +31,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [lastAction, setLastAction] = useState({})
 
   useEffect(() => {
     if (editData) {
@@ -80,36 +81,58 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     }))
   }
 
+  const handleDateKeyDown = (e) => {
+    const { name } = e.target
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      setLastAction({ [name]: 'delete' })
+    } else {
+      setLastAction({ [name]: 'typing' })
+    }
+  }
+
   const handleDateChange = (e) => {
-    const { name, value: input } = e.target
-    const prevValue = formData[name] || ''
+    const { name, value } = e.target
 
-    // If user is deleting (backspace), allow deletion of dashes
-    if (input.length < prevValue.length) {
-      setFormData(prev => ({
-        ...prev,
-        [name]: input
-      }))
-      return
+    // Remove all non-digit characters
+    let digitsOnly = value.replace(/[^\d]/g, '')
+
+    // Limit to 8 digits (DDMMYYYY)
+    digitsOnly = digitsOnly.slice(0, 8)
+
+    // Check if user was deleting
+    const isDeleting = lastAction[name] === 'delete'
+
+    // Format based on length
+    let formatted = digitsOnly
+
+    if (digitsOnly.length === 0) {
+      formatted = ''
+    } else if (digitsOnly.length <= 2) {
+      formatted = digitsOnly
+      // Only add trailing dash if user just typed the 2nd digit (not deleting)
+      if (digitsOnly.length === 2 && !isDeleting) {
+        formatted = digitsOnly + '-'
+      }
+    } else if (digitsOnly.length <= 4) {
+      formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
+      // Only add trailing dash if user just typed the 4th digit (not deleting)
+      if (digitsOnly.length === 4 && !isDeleting) {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
+      }
+    } else {
+      formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
     }
 
-    // Remove all non-digits
-    let value = input.replace(/\D/g, '')
-
-    // Format: DD-MM-YYYY (10-8-2022 format)
-    if (value.length >= 2) {
-      value = value.slice(0, 2) + '-' + value.slice(2)
-    }
-    if (value.length >= 5) {
-      value = value.slice(0, 5) + '-' + value.slice(5)
-    }
-    if (value.length > 11) {
-      value = value.slice(0, 11)
+    // Auto-expand 2-digit year (only when typing, not deleting)
+    if (digitsOnly.length === 6 && !isDeleting) {
+      const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
+      const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+      formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
     }
 
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: formatted
     }))
   }
 
@@ -255,6 +278,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='dateOfRegistration'
                         value={formData.dateOfRegistration}
                         onChange={handleDateChange}
+                        onKeyDown={handleDateKeyDown}
                         placeholder='DD-MM-YYYY'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -612,7 +636,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='purchaseDeliveryDate'
                         value={formData.purchaseDeliveryDate}
                         onChange={handleDateChange}
-                        placeholder='DD/MM/YYYY'
+                        onKeyDown={handleDateKeyDown}
+                        placeholder='DD-MM-YYYY'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
