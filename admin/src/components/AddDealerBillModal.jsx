@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
   const [billDate, setBillDate] = useState(new Date().toLocaleDateString('en-IN', {
@@ -95,7 +95,7 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/custom-bills`, {
+      const response = await fetch(`${API_BASE_URL}/api/custom-bills`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

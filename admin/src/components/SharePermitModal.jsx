@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const SharePermitModal = ({ permit, onClose }) => {
   const [phoneNumber, setPhoneNumber] = useState(permit.partA?.ownerMobile || '')
@@ -68,10 +68,10 @@ const SharePermitModal = ({ permit, onClose }) => {
 
       if (permit.partA?.billPdfPath) {
         // PDF already exists, use it directly
-        pdfUrl = `http://localhost:5000${permit.partA.billPdfPath}`
+        pdfUrl = `${API_BASE_URL}${permit.partA.billPdfPath}`
       } else {
         // Need to generate PDF
-        const response = await fetch(`${API_BASE_URL}/national-permits/${permit.id}/generate-bill-pdf`, {
+        const response = await fetch(`${API_BASE_URL}/api/national-permits/${permit.id}/generate-bill-pdf`, {
           method: 'POST'
         })
 
@@ -81,7 +81,7 @@ const SharePermitModal = ({ permit, onClose }) => {
           throw new Error(data.message || 'Failed to generate PDF')
         }
 
-        pdfUrl = data.data.pdfUrl || `http://localhost:5000${data.data.pdfPath}`
+        pdfUrl = data.data.pdfUrl || `${API_BASE_URL}${data.data.pdfPath}`
       }
 
       // Create WhatsApp message

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { formatDateInput } from '../utils/dateFormatter'
+import { handleDateBlur as utilHandleDateBlur } from '../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -7,6 +7,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
   const [dateError, setDateError] = useState({ taxFrom: '', taxTo: '' })
+  const [lastAction, setLastAction] = useState({})
 
   const [formData, setFormData] = useState({
     receiptNo: '',
@@ -182,6 +183,15 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     }
   }, [isOpen, onClose])
 
+  const handleDateKeyDown = (e) => {
+    const { name } = e.target
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      setLastAction({ [name]: 'delete' })
+    } else {
+      setLastAction({ [name]: 'typing' })
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -197,7 +207,43 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
     // Auto-format date fields with automatic dash insertion
     if (name === 'taxFrom' || name === 'taxTo') {
-      const formatted = formatDateInput(value)
+      // Remove all non-digit characters
+      let digitsOnly = value.replace(/[^\d]/g, '')
+
+      // Limit to 8 digits (DDMMYYYY)
+      digitsOnly = digitsOnly.slice(0, 8)
+
+      // Check if user was deleting
+      const isDeleting = lastAction[name] === 'delete'
+
+      // Format based on length
+      let formatted = digitsOnly
+
+      if (digitsOnly.length === 0) {
+        formatted = ''
+      } else if (digitsOnly.length <= 2) {
+        formatted = digitsOnly
+        // Only add trailing dash if user just typed the 2nd digit (not deleting)
+        if (digitsOnly.length === 2 && !isDeleting) {
+          formatted = digitsOnly + '-'
+        }
+      } else if (digitsOnly.length <= 4) {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
+        // Only add trailing dash if user just typed the 4th digit (not deleting)
+        if (digitsOnly.length === 4 && !isDeleting) {
+          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
+        }
+      } else {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
+      }
+
+      // Auto-expand 2-digit year (only when typing, not deleting)
+      if (digitsOnly.length === 6 && !isDeleting) {
+        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
+        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
+      }
+
       setFormData(prev => ({
         ...prev,
         [name]: formatted
@@ -582,6 +628,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     name='taxFrom'
                     value={formData.taxFrom}
                     onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     onBlur={handleDateBlur}
                     placeholder='24-01-25 or 24/01/2025'
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
@@ -609,6 +656,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     name='taxTo'
                     value={formData.taxTo}
                     onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     onBlur={handleDateBlur}
                     placeholder='Auto-calculated or enter manually'
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50 ${

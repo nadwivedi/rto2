@@ -314,7 +314,7 @@ const NationalPermit = () => {
 
       if (permit.partA?.billPdfPath) {
         // PDF already exists, use it directly (instant!)
-        pdfUrl = `http://localhost:5000${permit.partA.billPdfPath}`
+        pdfUrl = `${API_URL}${permit.partA.billPdfPath}`
       } else {
         // Need to generate PDF
         const response = await axios.post(`${API_URL}/api/national-permits/${permit.id}/generate-bill-pdf`)
@@ -323,7 +323,7 @@ const NationalPermit = () => {
           throw new Error(response.data.message || 'Failed to generate PDF')
         }
 
-        pdfUrl = response.data.data.pdfUrl || `http://localhost:5000${response.data.data.pdfPath}`
+        pdfUrl = response.data.data.pdfUrl || `${API_URL}${response.data.data.pdfPath}`
       }
 
       // Create WhatsApp message
@@ -1212,7 +1212,7 @@ Thank you for your business!
                           </button>
                           <button
                             onClick={() => {
-                              const pdfUrl = `http://localhost:5000${latestRenewal.billPdfPath}`
+                              const pdfUrl = `${API_URL}${latestRenewal.billPdfPath}`
                               const message = `Hello ${selectedPermit.permitHolder},
 
 Your Part B Renewal Bill is ready!
@@ -1580,7 +1580,7 @@ Thank you for your business!
                                         </button>
                                         <button
                                           onClick={() => {
-                                            const pdfUrl = `http://localhost:5000${renewal.billPdfPath}`
+                                            const pdfUrl = `${API_URL}${renewal.billPdfPath}`
                                             const message = `Hello ${selectedPermit.permitHolder},
 
 Your Part A (National Permit) Renewal Bill is ready!
@@ -1734,7 +1734,7 @@ Thank you for your business!
                                         </button>
                                         <button
                                           onClick={() => {
-                                            const pdfUrl = `http://localhost:5000${renewal.billPdfPath}`
+                                            const pdfUrl = `${API_URL}${renewal.billPdfPath}`
                                             const message = `Hello ${selectedPermit.permitHolder},
 
 Your Part B Renewal Bill is ready!

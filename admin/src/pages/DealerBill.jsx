@@ -338,7 +338,7 @@ const DealerBill = () => {
               <div className='p-4 bg-gray-100 overflow-auto' style={{ height: 'calc(90vh - 100px)' }}>
                 {previewBill.billPdfPath ? (
                   <iframe
-                    src={`http://localhost:5000${previewBill.billPdfPath}`}
+                    src={`${API_URL}${previewBill.billPdfPath}`}
                     className='w-full h-full rounded-lg border-2 border-gray-300'
                     title='Bill Preview'
                   />

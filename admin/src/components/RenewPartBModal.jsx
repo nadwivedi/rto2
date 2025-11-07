@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { formatDate, getOneYearFromNow, parseFormattedDate } from '../utils/dateHelpers'
 
-const API_BASE_URL = 'http://localhost:5000/api'
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
   const [formData, setFormData] = useState({
@@ -147,7 +147,7 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/national-permits/${permit.id}/renew-part-b`, {
+      const response = await fetch(`${API_BASE_URL}/api/national-permits/${permit.id}/renew-part-b`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
