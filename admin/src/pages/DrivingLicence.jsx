@@ -245,12 +245,14 @@ const DrivingLicence = () => {
     const llExpiringSoon = llExpiringCount
 
     const totalPending = applications.reduce((sum, app) => sum + (app.balanceAmount || 0), 0)
+    const pendingCount = applications.filter(app => (app.balanceAmount || 0) > 0).length
 
     return {
       total,
       expiringSoon,
       llExpiringSoon,
-      totalPending
+      totalPending,
+      pendingCount
     }
   }, [applications, pagination.totalRecords, dlExpiringCount, llExpiringCount])
 
@@ -509,7 +511,7 @@ const DrivingLicence = () => {
                 </div>
               </div>
 
-              {/* Pending Amount */}
+              {/* Pending Payment */}
               <div
                 onClick={() => {
                   setPaymentStatusFilter(paymentStatusFilter === 'Pending' ? 'All' : 'Pending')
@@ -523,8 +525,9 @@ const DrivingLicence = () => {
               >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Amount</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>₹{stats.totalPending.toLocaleString('en-IN')}</h3>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.pendingCount}</h3>
+                    <p className='text-[8px] lg:text-xs text-orange-600 font-bold mt-0.5'>₹{stats.totalPending.toLocaleString('en-IN')}</p>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

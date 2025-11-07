@@ -298,16 +298,33 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
+                    <span className='text-xs text-gray-500 ml-1'>(10 digits)</span>
                   </label>
-                  <input
-                    type='text'
-                    name='vehicleNumber'
-                    value={formData.vehicleNumber}
-                    onChange={handleChange}
-                    placeholder='CG01AB1234'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                    required
-                  />
+                  <div className='relative'>
+                    <input
+                      type='text'
+                      name='vehicleNumber'
+                      value={formData.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder='CG01AB1234'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                      required
+                      minLength='10'
+                      maxLength='10'
+                    />
+                    {formData.vehicleNumber && formData.vehicleNumber.length < 10 && (
+                      <div className='absolute right-3 top-2.5'>
+                        <span className='text-xs font-semibold text-red-500'>
+                          {formData.vehicleNumber.length}/10
+                        </span>
+                      </div>
+                    )}
+                    {formData.vehicleNumber && formData.vehicleNumber.length === 10 && (
+                      <div className='absolute right-3 top-2.5'>
+                        <span className='text-xs font-semibold text-green-500'>✓</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Mobile Number */}
