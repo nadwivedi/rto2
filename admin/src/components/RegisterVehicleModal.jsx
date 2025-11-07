@@ -19,7 +19,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     makerModel: '',
     colour: '',
     seatingCapacity: '',
-    vehicleClass: '',
     vehicleType: '',
     ladenWeight: '',
     unladenWeight: '',
@@ -32,6 +31,32 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [lastAction, setLastAction] = useState({})
+
+  // Handle Enter key to move to next field
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault() // Prevent form submission
+
+      // Get all form inputs, textareas, and selects
+      const form = e.target.form
+      const formElements = Array.from(form.elements).filter(
+        element =>
+          (element.tagName === 'INPUT' ||
+           element.tagName === 'TEXTAREA' ||
+           element.tagName === 'SELECT') &&
+          !element.disabled &&
+          element.type !== 'submit'
+      )
+
+      // Find current element index
+      const currentIndex = formElements.indexOf(e.target)
+
+      // Move to next element
+      if (currentIndex > -1 && currentIndex < formElements.length - 1) {
+        formElements[currentIndex + 1].focus()
+      }
+    }
+  }
 
   useEffect(() => {
     if (editData) {
@@ -55,7 +80,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         makerModel: '',
         colour: '',
         seatingCapacity: '',
-        vehicleClass: '',
         vehicleType: '',
         ladenWeight: '',
         unladenWeight: '',
@@ -83,6 +107,27 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const handleDateKeyDown = (e) => {
     const { name } = e.target
+
+    // Handle Enter key navigation
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const form = e.target.form
+      const formElements = Array.from(form.elements).filter(
+        element =>
+          (element.tagName === 'INPUT' ||
+           element.tagName === 'TEXTAREA' ||
+           element.tagName === 'SELECT') &&
+          !element.disabled &&
+          element.type !== 'submit'
+      )
+      const currentIndex = formElements.indexOf(e.target)
+      if (currentIndex > -1 && currentIndex < formElements.length - 1) {
+        formElements[currentIndex + 1].focus()
+      }
+      return
+    }
+
+    // Handle date typing tracking
     if (e.key === 'Backspace' || e.key === 'Delete') {
       setLastAction({ [name]: 'delete' })
     } else {
@@ -255,6 +300,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='registrationNumber'
                         value={formData.registrationNumber}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         required
                         placeholder='CG01AB1234'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
@@ -301,6 +347,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='chassisNumber'
                         value={formData.chassisNumber}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         required
                         placeholder='Enter chassis number'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
@@ -324,6 +371,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='engineNumber'
                         value={formData.engineNumber}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='Enter engine/motor number'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -346,6 +394,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='makerName'
                         value={formData.makerName}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='e.g., Maruti Suzuki, Tata, Honda'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -368,6 +417,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='makerModel'
                         value={formData.makerModel}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='e.g., Maruti Swift DXI'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -390,6 +440,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='colour'
                         value={formData.colour}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='e.g., White, Red, Blue'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -412,51 +463,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='seatingCapacity'
                         value={formData.seatingCapacity}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='e.g., 5, 7, 50'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
-                    </div>
-                  </div>
-
-                  {/* Vehicle Class */}
-                  <div className='group'>
-                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
-                      Vehicle Class
-                    </label>
-                    <div className='relative'>
-                      <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
-                        <svg className='w-4 h-4 md:w-5 md:h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                        </svg>
-                      </div>
-                      <select
-                        name='vehicleClass'
-                        value={formData.vehicleClass}
-                        onChange={handleChange}
-                        className='w-full pl-9 md:pl-12 pr-8 md:pr-10 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
-                      >
-                        <option value=''>Select Vehicle Class</option>
-                        <option value='Motor Cycle'>Motor Cycle</option>
-                        <option value='Motor Car'>Motor Car</option>
-                        <option value='Auto Rickshaw'>Auto Rickshaw</option>
-                        <option value='Maxi Cab'>Maxi Cab</option>
-                        <option value='Omni Bus'>Omni Bus</option>
-                        <option value='Tractor'>Tractor</option>
-                        <option value='Light Motor Vehicle'>Light Motor Vehicle</option>
-                        <option value='Medium Motor Vehicle'>Medium Motor Vehicle</option>
-                        <option value='Heavy Motor Vehicle'>Heavy Motor Vehicle</option>
-                        <option value='Light Goods Vehicle'>Light Goods Vehicle</option>
-                        <option value='Medium Goods Vehicle'>Medium Goods Vehicle</option>
-                        <option value='Heavy Goods Vehicle'>Heavy Goods Vehicle</option>
-                        <option value='Invalid Carriage'>Invalid Carriage</option>
-                        <option value='E-Rickshaw'>E-Rickshaw</option>
-                        <option value='E-Cart'>E-Cart</option>
-                      </select>
-                      <div className='absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none'>
-                        <svg className='w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                        </svg>
-                      </div>
                     </div>
                   </div>
 
@@ -475,23 +485,12 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='vehicleType'
                         value={formData.vehicleType}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         className='w-full pl-9 md:pl-12 pr-8 md:pr-10 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
                       >
                         <option value=''>Select Vehicle Type</option>
-                        <option value='Two Wheeler'>Two Wheeler</option>
-                        <option value='Three Wheeler'>Three Wheeler</option>
-                        <option value='Four Wheeler'>Four Wheeler</option>
-                        <option value='Six Wheeler'>Six Wheeler</option>
-                        <option value='Multi Axle Vehicle'>Multi Axle Vehicle</option>
-                        <option value='Articulated Vehicle'>Articulated Vehicle</option>
-                        <option value='Transport Vehicle'>Transport Vehicle</option>
-                        <option value='Non-Transport Vehicle'>Non-Transport Vehicle</option>
-                        <option value='Commercial Vehicle'>Commercial Vehicle</option>
-                        <option value='Private Vehicle'>Private Vehicle</option>
-                        <option value='Goods Carrier'>Goods Carrier</option>
-                        <option value='Passenger Carrier'>Passenger Carrier</option>
-                        <option value='Agricultural Vehicle'>Agricultural Vehicle</option>
-                        <option value='Construction Equipment'>Construction Equipment</option>
+                        <option value='Transport'>Transport</option>
+                        <option value='Non-Transport'>Non-Transport</option>
                       </select>
                       <div className='absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none'>
                         <svg className='w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -516,6 +515,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='vehicleCategory'
                         value={formData.vehicleCategory}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         className='w-full pl-9 md:pl-12 pr-8 md:pr-10 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
                       >
                         <option value=''>Select Category</option>
@@ -562,6 +562,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='ladenWeight'
                         value={formData.ladenWeight}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='e.g., 2500'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -584,6 +585,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='unladenWeight'
                         value={formData.unladenWeight}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='e.g., 1200'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -605,6 +607,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='manufactureYear'
                         value={formData.manufactureYear}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         className='w-full pl-9 md:pl-12 pr-8 md:pr-10 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
                       >
                         <option value=''>Select Year</option>
@@ -659,6 +662,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='saleAmount'
                         value={formData.saleAmount}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='e.g., 500000'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -700,6 +704,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='ownerName'
                         value={formData.ownerName}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='Enter full name of owner'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />

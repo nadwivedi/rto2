@@ -177,10 +177,14 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       return
     }
 
-    // For other fields, just store the value as-is
+    // Convert specific fields to uppercase
+    const uppercaseFields = ['permitNumber', 'permitHolder', 'vehicleNumber', 'fatherName', 'address', 'chassisNumber', 'engineNumber']
+    const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
+
+    // For other fields, just store the value
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: finalValue
     }))
   }
 
@@ -269,7 +273,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.permitNumber}
                     onChange={handleChange}
                     placeholder='CG001234567'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
                     required
                   />
                 </div>
@@ -285,7 +289,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.permitHolder}
                     onChange={handleChange}
                     placeholder='Rajesh Transport Services'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
                     required
                   />
                 </div>
@@ -470,7 +474,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                           name='fatherName'
                           value={formData.fatherName}
                           onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
                         />
                       </div>
 
@@ -497,7 +501,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                           onChange={handleChange}
                           rows='2'
                           placeholder='Complete address with street, area, landmark'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
                         />
                       </div>
                     </div>

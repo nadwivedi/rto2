@@ -139,8 +139,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       return
     }
 
-    // Parse DD/MM/YYYY format
-    const parts = formData.validFrom.trim().split('/')
+    // Parse DD-MM-YYYY format (with dashes)
+    const parts = formData.validFrom.trim().split('-')
 
     // Need exactly 3 parts (day, month, year)
     if (parts.length !== 3) {
@@ -201,11 +201,11 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
     const validToDate = new Date(validFromDate)
     validToDate.setMonth(validToDate.getMonth() + monthsToAdd)
 
-    // Format date to DD/MM/YYYY
+    // Format date to DD-MM-YYYY (with dashes to match input format)
     const newDay = String(validToDate.getDate()).padStart(2, '0')
     const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
     const newYear = validToDate.getFullYear()
-    const formattedValidTo = `${newDay}/${newMonth}/${newYear}`
+    const formattedValidTo = `${newDay}-${newMonth}-${newYear}`
 
     // Only update if the calculated value is different
     if (formData.validTo !== formattedValidTo) {
@@ -511,7 +511,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     value={formData.validFrom}
                     onChange={handleChange}
                     onKeyDown={handleDateKeyDown}
-                    placeholder='24/01/24 or 24/01/2024'
+                    placeholder='DD-MM-YYYY (e.g., 24-01-2024)'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />

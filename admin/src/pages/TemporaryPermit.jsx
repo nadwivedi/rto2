@@ -990,11 +990,11 @@ const TemporaryPermit = () => {
                       </span>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='grid grid-cols-5 gap-2 w-[235px] mx-auto'>
+                      <div className='flex items-center justify-end gap-1'>
                         {shouldShowRenewButton(permit) ? (
                           <button
                             onClick={() => handleRenewClick(permit)}
-                            className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                            className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer'
                             title='Renew Permit'
                           >
                             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1002,11 +1002,11 @@ const TemporaryPermit = () => {
                             </svg>
                           </button>
                         ) : (
-                          <div></div>
+                          <div className='w-9'></div>
                         )}
                         <button
                           onClick={() => handleEditClick(permit)}
-                          className='p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Edit Permit'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1015,7 +1015,7 @@ const TemporaryPermit = () => {
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
-                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='View Bill'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1024,7 +1024,7 @@ const TemporaryPermit = () => {
                         </button>
                         <button
                           onClick={() => handleShare(permit)}
-                          className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Share'
                         >
                           <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
@@ -1033,7 +1033,7 @@ const TemporaryPermit = () => {
                         </button>
                         <button
                           onClick={() => handleDeletePermit(permit)}
-                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Delete Permit'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

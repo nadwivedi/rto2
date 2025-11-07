@@ -230,9 +230,13 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
         [name]: formatted
       }))
     } else {
+      // Convert to uppercase for text fields (name, father's name, mother's name, address, city, state, license numbers)
+      const uppercaseFields = ['name', 'fatherName', 'motherName', 'address', 'city', 'state', 'licenseNumber', 'learningLicenseNumber']
+      const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
+
       setFormData(prev => ({
         ...prev,
-        [name]: value
+        [name]: finalValue
       }))
     }
   }

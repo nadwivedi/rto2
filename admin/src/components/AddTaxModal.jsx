@@ -205,9 +205,13 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       return
     }
 
+    // Convert owner name to uppercase
+    const uppercaseFields = ['ownerName']
+    const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
+
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: finalValue
     }))
   }
 

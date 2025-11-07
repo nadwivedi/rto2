@@ -355,7 +355,7 @@ const CgPermit = () => {
 
     try {
       // Make DELETE request to backend
-      const response = await axios.delete(`${API_URL}/api/cg-permits/${permit._id}`)
+      const response = await axios.delete(`${API_URL}/api/cg-permits/${permit.id}`)
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to delete CG permit')
@@ -974,11 +974,11 @@ const CgPermit = () => {
                       </span>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='grid grid-cols-6 gap-2 w-[280px] mx-auto'>
+                      <div className='flex items-center justify-end gap-1'>
                         {shouldShowRenewButton(permit) ? (
                           <button
                             onClick={() => handleRenewClick(permit)}
-                            className='p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                            className='p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 cursor-pointer'
                             title='Renew Permit'
                           >
                             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -986,11 +986,11 @@ const CgPermit = () => {
                             </svg>
                           </button>
                         ) : (
-                          <div></div>
+                          <div className='w-9'></div>
                         )}
                         <button
                           onClick={() => handleViewDetails(permit)}
-                          className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='View Details'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1000,7 +1000,7 @@ const CgPermit = () => {
                         </button>
                         <button
                           onClick={() => handleEditPermit(permit)}
-                          className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Edit Permit'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1009,7 +1009,7 @@ const CgPermit = () => {
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
-                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='View Bill'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1018,7 +1018,7 @@ const CgPermit = () => {
                         </button>
                         <button
                           onClick={() => handleShare(permit)}
-                          className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Share'
                         >
                           <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 24 24'>
@@ -1027,7 +1027,7 @@ const CgPermit = () => {
                         </button>
                         <button
                           onClick={() => handleDeletePermit(permit)}
-                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          className='p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Delete Permit'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
