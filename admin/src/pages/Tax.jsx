@@ -360,17 +360,17 @@ const Tax = () => {
                 </div>
               </div>
 
-              {/* Tax Due Soon */}
+              {/* Tax Expiring Soon */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'expiring' ? 'all' : 'expiring')}
+                onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'expiring' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                  statusFilter === 'expiring_soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
                 }`}
-                title={statusFilter === 'expiring' ? 'Click to clear filter' : 'Click to filter expiring records'}
+                title={statusFilter === 'expiring_soon' ? 'Click to clear filter' : 'Click to filter expiring records'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Tax Due Soon</p>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Tax Expiring Soon</p>
                     <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{statistics.expiring}</h3>
                     <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 15 days</p>
                   </div>
@@ -475,7 +475,7 @@ const Tax = () => {
                     <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z' />
                     </svg>
-                    {statusFilter === 'expiring' && 'Due Soon Only'}
+                    {statusFilter === 'expiring_soon' && 'Expiring Soon Only'}
                     {statusFilter === 'expired' && 'Expired Only'}
                     {statusFilter === 'pending' && 'Pending Payment Only'}
                     <button

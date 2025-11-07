@@ -553,11 +553,11 @@ const CgPermit = () => {
 
               {/* Expiring Soon */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'expiring' ? 'all' : 'expiring')}
+                onClick={() => setStatusFilter(statusFilter === 'Expiring Soon' ? 'all' : 'Expiring Soon')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'expiring' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                  statusFilter === 'Expiring Soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
                 }`}
-                title={statusFilter === 'expiring' ? 'Click to clear filter' : 'Click to filter expiring permits'}
+                title={statusFilter === 'Expiring Soon' ? 'Click to clear filter' : 'Click to filter expiring permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -575,11 +575,11 @@ const CgPermit = () => {
 
               {/* Expired */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
+                onClick={() => setStatusFilter(statusFilter === 'Expired' ? 'all' : 'Expired')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
+                  statusFilter === 'Expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
                 }`}
-                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
+                title={statusFilter === 'Expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -869,14 +869,14 @@ const CgPermit = () => {
           <table className='w-full'>
             <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
               <tr>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Number</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle/Permit No.</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Holder</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle No.</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid From</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid Till</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Total Fee (₹)</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Paid (₹)</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Balance (₹)</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Status</th>
                 <th className='px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider'>Actions</th>
               </tr>
             </thead>
@@ -897,8 +897,20 @@ const CgPermit = () => {
                 filteredPermits.map((permit) => (
                   <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 transition-all duration-300 group'>
                     <td className='px-6 py-5'>
-                      <div className='text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200'>
-                        {permit.permitNumber}
+                      <div className='flex flex-col gap-1.5'>
+                        <div className='flex items-center gap-1.5'>
+                          <svg className='w-4 h-4 text-blue-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                            <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                            <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                          </svg>
+                          <span className='text-[15px] font-semibold text-gray-900'>{permit.vehicleNo}</span>
+                        </div>
+                        <div className='flex items-center gap-1.5'>
+                          <svg className='w-3.5 h-3.5 text-indigo-600 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                          </svg>
+                          <span className='text-[13px] font-medium text-gray-600'>{permit.permitNumber}</span>
+                        </div>
                       </div>
                     </td>
                     <td className='px-6 py-5'>
@@ -916,15 +928,6 @@ const CgPermit = () => {
                           </div>
                         </div>
                       </div>
-                    </td>
-                    <td className='px-6 py-5'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
-                        <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
-                          <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
-                          <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
-                        </svg>
-                        {permit.vehicleNo}
-                      </span>
                     </td>
                     <td className='px-6 py-5'>
                       <div className='flex items-center text-sm'>
@@ -947,23 +950,28 @@ const CgPermit = () => {
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <span className='text-sm font-bold text-gray-800'>₹{(permit.fees || 0).toLocaleString('en-IN')}</span>
+                      <span className='text-[15px] font-bold text-gray-900'>₹{(permit.fees || 0).toLocaleString('en-IN')}</span>
                     </td>
                     <td className='px-6 py-5'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
                         ₹{(permit.paid || 0).toLocaleString('en-IN')}
                       </span>
                     </td>
                     <td className='px-6 py-5'>
                       {(permit.balance || 0) > 0 ? (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-bold bg-orange-100 text-orange-700 border border-orange-200'>
                           ₹{(permit.balance || 0).toLocaleString('en-IN')}
                         </span>
                       ) : (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-bold bg-gray-100 text-gray-500 border border-gray-200'>
                           ₹0
                         </span>
                       )}
+                    </td>
+                    <td className='px-6 py-5'>
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(getPermitStatus(permit.validTill))}`}>
+                        {getPermitStatus(permit.validTill)}
+                      </span>
                     </td>
                     <td className='px-6 py-5'>
                       <div className='grid grid-cols-6 gap-2 w-[280px] mx-auto'>

@@ -244,9 +244,9 @@ exports.deleteFitness = async (req, res) => {
 exports.getFitnessStatistics = async (req, res) => {
   try {
     const total = await Fitness.countDocuments()
-    const active = await Fitness.countDocuments({ status: 'Active' })
-    const expired = await Fitness.countDocuments({ status: 'Expired' })
-    const expiring = await Fitness.countDocuments({ status: 'Expiring Soon' })
+    const active = await Fitness.countDocuments({ status: 'active' })
+    const expired = await Fitness.countDocuments({ status: 'expired' })
+    const expiring = await Fitness.countDocuments({ status: 'expiring_soon' })
 
     // Pending payment count and amount
     const pendingPaymentRecords = await Fitness.find({ balance: { $gt: 0 } })

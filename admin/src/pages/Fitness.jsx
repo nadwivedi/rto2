@@ -372,11 +372,11 @@ const Fitness = () => {
 
               {/* Expiring Soon */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'expiring' ? 'all' : 'expiring')}
+                onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'expiring' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
+                  statusFilter === 'expiring_soon' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
                 }`}
-                title={statusFilter === 'expiring' ? 'Click to clear filter' : 'Click to filter expiring records'}
+                title={statusFilter === 'expiring_soon' ? 'Click to clear filter' : 'Click to filter expiring records'}
               >
                 <div className='flex items-center justify-between'>
                   <div>

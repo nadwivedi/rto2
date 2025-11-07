@@ -556,11 +556,11 @@ const TemporaryPermit = () => {
 
               {/* Expiring Soon */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'expiring' ? 'all' : 'expiring')}
+                onClick={() => setStatusFilter(statusFilter === 'Expiring Soon' ? 'all' : 'Expiring Soon')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'expiring' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                  statusFilter === 'Expiring Soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
                 }`}
-                title={statusFilter === 'expiring' ? 'Click to clear filter' : 'Click to filter expiring permits'}
+                title={statusFilter === 'Expiring Soon' ? 'Click to clear filter' : 'Click to filter expiring permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -577,11 +577,11 @@ const TemporaryPermit = () => {
 
               {/* Expired */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
+                onClick={() => setStatusFilter(statusFilter === 'Expired' ? 'all' : 'Expired')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
+                  statusFilter === 'Expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
                 }`}
-                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
+                title={statusFilter === 'Expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -894,13 +894,14 @@ const TemporaryPermit = () => {
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Total Fee (₹)</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Paid (₹)</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Balance (₹)</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Status</th>
                 <th className='px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider'>Actions</th>
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-100'>
               {loading ? (
                 <tr>
-                  <td colSpan='9' className='px-6 py-16'>
+                  <td colSpan='10' className='px-6 py-16'>
                     <div className='flex flex-col justify-center items-center'>
                       <div className='relative'>
                         <div className='w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
@@ -983,6 +984,11 @@ const TemporaryPermit = () => {
                       )}
                     </td>
                     <td className='px-6 py-5'>
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(permit.status)}`}>
+                        {permit.status}
+                      </span>
+                    </td>
+                    <td className='px-6 py-5'>
                       <div className='grid grid-cols-5 gap-2 w-[235px] mx-auto'>
                         {shouldShowRenewButton(permit) ? (
                           <button
@@ -1039,7 +1045,7 @@ const TemporaryPermit = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='9' className='px-6 py-16'>
+                  <td colSpan='10' className='px-6 py-16'>
                     <div className='flex flex-col items-center justify-center'>
                       <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg'>
                         <svg className='w-12 h-12 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

@@ -251,9 +251,9 @@ exports.deleteTax = async (req, res) => {
 exports.getTaxStatistics = async (req, res) => {
   try {
     const total = await Tax.countDocuments()
-    const active = await Tax.countDocuments({ status: 'Active' })
-    const expired = await Tax.countDocuments({ status: 'Expired' })
-    const expiring = await Tax.countDocuments({ status: 'Expiring Soon' })
+    const active = await Tax.countDocuments({ status: 'active' })
+    const expired = await Tax.countDocuments({ status: 'expired' })
+    const expiring = await Tax.countDocuments({ status: 'expiring_soon' })
 
     // Pending payment count and amount
     const pendingPaymentRecords = await Tax.find({ balanceAmount: { $gt: 0 } })
