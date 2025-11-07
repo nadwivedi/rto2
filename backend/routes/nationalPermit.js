@@ -8,8 +8,6 @@ router.get('/', nationalPermitController.getAllPermits)
 // GET statistics
 router.get('/statistics', nationalPermitController.getStatistics)
 
-// POST add demo data (15 national permits)
-router.post('/demo-data', nationalPermitController.addDemoData)
 
 // GET expiring permits
 router.get('/expiring', nationalPermitController.getExpiringPermits)
@@ -50,13 +48,8 @@ router.patch('/:id/status', nationalPermitController.updatePermitStatus)
 // PATCH add renewal entry
 router.patch('/:id/renewal', nationalPermitController.addRenewal)
 
-// PATCH update insurance details
-router.patch('/:id/insurance', nationalPermitController.updateInsurance)
 
-// PATCH update tax details
-router.patch('/:id/tax', nationalPermitController.updateTax)
 
-// ========== Part A Renewal Routes ==========
 
 // POST renew Part A (National Permit)
 router.post('/:id/renew-part-a', nationalPermitController.renewPartA)

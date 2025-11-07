@@ -292,19 +292,99 @@ exports.deletePermit = async (req, res) => {
   try {
     const { id } = req.params
 
-    const deletedPermit = await NationalPermit.findByIdAndDelete(id)
+    // Find the permit first to get bill references
+    const permit = await NationalPermit.findById(id).populate('bill')
 
-    if (!deletedPermit) {
+    if (!permit) {
       return res.status(404).json({
         success: false,
         message: 'Permit not found'
       })
     }
 
+    // Collect all bill IDs to delete
+    const billIdsToDelete = []
+
+    // Add main permit bill
+    if (permit.bill) {
+      billIdsToDelete.push(permit.bill._id)
+
+      // Delete PDF file if exists
+      if (permit.bill.billPdfPath) {
+        const pdfPath = path.join(__dirname, '..', permit.bill.billPdfPath)
+        if (fs.existsSync(pdfPath)) {
+          try {
+            fs.unlinkSync(pdfPath)
+            console.log('Deleted PDF file:', pdfPath)
+          } catch (err) {
+            console.error('Error deleting PDF file:', err)
+          }
+        }
+      }
+    }
+
+    // Add Part A renewal bills
+    if (permit.partARenewalHistory && permit.partARenewalHistory.length > 0) {
+      for (const renewal of permit.partARenewalHistory) {
+        if (renewal.bill) {
+          billIdsToDelete.push(renewal.bill)
+
+          // Populate and delete PDF if exists
+          const renewalBill = await CustomBill.findById(renewal.bill)
+          if (renewalBill && renewalBill.billPdfPath) {
+            const pdfPath = path.join(__dirname, '..', renewalBill.billPdfPath)
+            if (fs.existsSync(pdfPath)) {
+              try {
+                fs.unlinkSync(pdfPath)
+                console.log('Deleted Part A renewal PDF:', pdfPath)
+              } catch (err) {
+                console.error('Error deleting Part A renewal PDF:', err)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Add Part B renewal bills
+    if (permit.typeBAuthorization && permit.typeBAuthorization.renewalHistory && permit.typeBAuthorization.renewalHistory.length > 0) {
+      for (const renewal of permit.typeBAuthorization.renewalHistory) {
+        if (renewal.bill) {
+          billIdsToDelete.push(renewal.bill)
+
+          // Populate and delete PDF if exists
+          const renewalBill = await CustomBill.findById(renewal.bill)
+          if (renewalBill && renewalBill.billPdfPath) {
+            const pdfPath = path.join(__dirname, '..', renewalBill.billPdfPath)
+            if (fs.existsSync(pdfPath)) {
+              try {
+                fs.unlinkSync(pdfPath)
+                console.log('Deleted Part B renewal PDF:', pdfPath)
+              } catch (err) {
+                console.error('Error deleting Part B renewal PDF:', err)
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Delete all associated bills
+    if (billIdsToDelete.length > 0) {
+      await CustomBill.deleteMany({ _id: { $in: billIdsToDelete } })
+      console.log(`Deleted ${billIdsToDelete.length} associated bills`)
+    }
+
+    // Finally, delete the permit
+    await NationalPermit.findByIdAndDelete(id)
+
     res.status(200).json({
       success: true,
-      message: 'Permit deleted successfully',
-      data: deletedPermit
+      message: 'Permit and all associated bills deleted successfully',
+      data: {
+        permitNumber: permit.permitNumber,
+        billsDeleted: billIdsToDelete.length
+      }
     })
   } catch (error) {
     console.error('Error deleting permit:', error)
@@ -391,80 +471,7 @@ exports.addRenewal = async (req, res) => {
   }
 }
 
-// Update insurance details
-exports.updateInsurance = async (req, res) => {
-  try {
-    const { id } = req.params
-    const { policyNumber, company, validUpto } = req.body
 
-    const permit = await NationalPermit.findById(id)
-
-    if (!permit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Permit not found'
-      })
-    }
-
-    permit.insuranceDetails = {
-      policyNumber: policyNumber || permit.insuranceDetails.policyNumber,
-      company: company || permit.insuranceDetails.company,
-      validUpto: validUpto || permit.insuranceDetails.validUpto
-    }
-
-    await permit.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Insurance details updated successfully',
-      data: permit
-    })
-  } catch (error) {
-    console.error('Error updating insurance:', error)
-    res.status(400).json({
-      success: false,
-      message: 'Failed to update insurance details',
-      error: error.message
-    })
-  }
-}
-
-// Update tax details
-exports.updateTax = async (req, res) => {
-  try {
-    const { id } = req.params
-    const { taxPaidUpto, taxAmount } = req.body
-
-    const permit = await NationalPermit.findById(id)
-
-    if (!permit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Permit not found'
-      })
-    }
-
-    permit.taxDetails = {
-      taxPaidUpto: taxPaidUpto || permit.taxDetails.taxPaidUpto,
-      taxAmount: taxAmount || permit.taxDetails.taxAmount
-    }
-
-    await permit.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Tax details updated successfully',
-      data: permit
-    })
-  } catch (error) {
-    console.error('Error updating tax details:', error)
-    res.status(400).json({
-      success: false,
-      message: 'Failed to update tax details',
-      error: error.message
-    })
-  }
-}
 
 // Get statistics
 exports.getStatistics = async (req, res) => {
@@ -474,12 +481,7 @@ exports.getStatistics = async (req, res) => {
     const expiringSoonPermits = await NationalPermit.countDocuments({ status: 'Expiring Soon' })
     const pendingRenewalPermits = await NationalPermit.countDocuments({ status: 'Pending Renewal' })
     const expiredPermits = await NationalPermit.countDocuments({ status: 'Expired' })
-    const suspendedPermits = await NationalPermit.countDocuments({ status: 'Suspended' })
 
-    // Count by route type
-    const allIndiaPermits = await NationalPermit.countDocuments({ route: 'All India' })
-    const statePermits = await NationalPermit.countDocuments({ route: 'State' })
-    const regionalPermits = await NationalPermit.countDocuments({ route: 'Regional' })
 
     // Total fees collected
     const totalRevenue = await NationalPermit.aggregate([
@@ -634,318 +636,6 @@ function generatePermitMessage(permit) {
 
 Thank you for using our services!
 `.trim()
-}
-
-// Add demo data (15 national permits)
-exports.addDemoData = async (req, res) => {
-  try {
-    // Clear existing data (optional - comment out if you want to keep existing data)
-    // await NationalPermit.deleteMany({})
-
-    const demoData = [
-      {
-        permitNumber: 'NP2024001234',
-        permitHolder: 'Rajesh Transport Services',
-        fatherName: 'Vijay Kumar',
-        address: '123, Transport Nagar, Mumbai, Maharashtra - 400001',
-        mobileNumber: '9876543210',
-        email: 'rajesh.transport@gmail.com',
-        vehicleNumber: 'MH-12-AB-1234',
-        validFrom: '15-01-2024',
-        validTo: '14-01-2029',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024001',
-          validFrom: '15-01-2024',
-          validTo: '14-01-2025'
-        },
-        totalFee: 15000, paid: 15000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001235',
-        permitHolder: 'Kumar Logistics Pvt Ltd',
-        fatherName: 'Ramesh Kumar',
-        address: '456, Industrial Area, Delhi - 110001',
-        mobileNumber: '9876543211',
-        email: 'kumar.logistics@gmail.com',
-        vehicleNumber: 'DL-1C-CD-5678',
-        validFrom: '10-02-2024',
-        validTo: '09-02-2029',
-        issueDate: '10-02-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024002',
-          validFrom: '10-02-2024',
-          validTo: '09-02-2025'
-        },
-        totalFee: 12000, paid: 12000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001236',
-        permitHolder: 'Singh Brothers Transport',
-        fatherName: 'Gurpreet Singh',
-        address: '789, Transport Hub, Ludhiana, Punjab - 141001',
-        mobileNumber: '9876543212',
-        email: 'singh.transport@gmail.com',
-        vehicleNumber: 'PB-10-EF-9012',
-        validFrom: '05-03-2024',
-        validTo: '04-03-2029',
-        issueDate: '05-03-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024003',
-          validFrom: '05-03-2024',
-          validTo: '04-03-2025'
-        },
-        totalFee: 18000, paid: 18000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001237',
-        permitHolder: 'Maharashtra Freight Services',
-        fatherName: 'Suresh Patil',
-        address: '321, Cargo Complex, Pune, Maharashtra - 411001',
-        mobileNumber: '9876543213',
-        email: 'maharashtra.freight@gmail.com',
-        vehicleNumber: 'MH-14-GH-3456',
-        validFrom: '20-11-2024',
-        validTo: '19-11-2029',
-        issueDate: '20-11-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024004',
-          validFrom: '20-11-2024',
-          validTo: '19-11-2025'
-        },
-        totalFee: 14000, paid: 14000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001238',
-        permitHolder: 'Gujarat Transport Corporation',
-        fatherName: 'Ramesh Desai',
-        address: '654, Transport Plaza, Ahmedabad, Gujarat - 380001',
-        mobileNumber: '9876543214',
-        email: 'gujarat.transport@gmail.com',
-        vehicleNumber: 'GJ-01-IJ-7890',
-        validFrom: '15-12-2024',
-        validTo: '14-12-2029',
-        issueDate: '15-12-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024005',
-          validFrom: '15-12-2024',
-          validTo: '14-12-2025'
-        },
-        totalFee: 16500, paid: 16500, balance: 0,
-        status: 'Expiring Soon'
-      },
-      {
-        permitNumber: 'NP2024001239',
-        permitHolder: 'Chennai Express Logistics',
-        fatherName: 'Krishnan Iyer',
-        address: '852, Anna Salai, Chennai, Tamil Nadu - 600002',
-        mobileNumber: '9876543215',
-        email: 'chennai.express@gmail.com',
-        vehicleNumber: 'TN-01-KL-2345',
-        validFrom: '01-04-2024',
-        validTo: '31-03-2029',
-        issueDate: '01-04-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024006',
-          validFrom: '01-04-2024',
-          validTo: '31-03-2025'
-        },
-        totalFee: 13000, paid: 13000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001240',
-        permitHolder: 'Kolkata Cargo Movers',
-        fatherName: 'Arun Das',
-        address: '963, Salt Lake, Kolkata, West Bengal - 700064',
-        mobileNumber: '9876543216',
-        email: 'kolkata.cargo@gmail.com',
-        vehicleNumber: 'WB-07-MN-6789',
-        validFrom: '20-05-2024',
-        validTo: '19-05-2029',
-        issueDate: '20-05-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024007',
-          validFrom: '20-05-2024',
-          validTo: '19-05-2025'
-        },
-        totalFee: 15500, paid: 15500, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001241',
-        permitHolder: 'Hyderabad Heavy Carriers',
-        fatherName: 'Venkat Reddy',
-        address: '741, Secunderabad, Hyderabad, Telangana - 500003',
-        mobileNumber: '9876543217',
-        email: 'hyderabad.heavy@gmail.com',
-        vehicleNumber: 'TS-09-OP-3456',
-        validFrom: '10-06-2024',
-        validTo: '09-06-2029',
-        issueDate: '10-06-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024008',
-          validFrom: '10-06-2024',
-          validTo: '09-06-2025'
-        },
-        totalFee: 19000, paid: 19000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001242',
-        permitHolder: 'Jaipur Road Ways',
-        fatherName: 'Mahesh Sharma',
-        address: '357, Mansarovar, Jaipur, Rajasthan - 302020',
-        mobileNumber: '9876543218',
-        email: 'jaipur.roadways@gmail.com',
-        vehicleNumber: 'RJ-14-QR-7890',
-        validFrom: '01-07-2024',
-        validTo: '30-06-2029',
-        issueDate: '01-07-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024009',
-          validFrom: '01-07-2024',
-          validTo: '30-06-2025'
-        },
-        totalFee: 16000, paid: 16000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001243',
-        permitHolder: 'Bangalore Express Lines',
-        fatherName: 'Prakash Reddy',
-        address: '159, Whitefield, Bangalore, Karnataka - 560066',
-        mobileNumber: '9876543219',
-        email: 'bangalore.express@gmail.com',
-        vehicleNumber: 'KA-03-ST-1234',
-        validFrom: '25-07-2024',
-        validTo: '24-07-2029',
-        issueDate: '25-07-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024010',
-          validFrom: '25-07-2024',
-          validTo: '24-07-2025'
-        },
-        totalFee: 17500, paid: 17500, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001244',
-        permitHolder: 'Lucknow Freight Movers',
-        fatherName: 'Sandeep Verma',
-        address: '246, Gomti Nagar, Lucknow, Uttar Pradesh - 226010',
-        mobileNumber: '9876543220',
-        email: 'lucknow.freight@gmail.com',
-        vehicleNumber: 'UP-14-UV-5678',
-        validFrom: '10-08-2024',
-        validTo: '09-08-2029',
-        issueDate: '10-08-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024011',
-          validFrom: '10-08-2024',
-          validTo: '09-08-2025'
-        },
-        totalFee: 14500, paid: 14500, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001245',
-        permitHolder: 'Indore Transport Co',
-        fatherName: 'Rajesh Jain',
-        address: '753, Vijay Nagar, Indore, Madhya Pradesh - 452010',
-        mobileNumber: '9876543221',
-        email: 'indore.transport@gmail.com',
-        vehicleNumber: 'MP-09-WX-9012',
-        validFrom: '01-09-2024',
-        validTo: '31-08-2029',
-        issueDate: '01-09-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024012',
-          validFrom: '01-09-2024',
-          validTo: '31-08-2025'
-        },
-        totalFee: 15000, paid: 15000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001246',
-        permitHolder: 'Kochi Sea Cargo Ltd',
-        fatherName: 'Suresh Nair',
-        address: '369, Marine Drive, Kochi, Kerala - 682031',
-        mobileNumber: '9876543222',
-        email: 'kochi.seacargo@gmail.com',
-        vehicleNumber: 'KL-07-YZ-3456',
-        validFrom: '20-09-2024',
-        validTo: '19-09-2029',
-        issueDate: '20-09-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024013',
-          validFrom: '20-09-2024',
-          validTo: '19-09-2025'
-        },
-        totalFee: 17000, paid: 17000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001247',
-        permitHolder: 'Chandigarh Truck Lines',
-        fatherName: 'Parveen Kumar',
-        address: '951, Sector 17, Chandigarh - 160017',
-        mobileNumber: '9876543223',
-        email: 'chandigarh.truck@gmail.com',
-        vehicleNumber: 'CH-01-AB-7890',
-        validFrom: '05-10-2024',
-        validTo: '04-10-2029',
-        issueDate: '05-10-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024014',
-          validFrom: '05-10-2024',
-          validTo: '04-10-2025'
-        },
-        totalFee: 14000, paid: 14000, balance: 0,
-        status: 'Active'
-      },
-      {
-        permitNumber: 'NP2024001248',
-        permitHolder: 'Nagpur Central Carriers',
-        fatherName: 'Vijay Deshmukh',
-        address: '135, Sitabuldi, Nagpur, Maharashtra - 440012',
-        mobileNumber: '9876543224',
-        email: 'nagpur.central@gmail.com',
-        vehicleNumber: 'MH-31-CD-1234',
-        validFrom: '25-10-2024',
-        validTo: '24-10-2029',
-        issueDate: '25-10-2024',
-        typeBAuthorization: {
-          authorizationNumber: 'NPAUTH2024015',
-          validFrom: '25-10-2024',
-          validTo: '24-10-2025'
-        },
-        fees: 13500,
-        status: 'Active'
-      }
-    ]
-
-    // Insert all demo data
-    const insertedData = await NationalPermit.insertMany(demoData)
-
-    res.status(201).json({
-      success: true,
-      message: `Successfully added ${insertedData.length} demo national permits`,
-      data: insertedData,
-      count: insertedData.length
-    })
-  } catch (error) {
-    console.error('Error adding demo data:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to add demo data',
-      error: error.message
-    })
-  }
 }
 
 // Get Part A (National Permit) expiring in next 30 days
