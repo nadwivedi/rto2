@@ -4,7 +4,7 @@ const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 // Get all vehicle registrations
 exports.getAllRegistrations = async (req, res) => {
   try {
-    const { search, status } = req.query
+    const { search, status, page = 1, limit = 20 } = req.query
     let query = {}
 
     if (search) {
@@ -20,12 +20,31 @@ exports.getAllRegistrations = async (req, res) => {
       query.status = status
     }
 
-    const registrations = await VehicleRegistration.find(query).sort({ createdAt: -1 })
+    // Calculate pagination
+    const pageNum = parseInt(page, 10)
+    const limitNum = parseInt(limit, 10)
+    const skip = (pageNum - 1) * limitNum
+
+    // Get total count for pagination
+    const totalRecords = await VehicleRegistration.countDocuments(query)
+    const totalPages = Math.ceil(totalRecords / limitNum)
+
+    // Get paginated results
+    const registrations = await VehicleRegistration.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
 
     res.json({
       success: true,
       count: registrations.length,
-      data: registrations
+      data: registrations,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalRecords,
+        limit: limitNum
+      }
     })
   } catch (error) {
     logError(error, req) // Fire and forget

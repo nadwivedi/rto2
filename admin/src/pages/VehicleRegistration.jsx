@@ -193,7 +193,7 @@ const VehicleRegistration = () => {
 
               {/* Results count */}
               <div className='mt-3 text-xs text-gray-600 font-semibold'>
-                Showing {filteredRegistrations.length} of {registrations.length} records
+                Showing {filteredRegistrations.length} of {pagination.totalRecords} records
               </div>
             </div>
 
