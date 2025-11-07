@@ -275,6 +275,34 @@ const DrivingLicence = () => {
     setIsEditFormOpen(true)
   }
 
+  const handleDelete = async (app) => {
+    // Show confirmation dialog
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete this driving license application?\n\n` +
+      `License Number: ${app.licenseNumber || 'N/A'}\n` +
+      `Name: ${app.name}\n` +
+      `License Class: ${app.licenseClass}\n\n` +
+      `This action cannot be undone.`
+    )
+
+    if (!confirmDelete) {
+      return
+    }
+
+    try {
+      const response = await drivingLicenseAPI.delete(app.id)
+
+      if (response.success) {
+        toast.success('Application deleted successfully!', { autoClose: 700 })
+        fetchApplications() // Refresh the list
+        fetchExpiringCounts() // Refresh the expiring counts
+      }
+    } catch (error) {
+      console.error('Error deleting application:', error)
+      toast.error('Failed to delete application. Please try again.', { autoClose: 700 })
+    }
+  }
+
   const handleFormSubmit = async (formData) => {
     try {
       // Helper function to convert DD-MM-YYYY to ISO date format
@@ -776,6 +804,15 @@ const DrivingLicence = () => {
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(app)}
+                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                          title='Delete Application'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                           </svg>
                         </button>
                       </div>

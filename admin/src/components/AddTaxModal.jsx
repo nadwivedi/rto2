@@ -80,7 +80,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           // Auto-fill the owner name from vehicle registration
           setFormData(prev => ({ 
             ...prev,
-            ownerName: data.data.ownerName || prev.ownerName
+            ownerName: data.data.ownerName || prev.ownerNam
           }))
           setVehicleError('')
         } else {

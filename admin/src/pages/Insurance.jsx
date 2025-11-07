@@ -104,6 +104,7 @@ const Insurance = () => {
   const [selectedInsurance, setSelectedInsurance] = useState(null)
   const [loading, setLoading] = useState(false)
   const [dateFilter, setDateFilter] = useState('All')
+  const [statusFilter, setStatusFilter] = useState('all') // Add status filter
   const [initialInsuranceData, setInitialInsuranceData] = useState(null) // For pre-filling renewal data
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -193,8 +194,28 @@ const Insurance = () => {
     return 'Active'
   }
 
-  // Use insurances directly since filtering is done on backend
-  const filteredInsurances = insurances
+  // Filter insurances based on status filter
+  const filteredInsurances = useMemo(() => {
+    if (statusFilter === 'all') {
+      return insurances
+    }
+
+    return insurances.filter(insurance => {
+      const status = getStatusText(insurance.validTo)
+
+      if (statusFilter === 'expiring_soon') {
+        return status === 'Expiring Soon'
+      }
+      if (statusFilter === 'expired') {
+        return status === 'Expired'
+      }
+      if (statusFilter === 'pending') {
+        return (insurance.balance || 0) > 0
+      }
+
+      return true
+    })
+  }, [insurances, statusFilter])
 
   const handleAddInsurance = async (formData) => {
     setLoading(true)
@@ -357,7 +378,13 @@ const Insurance = () => {
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
               {/* Total Insurance Records */}
-              <div className='bg-white rounded-lg shadow-md border border-indigo-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter('all')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'all' ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl' : 'border-indigo-100'
+                }`}
+                title={statusFilter === 'all' ? 'Currently showing all records' : 'Click to show all records'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Insurance Records</p>
@@ -371,23 +398,14 @@ const Insurance = () => {
                 </div>
               </div>
 
-              {/* Active Insurance */}
-              <div className='bg-white rounded-lg shadow-md border border-emerald-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Active Insurance</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-emerald-600'>{stats.active}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
               {/* Expiring Soon */}
-              <div className='bg-white rounded-lg shadow-md border border-orange-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'expiring_soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                }`}
+                title={statusFilter === 'expiring_soon' ? 'Click to clear filter' : 'Click to filter expiring records'}
+              >
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
@@ -401,8 +419,35 @@ const Insurance = () => {
                 </div>
               </div>
 
+              {/* Expired */}
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
+                }`}
+                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired records'}
+              >
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expired</p>
+                    <h3 className='text-lg lg:text-2xl font-black text-red-600'>{stats.expired}</h3>
+                  </div>
+                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-red-500 to-red-700 rounded-lg flex items-center justify-center shadow-md'>
+                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
               {/* Pending Payment */}
-              <div className='bg-white rounded-lg shadow-md border border-yellow-100 p-2 lg:p-3.5 hover:shadow-lg transition-shadow duration-300'>
+              <div
+                onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
+                  statusFilter === 'pending' ? 'border-amber-500 ring-2 ring-amber-300 shadow-xl' : 'border-yellow-100'
+                }`}
+                title={statusFilter === 'pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
+              >
                 <div className='flex items-center justify-between'>
                   <div className='flex-1'>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
