@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { logError, getUserFriendlyError } = require('../utils/errorLogger')
+const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 
 const authMiddleware = (req, res, next) => {
   try {
@@ -12,7 +12,7 @@ const authMiddleware = (req, res, next) => {
         message: 'No authentication token provided',
         errors: ['No authentication token provided'],
         errorCount: 1,
-        timestamp: new Date().toISOString()
+        timestamp: getSimplifiedTimestamp()
       })
     }
 
@@ -34,7 +34,7 @@ const authMiddleware = (req, res, next) => {
         message: 'Token has expired',
         errors: ['Token has expired'],
         errorCount: 1,
-        timestamp: new Date().toISOString()
+        timestamp: getSimplifiedTimestamp()
       })
     }
 
@@ -44,7 +44,7 @@ const authMiddleware = (req, res, next) => {
         message: 'Invalid token',
         errors: ['Invalid token'],
         errorCount: 1,
-        timestamp: new Date().toISOString()
+        timestamp: getSimplifiedTimestamp()
       })
     }
 

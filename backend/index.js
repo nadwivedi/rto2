@@ -100,12 +100,23 @@ app.get('/', (req, res) => {
 // Simple error handling middleware - fallback only
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.stack)
+
+  // Simplified timestamp
+  const now = new Date()
+  const date = String(now.getDate()).padStart(2, '0')
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const year = now.getFullYear()
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  const seconds = String(now.getSeconds()).padStart(2, '0')
+  const timestamp = `${date}-${month}-${year} ${hours}:${minutes}:${seconds}`
+
   res.status(500).json({
     success: false,
     message: 'Something went wrong!',
     errors: [err.message || 'Internal server error'],
     errorCount: 1,
-    timestamp: new Date().toISOString()
+    timestamp
   })
 })
 

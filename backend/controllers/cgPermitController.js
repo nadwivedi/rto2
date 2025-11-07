@@ -1,7 +1,7 @@
 const CgPermit = require('../models/CgPermit')
 const CustomBill = require('../models/CustomBill')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
-const { logError, getUserFriendlyError } = require('../utils/errorLogger')
+const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 const path = require('path')
 const fs = require('fs')
 
@@ -74,7 +74,7 @@ exports.createPermit = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -152,7 +152,7 @@ exports.getAllPermits = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -189,7 +189,7 @@ exports.getPermitById = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -226,7 +226,7 @@ exports.getPermitByNumber = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -269,7 +269,7 @@ exports.updatePermit = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -307,7 +307,7 @@ exports.deletePermit = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -353,7 +353,7 @@ exports.updatePermitStatus = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -400,7 +400,7 @@ exports.addRenewal = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -446,7 +446,7 @@ exports.updateTax = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -503,7 +503,7 @@ exports.getStatistics = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -588,7 +588,7 @@ exports.getExpiringPermits = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -651,7 +651,7 @@ exports.sharePermit = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -753,7 +753,7 @@ exports.generateBillPDF = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }
@@ -821,7 +821,7 @@ exports.downloadBillPDF = async (req, res) => {
       message: userError.message,
       errors: userError.details,
       errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      timestamp: getSimplifiedTimestamp()
     })
   }
 }

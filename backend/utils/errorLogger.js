@@ -16,7 +16,16 @@ const getLogFilePath = () => {
 
 // Format error log entry
 const formatLogEntry = (error, req = null) => {
-  const timestamp = new Date().toISOString()
+  // Simplified date/time format: DD-MM-YYYY HH:MM:SS
+  const now = new Date()
+  const date = String(now.getDate()).padStart(2, '0')
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const year = now.getFullYear()
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  const seconds = String(now.getSeconds()).padStart(2, '0')
+  const timestamp = `${date}-${month}-${year} ${hours}:${minutes}:${seconds}`
+
   const separator = '='.repeat(80)
 
   let logEntry = `\n${separator}\n`
@@ -194,10 +203,23 @@ const getUserFriendlyError = (error) => {
   }
 }
 
+// Get simplified timestamp for responses
+const getSimplifiedTimestamp = () => {
+  const now = new Date()
+  const date = String(now.getDate()).padStart(2, '0')
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const year = now.getFullYear()
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  const seconds = String(now.getSeconds()).padStart(2, '0')
+  return `${date}-${month}-${year} ${hours}:${minutes}:${seconds}`
+}
+
 module.exports = {
   logError,
   parseValidationErrors,
   parseDuplicateKeyError,
   getUserFriendlyError,
-  formatLogEntry
+  formatLogEntry,
+  getSimplifiedTimestamp
 }
