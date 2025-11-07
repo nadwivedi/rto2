@@ -200,6 +200,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
     // Calculate valid to date
     const validToDate = new Date(validFromDate)
     validToDate.setMonth(validToDate.getMonth() + monthsToAdd)
+    // Subtract 1 day because Valid From counts as day 1
+    validToDate.setDate(validToDate.getDate() - 1)
 
     // Format date to DD-MM-YYYY (with dashes to match input format)
     const newDay = String(validToDate.getDate()).padStart(2, '0')
@@ -367,7 +369,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
           <div className='flex justify-between items-center'>
             <div>
               <h2 className='text-lg md:text-2xl font-bold'>Add New Temporary Permit</h2>
-              <p className='text-orange-100 text-xs md:text-sm mt-1'>Issue temporary vehicle permit (CV: 3 months, PV: 4 months)</p>
+              <p className='text-orange-100 text-xs md:text-sm mt-1'>Issue temporary vehicle permit (CV: 3 months - 1 day, PV: 4 months - 1 day)</p>
             </div>
             <button
               onClick={onClose}
@@ -533,7 +535,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
                   />
                   <p className='text-xs text-gray-500 mt-1'>
-                    CV = +3 months, PV = +4 months from Valid From date
+                    CV = +3 months - 1 day, PV = +4 months - 1 day (e.g., 22-02-2023 → 21-05-2023)
                   </p>
                 </div>
               </div>

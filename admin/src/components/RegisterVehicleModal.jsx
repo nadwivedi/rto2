@@ -335,6 +335,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   <div className='group'>
                     <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
                       Chassis Number <span className='text-red-500'>*</span>
+                      <span className='text-xs text-gray-500 ml-1'>(17 digits)</span>
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
@@ -349,9 +350,23 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         onChange={handleChange}
                         onKeyDown={handleKeyDown}
                         required
-                        placeholder='Enter chassis number'
+                        minLength='17'
+                        maxLength='17'
+                        placeholder='Enter 17-digit chassis number'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
+                      {formData.chassisNumber && formData.chassisNumber.length < 17 && (
+                        <div className='absolute inset-y-0 right-0 pr-2.5 md:pr-4 flex items-center pointer-events-none'>
+                          <span className='text-xs font-semibold text-red-500'>
+                            {formData.chassisNumber.length}/17
+                          </span>
+                        </div>
+                      )}
+                      {formData.chassisNumber && formData.chassisNumber.length === 17 && (
+                        <div className='absolute inset-y-0 right-0 pr-2.5 md:pr-4 flex items-center pointer-events-none'>
+                          <span className='text-xs font-semibold text-green-500'>✓</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
