@@ -383,23 +383,6 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
-                {/* Receipt Number */}
-                <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Receipt Number <span className='text-red-500'>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    name='receiptNo'
-                    value={formData.receiptNo}
-                    onChange={handleChange}
-                    placeholder='RCP001'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                    required
-                    autoFocus
-                  />
-                </div>
-
                 {/* Vehicle Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -423,6 +406,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                       required
                       minLength='10'
                       maxLength='10'
+                      autoFocus
                     />
                     {fetchingVehicle && (
                       <div className='absolute right-3 top-2.5'>
@@ -451,6 +435,22 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                   {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.ownerName && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner name auto-filled</p>
                   )}
+                </div>
+
+                {/* Receipt Number */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Receipt Number <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='text'
+                    name='receiptNo'
+                    value={formData.receiptNo}
+                    onChange={handleChange}
+                    placeholder='RCP001'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                    required
+                  />
                 </div>
 
                 {/* Owner Name */}

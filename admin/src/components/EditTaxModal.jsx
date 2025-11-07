@@ -283,24 +283,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                 Vehicle & Receipt Details
               </h3>
 
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
-                {/* Receipt Number */}
-                <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Receipt Number <span className='text-red-500'>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    name='receiptNo'
-                    value={formData.receiptNo}
-                    onChange={handleChange}
-                    placeholder='RCP001'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                    required
-                    autoFocus
-                  />
-                </div>
-
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
                 {/* Vehicle Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -318,6 +301,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                       required
                       minLength='10'
                       maxLength='10'
+                      autoFocus
                     />
                     {fetchingVehicle && (
                       <div className='absolute right-3 top-2.5'>
@@ -348,8 +332,24 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                   )}
                 </div>
 
+                {/* Receipt Number */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Receipt Number <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='text'
+                    name='receiptNo'
+                    value={formData.receiptNo}
+                    onChange={handleChange}
+                    placeholder='RCP001'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                    required
+                  />
+                </div>
+
                 {/* Owner Name */}
-                <div className='md:col-span-2'>
+                <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Owner Name
                   </label>
