@@ -227,7 +227,8 @@ const TemporaryPermit = () => {
         validFrom: permit.validFrom,
         validTill: permit.validTo,
         status: permit.status,
-        fees: permit.totalFee || permit.fees || 0,
+        totalFee: permit.totalFee || 0,
+        fees: permit.totalFee || 0,
         balance: permit.balance || 0,
         paid: permit.paid || 0,
         address: permit.address || 'N/A',
@@ -345,14 +346,14 @@ const TemporaryPermit = () => {
         seatingCapacity: formData.seatingCapacity || '',
         route: formData.route || '',
         purpose: formData.purpose || 'Temporary Use',
-        fees: Number(formData.totalFee) || 1000,
+        totalFee: Number(formData.totalFee) || 1000,
         paid: Number(formData.paid) || 0,
         balance: Number(formData.balance) || 0,
         status: 'Active'
       }
 
       // Make PUT request to backend to update the permit
-      const response = await axios.put(`${API_URL}/api/temporary-permits/${editingPermit._id}`, permitData)
+      const response = await axios.put(`${API_URL}/api/temporary-permits/${editingPermit.id}`, permitData)
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to update temporary permit')
@@ -409,7 +410,7 @@ const TemporaryPermit = () => {
 
     try {
       // Make DELETE request to backend
-      const response = await axios.delete(`${API_URL}/api/temporary-permits/${permit._id}`)
+      const response = await axios.delete(`${API_URL}/api/temporary-permits/${permit.id}`)
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to delete temporary permit')
