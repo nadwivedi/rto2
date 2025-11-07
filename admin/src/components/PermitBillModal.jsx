@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 
-const API_BASE_URL = 'http://localhost:5000'
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
-const PermitBillModal = ({ permit, onClose }) => {
+const PermitBillModal = ({ permit, onClose, permitType = 'National' }) => {
   const [pdfUrl, setPdfUrl] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -13,31 +13,34 @@ const PermitBillModal = ({ permit, onClose }) => {
 
   const loadBillPDF = async () => {
     try {
-      setLoading(true)
-      setError(null)
+      // Determine bill PDF path based on permit type
+      let billPdfPath = null
 
-      // Check if PDF already exists
-      if (permit.partA?.billPdfPath) {
-        const url = `${API_BASE_URL}${permit.partA.billPdfPath}`
+      switch (permitType) {
+        case 'National':
+          billPdfPath = permit.partA?.billPdfPath || permit.bill?.billPdfPath
+          break
+        case 'CG':
+          billPdfPath = permit.bill?.billPdfPath
+          break
+        case 'Temporary':
+          billPdfPath = permit.bill?.billPdfPath
+          break
+        default:
+          throw new Error('Invalid permit type')
+      }
+
+      // Check if PDF exists - if yes, show it immediately without loading
+      if (billPdfPath) {
+        const url = `${API_BASE_URL}${billPdfPath}`
         setPdfUrl(url)
         setLoading(false)
         return
       }
 
-      // If no PDF, generate it
-      const response = await fetch(`${API_BASE_URL}/api/national-permits/${permit.id}/generate-bill-pdf`, {
-        method: 'POST'
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setPdfUrl(data.data.pdfUrl)
-      } else {
-        throw new Error(data.message || 'Failed to generate PDF')
-      }
-
+      // If PDF doesn't exist, show error
       setLoading(false)
+      setError('Bill PDF not found. Please contact administrator.')
     } catch (err) {
       console.error('Error loading PDF:', err)
       setError(err.message)
@@ -48,8 +51,21 @@ const PermitBillModal = ({ permit, onClose }) => {
   const handleDownload = () => {
     if (permit.id) {
       try {
-        // Use the dedicated download endpoint
-        const downloadUrl = `${API_BASE_URL}/api/national-permits/${permit.id}/download-bill-pdf`
+        // Determine download endpoint based on permit type
+        let downloadUrl = ''
+        switch (permitType) {
+          case 'National':
+            downloadUrl = `${API_BASE_URL}/api/national-permits/${permit.id}/download-bill-pdf`
+            break
+          case 'CG':
+            downloadUrl = `${API_BASE_URL}/api/cg-permits/${permit.id}/download-bill-pdf`
+            break
+          case 'Temporary':
+            downloadUrl = `${API_BASE_URL}/api/temporary-permits/${permit.id}/download-bill-pdf`
+            break
+          default:
+            throw new Error('Invalid permit type')
+        }
 
         // Create a link element with download attribute
         const link = document.createElement('a')
@@ -83,7 +99,8 @@ const PermitBillModal = ({ permit, onClose }) => {
       }
 
       const blob = await response.blob()
-      const fileName = `${permit.partA?.billNumber || 'Bill'}_${permit.permitNumber}.pdf`
+      const billNumber = permit.partA?.billNumber || permit.bill?.billNumber || 'Bill'
+      const fileName = `${billNumber}_${permit.permitNumber}.pdf`
 
       // Check if Web Share API with files support is available
       if (navigator.share && navigator.canShare) {
@@ -92,7 +109,7 @@ const PermitBillModal = ({ permit, onClose }) => {
 
         // Check if we can share this file
         const shareData = {
-          title: `Bill Receipt - ${permit.partA?.billNumber || 'Bill'}`,
+          title: `Bill Receipt - ${billNumber}`,
           text: `Bill receipt for Permit ${permit.permitNumber}`,
           files: [file]
         }
@@ -108,8 +125,9 @@ const PermitBillModal = ({ permit, onClose }) => {
       if (navigator.share) {
         try {
           const file = new File([blob], fileName, { type: 'application/pdf' })
+          const billNumber = permit.partA?.billNumber || permit.bill?.billNumber || 'Bill'
           await navigator.share({
-            title: `Bill Receipt - ${permit.partA?.billNumber || 'Bill'}`,
+            title: `Bill Receipt - ${billNumber}`,
             text: `Bill receipt for Permit ${permit.permitNumber}`,
             files: [file]
           })
@@ -117,8 +135,9 @@ const PermitBillModal = ({ permit, onClose }) => {
         } catch (shareError) {
           // If files not supported, try sharing URL
           if (shareError.name !== 'AbortError') {
+            const billNumber = permit.partA?.billNumber || permit.bill?.billNumber || 'Bill'
             await navigator.share({
-              title: `Bill Receipt - ${permit.partA?.billNumber || 'Bill'}`,
+              title: `Bill Receipt - ${billNumber}`,
               text: `Bill receipt for Permit ${permit.permitNumber}`,
               url: pdfUrl
             })
@@ -174,7 +193,7 @@ const PermitBillModal = ({ permit, onClose }) => {
           <div>
             <h2 className='text-2xl font-bold'>Bill Receipt</h2>
             <p className='text-sm text-green-100 mt-1'>
-              {permit.partA?.billNumber || 'Bill Number'}
+              {permit.partA?.billNumber || permit.bill?.billNumber || 'Bill Number'}
             </p>
           </div>
           <button

@@ -136,6 +136,9 @@ exports.getAllPermits = async (req, res) => {
 
     // Execute query to get all permits (we'll filter by date in JS)
     let permits = await NationalPermit.find(query)
+      .populate('bill')
+      .populate('partARenewalHistory.bill')
+      .populate('typeBAuthorization.renewalHistory.bill')
       .sort(sortOptions)
 
     // Apply date filtering if specified

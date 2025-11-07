@@ -122,6 +122,7 @@ exports.getAllPermits = async (req, res) => {
 
     // Execute query
     const permits = await CgPermit.find(query)
+      .populate('bill')
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))

@@ -124,6 +124,7 @@ exports.getAllPermits = async (req, res) => {
 
     // Execute query
     const permits = await TemporaryPermit.find(query)
+      .populate('bill')
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))

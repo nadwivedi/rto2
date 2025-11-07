@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm restart)"
+      "Bash(npm restart)",
+      "Bash(npm run dev:*)"
     ],
     "deny": [],
     "ask": []

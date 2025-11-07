@@ -108,7 +108,14 @@ const NationalPermit = () => {
       }
 
       // Transform backend data to match frontend structure
-      const transformedPermits = response.data.data.map(permit => ({
+      const transformedPermits = response.data.data.map(permit => {
+        // Get the bill from partARenewalHistory (the latest/original one) or direct bill reference
+        const latestPartA = permit.partARenewalHistory && permit.partARenewalHistory.length > 0
+          ? permit.partARenewalHistory[permit.partARenewalHistory.length - 1]
+          : null
+        const billData = latestPartA?.bill || permit.bill
+
+        return {
         id: permit._id,
         permitNumber: permit.permitNumber,
         permitHolder: permit.permitHolder,
@@ -118,8 +125,8 @@ const NationalPermit = () => {
         status: permit.status,
         partA: {
           permitNumber: permit.permitNumber,
-          billNumber: permit.billNumber || 'BILL-2025-0001',
-          billPdfPath: permit.billPdfPath || null,
+          billNumber: billData?.billNumber || 'N/A',
+          billPdfPath: billData?.billPdfPath || null,
           permitType: 'National Permit',
           ownerName: permit.permitHolder,
           ownerAddress: permit.address || 'N/A',
@@ -163,7 +170,8 @@ const NationalPermit = () => {
           }
         },
         partARenewalHistory: permit.renewalHistory || []
-      }))
+      }
+      })
 
       setPermits(transformedPermits)
     } catch (error) {
