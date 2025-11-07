@@ -1,22 +1,41 @@
 import { useState, useEffect } from 'react'
 
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+
 const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEditMode = false }) => {
+  // Helper function to get today's date in DD/MM/YYYY format
+  const getTodayDate = () => {
+    const today = new Date()
+    const day = String(today.getDate()).padStart(2, '0')
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const year = today.getFullYear()
+    return `${day}/${month}/${year}`
+  }
+
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     policyNumber: '',
-    validFrom: '',
+    validFrom: getTodayDate(),
     validTo: '',
     totalFee: '0',
     paid: '0',
     balance: '0'
   })
 
-  // Pre-fill form when initialData is provided (for renewal)
+  const [fetchingVehicle, setFetchingVehicle] = useState(false)
+  const [vehicleError, setVehicleError] = useState('')
+
+  // Pre-fill form when initialData is provided (for edit/renewal) or reset on open
   useEffect(() => {
     if (initialData && isOpen) {
-      setFormData(prev => ({
-        ...prev,
+      setFormData({
         vehicleNumber: initialData.vehicleNumber || '',
+        policyNumber: initialData.policyNumber || '',
+        validFrom: initialData.validFrom || getTodayDate(),
+        validTo: initialData.validTo || '',
+        totalFee: initialData.totalFee?.toString() || '0',
+        paid: initialData.paid?.toString() || '0',
+        balance: initialData.balance?.toString() || '0',
         vehicleType: initialData.vehicleType || '',
         ownerName: initialData.ownerName || '',
         insuranceCompany: initialData.insuranceCompany || '',
@@ -24,26 +43,76 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
         mobileNumber: initialData.mobileNumber || '',
         agentName: initialData.agentName || '',
         agentContact: initialData.agentContact || ''
+      })
+    } else if (isOpen && !initialData) {
+      // When modal opens without initialData, ensure validFrom is today
+      setFormData(prev => ({
+        ...prev,
+        validFrom: getTodayDate(),
+        validTo: ''
       }))
     } else if (!isOpen) {
       // Reset form when modal closes
       setFormData({
         vehicleNumber: '',
         policyNumber: '',
-        validFrom: '',
+        validFrom: getTodayDate(),
         validTo: '',
         totalFee: '0',
         paid: '0',
         balance: '0'
       })
+      setVehicleError('')
+      setFetchingVehicle(false)
     }
   }, [initialData, isOpen])
+
+  // Fetch vehicle details when registration number is entered
+  useEffect(() => {
+    const fetchVehicleDetails = async () => {
+      const registrationNum = formData.vehicleNumber.trim()
+
+      // Only fetch if registration number has at least 10 characters
+      if (registrationNum.length < 10) {
+        setVehicleError('')
+        return
+      }
+
+      setFetchingVehicle(true)
+      setVehicleError('')
+
+      try {
+        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
+        const data = await response.json()
+
+        if (response.ok && data.success) {
+          setVehicleError('')
+        } else {
+          setVehicleError('Vehicle not found in registration database')
+        }
+      } catch (error) {
+        console.error('Error fetching vehicle details:', error)
+        setVehicleError('Error fetching vehicle details')
+      } finally {
+        setFetchingVehicle(false)
+      }
+    }
+
+    // Debounce the API call - wait 500ms after user stops typing
+    const timeoutId = setTimeout(() => {
+      if (formData.vehicleNumber) {
+        fetchVehicleDetails()
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.vehicleNumber])
 
   // Calculate valid to date (1 year from valid from)
   useEffect(() => {
     if (formData.validFrom) {
       // Parse DD/MM/YYYY format
-      const parts = formData.validFrom.split('/')
+      const parts = formData.validFrom.trim().split('/')
       if (parts.length === 3) {
         const day = parseInt(parts[0], 10)
         const month = parseInt(parts[1], 10) - 1 // Month is 0-indexed
@@ -55,25 +124,35 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
 
           // Check if the date object is valid
           if (!isNaN(validFromDate.getTime())) {
-            const validToDate = new Date(validFromDate)
-            validToDate.setFullYear(validToDate.getFullYear() + 1)
-            // Subtract 1 day
-            validToDate.setDate(validToDate.getDate() - 1)
+            // Verify the date object has the same day/month/year we set
+            if (validFromDate.getDate() === day &&
+                validFromDate.getMonth() === month &&
+                validFromDate.getFullYear() === year) {
 
-            // Format date to DD/MM/YYYY
-            const newDay = String(validToDate.getDate()).padStart(2, '0')
-            const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
-            const newYear = validToDate.getFullYear()
+              const validToDate = new Date(validFromDate)
+              validToDate.setFullYear(validToDate.getFullYear() + 1)
+              // Subtract 1 day
+              validToDate.setDate(validToDate.getDate() - 1)
 
-            setFormData(prev => ({
-              ...prev,
-              validTo: `${newDay}/${newMonth}/${newYear}`
-            }))
+              // Format date to DD/MM/YYYY
+              const newDay = String(validToDate.getDate()).padStart(2, '0')
+              const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
+              const newYear = validToDate.getFullYear()
+              const formattedValidTo = `${newDay}/${newMonth}/${newYear}`
+
+              // Only update if different to avoid infinite loop
+              if (formData.validTo !== formattedValidTo) {
+                setFormData(prev => ({
+                  ...prev,
+                  validTo: formattedValidTo
+                }))
+              }
+            }
           }
         }
       }
     }
-  }, [formData.validFrom])
+  }, [formData.validFrom, formData.validTo])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -114,6 +193,15 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       return
     }
 
+    // Auto-uppercase for vehicle number and policy number
+    if (name === 'vehicleNumber' || name === 'policyNumber') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value.toUpperCase()
+      }))
+      return
+    }
+
     // Auto-format year in validFrom field
     if (name === 'validFrom') {
       // Check if the format matches DD/MM/YY (2-digit year)
@@ -140,13 +228,19 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   const handleSubmit = (e) => {
     e.preventDefault()
     if (onSubmit) {
-      onSubmit(formData)
+      // Add issueDate to the form data before submitting (issueDate = validFrom)
+      const submitData = {
+        ...formData,
+        issueDate: formData.validFrom,
+        status: 'Active'
+      }
+      onSubmit(submitData)
     }
     // Reset form
     setFormData({
       vehicleNumber: '',
       policyNumber: '',
-      validFrom: '',
+      validFrom: getTodayDate(),
       validTo: '',
       totalFee: '0',
       paid: '0',
@@ -158,20 +252,24 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4'>
-      <div className='bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[95vh] overflow-hidden'>
+    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
+      <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white'>
+        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-2 md:p-3 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-2xl font-bold'>{isEditMode ? 'Edit Insurance' : 'Add New Insurance'}</h2>
-              <p className='text-blue-100 text-sm mt-1'>{isEditMode ? 'Update vehicle insurance record' : 'Add vehicle insurance record'}</p>
+              <h2 className='text-lg md:text-2xl font-bold'>
+                {isEditMode ? 'Edit Insurance' : 'Add New Insurance'}
+              </h2>
+              <p className='text-blue-100 text-xs md:text-sm mt-1'>
+                {isEditMode ? 'Update vehicle insurance record' : 'Vehicle insurance record (1 year validity)'}
+              </p>
             </div>
             <button
               onClick={onClose}
-              className='text-white hover:bg-white/20 rounded-lg p-2 transition cursor-pointer'
+              className='text-white hover:bg-white/20 rounded-lg p-1.5 md:p-2 transition cursor-pointer'
             >
-              <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
               </svg>
             </button>
@@ -179,36 +277,52 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className='overflow-y-auto max-h-[calc(95vh-140px)]'>
-          <div className='p-6'>
-            {/* Insurance Details Section */}
-            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-6'>
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm'>1</span>
-                Insurance Details
+        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
+          <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+            {/* Section 1: Vehicle & Policy Details */}
+            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
+                Vehicle & Policy Details
               </h3>
 
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                 {/* Vehicle Number */}
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
                   </label>
-                  <input
-                    type='text'
-                    name='vehicleNumber'
-                    value={formData.vehicleNumber}
-                    onChange={handleChange}
-                    placeholder='MH12AB1234'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                    required
-                    autoFocus
-                  />
+                  <div className='relative'>
+                    <input
+                      type='text'
+                      name='vehicleNumber'
+                      value={formData.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder='CG04AB1234'
+                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                      required
+                      autoFocus
+                    />
+                    {fetchingVehicle && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='animate-spin h-5 w-5 text-indigo-500' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {vehicleError && (
+                    <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
+                  )}
+                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && (
+                    <p className='text-xs text-green-600 mt-1'>✓ Vehicle number verified</p>
+                  )}
                 </div>
 
                 {/* Policy Number */}
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Policy Number <span className='text-red-500'>*</span>
                   </label>
                   <input
@@ -221,112 +335,151 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     required
                   />
                 </div>
+              </div>
+            </div>
 
+            {/* Section 2: Validity Period */}
+            <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
+                Validity Period
+              </h3>
+
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                 {/* Valid From */}
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                    Valid From <span className='text-red-500'>*</span>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Valid From <span className='text-red-500'>*</span> <span className='text-xs text-green-600'>(Today)</span>
                   </label>
                   <input
                     type='text'
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
-                    placeholder='24/01/24 or 24/01/2024'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    placeholder='DD/MM/YYYY'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                     required
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Type 2-digit year (24) to auto-expand to 2024</p>
+                  <p className='text-xs text-gray-500 mt-1'>Pre-filled with today's date. Type 2-digit year (24) to auto-expand to 2024</p>
                 </div>
 
                 {/* Valid To (Auto-calculated) */}
                 <div>
-                  <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                    Valid To (Auto-calculated - 1 Year)
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Valid To <span className='text-xs text-blue-500'>(Auto-calculated)</span>
                   </label>
                   <input
                     type='text'
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
-                    placeholder='Will be calculated automatically'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    placeholder='Auto-calculated based on Valid From'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50'
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated (1 year - 1 day). You can edit manually if needed.</p>
-                </div>
-
-                {/* Fee Fields */}
-                <div className='md:col-span-2'>
-                  <h4 className='text-sm font-bold text-gray-800 mb-3 uppercase text-indigo-600'>Insurance Fees</h4>
-                  <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Total Fee (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='totalFee'
-                        value={formData.totalFee}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-semibold'
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Paid (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='paid'
-                        value={formData.paid}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-semibold'
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                        Balance (₹) <span className='text-red-500'>*</span>
-                      </label>
-                      <input
-                        type='number'
-                        name='balance'
-                        value={formData.balance}
-                        onChange={handleChange}
-                        placeholder='0'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-semibold bg-gray-50'
-                        readOnly
-                      />
-                    </div>
-                  </div>
+                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated: 1 year from Valid From date minus 1 day</p>
                 </div>
               </div>
+            </div>
+
+            {/* Section 3: Payment Information */}
+            <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-emerald-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-emerald-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
+                Payment Information
+              </h3>
+
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
+                {/* Total Fee */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Total Fee (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='totalFee'
+                    value={formData.totalFee}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+
+                {/* Paid */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Paid (₹) <span className='text-red-500'>*</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='paid'
+                    value={formData.paid}
+                    onChange={handleChange}
+                    placeholder='0'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    required
+                  />
+                </div>
+
+                {/* Balance (Auto-calculated) */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Balance (₹) <span className='text-xs text-gray-500'>(Auto)</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='balance'
+                    value={formData.balance}
+                    readOnly
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-emerald-50 font-semibold text-gray-700'
+                  />
+                </div>
+              </div>
+
+              {/* Payment Status Indicator */}
+              {parseFloat(formData.balance) > 0 && parseFloat(formData.paid) > 0 && (
+                <div className='mt-3 bg-amber-50 border-l-4 border-amber-500 p-2 md:p-3 rounded'>
+                  <p className='text-xs md:text-sm font-semibold text-amber-700 flex items-center gap-1'>
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
+                    </svg>
+                    Partial Payment - Balance: ₹{formData.balance}
+                  </p>
+                </div>
+              )}
+              {parseFloat(formData.balance) === 0 && parseFloat(formData.totalFee) > 0 && (
+                <div className='mt-3 bg-green-50 border-l-4 border-green-500 p-2 md:p-3 rounded'>
+                  <p className='text-xs md:text-sm font-semibold text-green-700 flex items-center gap-1'>
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                    Fully Paid
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className='border-t border-gray-200 p-4 bg-gray-50 flex justify-between items-center'>
-            <div className='text-sm text-gray-600'>
+          <div className='border-t border-gray-200 p-3 md:p-4 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3 flex-shrink-0'>
+            <div className='text-xs md:text-sm text-gray-600'>
               <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
             </div>
 
-            <div className='flex gap-3'>
+            <div className='flex gap-2 md:gap-3 w-full md:w-auto'>
               <button
                 type='button'
                 onClick={onClose}
-                className='px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer'
+                className='flex-1 md:flex-none px-4 md:px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer'
               >
                 Cancel
               </button>
 
               <button
                 type='submit'
-                className='px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center gap-2 cursor-pointer'
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
               >
-                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                 </svg>
                 {isEditMode ? 'Update Insurance' : 'Add Insurance'}
