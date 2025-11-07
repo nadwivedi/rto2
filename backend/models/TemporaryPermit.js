@@ -74,24 +74,7 @@ const TemporaryPermitSchema = new mongoose.Schema({
   },
 
   // Permit Details
-  purpose: {
-    type: String,
-    trim: true
-  },
-  restrictions: {
-    type: String,
-    default: 'As per RTO regulations'
-  },
-  conditions: {
-    type: String,
-    default: 'Valid for temporary use only. Must carry valid documents.'
-  },
-
-  // Issuing Details
-  issuingAuthority: {
-    type: String,
-    default: 'Regional Transport Office'
-  },
+ 
   issueDate: {
     type: String,
     required: true
@@ -127,21 +110,6 @@ const TemporaryPermitSchema = new mongoose.Schema({
     ref: 'CustomBill'
   },
 
-  // Insurance Details
-  insuranceDetails: {
-    policyNumber: {
-      type: String,
-      default: 'N/A'
-    },
-    company: {
-      type: String,
-      default: 'N/A'
-    },
-    validUpto: {
-      type: String,
-      default: 'N/A'
-    }
-  },
 
   // Admin Notes
   notes: {

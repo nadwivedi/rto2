@@ -1,6 +1,7 @@
 const CgPermit = require('../models/CgPermit')
 const CustomBill = require('../models/CustomBill')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
+const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 const path = require('path')
 const fs = require('fs')
 
@@ -61,10 +62,19 @@ exports.createPermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error creating CG permit:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(400).json({
       success: false,
-      message: 'Failed to create CG permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -130,10 +140,19 @@ exports.getAllPermits = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching CG permits:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch CG permits',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -158,10 +177,19 @@ exports.getPermitById = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching CG permit:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch CG permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -186,10 +214,19 @@ exports.getPermitByNumber = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching CG permit:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch CG permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -220,10 +257,19 @@ exports.updatePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error updating CG permit:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(400).json({
       success: false,
-      message: 'Failed to update CG permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -249,10 +295,19 @@ exports.deletePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error deleting CG permit:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to delete CG permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -286,10 +341,19 @@ exports.updatePermitStatus = async (req, res) => {
     })
   } catch (error) {
     console.error('Error updating CG permit status:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(400).json({
       success: false,
-      message: 'Failed to update CG permit status',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -324,10 +388,19 @@ exports.addRenewal = async (req, res) => {
     })
   } catch (error) {
     console.error('Error adding renewal:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(400).json({
       success: false,
-      message: 'Failed to add renewal',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -361,10 +434,19 @@ exports.updateTax = async (req, res) => {
     })
   } catch (error) {
     console.error('Error updating tax details:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(400).json({
       success: false,
-      message: 'Failed to update tax details',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -409,10 +491,19 @@ exports.getStatistics = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching statistics:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch statistics',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -485,10 +576,19 @@ exports.getExpiringPermits = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching expiring permits:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch expiring permits',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -503,7 +603,9 @@ exports.sharePermit = async (req, res) => {
     if (!phoneNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number is required'
+        message: 'Phone number is required',
+        errors: ['Phone number is required'],
+        errorCount: 1
       })
     }
 
@@ -537,10 +639,19 @@ exports.sharePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error sharing CG permit:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to share CG permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -630,10 +741,19 @@ exports.generateBillPDF = async (req, res) => {
     })
   } catch (error) {
     console.error('Error generating bill PDF:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to generate bill PDF',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -689,10 +809,19 @@ exports.downloadBillPDF = async (req, res) => {
     res.sendFile(pdfPath)
   } catch (error) {
     console.error('Error downloading bill PDF:', error)
+
+    // Log error to file
+    logError(error, req)
+
+    // Get user-friendly error message
+    const userError = getUserFriendlyError(error)
+
     res.status(500).json({
       success: false,
-      message: 'Failed to download bill PDF',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }

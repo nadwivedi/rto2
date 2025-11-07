@@ -6,9 +6,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     vehicleNumber: '',
     validFrom: '',
     validTo: '',
-    totalFee: '0',
-    paid: '0',
-    balance: '0'
+    totalFee: '',
+    paid: '',
+    balance: ''
   })
   const [lastAction, setLastAction] = useState({})
 
@@ -25,9 +25,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         vehicleNumber: '',
         validFrom: '',
         validTo: '',
-        totalFee: '0',
-        paid: '0',
-        balance: '0'
+        totalFee: '',
+        paid: '',
+        balance: ''
       })
     }
   }, [initialData, isOpen])
@@ -192,9 +192,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       vehicleNumber: '',
       validFrom: '',
       validTo: '',
-      totalFee: '0',
-      paid: '0',
-      balance: '0'
+      totalFee: '',
+      paid: '',
+      balance: ''
     })
     onClose()
   }

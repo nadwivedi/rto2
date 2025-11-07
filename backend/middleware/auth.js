@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 
 const authMiddleware = (req, res, next) => {
   try {
@@ -8,7 +9,10 @@ const authMiddleware = (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'No authentication token provided'
+        message: 'No authentication token provided',
+        errors: ['No authentication token provided'],
+        errorCount: 1,
+        timestamp: new Date().toISOString()
       })
     }
 
@@ -22,23 +26,35 @@ const authMiddleware = (req, res, next) => {
     req.admin = decoded
     next()
   } catch (error) {
+    logError(error, req) // Fire and forget
+
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        message: 'Token has expired'
+        message: 'Token has expired',
+        errors: ['Token has expired'],
+        errorCount: 1,
+        timestamp: new Date().toISOString()
       })
     }
 
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({
         success: false,
-        message: 'Invalid token'
+        message: 'Invalid token',
+        errors: ['Invalid token'],
+        errorCount: 1,
+        timestamp: new Date().toISOString()
       })
     }
 
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Server error during authentication'
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }

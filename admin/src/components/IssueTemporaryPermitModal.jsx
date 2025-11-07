@@ -28,9 +28,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
     purpose: '',
 
     // Fees
-    totalFee: '1000',
-    paid: '0',
-    balance: '1000'
+    totalFee: '',
+    paid: '',
+    balance: ''
   })
 
   const [showOptionalFields, setShowOptionalFields] = useState(false)
@@ -70,9 +70,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
         ladenWeight: '',
         unladenWeight: '',
         purpose: '',
-        totalFee: '1000',
-        paid: '0',
-        balance: '1000'
+        totalFee: '',
+        paid: '',
+        balance: ''
       })
       setVehicleError('')
       setFetchingVehicle(false)
@@ -349,9 +349,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       ladenWeight: '',
       unladenWeight: '',
       purpose: '',
-      totalFee: '1000',
-      paid: '0',
-      balance: '1000'
+      totalFee: '',
+      paid: '',
+      balance: ''
     })
     setShowOptionalFields(false)
     setVehicleError('')

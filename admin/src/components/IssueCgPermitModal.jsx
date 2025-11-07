@@ -24,9 +24,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
     unladenWeight: '',
 
     // Fees
-    totalFee: '10000',
-    paid: '0',
-    balance: '10000'
+    totalFee: '',
+    paid: '',
+    balance: ''
   })
 
   const [showOptionalFields, setShowOptionalFields] = useState(false)
@@ -62,9 +62,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
         engineNumber: '',
         ladenWeight: '',
         unladenWeight: '',
-        totalFee: '10000',
-        paid: '0',
-        balance: '10000'
+        totalFee: '',
+        paid: '',
+        balance: ''
       })
       setVehicleError('')
       setFetchingVehicle(false)
@@ -318,9 +318,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
       engineNumber: '',
       ladenWeight: '',
       unladenWeight: '',
-      totalFee: '10000',
-      paid: '0',
-      balance: '10000'
+      totalFee: '',
+      paid: '',
+      balance: ''
     })
     setShowOptionalFields(false)
     setVehicleError('')

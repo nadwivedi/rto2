@@ -1,6 +1,7 @@
 const TemporaryPermit = require('../models/TemporaryPermit')
 const CustomBill = require('../models/CustomBill')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
+const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 const path = require('path')
 const fs = require('fs')
 
@@ -62,10 +63,14 @@ exports.createPermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error creating temporary permit:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(400).json({
       success: false,
-      message: 'Failed to create temporary permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -137,10 +142,14 @@ exports.getAllPermits = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching temporary permits:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch temporary permits',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -165,10 +174,14 @@ exports.getPermitById = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching temporary permit:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch temporary permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -193,10 +206,14 @@ exports.getPermitByNumber = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching temporary permit:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch temporary permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -227,10 +244,14 @@ exports.updatePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error updating temporary permit:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(400).json({
       success: false,
-      message: 'Failed to update temporary permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -256,10 +277,14 @@ exports.deletePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error deleting temporary permit:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to delete temporary permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -293,10 +318,14 @@ exports.updatePermitStatus = async (req, res) => {
     })
   } catch (error) {
     console.error('Error updating temporary permit status:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(400).json({
       success: false,
-      message: 'Failed to update temporary permit status',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -349,10 +378,14 @@ exports.getStatistics = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching statistics:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch statistics',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -383,10 +416,14 @@ exports.getExpiringPermits = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching expiring permits:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch expiring permits',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -401,7 +438,9 @@ exports.sharePermit = async (req, res) => {
     if (!phoneNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number is required'
+        message: 'Phone number is required',
+        errors: ['Phone number is required'],
+        errorCount: 1
       })
     }
 
@@ -435,10 +474,14 @@ exports.sharePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error sharing temporary permit:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to share temporary permit',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -538,10 +581,14 @@ exports.generateBillPDF = async (req, res) => {
     })
   } catch (error) {
     console.error('Error generating bill PDF:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to generate bill PDF',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -597,10 +644,14 @@ exports.downloadBillPDF = async (req, res) => {
     res.sendFile(pdfPath)
   } catch (error) {
     console.error('Error downloading bill PDF:', error)
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Failed to download bill PDF',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }

@@ -97,13 +97,15 @@ app.get('/', (req, res) => {
   })
 })
 
-// Error handling middleware
+// Simple error handling middleware - fallback only
 app.use((err, req, res, next) => {
-  console.error(err.stack)
+  console.error('Unhandled error:', err.stack)
   res.status(500).json({
     success: false,
     message: 'Something went wrong!',
-    error: err.message
+    errors: [err.message || 'Internal server error'],
+    errorCount: 1,
+    timestamp: new Date().toISOString()
   })
 })
 

@@ -466,7 +466,30 @@ const CgPermit = () => {
       await fetchStatistics()
     } catch (error) {
       console.error('Error creating CG permit:', error)
-      toast.error(`Failed to create CG permit: ${error.message}`, { position: 'top-right', autoClose: 3000 })
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data
+
+        // Show main error message
+        const mainMessage = errorData.errorCount > 1
+          ? `${errorData.message} (${errorData.errorCount} errors)`
+          : (errorData.message || 'Failed to create CG permit')
+
+        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
+            }, (index + 1) * 150)
+          })
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to create CG permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
+      }
     }
   }
 

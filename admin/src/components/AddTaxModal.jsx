@@ -12,9 +12,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     receiptNo: '',
     vehicleNumber: '',
     ownerName: '',
-    totalAmount: '0',
-    paidAmount: '0',
-    balance: '0',
+    totalAmount: '',
+    paidAmount: '',
+    balance: '',
     taxFrom: '',
     taxTo: ''
   })
@@ -46,9 +46,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         receiptNo: '',
         vehicleNumber: '',
         ownerName: '',
-        totalAmount: '0',
-        paidAmount: '0',
-        balance: '0',
+        totalAmount: '',
+        paidAmount: '',
+        balance: '',
         taxFrom: '',
         taxTo: ''
       })

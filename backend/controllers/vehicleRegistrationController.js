@@ -1,4 +1,5 @@
 const VehicleRegistration = require('../models/VehicleRegistration')
+const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 
 // Get all vehicle registrations
 exports.getAllRegistrations = async (req, res) => {
@@ -27,10 +28,14 @@ exports.getAllRegistrations = async (req, res) => {
       data: registrations
     })
   } catch (error) {
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Error fetching vehicle registrations',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -52,10 +57,14 @@ exports.getRegistrationById = async (req, res) => {
       data: registration
     })
   } catch (error) {
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Error fetching vehicle registration',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -79,10 +88,14 @@ exports.getRegistrationByNumber = async (req, res) => {
       data: registration
     })
   } catch (error) {
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Error fetching vehicle registration',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -98,17 +111,14 @@ exports.createRegistration = async (req, res) => {
       data: registration
     })
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Registration number already exists'
-      })
-    }
-
-    res.status(500).json({
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
+    res.status(400).json({
       success: false,
-      message: 'Error creating vehicle registration',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -135,10 +145,14 @@ exports.updateRegistration = async (req, res) => {
       data: registration
     })
   } catch (error) {
-    res.status(500).json({
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
+    res.status(400).json({
       success: false,
-      message: 'Error updating vehicle registration',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -160,10 +174,14 @@ exports.deleteRegistration = async (req, res) => {
       message: 'Vehicle registration deleted successfully'
     })
   } catch (error) {
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Error deleting vehicle registration',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -192,10 +210,14 @@ exports.updateRegistrationStatus = async (req, res) => {
       data: registration
     })
   } catch (error) {
-    res.status(500).json({
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
+    res.status(400).json({
       success: false,
-      message: 'Error updating registration status',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -218,10 +240,14 @@ exports.getStatistics = async (req, res) => {
       }
     })
   } catch (error) {
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Error fetching statistics',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
@@ -276,10 +302,14 @@ exports.shareRegistration = async (req, res) => {
       }
     })
   } catch (error) {
+    logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: 'Error preparing registration for sharing',
-      error: error.message
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }
