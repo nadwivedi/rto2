@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+
 const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const [showOptionalFields, setShowOptionalFields] = useState(false)
   const [partAImage, setPartAImage] = useState(null)
@@ -70,7 +72,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
       setVehicleError('')
 
       try {
-        const response = await fetch(`http://localhost:5000/api/vehicle-registrations/number/${registrationNum}`)
+        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
         const data = await response.json()
 
         if (response.ok && data.success) {

@@ -7,90 +7,6 @@ import { drivingLicenseAPI } from '../services/api'
 import Pagination from '../components/Pagination'
 
 const DrivingLicence = () => {
-  // Demo data for when backend is not available
-  const demoApplications = [
-    {
-      id: 'DL-2024-001',
-      name: 'Rajesh Kumar',
-      type: 'LMV',
-      status: 'Approved',
-      date: '2024-01-15',
-      issueDate: '2024-01-20',
-      expiryDate: '2044-01-20',
-      licenseNumber: 'CG071234567890',
-      licenseClass: 'LMV',
-      totalAmount: 1500,
-      paidAmount: 1500,
-      balanceAmount: 0,
-      mobile: '+91 9876543210',
-      email: 'rajesh.kumar@email.com'
-    },
-    {
-      id: 'DL-2024-002',
-      name: 'Priya Sharma',
-      type: 'MCWG',
-      status: 'Pending',
-      date: '2024-02-10',
-      issueDate: '2024-02-15',
-      expiryDate: '2044-02-15',
-      licenseNumber: 'CG071234567891',
-      licenseClass: 'MCWG',
-      totalAmount: 1200,
-      paidAmount: 600,
-      balanceAmount: 600,
-      mobile: '+91 9876543211',
-      email: 'priya.sharma@email.com'
-    },
-    {
-      id: 'DL-2024-003',
-      name: 'Amit Patel',
-      type: 'HMV',
-      status: 'Under Review',
-      date: '2024-03-05',
-      issueDate: '2024-03-10',
-      expiryDate: '2044-03-10',
-      licenseNumber: 'CG071234567892',
-      licenseClass: 'HMV',
-      totalAmount: 2000,
-      paidAmount: 2000,
-      balanceAmount: 0,
-      mobile: '+91 9876543212',
-      email: 'amit.patel@email.com'
-    },
-    {
-      id: 'DL-2024-004',
-      name: 'Sneha Verma',
-      type: 'LMV',
-      status: 'Rejected',
-      date: '2024-01-20',
-      issueDate: '2024-01-25',
-      expiryDate: '2044-01-25',
-      licenseNumber: 'CG071234567893',
-      licenseClass: 'LMV',
-      totalAmount: 1500,
-      paidAmount: 1500,
-      balanceAmount: 0,
-      mobile: '+91 9876543213',
-      email: 'sneha.verma@email.com'
-    },
-    {
-      id: 'DL-2024-005',
-      name: 'Vikram Singh',
-      type: 'TRANS',
-      status: 'Approved',
-      date: '2024-02-28',
-      issueDate: '2024-03-05',
-      expiryDate: '2044-03-05',
-      licenseNumber: 'CG071234567894',
-      licenseClass: 'TRANS',
-      totalAmount: 2500,
-      paidAmount: 2500,
-      balanceAmount: 0,
-      mobile: '+91 9876543214',
-      email: 'vikram.singh@email.com'
-    }
-  ]
-
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -253,13 +169,12 @@ const DrivingLicence = () => {
       }
     } catch (error) {
       console.error('Error fetching applications:', error)
-      console.log('Using demo data as fallback')
-      // Use demo data when backend is not available
-      setApplications(demoApplications)
+      toast.error('Failed to fetch applications. Please try again.', { autoClose: 700 })
+      setApplications([])
       setPagination({
         currentPage: 1,
         totalPages: 1,
-        totalRecords: demoApplications.length,
+        totalRecords: 0,
         limit: pagination.limit
       })
     } finally {

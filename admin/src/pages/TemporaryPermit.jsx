@@ -131,6 +131,7 @@ const TemporaryPermit = () => {
 
   const [permits, setPermits] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [selectedPermit, setSelectedPermit] = useState(null)
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showBillModal, setShowBillModal] = useState(false)
@@ -176,11 +177,23 @@ const TemporaryPermit = () => {
     }
   }
 
+  // Debounce search query to avoid losing focus on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 500) // 500ms delay
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
   // Fetch permits from backend on component mount and when filters change
   useEffect(() => {
-    fetchPermits(1)
-    fetchStatistics()
-  }, [searchQuery, statusFilter])
+    // Only fetch if search query is empty or has at least 4 characters
+    if (debouncedSearchQuery.length === 0 || debouncedSearchQuery.length >= 4) {
+      fetchPermits(1)
+      fetchStatistics()
+    }
+  }, [debouncedSearchQuery, statusFilter])
 
   // Page change handler
   const handlePageChange = (newPage) => {
@@ -196,7 +209,7 @@ const TemporaryPermit = () => {
         params: {
           page,
           limit: pagination.limit,
-          search: searchQuery,
+          search: debouncedSearchQuery,
           status: statusFilter !== 'all' ? statusFilter : undefined
         }
       })
@@ -611,24 +624,6 @@ const TemporaryPermit = () => {
             </div>
           </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className='flex flex-col justify-center items-center py-20'>
-          <div className='relative'>
-            <div className='w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
-            <div className='absolute inset-0 w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-2xl animate-spin'></div>
-          </div>
-          <div className='mt-6 text-center'>
-            <p className='text-xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1'>
-              Loading Temporary Permits
-            </p>
-            <p className='text-sm text-gray-600'>Please wait while we fetch your data...</p>
-          </div>
-        </div>
-      )}
-
-      {!loading && (
-      <>
       {/* Permits Table */}
       <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
         {/* Search and Filters Header */}
@@ -640,8 +635,8 @@ const TemporaryPermit = () => {
                 type='text'
                 placeholder='Search by permit number, holder, or vehicle...'
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
+                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm uppercase'
               />
               <svg
                 className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
@@ -695,7 +690,15 @@ const TemporaryPermit = () => {
 
         {/* Mobile Card View */}
         <div className='block lg:hidden'>
-          {filteredPermits.length > 0 ? (
+          {loading ? (
+            <div className='flex flex-col justify-center items-center py-12'>
+              <div className='relative'>
+                <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
+                <div className='absolute inset-0 w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-2xl animate-spin'></div>
+              </div>
+              <p className='text-sm text-gray-600 mt-4'>Loading permits...</p>
+            </div>
+          ) : filteredPermits.length > 0 ? (
             <div className='p-3 space-y-3'>
               {filteredPermits.map((permit) => (
                 <div key={permit.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
@@ -895,7 +898,19 @@ const TemporaryPermit = () => {
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-100'>
-              {filteredPermits.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan='9' className='px-6 py-16'>
+                    <div className='flex flex-col justify-center items-center'>
+                      <div className='relative'>
+                        <div className='w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
+                        <div className='absolute inset-0 w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-2xl animate-spin'></div>
+                      </div>
+                      <p className='text-gray-600 mt-6'>Loading temporary permits...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredPermits.length > 0 ? (
                 filteredPermits.map((permit) => (
                   <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 transition-all duration-300 group'>
                     <td className='px-6 py-5'>
@@ -1044,7 +1059,7 @@ const TemporaryPermit = () => {
         </div>
 
         {/* Pagination */}
-        {!loading && filteredPermits.length > 0 && (
+        {filteredPermits.length > 0 && (
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
@@ -1054,8 +1069,6 @@ const TemporaryPermit = () => {
           />
         )}
       </div>
-      </>
-      )}
 
       {/* Add New Temporary Permit Modal */}
       <IssueTemporaryPermitModal

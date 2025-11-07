@@ -446,8 +446,8 @@ const Fitness = () => {
                     type='text'
                     placeholder='Search by vehicle number...'
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
+                    onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                    className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm uppercase'
                   />
                   <svg
                     className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'

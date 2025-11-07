@@ -98,6 +98,7 @@ const Insurance = () => {
 
   const [insurances, setInsurances] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [selectedInsurance, setSelectedInsurance] = useState(null)
@@ -119,7 +120,7 @@ const Insurance = () => {
         params: {
           page,
           limit: pagination.limit,
-          search: searchQuery
+          search: debouncedSearchQuery
         }
       })
 
@@ -147,10 +148,22 @@ const Insurance = () => {
     }
   }
 
+  // Debounce search query to avoid losing focus on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+    }, 500) // 500ms delay
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
   // Load insurance records on component mount and when filters change
   useEffect(() => {
-    fetchInsurances(1) // Reset to page 1 when filters change
-  }, [searchQuery])
+    // Only fetch if search query is empty or has at least 4 characters
+    if (debouncedSearchQuery.length === 0 || debouncedSearchQuery.length >= 4) {
+      fetchInsurances(1) // Reset to page 1 when filters change
+    }
+  }, [debouncedSearchQuery])
 
   // Page change handler
   const handlePageChange = (newPage) => {
@@ -439,8 +452,8 @@ const Insurance = () => {
                 type='text'
                 placeholder='Search by vehicle no, policy no, or owner...'
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
+                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm uppercase'
               />
               <svg
                 className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'

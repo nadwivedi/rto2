@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+
 const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [formData, setFormData] = useState({
     // Required fields
@@ -91,7 +93,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       setVehicleError('')
 
       try {
-        const response = await fetch(`http://localhost:5000/api/vehicle-registrations/number/${registrationNum}`)
+        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
         const data = await response.json()
 
         if (response.ok && data.success) {
