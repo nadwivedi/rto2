@@ -44,11 +44,6 @@ const taxSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  status: {
-    type: String,
-    enum: ['active', 'expired', 'expiring_soon'],
-    default: 'active'
-  },
   bill: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CustomBill'
@@ -56,6 +51,23 @@ const taxSchema = new mongoose.Schema({
 }, {
   timestamps: true
 })
+
+// Optimized indexes for exact requirements:
+// 1. Get all vehicles with pending payment (balanceAmount > 0)
+// 2. Get all vehicles with expiring/expired tax (filter by taxTo date)
+// 3. Search vehicle number and get all tax records for that vehicle
+
+// Index 1: vehicleNumber (for searching vehicle and getting all its tax records)
+taxSchema.index({ vehicleNumber: 1 })
+
+// Index 2: taxTo (for filtering expired/expiring_soon/active status)
+taxSchema.index({ taxTo: 1 })
+
+// Index 3: balanceAmount (for filtering pending payments)
+taxSchema.index({ balanceAmount: 1 })
+
+// Index 4: createdAt (for default sorting - newest first)
+taxSchema.index({ createdAt: -1 })
 
 const Tax = mongoose.model('Tax', taxSchema)
 

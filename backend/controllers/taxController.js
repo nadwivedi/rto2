@@ -9,54 +9,161 @@ exports.getAllTax = async (req, res) => {
   try {
     const { search, status, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    // Build query
-    const query = {}
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    // Search by vehicle number or receipt number
-    if (search) {
-      query.$or = [
-        { vehicleNumber: { $regex: search, $options: 'i' } },
-        { receiptNo: { $regex: search, $options: 'i' } }
-      ]
-    }
+    const fifteenDaysFromNow = new Date()
+    fifteenDaysFromNow.setDate(today.getDate() + 15)
+    fifteenDaysFromNow.setHours(23, 59, 59, 999)
 
-    // Filter by status or pending payment
-    if (status) {
-      if (status === 'pending') {
-        // Pending payment means balance > 0
-        query.balanceAmount = { $gt: 0 }
-      } else {
-        // Normal status filter
-        query.status = status
+    // Determine if we need aggregation pipeline (for date-based status filtering)
+    const useDateBasedFilter = status && ['expired', 'expiring_soon', 'active'].includes(status)
+
+    if (useDateBasedFilter) {
+      // Use aggregation pipeline for date-based filtering
+      const pipeline = []
+
+      // Stage 1: Normalize date separator
+      pipeline.push({
+        $addFields: {
+          taxToNormalized: {
+            $replaceAll: {
+              input: '$taxTo',
+              find: '-',
+              replacement: '/'
+            }
+          }
+        }
+      })
+
+      // Stage 2: Add computed date field
+      pipeline.push({
+        $addFields: {
+          taxToDateParsed: {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 2] },
+                  '-',
+                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 1] },
+                  '-',
+                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 0] }
+                ]
+              },
+              onError: null,
+              onNull: null
+            }
+          }
+        }
+      })
+
+      // Stage 3: Add computed status
+      pipeline.push({
+        $addFields: {
+          computedStatus: {
+            $switch: {
+              branches: [
+                { case: { $lt: ['$taxToDateParsed', today] }, then: 'expired' },
+                {
+                  case: {
+                    $and: [
+                      { $gte: ['$taxToDateParsed', today] },
+                      { $lte: ['$taxToDateParsed', fifteenDaysFromNow] }
+                    ]
+                  },
+                  then: 'expiring_soon'
+                }
+              ],
+              default: 'active'
+            }
+          }
+        }
+      })
+
+      // Stage 4: Build match conditions
+      const matchConditions = { computedStatus: status }
+
+      // Add search filter (vehicle number only)
+      if (search) {
+        matchConditions.vehicleNumber = { $regex: search, $options: 'i' }
       }
-    }
 
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit)
+      pipeline.push({ $match: matchConditions })
 
-    // Sort options
-    const sortOptions = {}
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+      // Stage 5: Sort
+      const sortOptions = {}
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+      pipeline.push({ $sort: sortOptions })
 
-    // Execute query
-    const taxRecords = await Tax.find(query)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(parseInt(limit))
+      // Stage 6: Count total for pagination (use facet to get both data and count)
+      pipeline.push({
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [
+            { $skip: (parseInt(page) - 1) * parseInt(limit) },
+            { $limit: parseInt(limit) }
+          ]
+        }
+      })
 
-    // Get total count for pagination
-    const total = await Tax.countDocuments(query)
+      const results = await Tax.aggregate(pipeline)
+      const total = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0
+      const taxRecords = results[0].data
 
-    res.json({
-      success: true,
-      data: taxRecords,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
-        totalRecords: total,
-        hasMore: skip + taxRecords.length < total
+      res.json({
+        success: true,
+        data: taxRecords,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / parseInt(limit)),
+          totalRecords: total,
+          hasMore: (parseInt(page) - 1) * parseInt(limit) + taxRecords.length < total
+        }
+      })
+    } else {
+      // Use normal query for non-date-based filtering
+      const query = {}
+
+      // Search by vehicle number only
+      if (search) {
+        query.vehicleNumber = { $regex: search, $options: 'i' }
       }
-    })
+
+      // Filter by status or pending payment
+      if (status) {
+        if (status === 'pending') {
+          query.balanceAmount = { $gt: 0 }
+        } else {
+          query.status = status
+        }
+      }
+
+      const skip = (parseInt(page) - 1) * parseInt(limit)
+
+      // Sort options
+      const sortOptions = {}
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+      // Execute query
+      const taxRecords = await Tax.find(query)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(parseInt(limit))
+
+      // Get total count for pagination
+      const total = await Tax.countDocuments(query)
+
+      res.json({
+        success: true,
+        data: taxRecords,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / parseInt(limit)),
+          totalRecords: total,
+          hasMore: skip + taxRecords.length < total
+        }
+      })
+    }
   } catch (error) {
     console.error('Error fetching tax records:', error)
     res.status(500).json({
@@ -115,8 +222,7 @@ exports.createTax = async (req, res) => {
       paidAmount: paidAmount || 0,
       balanceAmount: balanceAmount || 0,
       taxFrom,
-      taxTo,
-      status: 'active'
+      taxTo
     })
 
     await tax.save()
@@ -180,7 +286,7 @@ exports.createTax = async (req, res) => {
 // Update tax record
 exports.updateTax = async (req, res) => {
   try {
-    const { receiptNo, vehicleNumber, ownerName, totalAmount, paidAmount, balanceAmount, taxFrom, taxTo, status } = req.body
+    const { receiptNo, vehicleNumber, ownerName, totalAmount, paidAmount, balanceAmount, taxFrom, taxTo } = req.body
 
     const tax = await Tax.findById(req.params.id)
 
@@ -200,7 +306,6 @@ exports.updateTax = async (req, res) => {
     if (totalAmount !== undefined) tax.totalAmount = totalAmount
     if (paidAmount !== undefined) tax.paidAmount = paidAmount
     if (balanceAmount !== undefined) tax.balanceAmount = balanceAmount
-    if (status) tax.status = status
 
     await tax.save()
 
@@ -250,23 +355,117 @@ exports.deleteTax = async (req, res) => {
 // Get tax statistics
 exports.getTaxStatistics = async (req, res) => {
   try {
-    const total = await Tax.countDocuments()
-    const active = await Tax.countDocuments({ status: 'active' })
-    const expired = await Tax.countDocuments({ status: 'expired' })
-    const expiring = await Tax.countDocuments({ status: 'expiring_soon' })
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    // Pending payment count and amount
-    const pendingPaymentRecords = await Tax.find({ balanceAmount: { $gt: 0 } })
-    const pendingPaymentCount = pendingPaymentRecords.length
-    const pendingPaymentAmount = pendingPaymentRecords.reduce((sum, record) => sum + (record.balanceAmount || 0), 0)
+    const fifteenDaysFromNow = new Date()
+    fifteenDaysFromNow.setDate(today.getDate() + 15)
+    fifteenDaysFromNow.setHours(23, 59, 59, 999)
+
+    // Use aggregation pipeline to calculate statistics
+    const statusPipeline = [
+      {
+        $addFields: {
+          // Normalize separator: replace - with /
+          taxToNormalized: {
+            $replaceAll: {
+              input: '$taxTo',
+              find: '-',
+              replacement: '/'
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          // Convert taxTo string to date for comparison
+          taxToDateParsed: {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 2] }, // year
+                  '-',
+                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 1] }, // month
+                  '-',
+                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 0] }  // day
+                ]
+              },
+              onError: null,
+              onNull: null
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          computedStatus: {
+            $switch: {
+              branches: [
+                {
+                  case: { $lt: ['$taxToDateParsed', today] },
+                  then: 'expired'
+                },
+                {
+                  case: {
+                    $and: [
+                      { $gte: ['$taxToDateParsed', today] },
+                      { $lte: ['$taxToDateParsed', fifteenDaysFromNow] }
+                    ]
+                  },
+                  then: 'expiring_soon'
+                }
+              ],
+              default: 'active'
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$computedStatus',
+          count: { $sum: 1 }
+        }
+      }
+    ]
+
+    const statusResults = await Tax.aggregate(statusPipeline)
+
+    // Convert array to object for easy access
+    const statusCounts = {
+      active: 0,
+      expired: 0,
+      expiring_soon: 0
+    }
+
+    statusResults.forEach(result => {
+      statusCounts[result._id] = result.count
+    })
+
+    const total = await Tax.countDocuments()
+
+    // Pending payment aggregation
+    const pendingPaymentPipeline = [
+      { $match: { balanceAmount: { $gt: 0 } } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$balanceAmount' }
+        }
+      }
+    ]
+
+    const pendingPaymentResults = await Tax.aggregate(pendingPaymentPipeline)
+    const pendingPaymentCount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].count : 0
+    const pendingPaymentAmount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].totalAmount : 0
 
     res.json({
       success: true,
       data: {
         total,
-        active,
-        expired,
-        expiringSoon: expiring,
+        active: statusCounts.active,
+        expired: statusCounts.expired,
+        expiringSoon: statusCounts.expiring_soon,
         pendingPaymentCount,
         pendingPaymentAmount
       }
@@ -276,37 +475,6 @@ exports.getTaxStatistics = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching tax statistics',
-      error: error.message
-    })
-  }
-}
-
-// Get expiring tax records (expiring within 15 days)
-exports.getExpiringTax = async (req, res) => {
-  try {
-    const today = new Date()
-    const fifteenDaysLater = new Date()
-    fifteenDaysLater.setDate(today.getDate() + 15)
-
-    const allTax = await Tax.find()
-    const expiringTax = allTax.filter(tax => {
-      // Parse taxTo date (assuming DD/MM/YYYY or DD-MM-YYYY format)
-      const dateParts = tax.taxTo.split(/[/-]/)
-      const taxToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-
-      return taxToDate >= today && taxToDate <= fifteenDaysLater
-    })
-
-    res.json({
-      success: true,
-      data: expiringTax,
-      count: expiringTax.length
-    })
-  } catch (error) {
-    console.error('Error fetching expiring tax records:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching expiring tax records',
       error: error.message
     })
   }

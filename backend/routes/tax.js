@@ -8,9 +8,6 @@ router.get('/', taxController.getAllTax)
 // Get tax statistics
 router.get('/statistics', taxController.getTaxStatistics)
 
-// Get expiring tax records (within 15 days)
-router.get('/expiring', taxController.getExpiringTax)
-
 // Get single tax record by ID
 router.get('/:id', taxController.getTaxById)
 

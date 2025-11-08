@@ -153,9 +153,6 @@ const Tax = () => {
     return new Date(0)
   }
 
-  // Use taxRecords directly since filtering is done on backend
-  const filteredRecords = taxRecords
-
   const handleAddTax = async (formData) => {
     setLoading(true)
     try {
@@ -440,7 +437,7 @@ const Tax = () => {
                 <div className='relative flex-1 lg:max-w-md'>
                   <input
                     type='text'
-                    placeholder='Search by vehicle number or receipt no...'
+                    placeholder='Search by vehicle number...'
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
                     className='w-full pl-11 pr-4 py-3 text-sm border-2 border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all bg-white shadow-sm'
@@ -504,9 +501,9 @@ const Tax = () => {
 
             {/* Mobile Card View */}
             <div className='block lg:hidden'>
-              {filteredRecords.length > 0 ? (
+              {taxRecords.length > 0 ? (
                 <div className='p-3 space-y-3'>
-                  {filteredRecords.map((record) => (
+                  {taxRecords.map((record) => (
                     <div key={record.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
                       {/* Card Header with Avatar and Actions */}
                       <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
@@ -642,8 +639,8 @@ const Tax = () => {
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200'>
-                  {filteredRecords.length > 0 ? (
-                    filteredRecords.map((record) => (
+                  {taxRecords.length > 0 ? (
+                    taxRecords.map((record) => (
                       <tr key={record.id} className='hover:bg-gradient-to-r hover:from-indigo-50/50 hover:via-purple-50/50 hover:to-pink-50/50 transition-all duration-200 group'>
                         {/* Receipt No */}
                         <td className='px-4 py-4'>
@@ -776,7 +773,7 @@ const Tax = () => {
             </div>
 
             {/* Pagination */}
-            {!loading && filteredRecords.length > 0 && (
+            {!loading && taxRecords.length > 0 && (
               <Pagination
                 currentPage={pagination.currentPage}
                 totalPages={pagination.totalPages}
