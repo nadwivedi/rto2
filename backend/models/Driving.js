@@ -46,11 +46,6 @@ const DrivingSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
- 
-  applicationDate: {
-    type: String,
-    trim: true
-  },
 
   // License Information
 

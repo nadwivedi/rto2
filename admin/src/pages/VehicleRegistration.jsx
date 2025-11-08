@@ -268,17 +268,17 @@ const VehicleRegistration = () => {
                         {/* Card Body */}
                         <div className='p-3 space-y-2.5'>
                           {/* Vehicle Details */}
-                          <div className='grid grid-cols-2 gap-2'>
-                            <div className='bg-gradient-to-br from-blue-50 to-cyan-50 p-2 rounded-lg border border-blue-200'>
+                          <div className='flex gap-2'>
+                            <div className='bg-gradient-to-br from-blue-50 to-cyan-50 p-2 rounded-lg border border-blue-200 flex-[0.55]'>
                               <p className='text-[10px] text-blue-600 font-semibold uppercase'>
                                 Chassis No
                               </p>
                               <div className='flex items-center gap-1.5'>
-                                <p className='text-[15px] font-mono font-semibold text-blue-900'>{registration.chassisNumber || 'N/A'}</p>
+                                <p className='text-[11px] font-mono font-semibold text-blue-900 break-all leading-tight'>{registration.chassisNumber || 'N/A'}</p>
                                 {registration.chassisNumber && registration.chassisNumber !== 'N/A' && (
                                   <button
                                     onClick={() => handleCopyChassisNumber(registration.chassisNumber)}
-                                    className='p-1 text-blue-400 hover:text-indigo-600 hover:bg-indigo-100 rounded transition-all duration-200'
+                                    className='p-1 text-blue-400 hover:text-indigo-600 hover:bg-indigo-100 rounded transition-all duration-200 flex-shrink-0'
                                     title='Copy Chassis Number'
                                   >
                                     <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -288,7 +288,7 @@ const VehicleRegistration = () => {
                                 )}
                               </div>
                             </div>
-                            <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-2 rounded-lg border border-green-200'>
+                            <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-2 rounded-lg border border-green-200 flex-[0.45]'>
                               <p className='text-[10px] text-green-600 font-semibold uppercase flex items-center gap-1'>
                                 <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' />
@@ -296,7 +296,7 @@ const VehicleRegistration = () => {
                                 </svg>
                                 Engine No
                               </p>
-                              <p className='text-[15px] font-mono font-semibold text-green-900'>{registration.engineNumber || 'N/A'}</p>
+                              <p className='text-[11px] font-mono font-semibold text-green-900 break-all leading-tight'>{registration.engineNumber || 'N/A'}</p>
                             </div>
                           </div>
 

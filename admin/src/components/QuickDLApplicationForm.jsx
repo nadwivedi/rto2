@@ -26,7 +26,6 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
     city: '',
     state: '',
     pincode: '',
-    applicationDate: getCurrentDate(),
 
     // License Information
     licenseClass: 'MCWG+LMV',
@@ -447,6 +446,10 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                   </div>
                 </div>
 
+              </div>
+
+              {/* Second Row - Gender, Father's Name, and Address */}
+              <div className='grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4 mt-3 md:mt-4'>
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Gender <span className='text-red-500'>*</span>
@@ -479,34 +482,18 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                     required
                   />
                 </div>
-              </div>
 
-              {/* Address and Date Fields */}
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mt-3 md:mt-4'>
+                {/* Address Field - takes 2 columns (50% of 4-column grid) */}
                 <div className='md:col-span-2'>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Address <span className='text-red-500'>*</span>
                   </label>
-                  <textarea
+                  <input
+                    type='text'
                     name='address'
                     value={formData.address}
                     onChange={handleChange}
-                    rows='2'
-                    placeholder='Complete address with street, area, landmark'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                    required
-                  />
-                </div>
-                <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Application Date <span className='text-red-500'>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    name='applicationDate'
-                    value={formData.applicationDate}
-                    onChange={handleChange}
-                    placeholder='DD-MM-YYYY'
+                    placeholder='Complete address'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
