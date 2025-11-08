@@ -162,10 +162,10 @@ const CgPermit = () => {
       const response = await axios.get(`${API_URL}/api/cg-permits/statistics`)
       if (response.data.success) {
         setStatistics({
-          total: response.data.data.permits.total,
-          active: response.data.data.permits.active,
-          expiringSoon: response.data.data.permits.expiringSoon,
-          expired: response.data.data.permits.expired,
+          total: response.data.data.total,
+          active: response.data.data.active,
+          expiringSoon: response.data.data.expiringSoon,
+          expired: response.data.data.expired,
           pendingPaymentCount: response.data.data.pendingPaymentCount,
           pendingPaymentAmount: response.data.data.pendingPaymentAmount
         })
@@ -221,9 +221,9 @@ const CgPermit = () => {
         vehicleNo: permit.vehicleNumber || 'N/A',
         issueDate: permit.issueDate,
         validFrom: permit.validFrom,
-        validTill: permit.validTo,
+        validTo: permit.validTo, // Keep original field
+        validTill: permit.validTo, // Also map to validTill for compatibility
         validityPeriod: permit.validityPeriod,
-        status: permit.status,
         bill: permit.bill, // Include bill reference
         fees: permit.totalFee || permit.fees || 0,
         balance: permit.balance || 0,
@@ -272,15 +272,34 @@ const CgPermit = () => {
   }
 
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active': return 'bg-green-100 text-green-700'
-      case 'Pending Renewal': return 'bg-yellow-100 text-yellow-700'
-      case 'Expiring Soon': return 'bg-orange-100 text-orange-700'
-      case 'Expired': return 'bg-red-100 text-red-700'
-      case 'Suspended': return 'bg-gray-100 text-gray-700'
-      default: return 'bg-gray-100 text-gray-700'
-    }
+  const getStatusColor = (validTo) => {
+    if (!validTo) return 'bg-gray-100 text-gray-700'
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const dateParts = validTo.split(/[/-]/)
+    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
+    validToDate.setHours(0, 0, 0, 0)
+    const diffTime = validToDate - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) return 'bg-red-100 text-red-700'
+    if (diffDays <= 15) return 'bg-orange-100 text-orange-700'
+    return 'bg-green-100 text-green-700'
+  }
+
+  const getStatusText = (validTo) => {
+    if (!validTo) return 'Unknown'
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const dateParts = validTo.split(/[/-]/)
+    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
+    validToDate.setHours(0, 0, 0, 0)
+    const diffTime = validToDate - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) return 'Expired'
+    if (diffDays <= 15) return 'Expiring Soon'
+    return 'Active'
   }
 
   // Helper to convert DD-MM-YYYY to Date object
@@ -452,23 +471,9 @@ Thank you!`
     }
   }
 
-  // Helper function to get status based on validTill date
-  const getPermitStatus = (validTill) => {
-    if (!validTill) return 'Unknown'
-    const today = new Date()
-    const dateParts = validTill.split(/[/-]/)
-    const validTillDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    const diffTime = validTillDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 30) return 'Expiring Soon'  // 30 days for CG permits
-    return 'Active'
-  }
-
   // Determine if renew button should be shown for a permit
   const shouldShowRenewButton = (permit) => {
-    const status = getPermitStatus(permit.validTill)
+    const status = getStatusText(permit.validTill)
 
     // Show renew button for expiring soon permits
     if (status === 'Expiring Soon') {
@@ -650,11 +655,11 @@ Thank you!`
 
               {/* Expiring Soon */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'Expiring Soon' ? 'all' : 'Expiring Soon')}
+                onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'Expiring Soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                  statusFilter === 'expiring_soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
                 }`}
-                title={statusFilter === 'Expiring Soon' ? 'Click to clear filter' : 'Click to filter expiring permits'}
+                title={statusFilter === 'expiring_soon' ? 'Click to clear filter' : 'Click to filter expiring permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -672,11 +677,11 @@ Thank you!`
 
               {/* Expired */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'Expired' ? 'all' : 'Expired')}
+                onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'Expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
+                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
                 }`}
-                title={statusFilter === 'Expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
+                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -866,8 +871,8 @@ Thank you!`
                   <div className='p-3 space-y-2.5'>
                     {/* Status and Vehicle */}
                     <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${getStatusColor(permit.status)}`}>
-                        {permit.status}
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.validTill)}`}>
+                        {getStatusText(permit.validTill)}
                       </span>
                       <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
                         <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
@@ -1067,8 +1072,8 @@ Thank you!`
                       )}
                     </td>
                     <td className='px-6 py-5'>
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(getPermitStatus(permit.validTill))}`}>
-                        {getPermitStatus(permit.validTill)}
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.validTill)}`}>
+                        {getStatusText(permit.validTill)}
                       </span>
                     </td>
                     <td className='px-6 py-5'>

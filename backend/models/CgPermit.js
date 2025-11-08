@@ -63,13 +63,6 @@ const CgPermitSchema = new mongoose.Schema({
     default: 10000
   },
 
-  // Status
-  status: {
-    type: String,
-    enum: ['Active', 'Pending Renewal', 'Expiring Soon', 'Expired', 'Suspended'],
-    default: 'Active'
-  },
-
   // Bill Reference
   bill: {
     type: mongoose.Schema.Types.ObjectId,
@@ -90,8 +83,22 @@ const CgPermitSchema = new mongoose.Schema({
   timestamps: true
 })
 
+// Optimized indexes for exact requirements:
+// 1. Get all permits with pending payment (balance > 0)
+// 2. Get all permits with expiring/expired status (filter by validTo date)
+// 3. Search vehicle number and get all permit records for that vehicle
 
+// Index 1: vehicleNumber (for searching vehicle and getting all its permit records)
+CgPermitSchema.index({ vehicleNumber: 1 })
 
+// Index 2: validTo (for filtering expired/expiring_soon/active status)
+CgPermitSchema.index({ validTo: 1 })
+
+// Index 3: balance (for filtering pending payments)
+CgPermitSchema.index({ balance: 1 })
+
+// Index 4: createdAt (for default sorting - newest first)
+CgPermitSchema.index({ createdAt: -1 })
 
 const CgPermit = mongoose.model('CgPermit', CgPermitSchema)
 

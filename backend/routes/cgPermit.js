@@ -8,9 +8,6 @@ router.get('/', cgPermitController.getAllPermits)
 // GET statistics
 router.get('/statistics', cgPermitController.getStatistics)
 
-// GET expiring permits
-router.get('/expiring', cgPermitController.getExpiringPermits)
-
 // POST share permit via WhatsApp (must be before /:id route)
 router.post('/:id/share', cgPermitController.sharePermit)
 
@@ -28,15 +25,6 @@ router.put('/:id', cgPermitController.updatePermit)
 
 // DELETE CG permit
 router.delete('/:id', cgPermitController.deletePermit)
-
-// PATCH update permit status
-router.patch('/:id/status', cgPermitController.updatePermitStatus)
-
-// PATCH add renewal entry
-router.patch('/:id/renewal', cgPermitController.addRenewal)
-
-// PATCH update tax details
-router.patch('/:id/tax', cgPermitController.updateTax)
 
 // POST generate bill PDF
 router.post('/:id/generate-bill-pdf', cgPermitController.generateBillPDF)
