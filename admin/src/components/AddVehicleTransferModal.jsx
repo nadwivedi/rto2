@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
+
 const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
@@ -12,13 +14,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
     newOwnerFatherName: '',
     newOwnerAddress: '',
     newOwnerMobile: '',
-    transferFee: '',
-    status: 'Pending',
-    remarks: ''
+    totalFee: '',
+    paid: ''
   })
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [lastAction, setLastAction] = useState({})
 
   useEffect(() => {
     if (editData) {
@@ -35,43 +37,95 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
         newOwnerFatherName: '',
         newOwnerAddress: '',
         newOwnerMobile: '',
-        transferFee: '',
-        status: 'Pending',
-        remarks: ''
+        totalFee: '',
+        paid: ''
       })
     }
     setError('')
   }, [editData, isOpen])
 
+  const handleDateKeyDown = (e) => {
+    const { name } = e.target
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      setLastAction({ [name]: 'delete' })
+    } else {
+      setLastAction({ [name]: 'typing' })
+    }
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    // Auto-calculate balance when totalFee or paid changes
+    if (name === 'totalFee' || name === 'paid') {
+      setFormData(prev => {
+        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
+        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
+        const balance = totalFee - paid
+
+        return {
+          ...prev,
+          [name]: value,
+          balance: balance.toString()
+        }
+      })
+      return
+    }
+
+    // Auto-format date field with automatic dash insertion
+    if (name === 'transferDate') {
+      // Remove all non-digit characters
+      let digitsOnly = value.replace(/[^\d]/g, '')
+
+      // Limit to 8 digits (DDMMYYYY)
+      digitsOnly = digitsOnly.slice(0, 8)
+
+      // Check if user was deleting
+      const isDeleting = lastAction[name] === 'delete'
+
+      // Format based on length
+      let formatted = digitsOnly
+
+      if (digitsOnly.length === 0) {
+        formatted = ''
+      } else if (digitsOnly.length <= 2) {
+        formatted = digitsOnly
+        // Only add trailing dash if user just typed the 2nd digit (not deleting)
+        if (digitsOnly.length === 2 && !isDeleting) {
+          formatted = digitsOnly + '-'
+        }
+      } else if (digitsOnly.length <= 4) {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
+        // Only add trailing dash if user just typed the 4th digit (not deleting)
+        if (digitsOnly.length === 4 && !isDeleting) {
+          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
+        }
+      } else {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
+      }
+
+      // Auto-expand 2-digit year (only when typing, not deleting)
+      if (digitsOnly.length === 6 && !isDeleting) {
+        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
+        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+      return
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
     }))
   }
 
-  const handleDateChange = (e) => {
-    let value = e.target.value.replace(/\D/g, '')
-
-    if (value.length >= 2) {
-      value = value.slice(0, 2) + '-' + value.slice(2)
-    }
-    if (value.length >= 5) {
-      value = value.slice(0, 5) + '-' + value.slice(5)
-    }
-    if (value.length > 10) {
-      value = value.slice(0, 10)
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      transferDate: value
-    }))
-  }
-
   const handleDateBlur = (e) => {
-    const { value } = e.target
+    const { name, value } = e.target
     const parts = value.split('-')
 
     if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
@@ -83,7 +137,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
       if (year.toString().length === 4) {
         const formattedValue = `${parts[0]}-${parts[1]}-${year}`
-        setFormData(prev => ({ ...prev, transferDate: formattedValue }))
+        setFormData(prev => ({ ...prev, [name]: formattedValue }))
       }
     }
   }
@@ -95,8 +149,8 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
     try {
       const url = editData
-        ? `http://localhost:5000/api/vehicle-transfers/${editData._id}`
-        : 'http://localhost:5000/api/vehicle-transfers'
+        ? `${API_URL}/api/vehicle-transfers/${editData._id}`
+        : `${API_URL}/api/vehicle-transfers`
 
       const method = editData ? 'PUT' : 'POST'
 
@@ -135,22 +189,22 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4' onKeyDown={handleKeyDown}>
-      <div className='bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto'>
+    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
+      <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='sticky top-0 bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600 text-white p-6 rounded-t-2xl z-10'>
-          <div className='flex items-center justify-between'>
+        <div className='bg-gradient-to-r from-teal-600 to-cyan-600 p-2 md:p-3 text-white flex-shrink-0'>
+          <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-2xl font-bold'>
+              <h2 className='text-lg md:text-2xl font-bold'>
                 {editData ? 'Edit Vehicle Transfer' : 'New Vehicle Transfer'}
               </h2>
-              <p className='text-teal-100 text-sm mt-1'>Transfer vehicle ownership</p>
+              <p className='text-teal-100 text-xs md:text-sm mt-1'>Transfer vehicle ownership details</p>
             </div>
             <button
               onClick={onClose}
-              className='text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg transition'
+              className='text-white hover:bg-white/20 rounded-lg p-1.5 md:p-2 transition cursor-pointer'
             >
-              <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
               </svg>
             </button>
@@ -158,7 +212,8 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className='p-6'>
+        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
+          <div className='flex-1 overflow-y-auto p-3 md:p-6'>
           {error && (
             <div className='mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2'>
               <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -168,21 +223,17 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
             </div>
           )}
 
-          {/* Basic Transfer Details */}
-          <div className='mb-6'>
-            <h3 className='text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2'>
-              <div className='w-8 h-8 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-lg flex items-center justify-center'>
-                <svg className='w-5 h-5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                </svg>
-              </div>
+          {/* Section 1: Transfer Details */}
+          <div className='bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+              <span className='bg-teal-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
               Transfer Details
             </h3>
 
-            <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
               {/* Vehicle Number */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Vehicle Number <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -192,62 +243,41 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   onChange={handleChange}
                   required
                   placeholder='CG01AB1234'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all uppercase font-mono'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent uppercase font-mono'
                 />
               </div>
 
               {/* Transfer Date */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Transfer Date <span className='text-red-500'>*</span>
                 </label>
                 <input
                   type='text'
                   name='transferDate'
                   value={formData.transferDate}
-                  onChange={handleDateChange}
+                  onChange={handleChange}
+                  onKeyDown={handleDateKeyDown}
                   onBlur={handleDateBlur}
                   required
-                  placeholder='DD-MM-YYYY'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all'
-                />
-                <p className='text-xs text-gray-500 mt-1'>Format: DD-MM-YYYY (e.g., 24-01-25 → 24-01-2025)</p>
-              </div>
-
-              {/* Transfer Fee */}
-              <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                  Transfer Fee (₹) <span className='text-red-500'>*</span>
-                </label>
-                <input
-                  type='number'
-                  name='transferFee'
-                  value={formData.transferFee}
-                  onChange={handleChange}
-                  required
-                  placeholder='1500'
-                  min='0'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all'
+                  placeholder='24-01-25 or 24/01/2025'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
                 />
               </div>
             </div>
           </div>
 
-          {/* Current Owner Details */}
-          <div className='mb-6'>
-            <h3 className='text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2'>
-              <div className='w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center'>
-                <svg className='w-5 h-5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
-                </svg>
-              </div>
+          {/* Section 2: Current Owner Details */}
+          <div className='bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+              <span className='bg-orange-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
               Current Owner Details
             </h3>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
               {/* Current Owner Name */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Owner Name <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -257,13 +287,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   onChange={handleChange}
                   required
                   placeholder='Enter current owner full name'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                 />
               </div>
 
               {/* Current Owner Father Name */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   S/W/D of <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -273,13 +303,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   onChange={handleChange}
                   required
                   placeholder='Father/Husband/Parent name'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                 />
               </div>
 
               {/* Current Owner Mobile */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Mobile Number <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -291,13 +321,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   placeholder='10-digit mobile number'
                   pattern='[0-9]{10}'
                   maxLength='10'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                 />
               </div>
 
               {/* Current Owner Address */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Address <span className='text-red-500'>*</span>
                 </label>
                 <textarea
@@ -307,27 +337,23 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   required
                   rows='2'
                   placeholder='Enter complete address'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all resize-none'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none'
                 />
               </div>
             </div>
           </div>
 
-          {/* New Owner Details */}
-          <div className='mb-6'>
-            <h3 className='text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2'>
-              <div className='w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center'>
-                <svg className='w-5 h-5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
-                </svg>
-              </div>
+          {/* Section 3: New Owner Details */}
+          <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+              <span className='bg-blue-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
               New Owner Details
             </h3>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
               {/* New Owner Name */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Owner Name <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -337,13 +363,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   onChange={handleChange}
                   required
                   placeholder='Enter new owner full name'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                 />
               </div>
 
               {/* New Owner Father Name */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   S/W/D of <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -353,13 +379,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   onChange={handleChange}
                   required
                   placeholder='Father/Husband/Parent name'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                 />
               </div>
 
               {/* New Owner Mobile */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Mobile Number <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -371,13 +397,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   placeholder='10-digit mobile number'
                   pattern='[0-9]{10}'
                   maxLength='10'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                 />
               </div>
 
               {/* New Owner Address */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Address <span className='text-red-500'>*</span>
                 </label>
                 <textarea
@@ -387,77 +413,110 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   required
                   rows='2'
                   placeholder='Enter complete address'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all resize-none'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none'
                 />
               </div>
             </div>
           </div>
 
-          {/* Additional Details */}
-          <div className='mb-6'>
-            <h3 className='text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2'>
-              <div className='w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center'>
-                <svg className='w-5 h-5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                </svg>
-              </div>
-              Additional Information
+          {/* Section 4: Payment Information */}
+          <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+              <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>4</span>
+              Payment Information
             </h3>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-              {/* Status */}
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
+              {/* Total Fee */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                  Status <span className='text-red-500'>*</span>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  Total Fee (₹) <span className='text-red-500'>*</span>
                 </label>
-                <select
-                  name='status'
-                  value={formData.status}
+                <input
+                  type='number'
+                  name='totalFee'
+                  value={formData.totalFee}
                   onChange={handleChange}
+                  placeholder='0'
                   required
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all font-semibold'
-                >
-                  <option value='Pending'>Pending</option>
-                  <option value='Under Verification'>Under Verification</option>
-                  <option value='Completed'>Completed</option>
-                  <option value='Rejected'>Rejected</option>
-                </select>
+                  min='0'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                />
               </div>
 
-              {/* Remarks */}
+              {/* Paid Amount */}
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-2'>
-                  Remarks
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  Paid (₹) <span className='text-red-500'>*</span>
                 </label>
-                <textarea
-                  name='remarks'
-                  value={formData.remarks}
+                <input
+                  type='number'
+                  name='paid'
+                  value={formData.paid}
                   onChange={handleChange}
-                  rows='2'
-                  placeholder='Additional notes (optional)'
-                  className='w-full px-4 py-2.5 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-400 transition-all resize-none'
+                  placeholder='0'
+                  required
+                  min='0'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                />
+              </div>
+
+              {/* Balance (Auto-calculated) */}
+              <div>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  Balance (₹) <span className='text-xs text-gray-500'>(Auto)</span>
+                </label>
+                <input
+                  type='number'
+                  name='balance'
+                  value={formData.balance || 0}
+                  readOnly
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-purple-50 font-semibold text-gray-700'
                 />
               </div>
             </div>
+
+            {/* Payment Status Indicator */}
+            {parseFloat(formData.balance) > 0 && parseFloat(formData.paid) > 0 && (
+              <div className='mt-3 bg-amber-50 border-l-4 border-amber-500 p-2 md:p-3 rounded'>
+                <p className='text-xs md:text-sm font-semibold text-amber-700 flex items-center gap-1'>
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' />
+                  </svg>
+                  Partial Payment - Balance: ₹{formData.balance}
+                </p>
+              </div>
+            )}
+            {parseFloat(formData.balance) === 0 && parseFloat(formData.totalFee) > 0 && (
+              <div className='mt-3 bg-green-50 border-l-4 border-green-500 p-2 md:p-3 rounded'>
+                <p className='text-xs md:text-sm font-semibold text-green-700 flex items-center gap-1'>
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                  Fully Paid
+                </p>
+              </div>
+            )}
+          </div>
           </div>
 
           {/* Action Buttons */}
-          <div className='flex gap-3 justify-end pt-4 border-t-2 border-gray-200'>
+          <div className='flex-shrink-0 bg-gray-50 p-3 md:p-4 border-t border-gray-200 flex justify-end gap-2 md:gap-3'>
             <button
               type='button'
               onClick={onClose}
-              className='px-6 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-semibold border-2 border-gray-300'
+              className='px-4 md:px-6 py-2 text-sm md:text-base text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-100 transition font-semibold'
             >
               Cancel
             </button>
             <button
               type='submit'
               disabled={loading}
-              className='px-6 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:from-teal-700 hover:to-cyan-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg hover:shadow-xl'
+              className='px-4 md:px-6 py-2 text-sm md:text-base bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-lg hover:from-teal-700 hover:to-cyan-700 transition font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
             >
               {loading ? (
                 <>
-                  <svg className='animate-spin h-5 w-5' fill='none' viewBox='0 0 24 24'>
+                  <svg className='animate-spin h-4 w-4 md:h-5 md:w-5' fill='none' viewBox='0 0 24 24'>
                     <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
                     <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
                   </svg>
@@ -465,20 +524,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 </>
               ) : (
                 <>
-                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                   </svg>
-                  {editData ? 'Update Transfer' : 'Submit Transfer'}
+                  {editData ? 'Update' : 'Save'}
                 </>
               )}
             </button>
-          </div>
-
-          {/* Keyboard Shortcuts Help */}
-          <div className='mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200'>
-            <p className='text-xs text-gray-600 font-medium'>
-              💡 Keyboard shortcuts: <span className='font-semibold'>Ctrl + Enter</span> to submit, <span className='font-semibold'>Esc</span> to close
-            </p>
           </div>
         </form>
       </div>

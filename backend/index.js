@@ -62,6 +62,7 @@ const customBillRoutes = require('./routes/customBill')
 const taxRoutes = require('./routes/tax')
 const insuranceRoutes = require('./routes/insurance')
 const importRoutes = require('./routes/import')
+const vehicleTransferRoutes = require('./routes/vehicleTransfer')
 
 // Use Routes
 
@@ -76,6 +77,7 @@ app.use('/api/custom-bills', customBillRoutes)
 app.use('/api/tax', taxRoutes)
 app.use('/api/insurance', insuranceRoutes)
 app.use('/api/import', importRoutes)
+app.use('/api/vehicle-transfers', vehicleTransferRoutes)
 
 // Root route
 app.get('/', (req, res) => {
@@ -92,7 +94,8 @@ app.get('/', (req, res) => {
       customBills: '/api/custom-bills',
       tax: '/api/tax',
       insurance: '/api/insurance',
-      import: '/api/import'
+      import: '/api/import',
+      vehicleTransfers: '/api/vehicle-transfers'
     }
   })
 })
