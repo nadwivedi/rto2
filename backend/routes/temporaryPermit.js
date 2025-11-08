@@ -8,9 +8,6 @@ router.get('/', temporaryPermitController.getAllPermits)
 // GET statistics
 router.get('/statistics', temporaryPermitController.getStatistics)
 
-// GET expiring permits
-router.get('/expiring', temporaryPermitController.getExpiringPermits)
-
 // POST share permit via WhatsApp (must be before /:id route)
 router.post('/:id/share', temporaryPermitController.sharePermit)
 
@@ -28,9 +25,6 @@ router.put('/:id', temporaryPermitController.updatePermit)
 
 // DELETE temporary permit
 router.delete('/:id', temporaryPermitController.deletePermit)
-
-// PATCH update permit status
-router.patch('/:id/status', temporaryPermitController.updatePermitStatus)
 
 // POST generate bill PDF
 router.post('/:id/generate-bill-pdf', temporaryPermitController.generateBillPDF)

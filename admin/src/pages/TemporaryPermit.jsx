@@ -271,14 +271,38 @@ const TemporaryPermit = () => {
     }
   }
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active': return 'bg-green-100 text-green-700'
-      case 'Expiring Soon': return 'bg-orange-100 text-orange-700'
-      case 'Expired': return 'bg-red-100 text-red-700'
-      case 'Cancelled': return 'bg-gray-100 text-gray-700'
-      default: return 'bg-gray-100 text-gray-700'
-    }
+  // Calculate status color based on validTo date
+  const getStatusColor = (validTo) => {
+    if (!validTo) return 'bg-gray-100 text-gray-700'
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
+    const dateParts = validTo.split(/[/-]/)
+    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
+    validToDate.setHours(0, 0, 0, 0)
+    const diffTime = validToDate - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) return 'bg-red-100 text-red-700'
+    if (diffDays <= 15) return 'bg-orange-100 text-orange-700'
+    return 'bg-green-100 text-green-700'
+  }
+
+  // Calculate status text based on validTo date
+  const getStatusText = (validTo) => {
+    if (!validTo) return 'Unknown'
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
+    const dateParts = validTo.split(/[/-]/)
+    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
+    validToDate.setHours(0, 0, 0, 0)
+    const diffTime = validToDate - today
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 0) return 'Expired'
+    if (diffDays <= 15) return 'Expiring Soon'
+    return 'Active'
   }
 
   // Helper to convert DD-MM-YYYY to Date object
@@ -303,9 +327,6 @@ const TemporaryPermit = () => {
 
     return null
   }
-
-  // Use permits directly since filtering is done on backend
-  const filteredPermits = permits
 
   const handleViewBill = (permit) => {
     setSelectedPermit(permit)
@@ -632,11 +653,11 @@ Thank you!`
 
               {/* Expiring Soon */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'Expiring Soon' ? 'all' : 'Expiring Soon')}
+                onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'Expiring Soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
+                  statusFilter === 'expiring_soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
                 }`}
-                title={statusFilter === 'Expiring Soon' ? 'Click to clear filter' : 'Click to filter expiring permits'}
+                title={statusFilter === 'expiring_soon' ? 'Click to clear filter' : 'Click to filter expiring permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -653,11 +674,11 @@ Thank you!`
 
               {/* Expired */}
               <div
-                onClick={() => setStatusFilter(statusFilter === 'Expired' ? 'all' : 'Expired')}
+                onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
                 className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'Expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
+                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
                 }`}
-                title={statusFilter === 'Expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
+                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired permits'}
               >
                 <div className='flex items-center justify-between'>
                   <div>
@@ -709,7 +730,7 @@ Thank you!`
             <div className='relative flex-1 lg:max-w-md'>
               <input
                 type='text'
-                placeholder='Search by permit number, holder, or vehicle...'
+                placeholder='Search by vehicle number...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
                 className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm uppercase'
@@ -774,9 +795,9 @@ Thank you!`
               </div>
               <p className='text-sm text-gray-600 mt-4'>Loading permits...</p>
             </div>
-          ) : filteredPermits.length > 0 ? (
+          ) : permits.length > 0 ? (
             <div className='p-3 space-y-3'>
-              {filteredPermits.map((permit) => (
+              {permits.map((permit) => (
                 <div key={permit.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
                   {/* Card Header with Avatar and Actions */}
                   <div className='bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 p-3 flex items-start justify-between'>
@@ -848,8 +869,8 @@ Thank you!`
                   <div className='p-3 space-y-2.5'>
                     {/* Status and Vehicle */}
                     <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${getStatusColor(permit.status)}`}>
-                        {permit.status}
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.validTill)}`}>
+                        {getStatusText(permit.validTill)}
                       </span>
                       <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
                         <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
@@ -988,8 +1009,8 @@ Thank you!`
                     </div>
                   </td>
                 </tr>
-              ) : filteredPermits.length > 0 ? (
-                filteredPermits.map((permit) => (
+              ) : permits.length > 0 ? (
+                permits.map((permit) => (
                   <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 transition-all duration-300 group'>
                     <td className='px-6 py-5'>
                       <div className='text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200'>
@@ -1061,8 +1082,8 @@ Thank you!`
                       )}
                     </td>
                     <td className='px-6 py-5'>
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(permit.status)}`}>
-                        {permit.status}
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.validTill)}`}>
+                        {getStatusText(permit.validTill)}
                       </span>
                     </td>
                     <td className='px-6 py-5'>
@@ -1154,7 +1175,7 @@ Thank you!`
         </div>
 
         {/* Pagination */}
-        {filteredPermits.length > 0 && (
+        {permits.length > 0 && (
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}

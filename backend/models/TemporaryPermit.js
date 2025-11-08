@@ -97,19 +97,11 @@ const TemporaryPermitSchema = new mongoose.Schema({
     default: 1000
   },
 
-  // Status
-  status: {
-    type: String,
-    enum: ['Active', 'Expiring Soon', 'Expired', 'Cancelled'],
-    default: 'Active'
-  },
-
   // Bill Reference
   bill: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CustomBill'
   },
-
 
   // Admin Notes
   notes: {
@@ -120,37 +112,22 @@ const TemporaryPermitSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Index for faster searches
-TemporaryPermitSchema.index({ permitNumber: 1 })
-TemporaryPermitSchema.index({ permitHolder: 1 })
+// Optimized indexes for exact requirements:
+// 1. Get all vehicles with pending payment (balance > 0)
+// 2. Get all vehicles with expiring/expired permits (filter by validTo date)
+// 3. Search vehicle number and get all permit records for that vehicle
+
+// Index 1: vehicleNumber (for searching vehicle and getting all its permit records)
 TemporaryPermitSchema.index({ vehicleNumber: 1 })
-TemporaryPermitSchema.index({ status: 1 })
-TemporaryPermitSchema.index({ vehicleType: 1 })
 
-// Method to check if permit is expiring soon (within 7 days)
-TemporaryPermitSchema.methods.isExpiringSoon = function () {
-  const validToDate = new Date(this.validTo)
-  const today = new Date()
-  const daysUntilExpiry = Math.ceil((validToDate - today) / (1000 * 60 * 60 * 24))
-  return daysUntilExpiry <= 7 && daysUntilExpiry > 0
-}
+// Index 2: validTo (for filtering expired/expiring_soon/active status)
+TemporaryPermitSchema.index({ validTo: 1 })
 
-// Method to check if permit is expired
-TemporaryPermitSchema.methods.isExpired = function () {
-  const validToDate = new Date(this.validTo)
-  const today = new Date()
-  return validToDate < today
-}
+// Index 3: balance (for filtering pending payments)
+TemporaryPermitSchema.index({ balance: 1 })
 
-// Pre-save middleware to auto-update status based on validity
-TemporaryPermitSchema.pre('save', function (next) {
-  if (this.isExpired()) {
-    this.status = 'Expired'
-  } else if (this.isExpiringSoon()) {
-    this.status = 'Expiring Soon'
-  }
-  next()
-})
+// Index 4: createdAt (for default sorting - newest first)
+TemporaryPermitSchema.index({ createdAt: -1 })
 
 const TemporaryPermit = mongoose.model('TemporaryPermit', TemporaryPermitSchema)
 

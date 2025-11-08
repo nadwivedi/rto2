@@ -88,59 +88,188 @@ exports.getAllPermits = async (req, res) => {
       sortOrder = 'desc'
     } = req.query
 
-    // Build query
-    const query = {}
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    // Search by permit number, permit holder, vehicle number
-    if (search) {
-      query.$or = [
-        { permitNumber: { $regex: search, $options: 'i' } },
-        { permitHolder: { $regex: search, $options: 'i' } },
-        { vehicleNumber: { $regex: search, $options: 'i' } },
-        { mobileNumber: { $regex: search, $options: 'i' } }
-      ]
-    }
+    const fifteenDaysFromNow = new Date()
+    fifteenDaysFromNow.setDate(today.getDate() + 15)
+    fifteenDaysFromNow.setHours(23, 59, 59, 999)
 
-    // Filter by status or pending payment
-    if (status) {
-      if (status === 'pending') {
-        // Pending payment means balance > 0
-        query.balance = { $gt: 0 }
-      } else {
-        // Normal status filter
-        query.status = status
+    // Determine if we need aggregation pipeline (for date-based status filtering)
+    const useDateBasedFilter = status && ['expired', 'expiring_soon', 'active'].includes(status)
+
+    if (useDateBasedFilter) {
+      // Use aggregation pipeline for date-based filtering
+      const pipeline = []
+
+      // Stage 1: Normalize date separator
+      pipeline.push({
+        $addFields: {
+          validToNormalized: {
+            $replaceAll: {
+              input: '$validTo',
+              find: '-',
+              replacement: '/'
+            }
+          }
+        }
+      })
+
+      // Stage 2: Add computed date field
+      pipeline.push({
+        $addFields: {
+          validToDateParsed: {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 2] },
+                  '-',
+                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 1] },
+                  '-',
+                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 0] }
+                ]
+              },
+              onError: null,
+              onNull: null
+            }
+          }
+        }
+      })
+
+      // Stage 3: Add computed status
+      pipeline.push({
+        $addFields: {
+          computedStatus: {
+            $switch: {
+              branches: [
+                { case: { $lt: ['$validToDateParsed', today] }, then: 'expired' },
+                {
+                  case: {
+                    $and: [
+                      { $gte: ['$validToDateParsed', today] },
+                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
+                    ]
+                  },
+                  then: 'expiring_soon'
+                }
+              ],
+              default: 'active'
+            }
+          }
+        }
+      })
+
+      // Stage 4: Build match conditions
+      const matchConditions = { computedStatus: status }
+
+      // Add search filter (vehicle number only)
+      if (search) {
+        matchConditions.vehicleNumber = { $regex: search, $options: 'i' }
       }
-    }
 
-    // Filter by vehicle type
-    if (vehicleType) {
-      query.vehicleType = vehicleType.toUpperCase()
-    }
-
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit)
-    const sortOptions = {}
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-
-    // Execute query
-    const permits = await TemporaryPermit.find(query)
-      .populate('bill')
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(parseInt(limit))
-
-    const total = await TemporaryPermit.countDocuments(query)
-
-    res.status(200).json({
-      success: true,
-      data: permits,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
+      // Add vehicle type filter
+      if (vehicleType) {
+        matchConditions.vehicleType = vehicleType.toUpperCase()
       }
-    })
+
+      pipeline.push({ $match: matchConditions })
+
+      // Stage 5: Sort
+      const sortOptions = {}
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+      pipeline.push({ $sort: sortOptions })
+
+      // Stage 6: Lookup bill
+      pipeline.push({
+        $lookup: {
+          from: 'custombills',
+          localField: 'bill',
+          foreignField: '_id',
+          as: 'bill'
+        }
+      })
+      pipeline.push({
+        $unwind: {
+          path: '$bill',
+          preserveNullAndEmptyArrays: true
+        }
+      })
+
+      // Stage 7: Count total for pagination (use facet to get both data and count)
+      pipeline.push({
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [
+            { $skip: (parseInt(page) - 1) * parseInt(limit) },
+            { $limit: parseInt(limit) }
+          ]
+        }
+      })
+
+      const results = await TemporaryPermit.aggregate(pipeline)
+      const total = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0
+      const permits = results[0].data
+
+      res.status(200).json({
+        success: true,
+        data: permits,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / parseInt(limit)),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      })
+    } else {
+      // Use normal query for non-date-based filtering
+      const query = {}
+
+      // Search by vehicle number only
+      if (search) {
+        query.vehicleNumber = { $regex: search, $options: 'i' }
+      }
+
+      // Filter by status or pending payment
+      if (status) {
+        if (status === 'pending') {
+          query.balance = { $gt: 0 }
+        } else {
+          query.status = status
+        }
+      }
+
+      // Filter by vehicle type
+      if (vehicleType) {
+        query.vehicleType = vehicleType.toUpperCase()
+      }
+
+      const skip = (parseInt(page) - 1) * parseInt(limit)
+
+      // Sort options
+      const sortOptions = {}
+      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+      // Execute query
+      const permits = await TemporaryPermit.find(query)
+        .populate('bill')
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(parseInt(limit))
+
+      // Get total count for pagination
+      const total = await TemporaryPermit.countDocuments(query)
+
+      res.status(200).json({
+        success: true,
+        data: permits,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / parseInt(limit)),
+          totalItems: total,
+          itemsPerPage: parseInt(limit)
+        }
+      })
+    }
   } catch (error) {
     console.error('Error fetching temporary permits:', error)
     logError(error, req) // Fire and forget
@@ -290,60 +419,112 @@ exports.deletePermit = async (req, res) => {
   }
 }
 
-// Update permit status
-exports.updatePermitStatus = async (req, res) => {
-  try {
-    const { id } = req.params
-    const { status, notes } = req.body
-
-    const permit = await TemporaryPermit.findById(id)
-
-    if (!permit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Temporary permit not found'
-      })
-    }
-
-    permit.status = status
-    if (notes) {
-      permit.notes = notes
-    }
-
-    await permit.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Temporary permit status updated successfully',
-      data: permit
-    })
-  } catch (error) {
-    console.error('Error updating temporary permit status:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
-    res.status(400).json({
-      success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
-    })
-  }
-}
-
 // Get statistics
 exports.getStatistics = async (req, res) => {
   try {
-    const totalPermits = await TemporaryPermit.countDocuments()
-    const activePermits = await TemporaryPermit.countDocuments({ status: 'Active' })
-    const expiringSoonPermits = await TemporaryPermit.countDocuments({ status: 'Expiring Soon' })
-    const expiredPermits = await TemporaryPermit.countDocuments({ status: 'Expired' })
-    const cancelledPermits = await TemporaryPermit.countDocuments({ status: 'Cancelled' })
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    // Pending payment count and amount
-    const pendingPaymentRecords = await TemporaryPermit.find({ balance: { $gt: 0 } })
-    const pendingPaymentCount = pendingPaymentRecords.length
-    const pendingPaymentAmount = pendingPaymentRecords.reduce((sum, record) => sum + (record.balance || 0), 0)
+    const fifteenDaysFromNow = new Date()
+    fifteenDaysFromNow.setDate(today.getDate() + 15)
+    fifteenDaysFromNow.setHours(23, 59, 59, 999)
+
+    // Use aggregation pipeline to calculate statistics
+    const statusPipeline = [
+      {
+        $addFields: {
+          // Normalize separator: replace - with /
+          validToNormalized: {
+            $replaceAll: {
+              input: '$validTo',
+              find: '-',
+              replacement: '/'
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          // Convert validTo string to date for comparison
+          validToDateParsed: {
+            $dateFromString: {
+              dateString: {
+                $concat: [
+                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 2] }, // year
+                  '-',
+                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 1] }, // month
+                  '-',
+                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 0] }  // day
+                ]
+              },
+              onError: null,
+              onNull: null
+            }
+          }
+        }
+      },
+      {
+        $addFields: {
+          computedStatus: {
+            $switch: {
+              branches: [
+                {
+                  case: { $lt: ['$validToDateParsed', today] },
+                  then: 'expired'
+                },
+                {
+                  case: {
+                    $and: [
+                      { $gte: ['$validToDateParsed', today] },
+                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
+                    ]
+                  },
+                  then: 'expiring_soon'
+                }
+              ],
+              default: 'active'
+            }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: '$computedStatus',
+          count: { $sum: 1 }
+        }
+      }
+    ]
+
+    const statusResults = await TemporaryPermit.aggregate(statusPipeline)
+
+    // Convert array to object for easy access
+    const statusCounts = {
+      active: 0,
+      expired: 0,
+      expiring_soon: 0
+    }
+
+    statusResults.forEach(result => {
+      statusCounts[result._id] = result.count
+    })
+
+    const totalPermits = await TemporaryPermit.countDocuments()
+
+    // Pending payment aggregation
+    const pendingPaymentPipeline = [
+      { $match: { balance: { $gt: 0 } } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$balance' }
+        }
+      }
+    ]
+
+    const pendingPaymentResults = await TemporaryPermit.aggregate(pendingPaymentPipeline)
+    const pendingPaymentCount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].count : 0
+    const pendingPaymentAmount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].totalAmount : 0
 
     // Count by vehicle type
     const cvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'CV' })
@@ -359,10 +540,9 @@ exports.getStatistics = async (req, res) => {
       data: {
         permits: {
           total: totalPermits,
-          active: activePermits,
-          expiringSoon: expiringSoonPermits,
-          expired: expiredPermits,
-          cancelled: cancelledPermits
+          active: statusCounts.active,
+          expiringSoon: statusCounts.expiring_soon,
+          expired: statusCounts.expired
         },
         vehicleTypes: {
           cv: cvPermits,
@@ -379,44 +559,6 @@ exports.getStatistics = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching statistics:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
-    res.status(500).json({
-      success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
-    })
-  }
-}
-
-// Get expiring permits (within specified days)
-exports.getExpiringPermits = async (req, res) => {
-  try {
-    const { days = 7 } = req.query
-
-    const today = new Date()
-    const futureDate = new Date()
-    futureDate.setDate(today.getDate() + parseInt(days))
-
-    const expiringPermits = await TemporaryPermit.find({
-      status: { $in: ['Active', 'Expiring Soon'] }
-    })
-
-    // Filter permits that are expiring within the specified days
-    const filteredPermits = expiringPermits.filter(permit => {
-      const validToDate = new Date(permit.validTo)
-      return validToDate >= today && validToDate <= futureDate
-    })
-
-    res.status(200).json({
-      success: true,
-      data: filteredPermits,
-      count: filteredPermits.length
-    })
-  } catch (error) {
-    console.error('Error fetching expiring permits:', error)
     logError(error, req) // Fire and forget
     const userError = getUserFriendlyError(error)
     res.status(500).json({

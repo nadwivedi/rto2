@@ -32,11 +32,6 @@ const fitnessSchema = new mongoose.Schema({
     required: true,
     default: 0
   },
-  status: {
-    type: String,
-    enum: ['active', 'expired', 'expiring_soon'],
-    default: 'active'
-  },
   bill: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CustomBill'
@@ -44,6 +39,23 @@ const fitnessSchema = new mongoose.Schema({
 }, {
   timestamps: true
 })
+
+// Optimized indexes for exact requirements:
+// 1. Get all vehicles with pending payment (balance > 0)
+// 2. Get all vehicles with expiring/expired fitness (filter by validTo date)
+// 3. Search vehicle number and get all fitness records for that vehicle
+
+// Index 1: vehicleNumber (for searching vehicle and getting all its fitness records)
+fitnessSchema.index({ vehicleNumber: 1 })
+
+// Index 2: validTo (for filtering expired/expiring_soon/active status)
+fitnessSchema.index({ validTo: 1 })
+
+// Index 3: balance (for filtering pending payments)
+fitnessSchema.index({ balance: 1 })
+
+// Index 4: createdAt (for default sorting - newest first)
+fitnessSchema.index({ createdAt: -1 })
 
 const Fitness = mongoose.model('Fitness', fitnessSchema)
 

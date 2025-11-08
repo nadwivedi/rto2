@@ -150,8 +150,6 @@ const Fitness = () => {
     return new Date(0)
   }
 
-  // Use fitnessRecords directly since filtering is done on backend
-  const filteredRecords = fitnessRecords
 
   const handleAddFitness = async (formData) => {
     setLoading(true)
@@ -486,7 +484,7 @@ const Fitness = () => {
 
               {/* Results count */}
               <div className='mt-3 text-xs text-gray-600 font-semibold'>
-                Showing {filteredRecords.length} of {fitnessRecords.length} records
+                Showing {fitnessRecords.length} of {pagination.totalRecords} records
               </div>
             </div>
 
@@ -500,9 +498,9 @@ const Fitness = () => {
 
             {/* Mobile Card View */}
             <div className='block lg:hidden'>
-              {filteredRecords.length > 0 ? (
+              {fitnessRecords.length > 0 ? (
                 <div className='p-3 space-y-3'>
-                  {filteredRecords.map((record) => (
+                  {fitnessRecords.map((record) => (
                     <div key={record.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
                       {/* Card Header with Avatar and Actions */}
                       <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
@@ -623,9 +621,9 @@ const Fitness = () => {
             {/* Desktop Card View */}
             {viewMode === 'card' && (
               <div className='hidden lg:block'>
-                {filteredRecords.length > 0 ? (
+                {fitnessRecords.length > 0 ? (
                   <div className='p-6 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4'>
-                    {filteredRecords.map((record) => (
+                    {fitnessRecords.map((record) => (
                       <div key={record.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
                         {/* Card Header with Avatar and Actions */}
                         <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
@@ -762,8 +760,8 @@ const Fitness = () => {
                   </tr>
                 </thead>
                 <tbody className='divide-y divide-gray-200'>
-                  {filteredRecords.length > 0 ? (
-                    filteredRecords.map((record, index) => (
+                  {fitnessRecords.length > 0 ? (
+                    fitnessRecords.map((record, index) => (
                       <tr key={record.id} className='hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group'>
                         {/* Vehicle Number */}
                         <td className='px-4 py-4'>
@@ -896,7 +894,7 @@ const Fitness = () => {
             )}
 
             {/* Pagination */}
-            {!loading && filteredRecords.length > 0 && (
+            {!loading && fitnessRecords.length > 0 && (
               <Pagination
                 currentPage={pagination.currentPage}
                 totalPages={pagination.totalPages}
