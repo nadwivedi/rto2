@@ -9,7 +9,7 @@ const Navbar = () => {
     {
       name: "Vehicle Registration",
       icon: "🚗",
-      path: "/vehicle-registration",
+      path: "/",
       description: "Register Vehicles",
     },
 
@@ -62,7 +62,7 @@ const Navbar = () => {
     {
       name: "Driving Licence",
       icon: "🪪",
-      path: "/",
+      path: "/driving",
       description: "DL Applications",
     },
 

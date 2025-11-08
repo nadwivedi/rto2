@@ -40,8 +40,8 @@ function App() {
                     {/* Page Content */}
                     <main>
                       <Routes>
-                        <Route path='/' element={<Navigate to='/dashboard' replace />} />
-                        <Route path='/dashboard' element={<DrivingLicence />} />
+                        <Route path='/' element={<VehicleRegistration />} />
+                        <Route path='/driving' element={<DrivingLicence />} />
                         <Route path='/setting' element={<Setting />} />
                         <Route path='/national-permit' element={<NationalPermit />} />
                         <Route path='/cg-permit' element={<CgPermit />} />
