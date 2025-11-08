@@ -357,7 +357,7 @@ const VehicleRegistration = () => {
                       <tr key={registration._id} className='hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group'>
                         <td className='px-6 py-4'>
                           <div>
-                            <div className='text-[17px] font-mono font-semibold text-gray-900 mb-1'>
+                            <div className='text-[16.5px] font-semibold text-gray-900 mb-1'>
                               {registration.vehicleNumber || registration.registrationNumber}
                             </div>
                             {registration.dateOfRegistration && (
