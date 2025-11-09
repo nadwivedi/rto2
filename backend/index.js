@@ -56,6 +56,7 @@ const drivingLicenseRoutes = require('./routes/drivingLicense')
 const nationalPermitRoutes = require('./routes/nationalPermit')
 const cgPermitRoutes = require('./routes/cgPermit')
 const temporaryPermitRoutes = require('./routes/temporaryPermit')
+const temporaryPermitOtherStateRoutes = require('./routes/temporaryPermitOtherState')
 const vehicleRegistrationRoutes = require('./routes/vehicleRegistration')
 const fitnessRoutes = require('./routes/fitness')
 const customBillRoutes = require('./routes/customBill')
@@ -71,6 +72,7 @@ app.use('/api/driving-licenses', drivingLicenseRoutes)
 app.use('/api/national-permits', nationalPermitRoutes)
 app.use('/api/cg-permits', cgPermitRoutes)
 app.use('/api/temporary-permits', temporaryPermitRoutes)
+app.use('/api/temporary-permits-other-state', temporaryPermitOtherStateRoutes)
 app.use('/api/vehicle-registrations', vehicleRegistrationRoutes)
 app.use('/api/fitness', fitnessRoutes)
 app.use('/api/custom-bills', customBillRoutes)
@@ -89,6 +91,7 @@ app.get('/', (req, res) => {
       nationalPermits: '/api/national-permits',
       cgPermits: '/api/cg-permits',
       temporaryPermits: '/api/temporary-permits',
+      temporaryPermitsOtherState: '/api/temporary-permits-other-state',
       vehicleRegistrations: '/api/vehicle-registrations',
       fitness: '/api/fitness',
       customBills: '/api/custom-bills',

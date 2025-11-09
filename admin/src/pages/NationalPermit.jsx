@@ -862,32 +862,32 @@ Thank you for your business!
         </div>
 
         {/* Desktop Table View */}
-        <div className='hidden lg:block overflow-x-auto'>
+        <div className='hidden lg:block overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200'>
           <table className='w-full'>
             <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
               <tr>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Number</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Holder</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle No.</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid Till</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Part B</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Fee (₹)</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Paid (₹)</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Balance (₹)</th>
-                <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Number</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Holder</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle No.</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid Till</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Part B</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Fee (₹)</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Paid (₹)</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Balance (₹)</th>
+                <th className='px-5 py-4 text-right text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
               </tr>
             </thead>
-            <tbody className='divide-y divide-gray-200'>
+            <tbody className='divide-y divide-gray-200 bg-white'>
               {filteredPermits.length > 0 ? (
                 filteredPermits.map((permit, index) => (
-                  <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group'>
-                    <td className='px-4 py-4'>
-                      <div className='text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200'>
+                  <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50/70 hover:via-indigo-50/70 hover:to-purple-50/70 transition-all duration-200 group border-b border-gray-100'>
+                    <td className='px-5 py-4'>
+                      <div className='text-sm font-mono font-semibold text-gray-900 bg-gradient-to-r from-gray-100 to-gray-50 px-3 py-1.5 rounded-lg inline-block border border-gray-200 shadow-sm'>
                         {permit.permitNumber}
                       </div>
                     </td>
-                    <td className='px-4 py-4'>
+                    <td className='px-5 py-4'>
                       <div className='flex items-center gap-3'>
                         <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
                           {permit.permitHolder?.charAt(0) || 'P'}
@@ -903,8 +903,8 @@ Thank you for your business!
                         </div>
                       </div>
                     </td>
-                    <td className='px-4 py-4'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
+                    <td className='px-5 py-4'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-gradient-to-r from-blue-50 to-blue-100 text-blue-800 border-blue-200 shadow-sm'>
                         <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
                           <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
                           <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
@@ -912,23 +912,23 @@ Thank you for your business!
                         {permit.vehicleNo}
                       </span>
                     </td>
-                    <td className='px-4 py-4'>
-                      <div className='flex items-center text-sm text-gray-700 font-medium'>
-                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <td className='px-5 py-4'>
+                      <div className='flex items-center text-sm text-gray-700 font-medium whitespace-nowrap'>
+                        <svg className='w-4 h-4 mr-2 text-green-500 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
                         </svg>
                         {permit.partA?.permitValidFrom || permit.validFrom || 'N/A'}
                       </div>
                     </td>
-                    <td className='px-6 py-5'>
-                      <div className='flex items-center text-sm text-gray-700'>
-                        <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <td className='px-5 py-4'>
+                      <div className='flex items-center text-sm text-gray-700 font-medium whitespace-nowrap'>
+                        <svg className='w-4 h-4 mr-2 text-red-500 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
                         </svg>
                         {permit.validTill}
                       </div>
                     </td>
-                    <td className='px-4 py-4'>
+                    <td className='px-5 py-4'>
                       <div>
                         <div className='font-mono font-semibold text-gray-900 mb-1 text-sm'>
                           {permit.partB?.authorizationNumber || 'N/A'}
@@ -941,30 +941,30 @@ Thank you for your business!
                         </div>
                       </div>
                     </td>
-                    <td className='px-4 py-4'>
-                      <span className='text-sm font-bold text-gray-800'>₹{(permit.totalFee || 0).toLocaleString('en-IN')}</span>
+                    <td className='px-5 py-4'>
+                      <span className='text-sm font-bold text-gray-900'>₹{(permit.totalFee || 0).toLocaleString('en-IN')}</span>
                     </td>
-                    <td className='px-4 py-4'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
+                    <td className='px-5 py-4'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm'>
                         ₹{(permit.paid || 0).toLocaleString('en-IN')}
                       </span>
                     </td>
-                    <td className='px-4 py-4'>
+                    <td className='px-5 py-4'>
                       {(permit.balance || 0) > 0 ? (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border border-orange-200 shadow-sm'>
                           ₹{(permit.balance || 0).toLocaleString('en-IN')}
                         </span>
                       ) : (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-50 text-gray-500 border border-gray-200'>
                           ₹0
                         </span>
                       )}
                     </td>
-                    <td className='px-6 py-5'>
-                      <div className='flex items-center justify-start gap-1.5'>
+                    <td className='px-5 py-4'>
+                      <div className='flex items-center justify-end gap-2'>
                         <button
                           onClick={() => handleViewDetails(permit)}
-                          className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200 flex-shrink-0'
+                          className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
                           title='View Details'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -974,7 +974,7 @@ Thank you for your business!
                         </button>
                         <button
                           onClick={() => handleEditPermit(permit)}
-                          className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200 flex-shrink-0'
+                          className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
                           title='Edit Permit'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -983,7 +983,7 @@ Thank you for your business!
                         </button>
                         <button
                           onClick={() => handleDeletePermit(permit.id)}
-                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200 flex-shrink-0'
+                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
                           title='Delete Permit'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -993,7 +993,7 @@ Thank you for your business!
                         <button
                           onClick={() => handleWhatsAppShare(permit)}
                           disabled={whatsappLoading === permit.id}
-                          className={`p-2 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0 ${
+                          className={`p-2 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105 ${
                             whatsappLoading === permit.id
                               ? 'text-gray-400 bg-gray-100 cursor-wait'
                               : 'text-green-600 hover:bg-green-100 cursor-pointer'
@@ -1013,7 +1013,7 @@ Thank you for your business!
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
-                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all group-hover:scale-110 duration-200 flex-shrink-0'
+                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
                           title='View Bill'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1024,7 +1024,7 @@ Thank you for your business!
                         {permit.partB?.validTo && permit.partB.validTo !== 'N/A' && isPartBExpiringSoon(permit.partB.validTo, 35) ? (
                           <button
                             onClick={() => handleRenewPartB(permit)}
-                            className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0'
+                            className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105'
                             title={`Renew Part B (${getDaysRemaining(permit.partB.validTo)} days left)`}
                           >
                             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1034,14 +1034,12 @@ Thank you for your business!
                               <span className='absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse'></span>
                             )}
                           </button>
-                        ) : (
-                          <div className='w-9 h-9 flex-shrink-0'></div>
-                        )}
+                        ) : null}
                         {/* Renew Part A Button - Only show if expiring within 35 days */}
                         {permit.validTill && permit.validTill !== 'N/A' && isPartAExpiringSoon(permit.validTill, 35) ? (
                           <button
                             onClick={() => handleRenewPartA(permit)}
-                            className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0'
+                            className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105'
                             title={`Renew Part A (${getDaysRemaining(permit.validTill)} days left)`}
                           >
                             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1051,9 +1049,7 @@ Thank you for your business!
                               <span className='absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-pulse'></span>
                             )}
                           </button>
-                        ) : (
-                          <div className='w-9 h-9 flex-shrink-0'></div>
-                        )}
+                        ) : null}
                       </div>
                     </td>
                   </tr>

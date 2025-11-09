@@ -10,6 +10,7 @@ import DrivingLicence from './pages/DrivingLicence'
 import NationalPermit from './pages/NationalPermit'
 import CgPermit from './pages/CgPermit'
 import TemporaryPermit from './pages/TemporaryPermit'
+import TemporaryPermitOtherState from './pages/TemporaryPermitOtherState'
 import VehicleRegistration from './pages/VehicleRegistration'
 import Insurance from './pages/Insurance'
 import Fitness from './pages/Fitness'
@@ -46,6 +47,7 @@ function App() {
                         <Route path='/national-permit' element={<NationalPermit />} />
                         <Route path='/cg-permit' element={<CgPermit />} />
                         <Route path='/temporary-permit' element={<TemporaryPermit />} />
+                        <Route path='/temporary-permit-other-state' element={<TemporaryPermitOtherState />} />
                         <Route path='/vehicle-registration' element={<VehicleRegistration />} />
                         <Route path='/insurance' element={<Insurance />} />
                         <Route path='/fitness' element={<Fitness />} />
