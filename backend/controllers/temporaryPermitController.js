@@ -1,14 +1,219 @@
 const TemporaryPermit = require('../models/TemporaryPermit')
 const CustomBill = require('../models/CustomBill')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
-const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 const path = require('path')
 const fs = require('fs')
 
 // Create new temporary permit
 exports.createPermit = async (req, res) => {
   try {
-    const permitData = req.body
+    // Destructure all fields from request body
+    const {
+      permitNumber,
+      permitHolder,
+      vehicleNumber,
+      vehicleType,
+      validFrom,
+      validTo,
+      fatherName,
+      address,
+      mobileNumber,
+      email,
+      chassisNumber,
+      engineNumber,
+      ladenWeight,
+      unladenWeight,
+      totalFee,
+      paid,
+      balance,
+      status,
+      notes
+    } = req.body
+
+    // 1. Validate required fields
+    if (!permitNumber || permitNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number is required'
+      })
+    }
+
+    if (!permitHolder || permitHolder.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit holder name is required'
+      })
+    }
+
+    if (!vehicleNumber || vehicleNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required'
+      })
+    }
+
+    if (!vehicleType) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle type is required'
+      })
+    }
+
+    if (!validFrom) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid from date is required'
+      })
+    }
+
+    if (!validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid to date is required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee is required'
+      })
+    }
+
+    // 2. Check if permit number already exists
+    const existingPermit = await TemporaryPermit.findOne({ permitNumber: permitNumber.trim() })
+    if (existingPermit) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number already exists'
+      })
+    }
+
+    // 3. Validate vehicle number format (should be 10 characters)
+    const cleanVehicleNumber = vehicleNumber.trim().replace(/\s+/g, '')
+    if (cleanVehicleNumber.length !== 10) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number must be exactly 10 characters'
+      })
+    }
+
+    // Additional validation: Vehicle number should follow pattern (e.g., CG01AB1234)
+    const vehicleNumberPattern = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/
+    if (!vehicleNumberPattern.test(cleanVehicleNumber)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number format is invalid (e.g., CG01AB1234)'
+      })
+    }
+
+    // 4. Validate vehicle type
+    if (!['CV', 'PV'].includes(vehicleType.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle type must be either CV or PV'
+      })
+    }
+
+    // 5. Validate totalFee
+    if (isNaN(totalFee) || Number(totalFee) <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee must be greater than zero'
+      })
+    }
+
+    // 6. Validate paid amount
+    if (paid !== undefined && paid !== null) {
+      if (isNaN(paid) || Number(paid) < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Paid amount cannot be negative'
+        })
+      }
+      if (Number(paid) > Number(totalFee)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Paid amount cannot be greater than total fee'
+        })
+      }
+    }
+
+    // 7. Validate balance
+    if (balance !== undefined && balance !== null) {
+      if (isNaN(balance) || Number(balance) < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Balance cannot be negative'
+        })
+      }
+    }
+
+    // 8. Validate mobile number (if provided)
+    if (mobileNumber && mobileNumber.trim() !== '') {
+      const cleanMobile = mobileNumber.trim().replace(/\s+/g, '')
+      if (!/^[0-9]{10}$/.test(cleanMobile)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Mobile number must be exactly 10 digits'
+        })
+      }
+    }
+
+    // 9. Validate email format (if provided)
+    if (email && email.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailPattern.test(email.trim())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email format'
+        })
+      }
+    }
+
+    // 10. Validate weight values (if provided)
+    if (ladenWeight !== undefined && ladenWeight !== null) {
+      if (isNaN(ladenWeight) || Number(ladenWeight) < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Laden weight must be a positive number'
+        })
+      }
+    }
+
+    if (unladenWeight !== undefined && unladenWeight !== null) {
+      if (isNaN(unladenWeight) || Number(unladenWeight) < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Unladen weight must be a positive number'
+        })
+      }
+    }
+
+    // Prepare permit data with validated values
+    const permitData = {
+      permitNumber: permitNumber.trim(),
+      permitHolder: permitHolder.trim(),
+      vehicleNumber: vehicleNumber.trim().toUpperCase(),
+      vehicleType: vehicleType.toUpperCase(),
+      validFrom,
+      validTo,
+      totalFee: Number(totalFee),
+      paid: paid !== undefined ? Number(paid) : 0,
+      balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0)
+    }
+
+    // Add optional fields if provided
+    if (fatherName && fatherName.trim() !== '') permitData.fatherName = fatherName.trim()
+    if (address && address.trim() !== '') permitData.address = address.trim()
+    if (mobileNumber && mobileNumber.trim() !== '') permitData.mobileNumber = mobileNumber.trim()
+    if (email && email.trim() !== '') permitData.email = email.trim().toLowerCase()
+    if (chassisNumber && chassisNumber.trim() !== '') permitData.chassisNumber = chassisNumber.trim().toUpperCase()
+    if (engineNumber && engineNumber.trim() !== '') permitData.engineNumber = engineNumber.trim().toUpperCase()
+    if (ladenWeight !== undefined && ladenWeight !== null) permitData.ladenWeight = Number(ladenWeight)
+    if (unladenWeight !== undefined && unladenWeight !== null) permitData.unladenWeight = Number(unladenWeight)
+    if (status && status.trim() !== '') permitData.status = status.toLowerCase()
+    if (notes && notes.trim() !== '') permitData.notes = notes.trim()
 
     // Create new temporary permit without bill reference first
     const newPermit = new TemporaryPermit(permitData)
@@ -27,7 +232,7 @@ exports.createPermit = async (req, res) => {
       }),
       items: [
         {
-          description: `Temporary Permit (${vehicleTypeFull})\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNumber}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}\nPeriod: ${newPermit.validityPeriod} months`,
+          description: `Temporary Permit (${vehicleTypeFull})\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNumber}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}`,
           quantity: 1,
           rate: newPermit.totalFee,
           amount: newPermit.totalFee
@@ -63,14 +268,28 @@ exports.createPermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error creating temporary permit:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
-    res.status(400).json({
+
+    // Handle MongoDB duplicate key error (race condition)
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number already exists'
+      })
+    }
+
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors)[0].message
+      return res.status(400).json({
+        success: false,
+        message: firstError
+      })
+    }
+
+    // Handle all other errors
+    res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Failed to create temporary permit'
     })
   }
 }
@@ -88,198 +307,59 @@ exports.getAllPermits = async (req, res) => {
       sortOrder = 'desc'
     } = req.query
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // Build query
+    const query = {}
 
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
-
-    // Determine if we need aggregation pipeline (for date-based status filtering)
-    const useDateBasedFilter = status && ['expired', 'expiring_soon', 'active'].includes(status)
-
-    if (useDateBasedFilter) {
-      // Use aggregation pipeline for date-based filtering
-      const pipeline = []
-
-      // Stage 1: Normalize date separator
-      pipeline.push({
-        $addFields: {
-          validToNormalized: {
-            $replaceAll: {
-              input: '$validTo',
-              find: '-',
-              replacement: '/'
-            }
-          }
-        }
-      })
-
-      // Stage 2: Add computed date field
-      pipeline.push({
-        $addFields: {
-          validToDateParsed: {
-            $dateFromString: {
-              dateString: {
-                $concat: [
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 2] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 1] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 0] }
-                ]
-              },
-              onError: null,
-              onNull: null
-            }
-          }
-        }
-      })
-
-      // Stage 3: Add computed status
-      pipeline.push({
-        $addFields: {
-          computedStatus: {
-            $switch: {
-              branches: [
-                { case: { $lt: ['$validToDateParsed', today] }, then: 'expired' },
-                {
-                  case: {
-                    $and: [
-                      { $gte: ['$validToDateParsed', today] },
-                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
-                    ]
-                  },
-                  then: 'expiring_soon'
-                }
-              ],
-              default: 'active'
-            }
-          }
-        }
-      })
-
-      // Stage 4: Build match conditions
-      const matchConditions = { computedStatus: status }
-
-      // Add search filter (vehicle number only)
-      if (search) {
-        matchConditions.vehicleNumber = { $regex: search, $options: 'i' }
-      }
-
-      // Add vehicle type filter
-      if (vehicleType) {
-        matchConditions.vehicleType = vehicleType.toUpperCase()
-      }
-
-      pipeline.push({ $match: matchConditions })
-
-      // Stage 5: Sort
-      const sortOptions = {}
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-      pipeline.push({ $sort: sortOptions })
-
-      // Stage 6: Lookup bill
-      pipeline.push({
-        $lookup: {
-          from: 'custombills',
-          localField: 'bill',
-          foreignField: '_id',
-          as: 'bill'
-        }
-      })
-      pipeline.push({
-        $unwind: {
-          path: '$bill',
-          preserveNullAndEmptyArrays: true
-        }
-      })
-
-      // Stage 7: Count total for pagination (use facet to get both data and count)
-      pipeline.push({
-        $facet: {
-          metadata: [{ $count: 'total' }],
-          data: [
-            { $skip: (parseInt(page) - 1) * parseInt(limit) },
-            { $limit: parseInt(limit) }
-          ]
-        }
-      })
-
-      const results = await TemporaryPermit.aggregate(pipeline)
-      const total = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0
-      const permits = results[0].data
-
-      res.status(200).json({
-        success: true,
-        data: permits,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalItems: total,
-          itemsPerPage: parseInt(limit)
-        }
-      })
-    } else {
-      // Use normal query for non-date-based filtering
-      const query = {}
-
-      // Search by vehicle number only
-      if (search) {
-        query.vehicleNumber = { $regex: search, $options: 'i' }
-      }
-
-      // Filter by status or pending payment
-      if (status) {
-        if (status === 'pending') {
-          query.balance = { $gt: 0 }
-        } else {
-          query.status = status
-        }
-      }
-
-      // Filter by vehicle type
-      if (vehicleType) {
-        query.vehicleType = vehicleType.toUpperCase()
-      }
-
-      const skip = (parseInt(page) - 1) * parseInt(limit)
-
-      // Sort options
-      const sortOptions = {}
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-
-      // Execute query
-      const permits = await TemporaryPermit.find(query)
-        .populate('bill')
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(parseInt(limit))
-
-      // Get total count for pagination
-      const total = await TemporaryPermit.countDocuments(query)
-
-      res.status(200).json({
-        success: true,
-        data: permits,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalItems: total,
-          itemsPerPage: parseInt(limit)
-        }
-      })
+    // Search by vehicle number only
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
     }
+
+    // Filter by status or pending payment
+    if (status) {
+      if (status === 'pending') {
+        query.balance = { $gt: 0 }
+      } else {
+        query.status = status
+      }
+    }
+
+    // Filter by vehicle type
+    if (vehicleType) {
+      query.vehicleType = vehicleType.toUpperCase()
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    // Sort options
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    // Execute query
+    const permits = await TemporaryPermit.find(query)
+      .populate('bill')
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    // Get total count for pagination
+    const total = await TemporaryPermit.countDocuments(query)
+
+    res.status(200).json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        itemsPerPage: parseInt(limit)
+      }
+    })
   } catch (error) {
     console.error('Error fetching temporary permits:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Failed to fetch temporary permits'
     })
   }
 }
@@ -304,14 +384,9 @@ exports.getPermitById = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching temporary permit:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Failed to fetch temporary permit'
     })
   }
 }
@@ -336,14 +411,14 @@ exports.getPermitByNumber = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching temporary permit:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
+    
+    
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Operation failed'
+      
+      
+      
     })
   }
 }
@@ -374,14 +449,28 @@ exports.updatePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error updating temporary permit:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
-    res.status(400).json({
+
+    // Handle MongoDB duplicate key error
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number already exists'
+      })
+    }
+
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const firstError = Object.values(error.errors)[0].message
+      return res.status(400).json({
+        success: false,
+        message: firstError
+      })
+    }
+
+    // Handle all other errors
+    res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Failed to update temporary permit'
     })
   }
 }
@@ -407,14 +496,14 @@ exports.deletePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error deleting temporary permit:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
+    
+    
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Operation failed'
+      
+      
+      
     })
   }
 }
@@ -422,92 +511,10 @@ exports.deletePermit = async (req, res) => {
 // Get statistics
 exports.getStatistics = async (req, res) => {
   try {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
-
-    // Use aggregation pipeline to calculate statistics
-    const statusPipeline = [
-      {
-        $addFields: {
-          // Normalize separator: replace - with /
-          validToNormalized: {
-            $replaceAll: {
-              input: '$validTo',
-              find: '-',
-              replacement: '/'
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          // Convert validTo string to date for comparison
-          validToDateParsed: {
-            $dateFromString: {
-              dateString: {
-                $concat: [
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 2] }, // year
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 1] }, // month
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 0] }  // day
-                ]
-              },
-              onError: null,
-              onNull: null
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          computedStatus: {
-            $switch: {
-              branches: [
-                {
-                  case: { $lt: ['$validToDateParsed', today] },
-                  then: 'expired'
-                },
-                {
-                  case: {
-                    $and: [
-                      { $gte: ['$validToDateParsed', today] },
-                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
-                    ]
-                  },
-                  then: 'expiring_soon'
-                }
-              ],
-              default: 'active'
-            }
-          }
-        }
-      },
-      {
-        $group: {
-          _id: '$computedStatus',
-          count: { $sum: 1 }
-        }
-      }
-    ]
-
-    const statusResults = await TemporaryPermit.aggregate(statusPipeline)
-
-    // Convert array to object for easy access
-    const statusCounts = {
-      active: 0,
-      expired: 0,
-      expiring_soon: 0
-    }
-
-    statusResults.forEach(result => {
-      statusCounts[result._id] = result.count
-    })
-
+    // Count permits by status (now using the indexed status field)
+    const activePermits = await TemporaryPermit.countDocuments({ status: 'active' })
+    const expiringPermits = await TemporaryPermit.countDocuments({ status: 'expiring_soon' })
+    const expiredPermits = await TemporaryPermit.countDocuments({ status: 'expired' })
     const totalPermits = await TemporaryPermit.countDocuments()
 
     // Pending payment aggregation
@@ -540,9 +547,9 @@ exports.getStatistics = async (req, res) => {
       data: {
         permits: {
           total: totalPermits,
-          active: statusCounts.active,
-          expiringSoon: statusCounts.expiring_soon,
-          expired: statusCounts.expired
+          active: activePermits,
+          expiringSoon: expiringPermits,
+          expired: expiredPermits
         },
         vehicleTypes: {
           cv: cvPermits,
@@ -559,14 +566,14 @@ exports.getStatistics = async (req, res) => {
     })
   } catch (error) {
     console.error('Error fetching statistics:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
+    
+    
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Operation failed'
+      
+      
+      
     })
   }
 }
@@ -617,14 +624,14 @@ exports.sharePermit = async (req, res) => {
     })
   } catch (error) {
     console.error('Error sharing temporary permit:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
+    
+    
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Operation failed'
+      
+      
+      
     })
   }
 }
@@ -648,7 +655,6 @@ function generatePermitMessage(permit) {
 *Validity:*
 =� Valid From: ${permit.validFrom}
 =� Valid To: ${permit.validTo}
-� Validity Period: ${permit.validityPeriod} months
 
 *Purpose:*
 =� ${permit.purpose || 'Temporary Use'}
@@ -694,7 +700,7 @@ exports.generateBillPDF = async (req, res) => {
         }),
         items: [
           {
-            description: `Temporary Permit (${vehicleTypeFull})\nPermit No: ${permit.permitNumber}\nVehicle No: ${permit.vehicleNumber}\nValid From: ${permit.validFrom}\nValid To: ${permit.validTo}\nPeriod: ${permit.validityPeriod} months`,
+            description: `Temporary Permit (${vehicleTypeFull})\nPermit No: ${permit.permitNumber}\nVehicle No: ${permit.vehicleNumber}\nValid From: ${permit.validFrom}\nValid To: ${permit.validTo}`,
             quantity: 1,
             rate: permit.totalFee,
             amount: permit.totalFee
@@ -724,14 +730,14 @@ exports.generateBillPDF = async (req, res) => {
     })
   } catch (error) {
     console.error('Error generating bill PDF:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
+    
+    
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Operation failed'
+      
+      
+      
     })
   }
 }
@@ -787,14 +793,14 @@ exports.downloadBillPDF = async (req, res) => {
     res.sendFile(pdfPath)
   } catch (error) {
     console.error('Error downloading bill PDF:', error)
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
+    
+    
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: getSimplifiedTimestamp()
+      message: 'Operation failed'
+      
+      
+      
     })
   }
 }

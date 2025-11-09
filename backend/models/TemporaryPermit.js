@@ -19,7 +19,6 @@ const TemporaryPermitSchema = new mongoose.Schema({
     required: true,
     trim: true,
     uppercase: true,
-    index: true
   },
   vehicleType: {
     type: String,
@@ -36,12 +35,6 @@ const TemporaryPermitSchema = new mongoose.Schema({
     required: true
   },
 
-  // Validity period in months (auto-set based on vehicle type)
-  validityPeriod: {
-    type: Number,
-    required: true
-  },
-
   // Additional Details (Optional)
   fatherName: {
     type: String,
@@ -51,18 +44,7 @@ const TemporaryPermitSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  city: {
-    type: String,
-    trim: true
-  },
-  state: {
-    type: String,
-    trim: true
-  },
-  pincode: {
-    type: String,
-    trim: true
-  },
+
   mobileNumber: {
     type: String,
     trim: true
@@ -91,16 +73,7 @@ const TemporaryPermitSchema = new mongoose.Schema({
     type: Number
   },
 
-  // Permit Details
-  purpose: {
-    type: String,
-    trim: true
-  },
-  issueDate: {
-    type: String,
-    required: true
-  },
-
+  
   // Fees
   totalFee: {
     type: Number,
@@ -120,6 +93,14 @@ const TemporaryPermitSchema = new mongoose.Schema({
   bill: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CustomBill'
+  },
+
+  // Status (managed by cron job)
+  status: {
+    type: String,
+    enum: ['active', 'expiring_soon', 'expired'],
+    default: 'active',
+    index: true
   },
 
   // Admin Notes

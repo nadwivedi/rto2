@@ -25,11 +25,7 @@ const InsuranceSchema = new mongoose.Schema({
     trim: true
   },
 
-  // Validity Period
-  issueDate: {
-    type: String,
-    required: true
-  },
+
   validFrom: {
     type: String,
     required: true

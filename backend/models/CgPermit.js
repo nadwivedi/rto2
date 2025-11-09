@@ -69,6 +69,14 @@ const CgPermitSchema = new mongoose.Schema({
     ref: 'CustomBill'
   },
 
+  // Status (managed by cron job)
+  status: {
+    type: String,
+    enum: ['active', 'expiring_soon', 'expired'],
+    default: 'active',
+    index: true
+  },
+
   // Document Uploads
   documents: {
     permitDocument: String

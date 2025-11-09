@@ -1,10 +1,10 @@
 import { useState, useMemo, useEffect } from 'react'
 import { toast } from 'react-toastify'
-import QuickDLApplicationForm from '../components/QuickDLApplicationForm'
-import EditDLApplicationForm from '../components/EditDLApplicationForm'
-import ApplicationDetailModal from '../components/ApplicationDetailModal'
-import { drivingLicenseAPI } from '../services/api'
-import Pagination from '../components/Pagination'
+import QuickDLApplicationForm from './components/QuickDLApplicationForm'
+import EditDLApplicationForm from './components/EditDLApplicationForm'
+import ApplicationDetailModal from './components/ApplicationDetailModal'
+import { drivingLicenseAPI } from '../../services/api'
+import Pagination from '../../components/Pagination'
 
 const DrivingLicence = () => {
   const [applications, setApplications] = useState([])

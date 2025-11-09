@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { handleDateBlur as utilHandleDateBlur } from '../utils/dateFormatter'
+import { handleDateBlur as utilHandleDateBlur } from '../../../utils/dateFormatter'
 
 const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [formData, setFormData] = useState({

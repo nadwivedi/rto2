@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import Pagination from '../components/Pagination'
-import IssueTemporaryPermitOtherStateModal from '../components/IssueTemporaryPermitOtherStateModal'
-import EditTemporaryPermitOtherStateModal from '../components/EditTemporaryPermitOtherStateModal'
+import Pagination from '../../components/Pagination'
+import IssueTemporaryPermitOtherStateModal from './components/IssueTemporaryPermitOtherStateModal'
+import EditTemporaryPermitOtherStateModal from './components/EditTemporaryPermitOtherStateModal'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 

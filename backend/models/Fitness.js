@@ -32,6 +32,14 @@ const fitnessSchema = new mongoose.Schema({
     required: true,
     default: 0
   },
+
+  // Status
+  status: {
+    type: String,
+    enum: ['Active', 'Expired', 'Expiring Soon', 'Cancelled'],
+    default: 'Active'
+  },
+
   bill: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CustomBill'

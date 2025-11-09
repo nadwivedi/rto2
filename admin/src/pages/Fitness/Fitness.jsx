@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import AddFitnessModal from '../components/AddFitnessModal'
-import EditFitnessModal from '../components/EditFitnessModal'
-import Pagination from '../components/Pagination'
+import AddFitnessModal from './components/AddFitnessModal'
+import EditFitnessModal from './components/EditFitnessModal'
+import Pagination from '../../components/Pagination'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 

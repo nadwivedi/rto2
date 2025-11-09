@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { handleDateBlur as utilHandleDateBlur } from '../utils/dateFormatter'
+import { handleDateBlur as utilHandleDateBlur } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 

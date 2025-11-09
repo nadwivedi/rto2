@@ -78,7 +78,7 @@ const VehicleTransferSchema = new mongoose.Schema({
   },
 
 
-  // Broker/By Details (Optional)
+  // referal/By Details (Optional)
   byName: {
     type: String,
     trim: true

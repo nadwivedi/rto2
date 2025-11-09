@@ -50,6 +50,18 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
 // MongoDB Connection
 connectDB()
 
+// Initialize Cron Jobs
+const { initTemporaryPermitStatusCron } = require('./jobs/updateTemporaryPermitStatus')
+const { initCgPermitStatusCron } = require('./jobs/updateCgPermitStatus')
+const { initFitnessStatusCron } = require('./jobs/updateFitnessStatus')
+const { initTaxStatusCron } = require('./jobs/updateTaxStatus')
+const { initInsuranceStatusCron } = require('./jobs/updateInsuranceStatus')
+initTemporaryPermitStatusCron()
+initCgPermitStatusCron()
+initFitnessStatusCron()
+initTaxStatusCron()
+initInsuranceStatusCron()
+
 // Import Routes
 const authRoutes = require('./routes/auth')
 const drivingLicenseRoutes = require('./routes/drivingLicense')

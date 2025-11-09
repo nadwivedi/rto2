@@ -1,129 +1,124 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import PermitBillModal from '../components/PermitBillModal'
-import SharePermitModal from '../components/SharePermitModal'
-import IssueTemporaryPermitModal from '../components/IssueTemporaryPermitModal'
-import EditTemporaryPermitModal from '../components/EditTemporaryPermitModal'
-import Pagination from '../components/Pagination'
+import PermitBillModal from '../../components/PermitBillModal'
+import SharePermitModal from '../../components/SharePermitModal'
+import IssueCgPermitModal from './components/IssueCgPermitModal'
+import EditCgPermitModal from './components/EditCgPermitModal'
+import Pagination from '../../components/Pagination'
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
-const TemporaryPermit = () => {
+const CgPermit = () => {
   // Demo data for when backend is not available
   const demoPermits = [
     {
-      id: 'TP-2024-001',
-      permitNumber: 'TP001234567',
-      vehicleType: 'CV',
-      vehicleTypeFull: 'Commercial Vehicle',
-      validityPeriod: '30 Days',
-      permitHolder: 'Rajesh Transport',
-      vehicleNo: 'CG-04-TMP-1234',
-      issueDate: '2024-03-01',
-      validFrom: '2024-03-01',
-      validTill: '2024-03-31',
+      id: 'CG-2024-001',
+      permitNumber: 'CG001234567',
+      permitType: 'State Goods Permit',
+      permitHolder: 'Kumar Transport Services',
+      vehicleNo: 'CG-04-AB-1234',
+      issueDate: '2024-01-15',
+      validFrom: '2024-01-15',
+      validTill: '2025-01-14',
+      validityPeriod: '1 Year',
       status: 'Active',
-      fees: 2500,
+      fees: 8000,
       address: '123, Transport Nagar, Raipur, CG - 492001',
       mobileNumber: '+91 9876543210',
-      route: 'Raipur to Bilaspur',
-      purpose: 'Temporary Commercial Use',
+      route: 'Within Chhattisgarh State',
+      goodsType: 'General Goods',
       issuingAuthority: 'RTO Raipur',
-      vehicleModel: 'TATA ACE',
-      vehicleClass: 'Light Commercial Vehicle',
+      vehicleModel: 'TATA LPT 1212',
+      vehicleType: 'Truck',
       chassisNumber: 'MB1234567890ABCDE',
       engineNumber: 'ENG12345678'
     },
     {
-      id: 'TP-2024-002',
-      permitNumber: 'TP001234568',
-      vehicleType: 'PV',
-      vehicleTypeFull: 'Passenger Vehicle',
-      validityPeriod: '15 Days',
-      permitHolder: 'Priya Sharma',
-      vehicleNo: 'CG-07-TMP-5678',
-      issueDate: '2024-03-10',
-      validFrom: '2024-03-10',
-      validTill: '2024-03-25',
-      status: 'Expiring Soon',
-      fees: 1500,
-      address: '456, Civil Lines, Durg, CG - 491001',
+      id: 'CG-2024-002',
+      permitNumber: 'CG001234568',
+      permitType: 'State Passenger Permit',
+      permitHolder: 'Singh Bus Services',
+      vehicleNo: 'CG-07-CD-5678',
+      issueDate: '2024-02-10',
+      validFrom: '2024-02-10',
+      validTill: '2025-02-09',
+      validityPeriod: '1 Year',
+      status: 'Active',
+      fees: 10000,
+      address: '456, Bus Stand Road, Bilaspur, CG - 495001',
       mobileNumber: '+91 9876543211',
-      route: 'Durg to Raipur',
-      purpose: 'Vehicle Transfer',
-      issuingAuthority: 'RTO Durg',
-      vehicleModel: 'Maruti Swift',
-      vehicleClass: 'Motor Car',
+      route: 'Raipur to Bilaspur',
+      goodsType: 'N/A',
+      issuingAuthority: 'RTO Bilaspur',
+      vehicleModel: 'ASHOK LEYLAND Viking',
+      vehicleType: 'Bus',
       chassisNumber: 'MB1234567890ABCDF',
       engineNumber: 'ENG12345679'
     },
     {
-      id: 'TP-2024-003',
-      permitNumber: 'TP001234569',
-      vehicleType: 'CV',
-      vehicleTypeFull: 'Commercial Vehicle',
-      validityPeriod: '45 Days',
-      permitHolder: 'Kumar Logistics',
-      vehicleNo: 'CG-20-TMP-9012',
-      issueDate: '2024-02-20',
-      validFrom: '2024-02-20',
-      validTill: '2024-04-05',
-      status: 'Active',
-      fees: 3000,
-      address: '789, Industrial Area, Bilaspur, CG - 495001',
+      id: 'CG-2024-003',
+      permitNumber: 'CG001234569',
+      permitType: 'State Goods Permit',
+      permitHolder: 'Patel Logistics',
+      vehicleNo: 'CG-20-EF-9012',
+      issueDate: '2024-03-05',
+      validFrom: '2024-03-05',
+      validTill: '2024-12-31',
+      validityPeriod: '9 Months',
+      status: 'Expiring Soon',
+      fees: 7500,
+      address: '789, Industrial Area, Durg, CG - 491001',
       mobileNumber: '+91 9876543212',
-      route: 'Bilaspur to Korba',
-      purpose: 'New Vehicle Registration',
-      issuingAuthority: 'RTO Bilaspur',
-      vehicleModel: 'MAHINDRA Bolero Pickup',
-      vehicleClass: 'Goods Vehicle',
+      route: 'Within Chhattisgarh State',
+      goodsType: 'Industrial Materials',
+      issuingAuthority: 'RTO Durg',
+      vehicleModel: 'EICHER PRO 3015',
+      vehicleType: 'Truck',
       chassisNumber: 'MB1234567890ABCDG',
       engineNumber: 'ENG12345680'
     },
     {
-      id: 'TP-2024-004',
-      permitNumber: 'TP001234570',
-      vehicleType: 'PV',
-      vehicleTypeFull: 'Passenger Vehicle',
-      validityPeriod: '7 Days',
-      permitHolder: 'Amit Verma',
-      vehicleNo: 'CG-10-TMP-3456',
-      issueDate: '2024-03-01',
-      validFrom: '2024-03-01',
-      validTill: '2024-03-08',
-      status: 'Expired',
-      fees: 1000,
-      address: '321, Station Road, Raigarh, CG - 496001',
+      id: 'CG-2024-004',
+      permitNumber: 'CG001234570',
+      permitType: 'State Goods Permit',
+      permitHolder: 'Verma Freight Services',
+      vehicleNo: 'CG-10-GH-3456',
+      issueDate: '2023-12-15',
+      validFrom: '2023-12-15',
+      validTill: '2024-12-14',
+      validityPeriod: '1 Year',
+      status: 'Pending Renewal',
+      fees: 8500,
+      address: '321, Cargo Complex, Raigarh, CG - 496001',
       mobileNumber: '+91 9876543213',
-      route: 'Raigarh to Raipur',
-      purpose: 'Fitness Test',
+      route: 'Within Chhattisgarh State',
+      goodsType: 'Agricultural Products',
       issuingAuthority: 'RTO Raigarh',
-      vehicleModel: 'Honda City',
-      vehicleClass: 'Motor Car',
+      vehicleModel: 'MAHINDRA Bolero Pickup',
+      vehicleType: 'Pickup Truck',
       chassisNumber: 'MB1234567890ABCDH',
       engineNumber: 'ENG12345681'
     },
     {
-      id: 'TP-2024-005',
-      permitNumber: 'TP001234571',
-      vehicleType: 'CV',
-      vehicleTypeFull: 'Commercial Vehicle',
-      validityPeriod: '30 Days',
-      permitHolder: 'Singh Transport Services',
-      vehicleNo: 'CG-04-TMP-7890',
-      issueDate: '2024-03-05',
-      validFrom: '2024-03-05',
-      validTill: '2024-04-04',
+      id: 'CG-2024-005',
+      permitNumber: 'CG001234571',
+      permitType: 'State Passenger Permit',
+      permitHolder: 'Sharma Tours & Travels',
+      vehicleNo: 'CG-04-IJ-7890',
+      issueDate: '2024-01-20',
+      validFrom: '2024-01-20',
+      validTill: '2025-01-19',
+      validityPeriod: '1 Year',
       status: 'Active',
-      fees: 2800,
-      address: '654, Bus Stand, Korba, CG - 495677',
+      fees: 9500,
+      address: '654, Station Road, Korba, CG - 495677',
       mobileNumber: '+91 9876543214',
-      route: 'Korba to Raipur',
-      purpose: 'Route Change',
+      route: 'Raipur to Korba',
+      goodsType: 'N/A',
       issuingAuthority: 'RTO Korba',
-      vehicleModel: 'EICHER PRO 1049',
-      vehicleClass: 'Light Commercial Vehicle',
+      vehicleModel: 'TATA Winger',
+      vehicleType: 'Maxi Cab',
       chassisNumber: 'MB1234567890ABCDI',
       engineNumber: 'ENG12345682'
     }
@@ -136,14 +131,16 @@ const TemporaryPermit = () => {
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showBillModal, setShowBillModal] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
+  const [showAdditionalDetails, setShowAdditionalDetails] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [dateFilter, setDateFilter] = useState('All')
   const [whatsappLoading, setWhatsappLoading] = useState(null) // Track which permit is loading
-  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'pending'
   const [initialPermitData, setInitialPermitData] = useState(null) // For pre-filling renewal data
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'pending'
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -159,22 +156,22 @@ const TemporaryPermit = () => {
     pendingPaymentAmount: 0
   })
 
-  // Fetch temporary permit statistics from API
+  // Fetch CG permit statistics from API
   const fetchStatistics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/temporary-permits/statistics`)
+      const response = await axios.get(`${API_URL}/api/cg-permits/statistics`)
       if (response.data.success) {
         setStatistics({
-          total: response.data.data.permits.total,
-          active: response.data.data.permits.active,
-          expiringSoon: response.data.data.permits.expiringSoon,
-          expired: response.data.data.permits.expired,
+          total: response.data.data.total,
+          active: response.data.data.active,
+          expiringSoon: response.data.data.expiringSoon,
+          expired: response.data.data.expired,
           pendingPaymentCount: response.data.data.pendingPaymentCount,
           pendingPaymentAmount: response.data.data.pendingPaymentAmount
         })
       }
     } catch (error) {
-      console.error('Error fetching temporary permit statistics:', error)
+      console.error('Error fetching CG permit statistics:', error)
     }
   }
 
@@ -206,7 +203,7 @@ const TemporaryPermit = () => {
     try {
       setLoading(true)
       setError(null)
-      const response = await axios.get(`${API_URL}/api/temporary-permits`, {
+      const response = await axios.get(`${API_URL}/api/cg-permits`, {
         params: {
           page,
           limit: pagination.limit,
@@ -219,33 +216,40 @@ const TemporaryPermit = () => {
       const transformedPermits = response.data.data.map(permit => ({
         id: permit._id,
         permitNumber: permit.permitNumber,
-        vehicleType: permit.vehicleType,
-        vehicleTypeFull: permit.vehicleType === 'CV' ? 'Commercial Vehicle' : 'Passenger Vehicle',
-        validityPeriod: permit.validityPeriod,
+        permitType: permit.permitType,
         permitHolder: permit.permitHolder,
         vehicleNo: permit.vehicleNumber || 'N/A',
         issueDate: permit.issueDate,
         validFrom: permit.validFrom,
-        validTill: permit.validTo,
-        status: permit.status,
+        validTo: permit.validTo, // Keep original field
+        validTill: permit.validTo, // Also map to validTill for compatibility
+        validityPeriod: permit.validityPeriod,
         bill: permit.bill, // Include bill reference
-        totalFee: permit.totalFee || 0,
-        fees: permit.totalFee || 0,
+        totalFee: permit.totalFee || 0, // Keep original field name for edit modal
+        fees: permit.totalFee || permit.fees || 0, // Keep for backward compatibility
         balance: permit.balance || 0,
         paid: permit.paid || 0,
+        status: permit.status || 'Active', // Status field for edit modal
+        fatherName: permit.fatherName || '', // Optional field for edit modal
+        email: permit.email || '', // Optional field for edit modal
         address: permit.address || 'N/A',
         mobileNumber: permit.mobileNumber || 'N/A',
-        route: permit.route || 'N/A',
-        purpose: permit.purpose || 'Temporary Use',
+        route: permit.route,
+        goodsType: permit.goodsType || 'General Goods',
         issuingAuthority: permit.issuingAuthority,
         vehicleModel: permit.vehicleModel || 'N/A',
-        vehicleClass: permit.vehicleClass || 'N/A',
+        vehicleType: permit.vehicleType || 'N/A',
         chassisNumber: permit.chassisNumber || 'N/A',
         engineNumber: permit.engineNumber || 'N/A',
+        renewalHistory: permit.renewalHistory || [],
         insuranceDetails: permit.insuranceDetails || {
           policyNumber: 'N/A',
           company: 'N/A',
           validUpto: 'N/A'
+        },
+        taxDetails: permit.taxDetails || {
+          taxPaidUpto: 'N/A',
+          taxAmount: 'N/A'
         }
       }))
 
@@ -261,8 +265,8 @@ const TemporaryPermit = () => {
         })
       }
     } catch (error) {
-      console.error('Error fetching temporary permits:', error)
-      toast.error('Failed to fetch temporary permits. Please check if the backend server is running.', {
+      console.error('Error fetching CG permits:', error)
+      toast.error('Failed to fetch CG permits. Please check if the backend server is running.', {
         position: 'top-right',
         autoClose: 3000
       })
@@ -271,12 +275,11 @@ const TemporaryPermit = () => {
     }
   }
 
-  // Calculate status color based on validTo date
+
   const getStatusColor = (validTo) => {
     if (!validTo) return 'bg-gray-100 text-gray-700'
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
     const dateParts = validTo.split(/[/-]/)
     const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
     validToDate.setHours(0, 0, 0, 0)
@@ -288,12 +291,10 @@ const TemporaryPermit = () => {
     return 'bg-green-100 text-green-700'
   }
 
-  // Calculate status text based on validTo date
   const getStatusText = (validTo) => {
     if (!validTo) return 'Unknown'
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
     const dateParts = validTo.split(/[/-]/)
     const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
     validToDate.setHours(0, 0, 0, 0)
@@ -328,6 +329,14 @@ const TemporaryPermit = () => {
     return null
   }
 
+  // Use permits directly since filtering is done on backend
+  const filteredPermits = permits
+
+  const handleViewDetails = (permit) => {
+    setSelectedPermit(permit)
+    setShowDetailsModal(true)
+  }
+
   const handleViewBill = (permit) => {
     setSelectedPermit(permit)
     setShowBillModal(true)
@@ -358,7 +367,7 @@ const TemporaryPermit = () => {
       if (permit.bill?.billPdfPath) {
         pdfUrl = `${API_URL}${permit.bill.billPdfPath}`
       } else {
-        const response = await axios.post(`${API_URL}/api/temporary-permits/${permit.id}/generate-bill-pdf`)
+        const response = await axios.post(`${API_URL}/api/cg-permits/${permit.id}/generate-bill-pdf`)
         if (!response.data.success) {
           throw new Error('Failed to generate bill PDF')
         }
@@ -367,17 +376,16 @@ const TemporaryPermit = () => {
       }
 
       // Create WhatsApp message
-      const message = `Hello ${permit.permitHolder || 'Sir/Madam'},
+      const message = `Hello ${permit.permitHolderName || permit.permitHolder || 'Sir/Madam'},
 
-Your Temporary Permit Bill is ready!
+Your CG Permit Bill is ready!
 
 *Bill Number:* ${permit.bill?.billNumber || 'N/A'}
 *Permit Number:* ${permit.permitNumber}
-*Vehicle Number:* ${permit.vehicleNo}
-*Vehicle Type:* ${permit.vehicleTypeFull || permit.vehicleType}
+*Vehicle Number:* ${permit.vehicleNo || permit.vehicleNumber}
 *Total Fee:* ₹${permit.totalFee || permit.fees || 0}
 *Valid From:* ${permit.validFrom}
-*Valid Till:* ${permit.validTill}
+*Valid To:* ${permit.validTo || permit.validTill}
 
 You can view and download your bill from the link below:
 ${pdfUrl}
@@ -411,81 +419,18 @@ Thank you!`
     }
   }
 
-  const handleEditClick = (permit) => {
-    setEditingPermit(permit)
-    setShowEditPermitModal(true)
-  }
-
-  const handleEditPermit = async (formData) => {
-    try {
-      // Prepare data to match backend model
-      const permitData = {
-        permitNumber: formData.permitNumber,
-        permitHolder: formData.permitHolderName,
-        vehicleNumber: formData.vehicleNumber,
-        vehicleType: formData.vehicleType,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
-        validityPeriod: formData.vehicleType === 'CV' ? 3 : 4,
-        issueDate: formData.validFrom,
-        fatherName: formData.fatherName || '',
-        address: formData.address || '',
-        mobileNumber: formData.mobileNumber || '',
-        email: formData.email || '',
-        vehicleModel: formData.vehicleModel || '',
-        vehicleClass: formData.vehicleClass || '',
-        chassisNumber: formData.chassisNumber || '',
-        engineNumber: formData.engineNumber || '',
-        ladenWeight: formData.ladenWeight ? Number(formData.ladenWeight) : 0,
-        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : 0,
-        yearOfManufacture: new Date().getFullYear().toString(),
-        seatingCapacity: formData.seatingCapacity || '',
-        route: formData.route || '',
-        purpose: formData.purpose || 'Temporary Use',
-        totalFee: Number(formData.totalFee) || 1000,
-        paid: Number(formData.paid) || 0,
-        balance: Number(formData.balance) || 0,
-        status: 'Active'
-      }
-
-      // Make PUT request to backend to update the permit
-      const response = await axios.put(`${API_URL}/api/temporary-permits/${editingPermit.id}`, permitData)
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to update temporary permit')
-      }
-
-      // Show success message
-      toast.success('Temporary Permit updated successfully!', {
-        position: 'top-right',
-        autoClose: 3000
-      })
-
-      // Close modal and refresh
-      setShowEditPermitModal(false)
-      setEditingPermit(null)
-      await fetchPermits()
-      await fetchStatistics()
-    } catch (error) {
-      console.error('Error updating temporary permit:', error)
-      toast.error(`Failed to update temporary permit: ${error.message}`, {
-        position: 'top-right',
-        autoClose: 3000
-      })
-    }
-  }
-
   const handleRenewClick = (permit) => {
     // Pre-fill vehicle number and other details for renewal
     setInitialPermitData({
       vehicleNumber: permit.vehicleNo,
       permitHolderName: permit.permitHolder || '',
-      vehicleType: permit.vehicleType || '',
+      permitType: permit.permitType || '',
       address: permit.address || '',
       mobileNumber: permit.mobileNumber || '',
       chassisNumber: permit.chassisNumber || '',
       engineNumber: permit.engineNumber || '',
-      purpose: permit.purpose || ''
+      route: permit.route || '',
+      goodsType: permit.goodsType || ''
     })
     setShowIssuePermitModal(true)
   }
@@ -493,10 +438,11 @@ Thank you!`
   const handleDeletePermit = async (permit) => {
     // Show confirmation dialog
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete this temporary permit?\n\n` +
+      `Are you sure you want to delete this CG permit?\n\n` +
       `Permit Number: ${permit.permitNumber}\n` +
       `Vehicle Number: ${permit.vehicleNo}\n` +
-      `Permit Holder: ${permit.permitHolder}\n\n` +
+      `Permit Holder: ${permit.permitHolder}\n` +
+      `Permit Type: ${permit.permitType}\n\n` +
       `This action cannot be undone.`
     )
 
@@ -506,14 +452,14 @@ Thank you!`
 
     try {
       // Make DELETE request to backend
-      const response = await axios.delete(`${API_URL}/api/temporary-permits/${permit.id}`)
+      const response = await axios.delete(`${API_URL}/api/cg-permits/${permit.id}`)
 
       if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to delete temporary permit')
+        throw new Error(response.data.message || 'Failed to delete CG permit')
       }
 
       // Show success message
-      toast.success('Temporary Permit deleted successfully!', {
+      toast.success('CG Permit deleted successfully!', {
         position: 'top-right',
         autoClose: 3000
       })
@@ -521,31 +467,17 @@ Thank you!`
       // Refresh the permits list
       await fetchPermits()
     } catch (error) {
-      console.error('Error deleting temporary permit:', error)
-      toast.error(`Failed to delete temporary permit: ${error.message}`, {
+      console.error('Error deleting CG permit:', error)
+      toast.error(`Failed to delete CG permit: ${error.message}`, {
         position: 'top-right',
         autoClose: 3000
       })
     }
   }
 
-  // Helper function to get status based on validTill date
-  const getPermitStatus = (validTill) => {
-    if (!validTill) return 'Unknown'
-    const today = new Date()
-    const dateParts = validTill.split(/[/-]/)
-    const validTillDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    const diffTime = validTillDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 15) return 'Expiring Soon'
-    return 'Active'
-  }
-
   // Determine if renew button should be shown for a permit
   const shouldShowRenewButton = (permit) => {
-    const status = getPermitStatus(permit.validTill)
+    const status = getStatusText(permit.validTill)
 
     // Show renew button for expiring soon permits
     if (status === 'Expiring Soon') {
@@ -558,6 +490,11 @@ Thank you!`
     }
 
     return false
+  }
+
+  const handleEditPermit = (permit) => {
+    setEditingPermit(permit)
+    setShowEditPermitModal(true)
   }
 
   const handleFilterChange = (filterType, value) => {
@@ -573,48 +510,123 @@ Thank you!`
         permitNumber: formData.permitNumber,
         permitHolder: formData.permitHolderName,
         vehicleNumber: formData.vehicleNumber,
-        vehicleType: formData.vehicleType,
         validFrom: formData.validFrom,
         validTo: formData.validTo,
-        validityPeriod: formData.vehicleType === 'CV' ? 3 : 4,
         issueDate: formData.validFrom,
+        permitType: 'Type A',
+        validityPeriod: 5,
         fatherName: formData.fatherName || '',
         address: formData.address || '',
         mobileNumber: formData.mobileNumber || '',
         email: formData.email || '',
+        vehicleModel: formData.vehicleModel || '',
+        vehicleType: formData.vehicleType || '',
         chassisNumber: formData.chassisNumber || '',
         engineNumber: formData.engineNumber || '',
-        ladenWeight: formData.ladenWeight ? Number(formData.ladenWeight) : undefined,
-        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : undefined,
-        purpose: formData.purpose || 'Temporary Use',
+        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : 0,
+        grossWeight: formData.grossWeight ? Number(formData.grossWeight) : 0,
+        yearOfManufacture: new Date().getFullYear().toString(),
+        seatingCapacity: '2',
+        goodsType: formData.goodsType || 'General Goods',
+        route: 'Chhattisgarh State',
+        maxLoadCapacity: formData.grossWeight ? `${formData.grossWeight} kg` : '',
         totalFee: Number(formData.totalFee) || 0,
         paid: Number(formData.paid) || 0,
         balance: Number(formData.balance) || 0,
-        notes: formData.notes || ''
+        status: 'Active'
       }
 
       // Make POST request to backend
-      const response = await axios.post(`${API_URL}/api/temporary-permits`, permitData)
+      const response = await axios.post(`${API_URL}/api/cg-permits`, permitData)
 
       if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to create temporary permit')
+        throw new Error(response.data.message || 'Failed to create CG permit')
       }
 
       // Show success message
-      toast.success('Temporary Permit added successfully!', {
-        position: 'top-right',
-        autoClose: 3000
-      })
+      toast.success('CG Permit added successfully!', { position: 'top-right', autoClose: 3000 })
 
       // Refresh the permits list and statistics
       await fetchPermits()
       await fetchStatistics()
     } catch (error) {
-      console.error('Error creating temporary permit:', error)
-      toast.error(`Failed to create temporary permit: ${error.message}`, {
-        position: 'top-right',
-        autoClose: 3000
-      })
+      console.error('Error creating CG permit:', error)
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data
+
+        // Show main error message
+        const mainMessage = errorData.errorCount > 1
+          ? `${errorData.message} (${errorData.errorCount} errors)`
+          : (errorData.message || 'Failed to create CG permit')
+
+        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
+            }, (index + 1) * 150)
+          })
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to create CG permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
+      }
+    }
+  }
+
+  const handleUpdatePermit = async (formData) => {
+    try {
+      if (!editingPermit || !editingPermit.id) {
+        throw new Error('No permit selected for editing')
+      }
+
+      // Prepare data to match backend model
+      const permitData = {
+        permitNumber: formData.permitNumber,
+        permitHolder: formData.permitHolder,
+        vehicleNumber: formData.vehicleNumber,
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        fatherName: formData.fatherName || '',
+        address: formData.address || '',
+        mobileNumber: formData.mobileNumber || '',
+        email: formData.email || '',
+        vehicleModel: formData.vehicleModel || '',
+        vehicleType: formData.vehicleType || '',
+        chassisNumber: formData.chassisNumber || '',
+        engineNumber: formData.engineNumber || '',
+        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : 0,
+        grossWeight: formData.grossWeight ? Number(formData.grossWeight) : 0,
+        goodsType: formData.goodsType || 'General Goods',
+        totalFee: Number(formData.totalFee) || 0,
+        paid: Number(formData.paid) || 0,
+        balance: Number(formData.balance) || 0
+      }
+
+      // Make PUT request to backend
+      const response = await axios.put(`${API_URL}/api/cg-permits/${editingPermit.id}`, permitData)
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to update CG permit')
+      }
+
+      // Show success message
+      toast.success('CG Permit updated successfully!', { position: 'top-right', autoClose: 3000 })
+
+      // Refresh the permits list and statistics
+      await fetchPermits()
+      await fetchStatistics()
+
+      // Close the modal
+      setShowEditPermitModal(false)
+      setEditingPermit(null)
+    } catch (error) {
+      console.error('Error updating CG permit:', error)
+      toast.error(`Failed to update CG permit: ${error.message}`, { position: 'top-right', autoClose: 3000 })
     }
   }
 
@@ -636,7 +648,7 @@ Thank you!`
               >
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Temporary Permits</p>
+                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total CG Permits</p>
                     <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{statistics.total}</h3>
                     <p className='text-[7px] lg:text-[9px] text-emerald-600 font-bold mt-0.5'>({statistics.active} active)</p>
                   </div>
@@ -660,6 +672,7 @@ Thank you!`
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
                     <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{statistics.expiringSoon}</h3>
+                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -727,7 +740,7 @@ Thank you!`
             <div className='relative flex-1 lg:max-w-md'>
               <input
                 type='text'
-                placeholder='Search by vehicle number...'
+                placeholder='Search by permit number, holder, or vehicle...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
                 className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm uppercase'
@@ -776,7 +789,7 @@ Thank you!`
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
                 </svg>
-                New Temporary Permit
+                New CG Permit
               </span>
             </button>
           </div>
@@ -792,17 +805,15 @@ Thank you!`
               </div>
               <p className='text-sm text-gray-600 mt-4'>Loading permits...</p>
             </div>
-          ) : permits.length > 0 ? (
+          ) : filteredPermits.length > 0 ? (
             <div className='p-3 space-y-3'>
-              {permits.map((permit) => (
+              {filteredPermits.map((permit) => (
                 <div key={permit.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
                   {/* Card Header with Avatar and Actions */}
-                  <div className='bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 p-3 flex items-start justify-between'>
+                  <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
                     <div className='flex items-center gap-3'>
-                      <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
-                        <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                        </svg>
+                      <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
+                        {permit.permitHolder?.substring(0, 2)?.toUpperCase() || 'CG'}
                       </div>
                       <div>
                         <div className='text-xs font-mono font-bold text-gray-900'>{permit.permitNumber}</div>
@@ -823,21 +834,22 @@ Thank you!`
                         </button>
                       )}
                       <button
-                        onClick={() => handleEditClick(permit)}
-                        className='p-2 bg-amber-100 text-amber-600 rounded-lg hover:bg-amber-200 transition-all cursor-pointer'
-                        title='Edit Permit'
+                        onClick={() => handleViewDetails(permit)}
+                        className='p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-all cursor-pointer'
+                        title='View Details'
                       >
                         <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleViewBill(permit)}
-                        className='p-2 bg-emerald-100 text-emerald-600 rounded-lg hover:bg-emerald-200 transition-all cursor-pointer'
-                        title='View Bill'
+                        onClick={() => handleEditPermit(permit)}
+                        className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all cursor-pointer'
+                        title='Edit'
                       >
                         <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
                         </svg>
                       </button>
                       <button
@@ -916,20 +928,12 @@ Thank you!`
                       </div>
                     </div>
 
-                    {/* Purpose and Route */}
-                    {(permit.purpose || permit.route) && (
-                      <div className='bg-purple-50 rounded-lg p-2 border border-purple-200'>
-                        <div className='text-xs text-purple-600 font-medium mb-1'>Purpose & Route</div>
+                    {/* Route and Goods Type */}
+                    {(permit.route || permit.goodsType) && (
+                      <div className='bg-indigo-50 rounded-lg p-2 border border-indigo-200'>
+                        <div className='text-xs text-indigo-600 font-medium mb-1'>Route & Goods</div>
                         <div className='space-y-0.5'>
-                          {permit.purpose && (
-                            <div className='text-xs font-semibold text-gray-700 flex items-start gap-1'>
-                              <svg className='w-3 h-3 mt-0.5 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                              </svg>
-                              {permit.purpose}
-                            </div>
-                          )}
-                          {permit.route && permit.route !== 'N/A' && (
+                          {permit.route && (
                             <div className='text-xs font-semibold text-gray-700 flex items-start gap-1'>
                               <svg className='w-3 h-3 mt-0.5 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z' />
@@ -938,21 +942,15 @@ Thank you!`
                               {permit.route}
                             </div>
                           )}
+                          {permit.goodsType && (
+                            <div className='text-xs font-semibold text-gray-700 flex items-start gap-1'>
+                              <svg className='w-3 h-3 mt-0.5 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4' />
+                              </svg>
+                              {permit.goodsType}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
-
-                    {/* Vehicle Type Badge */}
-                    {permit.vehicleType && (
-                      <div className='flex items-center gap-2'>
-                        <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-700 border border-indigo-200'>
-                          {permit.vehicleType} - {permit.vehicleTypeFull}
-                        </span>
-                        {permit.validityPeriod && (
-                          <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200'>
-                            {permit.validityPeriod}
-                          </span>
-                        )}
                       </div>
                     )}
                   </div>
@@ -962,14 +960,14 @@ Thank you!`
           ) : (
             <div className='p-6'>
               <div className='flex flex-col items-center justify-center py-12'>
-                <div className='w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mb-4 shadow-lg'>
-                  <svg className='w-10 h-10 text-amber-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                <div className='w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-4 shadow-lg'>
+                  <svg className='w-10 h-10 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                   </svg>
                 </div>
-                <h3 className='text-lg font-black text-gray-700 mb-2'>No Temporary Permits Found</h3>
+                <h3 className='text-lg font-black text-gray-700 mb-2'>No CG Permits Found</h3>
                 <p className='text-sm text-gray-500 text-center max-w-xs'>
-                  {searchQuery ? 'No permits match your search criteria.' : 'Get started by adding your first temporary permit.'}
+                  {searchQuery ? 'No permits match your search criteria.' : 'Get started by adding your first CG permit.'}
                 </p>
               </div>
             </div>
@@ -981,8 +979,7 @@ Thank you!`
           <table className='w-full'>
             <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
               <tr>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle No.</th>
-                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Number</th>
+                <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle/Permit No.</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Holder</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid From</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Valid Till</th>
@@ -996,31 +993,34 @@ Thank you!`
             <tbody className='divide-y divide-gray-100'>
               {loading ? (
                 <tr>
-                  <td colSpan='10' className='px-6 py-16'>
+                  <td colSpan='9' className='px-6 py-16'>
                     <div className='flex flex-col justify-center items-center'>
                       <div className='relative'>
                         <div className='w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
                         <div className='absolute inset-0 w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-2xl animate-spin'></div>
                       </div>
-                      <p className='text-gray-600 mt-6'>Loading temporary permits...</p>
+                      <p className='text-gray-600 mt-6'>Loading CG permits...</p>
                     </div>
                   </td>
                 </tr>
-              ) : permits.length > 0 ? (
-                permits.map((permit) => (
+              ) : filteredPermits.length > 0 ? (
+                filteredPermits.map((permit) => (
                   <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 transition-all duration-300 group'>
                     <td className='px-6 py-5'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
-                        <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
-                          <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
-                          <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
-                        </svg>
-                        {permit.vehicleNo}
-                      </span>
-                    </td>
-                    <td className='px-6 py-5'>
-                      <div className='text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200'>
-                        {permit.permitNumber}
+                      <div className='flex flex-col gap-1.5'>
+                        <div className='flex items-center gap-1.5'>
+                          <svg className='w-4 h-4 text-blue-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                            <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                            <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                          </svg>
+                          <span className='text-[15px] font-semibold text-gray-900'>{permit.vehicleNo}</span>
+                        </div>
+                        <div className='flex items-center gap-1.5'>
+                          <svg className='w-3.5 h-3.5 text-indigo-600 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                          </svg>
+                          <span className='text-[13px] font-medium text-gray-600'>{permit.permitNumber}</span>
+                        </div>
                       </div>
                     </td>
                     <td className='px-6 py-5'>
@@ -1040,7 +1040,7 @@ Thank you!`
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex items-center text-[13.8px]'>
+                      <div className='flex items-center text-sm'>
                         <span className='inline-flex items-center px-3 py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200'>
                           <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
@@ -1050,7 +1050,7 @@ Thank you!`
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <div className='flex items-center text-[13.8px]'>
+                      <div className='flex items-center text-sm'>
                         <span className='inline-flex items-center px-3 py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200'>
                           <svg className='w-4 h-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
@@ -1060,20 +1060,20 @@ Thank you!`
                       </div>
                     </td>
                     <td className='px-6 py-5'>
-                      <span className='text-sm font-bold text-gray-800'>₹{(permit.totalFee || 0).toLocaleString('en-IN')}</span>
+                      <span className='text-[15px] font-bold text-gray-900'>₹{(permit.fees || 0).toLocaleString('en-IN')}</span>
                     </td>
                     <td className='px-6 py-5'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
+                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
                         ₹{(permit.paid || 0).toLocaleString('en-IN')}
                       </span>
                     </td>
                     <td className='px-6 py-5'>
                       {(permit.balance || 0) > 0 ? (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-bold bg-orange-100 text-orange-700 border border-orange-200'>
                           ₹{(permit.balance || 0).toLocaleString('en-IN')}
                         </span>
                       ) : (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-bold bg-gray-100 text-gray-500 border border-gray-200'>
                           ₹0
                         </span>
                       )}
@@ -1088,7 +1088,7 @@ Thank you!`
                         {shouldShowRenewButton(permit) ? (
                           <button
                             onClick={() => handleRenewClick(permit)}
-                            className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer'
+                            className='p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 cursor-pointer'
                             title='Renew Permit'
                           >
                             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1099,8 +1099,18 @@ Thank you!`
                           <div className='w-9'></div>
                         )}
                         <button
-                          onClick={() => handleEditClick(permit)}
-                          className='p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200 cursor-pointer'
+                          onClick={() => handleViewDetails(permit)}
+                          className='p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 cursor-pointer'
+                          title='View Details'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleEditPermit(permit)}
+                          className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Edit Permit'
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -1152,16 +1162,16 @@ Thank you!`
                 ))
               ) : (
                 <tr>
-                  <td colSpan='10' className='px-6 py-16'>
+                  <td colSpan='9' className='px-6 py-16'>
                     <div className='flex flex-col items-center justify-center'>
                       <div className='w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mb-6 shadow-lg'>
                         <svg className='w-12 h-12 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                         </svg>
                       </div>
-                      <h3 className='text-xl font-black text-gray-700 mb-2'>No Temporary Permits Found</h3>
+                      <h3 className='text-xl font-black text-gray-700 mb-2'>No CG Permits Found</h3>
                       <p className='text-sm text-gray-500 mb-6 max-w-md text-center'>
-                        {searchQuery ? 'No permits match your search criteria. Try adjusting your search terms.' : 'Get started by adding your first temporary permit.'}
+                        {searchQuery ? 'No permits match your search criteria. Try adjusting your search terms.' : 'Get started by adding your first CG permit.'}
                       </p>
                     </div>
                   </td>
@@ -1172,7 +1182,7 @@ Thank you!`
         </div>
 
         {/* Pagination */}
-        {permits.length > 0 && (
+        {filteredPermits.length > 0 && (
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
@@ -1183,8 +1193,8 @@ Thank you!`
         )}
       </div>
 
-      {/* Add New Temporary Permit Modal */}
-      <IssueTemporaryPermitModal
+      {/* Add New CG Permit Modal */}
+      <IssueCgPermitModal
         isOpen={showIssuePermitModal}
         onClose={() => {
           setShowIssuePermitModal(false)
@@ -1194,15 +1204,15 @@ Thank you!`
         initialData={initialPermitData} // Pass initial data for renewal
       />
 
-      {/* Edit Temporary Permit Modal */}
-      <EditTemporaryPermitModal
+      {/* Edit CG Permit Modal */}
+      <EditCgPermitModal
         isOpen={showEditPermitModal}
         onClose={() => {
           setShowEditPermitModal(false)
-          setEditingPermit(null) // Clear editing data when closing
+          setEditingPermit(null)
         }}
-        onSubmit={handleEditPermit}
-        permitData={editingPermit} // Pass permit data for editing
+        onSubmit={handleUpdatePermit}
+        permit={editingPermit}
       />
 
       {/* Bill Modal */}
@@ -1213,7 +1223,7 @@ Thank you!`
             setShowBillModal(false)
             setSelectedPermit(null)
           }}
-          permitType="Temporary"
+          permitType="CG"
         />
       )}
 
@@ -1225,8 +1235,286 @@ Thank you!`
             setShowShareModal(false)
             setSelectedPermit(null)
           }}
-          permitType="Temporary"
+          permitType="CG"
         />
+      )}
+
+      {/* View Details Modal */}
+      {showDetailsModal && selectedPermit && (
+        <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4 animate-fadeIn'>
+          <div className='bg-white rounded-xl md:rounded-3xl shadow-2xl w-full md:w-[95%] lg:w-[90%] xl:w-[85%] max-h-[98vh] md:max-h-[95vh] overflow-hidden animate-slideUp'>
+            {/* Header */}
+            <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white p-3 md:p-5 z-10 shadow-lg'>
+              <div className='flex items-center justify-between gap-2'>
+                <div className='flex items-center gap-2 md:gap-3 min-w-0'>
+                  <div className='bg-white/20 backdrop-blur-lg p-1.5 md:p-2 rounded-lg md:rounded-xl flex-shrink-0'>
+                    <svg className='w-4 h-4 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                  </div>
+                  <div className='min-w-0'>
+                    <h2 className='text-base md:text-xl font-bold truncate'>CG Permit Details</h2>
+                    <p className='text-white/80 text-xs md:text-sm mt-0.5 truncate'>{selectedPermit.permitNumber}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  className='text-white/90 hover:text-white hover:bg-white/20 p-1.5 md:p-2.5 rounded-lg md:rounded-xl transition-all duration-200 hover:rotate-90 flex-shrink-0'
+                >
+                  <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className='overflow-y-auto max-h-[calc(98vh-100px)] md:max-h-[calc(95vh-130px)] p-3 md:p-5'>
+              <div className='grid grid-cols-1 lg:grid-cols-4 gap-3 md:gap-4'>
+                {/* Column 1: Permit Details */}
+                <div className='bg-gradient-to-br from-indigo-50 to-purple-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-indigo-200'>
+                  <h3 className='text-sm md:text-base font-bold text-indigo-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                    <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                    </svg>
+                    Permit Information
+                  </h3>
+                  <div className='grid grid-cols-2 gap-1.5 md:gap-2'>
+                    {selectedPermit.permitNumber && (
+                      <div className='bg-white/80 p-2 rounded-lg col-span-2'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Permit Number</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.permitNumber}</div>
+                      </div>
+                    )}
+                    {selectedPermit.permitType && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Permit Type</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.permitType}</div>
+                      </div>
+                    )}
+                    {selectedPermit.status && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Status</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>
+                          <span className={`inline-flex px-2 py-1 rounded-full text-[9px] md:text-xs font-bold ${
+                            selectedPermit.status === 'Active' ? 'bg-green-100 text-green-700' :
+                            selectedPermit.status === 'Expiring Soon' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {selectedPermit.status}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {selectedPermit.issueDate && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Issue Date</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.issueDate}</div>
+                      </div>
+                    )}
+                    {selectedPermit.validFrom && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Valid From</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.validFrom}</div>
+                      </div>
+                    )}
+                    {selectedPermit.validTill && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Valid Till</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.validTill}</div>
+                      </div>
+                    )}
+                    {selectedPermit.validityPeriod && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Validity Period</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.validityPeriod} months</div>
+                      </div>
+                    )}
+                    {selectedPermit.issuingAuthority && (
+                      <div className='bg-white/80 p-2 rounded-lg col-span-2'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Issuing Authority</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.issuingAuthority}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 2: Holder Details */}
+                <div className='bg-gradient-to-br from-purple-50 to-pink-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-purple-200'>
+                  <h3 className='text-sm md:text-base font-bold text-purple-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                    <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+                    </svg>
+                    Holder Details
+                  </h3>
+                  <div className='space-y-1.5 md:space-y-2'>
+                    {selectedPermit.permitHolder && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Permit Holder</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.permitHolder}</div>
+                      </div>
+                    )}
+                    {selectedPermit.address && selectedPermit.address !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Address</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5 leading-relaxed'>{selectedPermit.address}</div>
+                      </div>
+                    )}
+                    {selectedPermit.mobileNumber && selectedPermit.mobileNumber !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Mobile Number</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.mobileNumber}</div>
+                      </div>
+                    )}
+                    {selectedPermit.goodsType && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Goods Type</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.goodsType}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 3: Vehicle Details */}
+                <div className='bg-gradient-to-br from-blue-50 to-cyan-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-blue-200'>
+                  <h3 className='text-sm md:text-base font-bold text-blue-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                    <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z' />
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0h4m10 0a2 2 0 104 0m-4 0h4' />
+                    </svg>
+                    Vehicle Details
+                  </h3>
+                  <div className='grid grid-cols-2 gap-1.5 md:gap-2'>
+                    {selectedPermit.vehicleNo && selectedPermit.vehicleNo !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg col-span-2'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Vehicle Number</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.vehicleNo}</div>
+                      </div>
+                    )}
+                    {selectedPermit.chassisNumber && selectedPermit.chassisNumber !== 'N/A' && (
+                      <div className='bg-gradient-to-br from-blue-100 to-cyan-100 p-2 md:p-2.5 rounded-lg border-2 border-blue-300 col-span-2'>
+                        <div className='text-[10px] md:text-xs font-semibold text-blue-700'>Chassis Number</div>
+                        <div className='text-[10px] md:text-sm font-bold text-blue-900 mt-1 font-mono break-all'>{selectedPermit.chassisNumber}</div>
+                      </div>
+                    )}
+                    {selectedPermit.engineNumber && selectedPermit.engineNumber !== 'N/A' && (
+                      <div className='bg-gradient-to-br from-green-100 to-emerald-100 p-2 md:p-2.5 rounded-lg border-2 border-green-300 col-span-2'>
+                        <div className='text-[10px] md:text-xs font-semibold text-green-700 flex items-center gap-1'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' />
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                          </svg>
+                          Engine Number
+                        </div>
+                        <div className='text-[10px] md:text-sm font-bold text-green-900 mt-1 font-mono break-all'>{selectedPermit.engineNumber}</div>
+                      </div>
+                    )}
+                    {selectedPermit.vehicleType && selectedPermit.vehicleType !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Vehicle Type</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.vehicleType}</div>
+                      </div>
+                    )}
+                    {selectedPermit.vehicleModel && selectedPermit.vehicleModel !== 'N/A' && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Vehicle Model</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.vehicleModel}</div>
+                      </div>
+                    )}
+                    {selectedPermit.ladenWeight && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Laden Weight</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.ladenWeight} kg</div>
+                      </div>
+                    )}
+                    {selectedPermit.unladenWeight && (
+                      <div className='bg-white/80 p-2 rounded-lg'>
+                        <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Unladen Weight</div>
+                        <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.unladenWeight} kg</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Column 4: Payment & Other Details */}
+                <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-green-200'>
+                  <h3 className='text-sm md:text-base font-bold text-green-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                    <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' />
+                    </svg>
+                    Payment Details
+                  </h3>
+                  <div className='space-y-1.5 md:space-y-2'>
+                    {selectedPermit.fees !== undefined && (
+                      <div className='bg-gradient-to-br from-blue-50 to-indigo-50 p-2.5 rounded-lg border-2 border-blue-200'>
+                        <div className='text-[10px] md:text-xs font-semibold text-blue-700'>Total Fee</div>
+                        <div className='text-sm md:text-base font-bold text-blue-900 mt-0.5'>₹{selectedPermit.fees.toLocaleString('en-IN')}</div>
+                      </div>
+                    )}
+                    {selectedPermit.paid !== undefined && (
+                      <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-2.5 rounded-lg border-2 border-green-200'>
+                        <div className='text-[10px] md:text-xs font-semibold text-green-700'>Paid Amount</div>
+                        <div className='text-sm md:text-base font-bold text-green-800 mt-0.5'>₹{selectedPermit.paid.toLocaleString('en-IN')}</div>
+                      </div>
+                    )}
+                    {selectedPermit.balance !== undefined && (
+                      <div className={`p-2.5 rounded-lg border-2 ${selectedPermit.balance > 0 ? 'bg-gradient-to-br from-orange-50 to-red-50 border-orange-200' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'}`}>
+                        <div className={`text-[10px] md:text-xs font-semibold ${selectedPermit.balance > 0 ? 'text-orange-700' : 'text-green-700'}`}>Balance</div>
+                        <div className={`text-sm md:text-base font-bold mt-0.5 ${selectedPermit.balance > 0 ? 'text-orange-800' : 'text-green-800'}`}>₹{selectedPermit.balance.toLocaleString('en-IN')}</div>
+                      </div>
+                    )}
+
+                    {selectedPermit.insuranceDetails && selectedPermit.insuranceDetails.policyNumber !== 'N/A' && (
+                      <>
+                        <div className='bg-indigo-100 p-2 rounded-lg mt-3'>
+                          <div className='text-[10px] md:text-xs font-bold text-indigo-800'>Insurance Details</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Policy Number</div>
+                          <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.insuranceDetails.policyNumber}</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Company</div>
+                          <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.insuranceDetails.company}</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Valid Upto</div>
+                          <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.insuranceDetails.validUpto}</div>
+                        </div>
+                      </>
+                    )}
+
+                    {selectedPermit.taxDetails && selectedPermit.taxDetails.taxPaidUpto !== 'N/A' && (
+                      <>
+                        <div className='bg-purple-100 p-2 rounded-lg mt-3'>
+                          <div className='text-[10px] md:text-xs font-bold text-purple-800'>Tax Details</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Tax Paid Upto</div>
+                          <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedPermit.taxDetails.taxPaidUpto}</div>
+                        </div>
+                        <div className='bg-white/80 p-2 rounded-lg'>
+                          <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Tax Amount</div>
+                          <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>₹{selectedPermit.taxDetails.taxAmount}</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className='sticky bottom-0 bg-gray-50 px-3 py-2.5 md:px-5 md:py-3 border-t border-gray-200 flex justify-end'>
+              <button
+                onClick={() => setShowDetailsModal(false)}
+                className='px-4 py-2 md:px-6 md:py-2 bg-gray-600 text-white rounded-lg md:rounded-xl hover:bg-gray-700 transition-all duration-200 font-bold text-sm shadow-md hover:shadow-lg'
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
         </div>
       </div>
@@ -1234,4 +1522,4 @@ Thank you!`
   )
 }
 
-export default TemporaryPermit
+export default CgPermit
