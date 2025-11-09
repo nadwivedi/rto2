@@ -225,9 +225,13 @@ const CgPermit = () => {
         validTill: permit.validTo, // Also map to validTill for compatibility
         validityPeriod: permit.validityPeriod,
         bill: permit.bill, // Include bill reference
-        fees: permit.totalFee || permit.fees || 0,
+        totalFee: permit.totalFee || 0, // Keep original field name for edit modal
+        fees: permit.totalFee || permit.fees || 0, // Keep for backward compatibility
         balance: permit.balance || 0,
         paid: permit.paid || 0,
+        status: permit.status || 'Active', // Status field for edit modal
+        fatherName: permit.fatherName || '', // Optional field for edit modal
+        email: permit.email || '', // Optional field for edit modal
         address: permit.address || 'N/A',
         mobileNumber: permit.mobileNumber || 'N/A',
         route: permit.route,
@@ -587,7 +591,6 @@ Thank you!`
         vehicleNumber: formData.vehicleNumber,
         validFrom: formData.validFrom,
         validTo: formData.validTo,
-        status: formData.status,
         fatherName: formData.fatherName || '',
         address: formData.address || '',
         mobileNumber: formData.mobileNumber || '',

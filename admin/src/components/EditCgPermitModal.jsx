@@ -10,7 +10,6 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     vehicleNumber: '',
     validFrom: '',
     validTo: '',
-    status: 'Active',
 
     // Optional fields
     fatherName: '',
@@ -35,12 +34,11 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         vehicleNumber: permit.vehicleNo || permit.vehicleNumber || '',
         validFrom: permit.validFrom || '',
         validTo: permit.validTill || permit.validTo || '',
-        status: permit.status || 'Active',
         fatherName: permit.fatherName || '',
         address: permit.address || '',
         mobileNumber: permit.mobileNumber?.replace('+91 ', '') || '',
         email: permit.email || '',
-        totalFee: permit.totalFee?.toString() || '',
+        totalFee: (permit.totalFee || permit.fees)?.toString() || '',
         paid: permit.paid?.toString() || '',
         balance: permit.balance?.toString() || ''
       })
@@ -379,26 +377,6 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     readOnly
                   />
                   <p className='text-xs text-gray-500 mt-1'>Auto-calculated (5 years - 1 day from Valid From date)</p>
-                </div>
-
-                {/* Status */}
-                <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Status <span className='text-red-500'>*</span>
-                  </label>
-                  <select
-                    name='status'
-                    value={formData.status}
-                    onChange={handleChange}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                    required
-                  >
-                    <option value='Active'>Active</option>
-                    <option value='Pending Renewal'>Pending Renewal</option>
-                    <option value='Expiring Soon'>Expiring Soon</option>
-                    <option value='Expired'>Expired</option>
-                    <option value='Suspended'>Suspended</option>
-                  </select>
                 </div>
               </div>
             </div>
