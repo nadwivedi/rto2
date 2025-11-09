@@ -56,8 +56,8 @@ const InsuranceSchema = new mongoose.Schema({
   // Status
   status: {
     type: String,
-    enum: ['Active', 'Expired', 'Expiring Soon', 'Cancelled'],
-    default: 'Active'
+    enum: ['active', 'expired', 'expiring_soon', 'cancelled'],
+    default: 'active'
   },
 
   // Additional Information

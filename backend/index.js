@@ -56,11 +56,13 @@ const { initCgPermitStatusCron } = require('./jobs/updateCgPermitStatus')
 const { initFitnessStatusCron } = require('./jobs/updateFitnessStatus')
 const { initTaxStatusCron } = require('./jobs/updateTaxStatus')
 const { initInsuranceStatusCron } = require('./jobs/updateInsuranceStatus')
+const { initTemporaryPermitOtherStateStatusCron } = require('./jobs/updateTemporaryPermitOtherStateStatus')
 initTemporaryPermitStatusCron()
 initCgPermitStatusCron()
 initFitnessStatusCron()
 initTaxStatusCron()
 initInsuranceStatusCron()
+initTemporaryPermitOtherStateStatusCron()
 
 // Import Routes
 const authRoutes = require('./routes/auth')

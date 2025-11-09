@@ -1,25 +1,25 @@
 const cron = require('node-cron')
-const Insurance = require('../models/Insurance')
+const TemporaryPermitOtherState = require('../models/TemporaryPermitOtherState')
 
 /**
- * Update insurance statuses based on validTo date
- * - Expired: validTo date is in the past
- * - Expiring Soon: validTo date is within 30 days
- * - Active: validTo date is more than 30 days away
+ * Update temporary permit other state statuses based on validTo date
+ * - expired: validTo date is in the past
+ * - expiring_soon: validTo date is within 7 days
+ * - active: validTo date is more than 7 days away
  */
-const updateInsuranceStatuses = async () => {
+const updateTemporaryPermitOtherStateStatuses = async () => {
   try {
-    console.log('[CRON] Starting insurance status update...')
+    console.log('[CRON] Starting temporary permit other state status update...')
     const startTime = Date.now()
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const thirtyDaysFromNow = new Date()
-    thirtyDaysFromNow.setDate(today.getDate() + 30)
-    thirtyDaysFromNow.setHours(23, 59, 59, 999)
+    const sevenDaysFromNow = new Date()
+    sevenDaysFromNow.setDate(today.getDate() + 7)
+    sevenDaysFromNow.setHours(23, 59, 59, 999)
 
-    // Build aggregation pipeline to calculate status for all insurance records
+    // Build aggregation pipeline to calculate status for all permits
     const pipeline = [
       {
         $addFields: {
@@ -66,7 +66,7 @@ const updateInsuranceStatuses = async () => {
                   case: {
                     $and: [
                       { $gte: ['$validToDateParsed', today] },
-                      { $lte: ['$validToDateParsed', thirtyDaysFromNow] }
+                      { $lte: ['$validToDateParsed', sevenDaysFromNow] }
                     ]
                   },
                   then: 'expiring_soon'
@@ -82,31 +82,31 @@ const updateInsuranceStatuses = async () => {
           _id: 1,
           computedStatus: 1,
           status: 1,
-          vehicleNumber: 1,
+          permitNumber: 1,
           validTo: 1
         }
       }
     ]
 
-    const insuranceRecords = await Insurance.aggregate(pipeline)
+    const permits = await TemporaryPermitOtherState.aggregate(pipeline)
 
-    if (insuranceRecords.length === 0) {
-      console.log('[CRON] No insurance records found to update')
+    if (permits.length === 0) {
+      console.log('[CRON] No temporary permits other state found to update')
       return
     }
 
-    // Build bulk write operations only for records that need status update
+    // Build bulk write operations only for permits that need status update
     const bulkOps = []
     let updatedCount = 0
     let skippedCount = 0
 
-    insuranceRecords.forEach(insurance => {
+    permits.forEach(permit => {
       // Only update if status has changed
-      if (insurance.status !== insurance.computedStatus) {
+      if (permit.status !== permit.computedStatus) {
         bulkOps.push({
           updateOne: {
-            filter: { _id: insurance._id },
-            update: { $set: { status: insurance.computedStatus } }
+            filter: { _id: permit._id },
+            update: { $set: { status: permit.computedStatus } }
           }
         })
         updatedCount++
@@ -117,21 +117,21 @@ const updateInsuranceStatuses = async () => {
 
     // Execute bulk write if there are updates
     if (bulkOps.length > 0) {
-      const result = await Insurance.bulkWrite(bulkOps)
+      const result = await TemporaryPermitOtherState.bulkWrite(bulkOps)
       const duration = Date.now() - startTime
-      console.log(`[CRON] Insurance status update completed in ${duration}ms`)
-      console.log(`[CRON] Total insurance records: ${insuranceRecords.length}`)
+      console.log(`[CRON] Temporary permit other state status update completed in ${duration}ms`)
+      console.log(`[CRON] Total permits: ${permits.length}`)
       console.log(`[CRON] Updated: ${result.modifiedCount}`)
       console.log(`[CRON] Skipped (no change): ${skippedCount}`)
     } else {
       const duration = Date.now() - startTime
-      console.log(`[CRON] Insurance status update completed in ${duration}ms`)
-      console.log(`[CRON] Total insurance records: ${insuranceRecords.length}`)
+      console.log(`[CRON] Temporary permit other state status update completed in ${duration}ms`)
+      console.log(`[CRON] Total permits: ${permits.length}`)
       console.log(`[CRON] No updates needed - all statuses are current`)
     }
 
   } catch (error) {
-    console.error('[CRON] Error updating insurance statuses:', error)
+    console.error('[CRON] Error updating temporary permit other state statuses:', error)
   }
 }
 
@@ -140,22 +140,22 @@ const updateInsuranceStatuses = async () => {
  * Runs every day at midnight (00:00)
  * Also runs immediately on server start to ensure statuses are current
  */
-const initInsuranceStatusCron = () => {
+const initTemporaryPermitOtherStateStatusCron = () => {
   // Schedule: Every day at midnight (00:00)
   // Format: second minute hour day month dayOfWeek
   cron.schedule('0 0 * * *', () => {
-    console.log('[CRON] Running scheduled insurance status update...')
-    updateInsuranceStatuses()
+    console.log('[CRON] Running scheduled temporary permit other state status update...')
+    updateTemporaryPermitOtherStateStatuses()
   })
 
   // Run immediately on server start
-  console.log('[CRON] Running initial insurance status update...')
-  updateInsuranceStatuses()
+  console.log('[CRON] Running initial temporary permit other state status update...')
+  updateTemporaryPermitOtherStateStatuses()
 
-  console.log('[CRON] Insurance status cron job initialized (runs daily at midnight)')
+  console.log('[CRON] Temporary permit other state status cron job initialized (runs daily at midnight)')
 }
 
 module.exports = {
-  initInsuranceStatusCron,
-  updateInsuranceStatuses
+  initTemporaryPermitOtherStateStatusCron,
+  updateTemporaryPermitOtherStateStatuses
 }

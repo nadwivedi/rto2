@@ -60,7 +60,7 @@ const updateFitnessStatuses = async () => {
               branches: [
                 {
                   case: { $lt: ['$validToDateParsed', today] },
-                  then: 'Expired'
+                  then: 'expired'
                 },
                 {
                   case: {
@@ -69,10 +69,10 @@ const updateFitnessStatuses = async () => {
                       { $lte: ['$validToDateParsed', thirtyDaysFromNow] }
                     ]
                   },
-                  then: 'Expiring Soon'
+                  then: 'expiring_soon'
                 }
               ],
-              default: 'Active'
+              default: 'active'
             }
           }
         }

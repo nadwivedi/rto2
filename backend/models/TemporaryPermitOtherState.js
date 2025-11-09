@@ -51,6 +51,14 @@ const TemporaryPermitOtherStateSchema = new mongoose.Schema({
     default: 0
   },
 
+  // Status (managed by cron job)
+  status: {
+    type: String,
+    enum: ['active', 'expiring_soon', 'expired', 'cancelled'],
+    default: 'active',
+    index: true
+  },
+
   // Bill Reference
   bill: {
     type: mongoose.Schema.Types.ObjectId,

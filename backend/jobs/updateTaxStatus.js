@@ -3,9 +3,9 @@ const Tax = require('../models/Tax')
 
 /**
  * Update tax statuses based on taxTo date
- * - Expired: taxTo date is in the past
- * - Expiring Soon: taxTo date is within 15 days
- * - Active: taxTo date is more than 15 days away
+ * - expired: taxTo date is in the past
+ * - expiring_soon: taxTo date is within 30 days
+ * - active: taxTo date is more than 30 days away
  */
 const updateTaxStatuses = async () => {
   try {
@@ -15,9 +15,9 @@ const updateTaxStatuses = async () => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
+    const thirtyDaysFromNow = new Date()
+    thirtyDaysFromNow.setDate(today.getDate() + 30)
+    thirtyDaysFromNow.setHours(23, 59, 59, 999)
 
     // Build aggregation pipeline to calculate status for all tax records
     const pipeline = [
@@ -60,19 +60,19 @@ const updateTaxStatuses = async () => {
               branches: [
                 {
                   case: { $lt: ['$taxToDateParsed', today] },
-                  then: 'Expired'
+                  then: 'expired'
                 },
                 {
                   case: {
                     $and: [
                       { $gte: ['$taxToDateParsed', today] },
-                      { $lte: ['$taxToDateParsed', fifteenDaysFromNow] }
+                      { $lte: ['$taxToDateParsed', thirtyDaysFromNow] }
                     ]
                   },
-                  then: 'Expiring Soon'
+                  then: 'expiring_soon'
                 }
               ],
-              default: 'Active'
+              default: 'active'
             }
           }
         }
