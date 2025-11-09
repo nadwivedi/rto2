@@ -1,9 +1,40 @@
 const Insurance = require('../models/Insurance')
 
+// helper function to calculate status
+const getInsuranceStatus = (validTo) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+  // a little utility function to parse dates consistently
+  const parseDate = (dateString) => {
+      const parts = dateString.split(/[-/]/);
+      // new Date(year, monthIndex, day)
+      return new Date(parts[2], parts[1] - 1, parts[0]);
+  };
+
+  const validToDate = parseDate(validTo);
+
+  if (validToDate < today) {
+    return 'expired';
+  } else if (validToDate <= thirtyDaysFromNow) {
+    return 'expiring_soon';
+  } else {
+    return 'active';
+  }
+};
+
 // Create new insurance record
 exports.createInsurance = async (req, res) => {
   try {
     const insuranceData = req.body
+
+    // Calculate status
+    const status = getInsuranceStatus(insuranceData.validTo);
+    insuranceData.status = status;
 
     // Create new insurance record
     const newInsurance = new Insurance(insuranceData)
@@ -154,6 +185,11 @@ exports.updateInsurance = async (req, res) => {
   try {
     const { id } = req.params
     const updateData = req.body
+
+    if (updateData.validTo) {
+        // Recalculate status if validTo is updated
+        updateData.status = getInsuranceStatus(updateData.validTo);
+    }
 
     const updatedInsurance = await Insurance.findByIdAndUpdate(
       id,

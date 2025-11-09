@@ -4,6 +4,33 @@ const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/cu
 const path = require('path')
 const fs = require('fs')
 
+// helper function to calculate status
+const getTemporaryPermitStatus = (validTo) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+  // a little utility function to parse dates consistently
+  const parseDate = (dateString) => {
+      const parts = dateString.split(/[-/]/);
+      // new Date(year, monthIndex, day)
+      return new Date(parts[2], parts[1] - 1, parts[0]);
+  };
+
+  const validToDate = parseDate(validTo);
+
+  if (validToDate < today) {
+    return 'expired';
+  } else if (validToDate <= thirtyDaysFromNow) {
+    return 'expiring_soon';
+  } else {
+    return 'active';
+  }
+};
+
 // Create new temporary permit
 exports.createPermit = async (req, res) => {
   try {
@@ -189,6 +216,9 @@ exports.createPermit = async (req, res) => {
       }
     }
 
+    // Calculate status
+    const status = getTemporaryPermitStatus(validTo);
+
     // Prepare permit data with validated values
     const permitData = {
       permitNumber: permitNumber.trim(),
@@ -199,7 +229,8 @@ exports.createPermit = async (req, res) => {
       validTo,
       totalFee: Number(totalFee),
       paid: paid !== undefined ? Number(paid) : 0,
-      balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0)
+      balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0),
+      status
     }
 
     // Add optional fields if provided
@@ -595,7 +626,11 @@ exports.updatePermit = async (req, res) => {
     if (vehicleNumber) updateData.vehicleNumber = vehicleNumber.trim().toUpperCase()
     if (vehicleType) updateData.vehicleType = vehicleType.toUpperCase()
     if (validFrom) updateData.validFrom = validFrom
-    if (validTo) updateData.validTo = validTo
+    if (validTo) {
+        updateData.validTo = validTo;
+        // Recalculate status if validTo is updated
+        updateData.status = getTemporaryPermitStatus(validTo);
+    }
     if (totalFee !== undefined) updateData.totalFee = Number(totalFee)
     if (paid !== undefined) updateData.paid = Number(paid)
     if (balance !== undefined) updateData.balance = Number(balance)

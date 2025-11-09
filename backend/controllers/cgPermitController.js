@@ -5,6 +5,33 @@ const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../u
 const path = require('path')
 const fs = require('fs')
 
+// helper function to calculate status
+const getCgPermitStatus = (validTo) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+  // a little utility function to parse dates consistently
+  const parseDate = (dateString) => {
+      const parts = dateString.split(/[-/]/);
+      // new Date(year, monthIndex, day)
+      return new Date(parts[2], parts[1] - 1, parts[0]);
+  };
+
+  const validToDate = parseDate(validTo);
+
+  if (validToDate < today) {
+    return 'expired';
+  } else if (validToDate <= thirtyDaysFromNow) {
+    return 'expiring_soon';
+  } else {
+    return 'active';
+  }
+};
+
 // Create new CG permit
 exports.createPermit = async (req, res) => {
   try {
@@ -136,6 +163,9 @@ exports.createPermit = async (req, res) => {
       })
     }
 
+    // Calculate status
+    const status = getCgPermitStatus(validTo);
+
     // Prepare validated permit data
     const permitData = {
       permitNumber: permitNumber.trim(),
@@ -149,7 +179,8 @@ exports.createPermit = async (req, res) => {
       fatherName: fatherName ? fatherName.trim() : undefined,
       mobileNumber: mobileNumber ? mobileNumber.trim() : undefined,
       email: email ? email.trim() : undefined,
-      notes: notes ? notes.trim() : undefined
+      notes: notes ? notes.trim() : undefined,
+      status
     }
 
     // Create new CG permit without bill reference first
@@ -474,7 +505,11 @@ exports.updatePermit = async (req, res) => {
     if (permitHolder !== undefined) updateData.permitHolder = permitHolder.trim()
     if (vehicleNumber !== undefined) updateData.vehicleNumber = vehicleNumber.trim().toUpperCase()
     if (validFrom !== undefined) updateData.validFrom = validFrom.trim()
-    if (validTo !== undefined) updateData.validTo = validTo.trim()
+    if (validTo !== undefined) {
+        updateData.validTo = validTo.trim()
+        // Recalculate status if validTo is updated
+        updateData.status = getCgPermitStatus(validTo.trim());
+    }
     if (totalFee !== undefined) updateData.totalFee = Number(totalFee)
     if (paid !== undefined) updateData.paid = Number(paid)
     if (balance !== undefined) updateData.balance = Number(balance)

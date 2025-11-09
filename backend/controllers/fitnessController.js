@@ -4,6 +4,34 @@ const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/cu
 const path = require('path')
 const fs = require('fs')
 
+// helper function to calculate status
+const getFitnessStatus = (validTo) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+  // a little utility function to parse dates consistently
+  const parseDate = (dateString) => {
+      const parts = dateString.split(/[-/]/);
+      // new Date(year, monthIndex, day)
+      return new Date(parts[2], parts[1] - 1, parts[0]);
+  };
+
+  const validToDate = parseDate(validTo);
+
+  if (validToDate < today) {
+    return 'expired';
+  } else if (validToDate <= thirtyDaysFromNow) {
+    return 'expiring_soon';
+  } else {
+    return 'active';
+  }
+};
+
+
 // Get all fitness records
 exports.getAllFitness = async (req, res) => {
   try {
@@ -213,6 +241,9 @@ exports.createFitness = async (req, res) => {
       })
     }
 
+    // Calculate status
+    const status = getFitnessStatus(validTo);
+
     // Create new fitness record without bill reference first
     const fitness = new Fitness({
       vehicleNumber,
@@ -220,7 +251,8 @@ exports.createFitness = async (req, res) => {
       validTo,
       totalFee: totalFee || 0,
       paid: paid || 0,
-      balance: balance || 0
+      balance: balance || 0,
+      status
     })
 
     await fitness.save()
@@ -298,7 +330,11 @@ exports.updateFitness = async (req, res) => {
     // Update fields
     if (vehicleNumber) fitness.vehicleNumber = vehicleNumber
     if (validFrom) fitness.validFrom = validFrom
-    if (validTo) fitness.validTo = validTo
+    if (validTo) {
+        fitness.validTo = validTo
+        // Recalculate status if validTo is updated
+        fitness.status = getFitnessStatus(validTo);
+    }
     if (totalFee !== undefined) fitness.totalFee = totalFee
     if (paid !== undefined) fitness.paid = paid
     if (balance !== undefined) fitness.balance = balance

@@ -3,10 +3,41 @@ const CustomBill = require('../models/CustomBill')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
 const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 
+// helper function to calculate status
+const getTemporaryPermitOtherStateStatus = (validTo) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(today.getDate() + 7);
+  sevenDaysFromNow.setHours(23, 59, 59, 999);
+
+  // a little utility function to parse dates consistently
+  const parseDate = (dateString) => {
+      const parts = dateString.split(/[-/]/);
+      // new Date(year, monthIndex, day)
+      return new Date(parts[2], parts[1] - 1, parts[0]);
+  };
+
+  const validToDate = parseDate(validTo);
+
+  if (validToDate < today) {
+    return 'expired';
+  } else if (validToDate <= sevenDaysFromNow) {
+    return 'expiring_soon';
+  } else {
+    return 'active';
+  }
+};
+
 // Create new temporary permit (other state)
 exports.createPermit = async (req, res) => {
   try {
     const permitData = req.body
+
+    // Calculate status
+    const status = getTemporaryPermitOtherStateStatus(permitData.validTo);
+    permitData.status = status;
 
     // Create new temporary permit without bill reference first
     const newPermit = new TemporaryPermitOtherState(permitData)
@@ -285,9 +316,17 @@ exports.getPermitById = async (req, res) => {
 // Update permit
 exports.updatePermit = async (req, res) => {
   try {
+    const { id } = req.params
+    const updateData = req.body
+
+    if (updateData.validTo) {
+        // Recalculate status if validTo is updated
+        updateData.status = getTemporaryPermitOtherStateStatus(updateData.validTo);
+    }
+
     const updatedPermit = await TemporaryPermitOtherState.findByIdAndUpdate(
-      req.params.id,
-      req.body,
+      id,
+      updateData,
       { new: true, runValidators: true }
     )
 

@@ -4,6 +4,33 @@ const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/cu
 const path = require('path')
 const fs = require('fs')
 
+// helper function to calculate status
+const getTaxStatus = (taxTo) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+  // a little utility function to parse dates consistently
+  const parseDate = (dateString) => {
+      const parts = dateString.split(/[-/]/);
+      // new Date(year, monthIndex, day)
+      return new Date(parts[2], parts[1] - 1, parts[0]);
+  };
+
+  const taxToDate = parseDate(taxTo);
+
+  if (taxToDate < today) {
+    return 'expired';
+  } else if (taxToDate <= thirtyDaysFromNow) {
+    return 'expiring_soon';
+  } else {
+    return 'active';
+  }
+};
+
 // Get all tax records
 exports.getAllTax = async (req, res) => {
   try {
@@ -213,6 +240,9 @@ exports.createTax = async (req, res) => {
       })
     }
 
+    // Calculate status
+    const status = getTaxStatus(taxTo);
+
     // Create new tax record without bill reference first
     const tax = new Tax({
       receiptNo,
@@ -222,7 +252,8 @@ exports.createTax = async (req, res) => {
       paidAmount: paidAmount || 0,
       balanceAmount: balanceAmount || 0,
       taxFrom,
-      taxTo
+      taxTo,
+      status
     })
 
     await tax.save()
@@ -302,7 +333,11 @@ exports.updateTax = async (req, res) => {
     if (vehicleNumber) tax.vehicleNumber = vehicleNumber
     if (ownerName !== undefined) tax.ownerName = ownerName
     if (taxFrom) tax.taxFrom = taxFrom
-    if (taxTo) tax.taxTo = taxTo
+    if (taxTo) {
+        tax.taxTo = taxTo
+        // Recalculate status if taxTo is updated
+        tax.status = getTaxStatus(taxTo);
+    }
     if (totalAmount !== undefined) tax.totalAmount = totalAmount
     if (paidAmount !== undefined) tax.paidAmount = paidAmount
     if (balanceAmount !== undefined) tax.balanceAmount = balanceAmount
