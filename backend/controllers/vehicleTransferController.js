@@ -53,7 +53,8 @@ exports.getAllTransfers = async (req, res) => {
       query.$or = [
         { vehicleNumber: { $regex: search, $options: 'i' } },
         { currentOwnerName: { $regex: search, $options: 'i' } },
-        { newOwnerName: { $regex: search, $options: 'i' } }
+        { newOwnerName: { $regex: search, $options: 'i' } },
+        { byName: { $regex: search, $options: 'i' } }
       ]
     }
 

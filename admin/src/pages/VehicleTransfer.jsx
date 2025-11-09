@@ -1,11 +1,14 @@
 import { useState, useMemo, useEffect } from 'react'
 import AddVehicleTransferModal from '../components/AddVehicleTransferModal'
+import VehicleTransferDetailModal from '../components/VehicleTransferDetailModal'
 import Pagination from '../components/Pagination'
 
 const VehicleTransfer = () => {
   const [transfers, setTransfers] = useState([])
   const [showModal, setShowModal] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
   const [editData, setEditData] = useState(null)
+  const [viewData, setViewData] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(false)
   const [viewMode, setViewMode] = useState('table') // 'table' or 'card'
@@ -97,6 +100,11 @@ const VehicleTransfer = () => {
   const handleEdit = (transfer) => {
     setEditData(transfer)
     setShowModal(true)
+  }
+
+  const handleViewDetail = (transfer) => {
+    setViewData(transfer)
+    setShowDetailModal(true)
   }
 
   const handleSuccess = () => {
@@ -253,6 +261,16 @@ const VehicleTransfer = () => {
 
                         {/* Action Buttons */}
                         <div className='flex items-center gap-1.5'>
+                          <button
+                            onClick={() => handleViewDetail(transfer)}
+                            className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all cursor-pointer'
+                            title='View Details'
+                          >
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                            </svg>
+                          </button>
                           <button
                             onClick={() => handleEdit(transfer)}
                             className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all cursor-pointer'
@@ -468,6 +486,16 @@ const VehicleTransfer = () => {
                           <td className='px-4 py-4'>
                             <div className='flex items-center justify-center gap-2'>
                               <button
+                                onClick={() => handleViewDetail(transfer)}
+                                className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
+                                title='View Details'
+                              >
+                                <svg className='w-5 h-5 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                                </svg>
+                              </button>
+                              <button
                                 onClick={() => handleEdit(transfer)}
                                 className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 hover:shadow-md transition-all duration-200 cursor-pointer group'
                                 title='Edit Transfer'
@@ -528,6 +556,16 @@ const VehicleTransfer = () => {
                             </div>
                           </div>
                           <div className='flex items-center gap-1.5'>
+                            <button
+                              onClick={() => handleViewDetail(transfer)}
+                              className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all cursor-pointer'
+                              title='View Details'
+                            >
+                              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                              </svg>
+                            </button>
                             <button
                               onClick={() => handleEdit(transfer)}
                               className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all cursor-pointer'
@@ -636,7 +674,7 @@ const VehicleTransfer = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {/* Add/Edit Modal */}
       <AddVehicleTransferModal
         isOpen={showModal}
         onClose={() => {
@@ -645,6 +683,16 @@ const VehicleTransfer = () => {
         }}
         onSuccess={handleSuccess}
         editData={editData}
+      />
+
+      {/* Detail View Modal */}
+      <VehicleTransferDetailModal
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false)
+          setViewData(null)
+        }}
+        transfer={viewData}
       />
     </>
   )

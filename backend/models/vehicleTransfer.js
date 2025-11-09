@@ -78,6 +78,16 @@ const VehicleTransferSchema = new mongoose.Schema({
   },
 
 
+  // Broker/By Details (Optional)
+  byName: {
+    type: String,
+    trim: true
+  },
+  byMobile: {
+    type: String,
+    trim: true
+  },
+
   // Additional Information
   remarks: {
     type: String,

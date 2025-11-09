@@ -14,6 +14,8 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
     newOwnerFatherName: '',
     newOwnerAddress: '',
     newOwnerMobile: '',
+    byName: '',
+    byMobile: '',
     totalFee: '',
     paid: ''
   })
@@ -37,6 +39,8 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
         newOwnerFatherName: '',
         newOwnerAddress: '',
         newOwnerMobile: '',
+        byName: '',
+        byMobile: '',
         totalFee: '',
         paid: ''
       })
@@ -419,10 +423,61 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
             </div>
           </div>
 
-          {/* Section 4: Payment Information */}
+          {/* Section 4: By/Referral Details */}
+          <div className='bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+              <span className='bg-amber-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>4</span>
+              By/Referral Details (Optional)
+            </h3>
+
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+              {/* Name */}
+              <div>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  Name
+                </label>
+                <input
+                  type='text'
+                  name='byName'
+                  value={formData.byName}
+                  onChange={handleChange}
+                  placeholder='Enter name'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent'
+                />
+              </div>
+
+              {/* Mobile Number */}
+              <div>
+                <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                  Mobile Number
+                </label>
+                <input
+                  type='tel'
+                  name='byMobile'
+                  value={formData.byMobile}
+                  onChange={handleChange}
+                  placeholder='10-digit mobile number'
+                  pattern='[0-9]{10}'
+                  maxLength='10'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent'
+                />
+              </div>
+            </div>
+
+            <div className='mt-3 bg-amber-100 border-l-4 border-amber-500 p-2 md:p-3 rounded'>
+              <p className='text-xs md:text-sm text-amber-700 flex items-center gap-1'>
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                </svg>
+                Referral/Agent who facilitated this vehicle transfer
+              </p>
+            </div>
+          </div>
+
+          {/* Section 5: Payment Information */}
           <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
             <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-              <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>4</span>
+              <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>5</span>
               Payment Information
             </h3>
 
