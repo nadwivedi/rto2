@@ -427,7 +427,191 @@ exports.getPermitByNumber = async (req, res) => {
 exports.updatePermit = async (req, res) => {
   try {
     const { id } = req.params
-    const updateData = req.body
+
+    // Destructure all fields from request body
+    const {
+      permitNumber,
+      permitHolder,
+      vehicleNumber,
+      vehicleType,
+      validFrom,
+      validTo,
+      fatherName,
+      address,
+      mobileNumber,
+      email,
+      chassisNumber,
+      engineNumber,
+      ladenWeight,
+      unladenWeight,
+      totalFee,
+      paid,
+      balance,
+      status,
+      notes
+    } = req.body
+
+    // 1. Validate required fields
+    if (permitNumber && permitNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number cannot be empty'
+      })
+    }
+
+    if (permitHolder && permitHolder.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit holder name cannot be empty'
+      })
+    }
+
+    if (vehicleNumber && vehicleNumber.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number cannot be empty'
+      })
+    }
+
+    // 2. Check if permit number already exists (if being changed)
+    if (permitNumber && permitNumber.trim() !== '') {
+      const existingPermit = await TemporaryPermit.findOne({
+        permitNumber: permitNumber.trim(),
+        _id: { $ne: id } // Exclude current document
+      })
+      if (existingPermit) {
+        return res.status(400).json({
+          success: false,
+          message: 'Permit number already exists'
+        })
+      }
+    }
+
+    // 3. Validate vehicle number format (if provided)
+    if (vehicleNumber && vehicleNumber.trim() !== '') {
+      const cleanVehicleNumber = vehicleNumber.trim().replace(/\s+/g, '')
+      if (cleanVehicleNumber.length !== 10) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vehicle number must be exactly 10 characters'
+        })
+      }
+
+      const vehicleNumberPattern = /^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$/
+      if (!vehicleNumberPattern.test(cleanVehicleNumber)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vehicle number format is invalid (e.g., CG01AB1234)'
+        })
+      }
+    }
+
+    // 4. Validate vehicle type (if provided)
+    if (vehicleType && !['CV', 'PV'].includes(vehicleType.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle type must be either CV or PV'
+      })
+    }
+
+    // 5. Validate totalFee (if provided)
+    if (totalFee !== undefined && totalFee !== null) {
+      if (isNaN(totalFee) || Number(totalFee) <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Total fee must be greater than zero'
+        })
+      }
+    }
+
+    // 6. Validate paid amount (if provided)
+    if (paid !== undefined && paid !== null) {
+      if (isNaN(paid) || Number(paid) < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Paid amount cannot be negative'
+        })
+      }
+      if (totalFee !== undefined && Number(paid) > Number(totalFee)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Paid amount cannot be greater than total fee'
+        })
+      }
+    }
+
+    // 7. Validate balance (if provided)
+    if (balance !== undefined && balance !== null) {
+      if (isNaN(balance) || Number(balance) < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Balance cannot be negative'
+        })
+      }
+    }
+
+    // 8. Validate mobile number (if provided)
+    if (mobileNumber && mobileNumber.trim() !== '') {
+      const cleanMobile = mobileNumber.trim().replace(/\s+/g, '')
+      if (!/^[0-9]{10}$/.test(cleanMobile)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Mobile number must be exactly 10 digits'
+        })
+      }
+    }
+
+    // 9. Validate email format (if provided)
+    if (email && email.trim() !== '') {
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailPattern.test(email.trim())) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid email format'
+        })
+      }
+    }
+
+    // 10. Validate weight values (if provided)
+    if (ladenWeight !== undefined && ladenWeight !== null) {
+      if (isNaN(ladenWeight) || Number(ladenWeight) < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Laden weight must be a positive number'
+        })
+      }
+    }
+
+    if (unladenWeight !== undefined && unladenWeight !== null) {
+      if (isNaN(unladenWeight) || Number(unladenWeight) < 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Unladen weight must be a positive number'
+        })
+      }
+    }
+
+    // Prepare update data
+    const updateData = {}
+    if (permitNumber) updateData.permitNumber = permitNumber.trim()
+    if (permitHolder) updateData.permitHolder = permitHolder.trim()
+    if (vehicleNumber) updateData.vehicleNumber = vehicleNumber.trim().toUpperCase()
+    if (vehicleType) updateData.vehicleType = vehicleType.toUpperCase()
+    if (validFrom) updateData.validFrom = validFrom
+    if (validTo) updateData.validTo = validTo
+    if (totalFee !== undefined) updateData.totalFee = Number(totalFee)
+    if (paid !== undefined) updateData.paid = Number(paid)
+    if (balance !== undefined) updateData.balance = Number(balance)
+    if (fatherName !== undefined) updateData.fatherName = fatherName ? fatherName.trim() : ''
+    if (address !== undefined) updateData.address = address ? address.trim() : ''
+    if (mobileNumber !== undefined) updateData.mobileNumber = mobileNumber ? mobileNumber.trim() : ''
+    if (email !== undefined) updateData.email = email ? email.trim().toLowerCase() : ''
+    if (chassisNumber !== undefined) updateData.chassisNumber = chassisNumber ? chassisNumber.trim().toUpperCase() : ''
+    if (engineNumber !== undefined) updateData.engineNumber = engineNumber ? engineNumber.trim().toUpperCase() : ''
+    if (ladenWeight !== undefined) updateData.ladenWeight = ladenWeight ? Number(ladenWeight) : null
+    if (unladenWeight !== undefined) updateData.unladenWeight = unladenWeight ? Number(unladenWeight) : null
+    if (status !== undefined) updateData.status = status
+    if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
 
     const updatedPermit = await TemporaryPermit.findByIdAndUpdate(
       id,
