@@ -390,92 +390,10 @@ exports.deleteTax = async (req, res) => {
 // Get tax statistics
 exports.getTaxStatistics = async (req, res) => {
   try {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
-
-    // Use aggregation pipeline to calculate statistics
-    const statusPipeline = [
-      {
-        $addFields: {
-          // Normalize separator: replace - with /
-          taxToNormalized: {
-            $replaceAll: {
-              input: '$taxTo',
-              find: '-',
-              replacement: '/'
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          // Convert taxTo string to date for comparison
-          taxToDateParsed: {
-            $dateFromString: {
-              dateString: {
-                $concat: [
-                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 2] }, // year
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 1] }, // month
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 0] }  // day
-                ]
-              },
-              onError: null,
-              onNull: null
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          computedStatus: {
-            $switch: {
-              branches: [
-                {
-                  case: { $lt: ['$taxToDateParsed', today] },
-                  then: 'expired'
-                },
-                {
-                  case: {
-                    $and: [
-                      { $gte: ['$taxToDateParsed', today] },
-                      { $lte: ['$taxToDateParsed', fifteenDaysFromNow] }
-                    ]
-                  },
-                  then: 'expiring_soon'
-                }
-              ],
-              default: 'active'
-            }
-          }
-        }
-      },
-      {
-        $group: {
-          _id: '$computedStatus',
-          count: { $sum: 1 }
-        }
-      }
-    ]
-
-    const statusResults = await Tax.aggregate(statusPipeline)
-
-    // Convert array to object for easy access
-    const statusCounts = {
-      active: 0,
-      expired: 0,
-      expiring_soon: 0
-    }
-
-    statusResults.forEach(result => {
-      statusCounts[result._id] = result.count
-    })
-
+    // Count permits by status (now using the indexed status field)
+    const activeTax = await Tax.countDocuments({ status: 'active' })
+    const expiringSoonTax = await Tax.countDocuments({ status: 'expiring_soon' })
+    const expiredTax = await Tax.countDocuments({ status: 'expired' })
     const total = await Tax.countDocuments()
 
     // Pending payment aggregation
@@ -498,9 +416,9 @@ exports.getTaxStatistics = async (req, res) => {
       success: true,
       data: {
         total,
-        active: statusCounts.active,
-        expired: statusCounts.expired,
-        expiringSoon: statusCounts.expiring_soon,
+        active: activeTax,
+        expired: expiredTax,
+        expiringSoon: expiringSoonTax,
         pendingPaymentCount,
         pendingPaymentAmount
       }

@@ -386,62 +386,65 @@ exports.deletePermit = async (req, res) => {
 // Get expiring soon count
 exports.getExpiringSoonCount = async (req, res) => {
   try {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
-
-    const pipeline = [
-      {
-        $addFields: {
-          validToNormalized: {
-            $replaceAll: { input: '$validTo', find: '-', replacement: '/' }
-          }
-        }
-      },
-      {
-        $addFields: {
-          validToDateParsed: {
-            $dateFromString: {
-              dateString: {
-                $concat: [
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 2] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 1] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 0] }
-                ]
-              },
-              onError: null,
-              onNull: null
-            }
-          }
-        }
-      },
-      {
-        $match: {
-          $and: [
-            { validToDateParsed: { $gte: today } },
-            { validToDateParsed: { $lte: fifteenDaysFromNow } }
-          ]
-        }
-      },
-      { $count: 'count' }
-    ]
-
-    const result = await TemporaryPermitOtherState.aggregate(pipeline)
-    const count = result[0]?.count || 0
-
-    res.json({ success: true, count })
+    const count = await TemporaryPermitOtherState.countDocuments({ status: 'expiring_soon' });
+    res.json({ success: true, count });
   } catch (error) {
-    console.error('Error getting expiring soon count:', error)
-    logError(error, req)
+    console.error('Error getting expiring soon count:', error);
+    logError(error, req);
     res.status(500).json({
       success: false,
       message: 'Failed to get expiring soon count',
-      error: error.message
-    })
+      error: error.message,
+    });
   }
-}
+};
+
+// Get statistics
+exports.getStatistics = async (req, res) => {
+  try {
+    // Count permits by status (now using the indexed status field)
+    const activePermits = await TemporaryPermitOtherState.countDocuments({ status: 'active' });
+    const expiringPermits = await TemporaryPermitOtherState.countDocuments({ status: 'expiring_soon' });
+    const expiredPermits = await TemporaryPermitOtherState.countDocuments({ status: 'expired' });
+    const total = await TemporaryPermitOtherState.countDocuments();
+
+    // Pending payment aggregation
+    const pendingPaymentPipeline = [
+      { $match: { balance: { $gt: 0 } } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$balance' },
+        },
+      },
+    ];
+
+    const pendingPaymentResults = await TemporaryPermitOtherState.aggregate(pendingPaymentPipeline);
+    const pendingPaymentCount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].count : 0;
+    const pendingPaymentAmount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].totalAmount : 0;
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        active: activePermits,
+        expired: expiredPermits,
+        expiringSoon: expiringPermits,
+        pendingPaymentCount,
+        pendingPaymentAmount,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching temporary permit (other state) statistics:', error);
+    logError(error, req);
+    const userError = getUserFriendlyError(error);
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: getSimplifiedTimestamp(),
+    });
+  }
+};

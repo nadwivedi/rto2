@@ -387,92 +387,10 @@ exports.deleteFitness = async (req, res) => {
 // Get fitness statistics
 exports.getFitnessStatistics = async (req, res) => {
   try {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
-
-    // Use aggregation pipeline to calculate statistics
-    const statusPipeline = [
-      {
-        $addFields: {
-          // Normalize separator: replace - with /
-          validToNormalized: {
-            $replaceAll: {
-              input: '$validTo',
-              find: '-',
-              replacement: '/'
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          // Convert validTo string to date for comparison
-          validToDateParsed: {
-            $dateFromString: {
-              dateString: {
-                $concat: [
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 2] }, // year
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 1] }, // month
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 0] }  // day
-                ]
-              },
-              onError: null,
-              onNull: null
-            }
-          }
-        }
-      },
-      {
-        $addFields: {
-          computedStatus: {
-            $switch: {
-              branches: [
-                {
-                  case: { $lt: ['$validToDateParsed', today] },
-                  then: 'expired'
-                },
-                {
-                  case: {
-                    $and: [
-                      { $gte: ['$validToDateParsed', today] },
-                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
-                    ]
-                  },
-                  then: 'expiring_soon'
-                }
-              ],
-              default: 'active'
-            }
-          }
-        }
-      },
-      {
-        $group: {
-          _id: '$computedStatus',
-          count: { $sum: 1 }
-        }
-      }
-    ]
-
-    const statusResults = await Fitness.aggregate(statusPipeline)
-
-    // Convert array to object for easy access
-    const statusCounts = {
-      active: 0,
-      expired: 0,
-      expiring_soon: 0
-    }
-
-    statusResults.forEach(result => {
-      statusCounts[result._id] = result.count
-    })
-
+    // Count permits by status (now using the indexed status field)
+    const activeFitness = await Fitness.countDocuments({ status: 'active' })
+    const expiringSoonFitness = await Fitness.countDocuments({ status: 'expiring_soon' })
+    const expiredFitness = await Fitness.countDocuments({ status: 'expired' })
     const total = await Fitness.countDocuments()
 
     // Pending payment aggregation
@@ -495,9 +413,9 @@ exports.getFitnessStatistics = async (req, res) => {
       success: true,
       data: {
         total,
-        active: statusCounts.active,
-        expired: statusCounts.expired,
-        expiringSoon: statusCounts.expiring_soon,
+        active: activeFitness,
+        expired: expiredFitness,
+        expiringSoon: expiringSoonFitness,
         pendingPaymentCount,
         pendingPaymentAmount
       }

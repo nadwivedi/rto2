@@ -328,14 +328,14 @@ exports.getExpiringInsurance = async (req, res) => {
 exports.getStatistics = async (req, res) => {
   try {
     const totalInsurance = await Insurance.countDocuments()
-    const activeInsurance = await Insurance.countDocuments({ status: 'Active' })
-    const expiringSoonInsurance = await Insurance.countDocuments({ status: 'Expiring Soon' })
-    const expiredInsurance = await Insurance.countDocuments({ status: 'Expired' })
-    const cancelledInsurance = await Insurance.countDocuments({ status: 'Cancelled' })
+    const activeInsurance = await Insurance.countDocuments({ status: 'active' })
+    const expiringSoonInsurance = await Insurance.countDocuments({ status: 'expiring_soon' })
+    const expiredInsurance = await Insurance.countDocuments({ status: 'expired' })
+    const cancelledInsurance = await Insurance.countDocuments({ status: 'cancelled' })
 
     // Total fees collected
     const totalRevenue = await Insurance.aggregate([
-      { $group: { _id: null, total: { $sum: '$insuranceFee' } } }
+      { $group: { _id: null, total: { $sum: '$totalFee' } } }
     ])
 
     // Pending payment count and amount
