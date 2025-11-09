@@ -89,7 +89,6 @@ const VehicleTransferSchema = new mongoose.Schema({
 
 // Indexes for filtering and searching
 VehicleTransferSchema.index({ vehicleNumber: 1 })
-VehicleTransferSchema.index({ transferDate: 1 })
 VehicleTransferSchema.index({ balance: 1 })
 VehicleTransferSchema.index({ createdAt: -1 })
 
