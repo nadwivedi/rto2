@@ -4,8 +4,8 @@ const Fitness = require('../models/Fitness')
 /**
  * Update fitness statuses based on validTo date
  * - Expired: validTo date is in the past
- * - Expiring Soon: validTo date is within 15 days
- * - Active: validTo date is more than 15 days away
+ * - Expiring Soon: validTo date is within 30 days
+ * - Active: validTo date is more than 30 days away
  */
 const updateFitnessStatuses = async () => {
   try {
@@ -15,9 +15,9 @@ const updateFitnessStatuses = async () => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
+    const thirtyDaysFromNow = new Date()
+    thirtyDaysFromNow.setDate(today.getDate() + 30)
+    thirtyDaysFromNow.setHours(23, 59, 59, 999)
 
     // Build aggregation pipeline to calculate status for all fitness records
     const pipeline = [
@@ -66,7 +66,7 @@ const updateFitnessStatuses = async () => {
                   case: {
                     $and: [
                       { $gte: ['$validToDateParsed', today] },
-                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
+                      { $lte: ['$validToDateParsed', thirtyDaysFromNow] }
                     ]
                   },
                   then: 'Expiring Soon'

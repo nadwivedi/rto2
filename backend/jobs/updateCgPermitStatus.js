@@ -4,8 +4,8 @@ const CgPermit = require('../models/CgPermit')
 /**
  * Update CG permit statuses based on validTo date
  * - expired: validTo date is in the past
- * - expiring_soon: validTo date is within 15 days
- * - active: validTo date is more than 15 days away
+ * - expiring_soon: validTo date is within 30 days
+ * - active: validTo date is more than 30 days away
  */
 const updateCgPermitStatuses = async () => {
   try {
@@ -15,9 +15,9 @@ const updateCgPermitStatuses = async () => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
+    const thirtyDaysFromNow = new Date()
+    thirtyDaysFromNow.setDate(today.getDate() + 30)
+    thirtyDaysFromNow.setHours(23, 59, 59, 999)
 
     // Build aggregation pipeline to calculate status for all permits
     const pipeline = [
@@ -66,7 +66,7 @@ const updateCgPermitStatuses = async () => {
                   case: {
                     $and: [
                       { $gte: ['$validToDateParsed', today] },
-                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
+                      { $lte: ['$validToDateParsed', thirtyDaysFromNow] }
                     ]
                   },
                   then: 'expiring_soon'
