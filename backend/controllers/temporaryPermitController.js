@@ -26,7 +26,6 @@ exports.createPermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      status,
       notes
     } = req.body
 
@@ -212,7 +211,6 @@ exports.createPermit = async (req, res) => {
     if (engineNumber && engineNumber.trim() !== '') permitData.engineNumber = engineNumber.trim().toUpperCase()
     if (ladenWeight !== undefined && ladenWeight !== null) permitData.ladenWeight = Number(ladenWeight)
     if (unladenWeight !== undefined && unladenWeight !== null) permitData.unladenWeight = Number(unladenWeight)
-    if (status && status.trim() !== '') permitData.status = status.toLowerCase()
     if (notes && notes.trim() !== '') permitData.notes = notes.trim()
 
     // Create new temporary permit without bill reference first

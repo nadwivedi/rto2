@@ -464,7 +464,6 @@ Thank you!`
         engineNumber: formData.engineNumber || '',
         ladenWeight: formData.ladenWeight ? Number(formData.ladenWeight) : undefined,
         unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : undefined,
-        purpose: formData.purpose || 'Temporary Use',
         totalFee: Number(formData.totalFee) || 0,
         paid: Number(formData.paid) || 0,
         balance: Number(formData.balance) || 0,
