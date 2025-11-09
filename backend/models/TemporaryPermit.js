@@ -84,7 +84,6 @@ const TemporaryPermitSchema = new mongoose.Schema({
   totalFee: {
     type: Number,
     required: true,
-    default: 1000
   },
   paid: {
     type: Number,
@@ -94,7 +93,6 @@ const TemporaryPermitSchema = new mongoose.Schema({
   balance: {
     type: Number,
     required: true,
-    default: 1000
   },
 
   // Bill Reference
