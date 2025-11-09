@@ -582,18 +582,15 @@ Thank you!`
         address: formData.address || '',
         mobileNumber: formData.mobileNumber || '',
         email: formData.email || '',
-        vehicleModel: formData.vehicleModel || '',
-        vehicleClass: formData.vehicleClass || '',
         chassisNumber: formData.chassisNumber || '',
         engineNumber: formData.engineNumber || '',
-        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : 0,
-        grossWeight: formData.grossWeight ? Number(formData.grossWeight) : 0,
-        yearOfManufacture: new Date().getFullYear().toString(),
-        seatingCapacity: formData.seatingCapacity || '',
-        route: formData.route || '',
+        ladenWeight: formData.ladenWeight ? Number(formData.ladenWeight) : undefined,
+        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : undefined,
         purpose: formData.purpose || 'Temporary Use',
-        fees: Number(formData.fees) || 1000,
-        status: 'Active'
+        totalFee: Number(formData.totalFee) || 0,
+        paid: Number(formData.paid) || 0,
+        balance: Number(formData.balance) || 0,
+        notes: formData.notes || ''
       }
 
       // Make POST request to backend

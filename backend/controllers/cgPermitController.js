@@ -8,7 +8,149 @@ const fs = require('fs')
 // Create new CG permit
 exports.createPermit = async (req, res) => {
   try {
-    const permitData = req.body
+    // Destructure and extract all fields from request body
+    const {
+      permitNumber,
+      permitHolder,
+      vehicleNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      fatherName,
+      mobileNumber,
+      email,
+      notes
+    } = req.body
+
+    // Validate required fields
+    if (!permitNumber || !permitNumber.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number is required',
+        errors: ['Permit number is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (!permitHolder || !permitHolder.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit holder name is required',
+        errors: ['Permit holder name is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (!vehicleNumber || !vehicleNumber.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required',
+        errors: ['Vehicle number is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (!validFrom || !validFrom.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid from date is required',
+        errors: ['Valid from date is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (!validTo || !validTo.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid to date is required',
+        errors: ['Valid to date is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null || totalFee === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee is required',
+        errors: ['Total fee is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (paid === undefined || paid === null || paid === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount is required',
+        errors: ['Paid amount is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (balance === undefined || balance === null || balance === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount is required',
+        errors: ['Balance amount is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    // Validate numeric fields
+    if (isNaN(Number(totalFee)) || Number(totalFee) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee must be a valid positive number',
+        errors: ['Total fee must be a valid positive number'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (isNaN(Number(paid)) || Number(paid) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount must be a valid positive number',
+        errors: ['Paid amount must be a valid positive number'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (isNaN(Number(balance)) || Number(balance) < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount must be a valid positive number',
+        errors: ['Balance amount must be a valid positive number'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    // Prepare validated permit data
+    const permitData = {
+      permitNumber: permitNumber.trim(),
+      permitHolder: permitHolder.trim(),
+      vehicleNumber: vehicleNumber.trim().toUpperCase(),
+      validFrom: validFrom.trim(),
+      validTo: validTo.trim(),
+      totalFee: Number(totalFee),
+      paid: Number(paid),
+      balance: Number(balance),
+      fatherName: fatherName ? fatherName.trim() : undefined,
+      mobileNumber: mobileNumber ? mobileNumber.trim() : undefined,
+      email: email ? email.trim() : undefined,
+      notes: notes ? notes.trim() : undefined
+    }
 
     // Create new CG permit without bill reference first
     const newPermit = new CgPermit(permitData)
@@ -356,7 +498,120 @@ exports.getPermitByNumber = async (req, res) => {
 exports.updatePermit = async (req, res) => {
   try {
     const { id } = req.params
-    const updateData = req.body
+
+    // Destructure and extract all fields from request body
+    const {
+      permitNumber,
+      permitHolder,
+      vehicleNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      fatherName,
+      mobileNumber,
+      email,
+      notes
+    } = req.body
+
+    // Validate required fields if provided
+    if (permitNumber !== undefined && (!permitNumber || !permitNumber.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number cannot be empty',
+        errors: ['Permit number cannot be empty'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (permitHolder !== undefined && (!permitHolder || !permitHolder.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit holder name cannot be empty',
+        errors: ['Permit holder name cannot be empty'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (vehicleNumber !== undefined && (!vehicleNumber || !vehicleNumber.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number cannot be empty',
+        errors: ['Vehicle number cannot be empty'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (validFrom !== undefined && (!validFrom || !validFrom.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid from date cannot be empty',
+        errors: ['Valid from date cannot be empty'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (validTo !== undefined && (!validTo || !validTo.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid to date cannot be empty',
+        errors: ['Valid to date cannot be empty'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    // Validate numeric fields if provided
+    if (totalFee !== undefined && (isNaN(Number(totalFee)) || Number(totalFee) < 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee must be a valid positive number',
+        errors: ['Total fee must be a valid positive number'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (paid !== undefined && (isNaN(Number(paid)) || Number(paid) < 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount must be a valid positive number',
+        errors: ['Paid amount must be a valid positive number'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (balance !== undefined && (isNaN(Number(balance)) || Number(balance) < 0)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount must be a valid positive number',
+        errors: ['Balance amount must be a valid positive number'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    // Prepare validated update data
+    const updateData = {}
+
+    if (permitNumber !== undefined) updateData.permitNumber = permitNumber.trim()
+    if (permitHolder !== undefined) updateData.permitHolder = permitHolder.trim()
+    if (vehicleNumber !== undefined) updateData.vehicleNumber = vehicleNumber.trim().toUpperCase()
+    if (validFrom !== undefined) updateData.validFrom = validFrom.trim()
+    if (validTo !== undefined) updateData.validTo = validTo.trim()
+    if (totalFee !== undefined) updateData.totalFee = Number(totalFee)
+    if (paid !== undefined) updateData.paid = Number(paid)
+    if (balance !== undefined) updateData.balance = Number(balance)
+    if (fatherName !== undefined) updateData.fatherName = fatherName ? fatherName.trim() : ''
+    if (mobileNumber !== undefined) updateData.mobileNumber = mobileNumber ? mobileNumber.trim() : ''
+    if (email !== undefined) updateData.email = email ? email.trim() : ''
+    if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
 
     const updatedPermit = await CgPermit.findByIdAndUpdate(
       id,
