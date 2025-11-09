@@ -336,11 +336,6 @@ Thank you!`
 
       // Make PUT request to backend to update the permit
       const response = await axios.put(`${API_URL}/api/temporary-permits/${editingPermit.id}`, permitData)
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to update temporary permit')
-      }
-
       // Show success message
       toast.success('Temporary Permit updated successfully!', {
         position: 'top-right',
@@ -353,6 +348,13 @@ Thank you!`
       await fetchPermits()
       await fetchStatistics()
     } catch (error) {
+
+      if(error.response.data){
+        return toast.error(`${error.response.data.message || 'some error while updating temp permit'}`, {
+        position: 'top-right',
+        autoClose: 3000
+      })
+      }
       console.error('Error updating temporary permit:', error)
       toast.error(`Failed to update temporary permit: ${error.message}`, {
         position: 'top-right',
