@@ -19,9 +19,9 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     email: '',
 
     // Fees
-    totalFee: '10000',
-    paid: '0',
-    balance: '10000'
+    totalFee: '',
+    paid: '',
+    balance: ''
   })
 
   const [lastAction, setLastAction] = useState({})
@@ -40,9 +40,9 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         address: permit.address || '',
         mobileNumber: permit.mobileNumber?.replace('+91 ', '') || '',
         email: permit.email || '',
-        totalFee: permit.totalFee?.toString() || '10000',
-        paid: permit.paid?.toString() || '0',
-        balance: permit.balance?.toString() || '10000'
+        totalFee: permit.totalFee?.toString() || '',
+        paid: permit.paid?.toString() || '',
+        balance: permit.balance?.toString() || ''
       })
     }
   }, [permit])

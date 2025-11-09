@@ -526,7 +526,9 @@ Thank you!`
         goodsType: formData.goodsType || 'General Goods',
         route: 'Chhattisgarh State',
         maxLoadCapacity: formData.grossWeight ? `${formData.grossWeight} kg` : '',
-        fees: Number(formData.fees) || 10000,
+        totalFee: Number(formData.totalFee) || 0,
+        paid: Number(formData.paid) || 0,
+        balance: Number(formData.balance) || 0,
         status: 'Active'
       }
 
@@ -597,7 +599,9 @@ Thank you!`
         unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : 0,
         grossWeight: formData.grossWeight ? Number(formData.grossWeight) : 0,
         goodsType: formData.goodsType || 'General Goods',
-        fees: Number(formData.fees) || 10000
+        totalFee: Number(formData.totalFee) || 0,
+        paid: Number(formData.paid) || 0,
+        balance: Number(formData.balance) || 0
       }
 
       // Make PUT request to backend
