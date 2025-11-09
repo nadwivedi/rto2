@@ -753,10 +753,7 @@ exports.getStatistics = async (req, res) => {
     const cvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'CV' })
     const pvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'PV' })
 
-    // Total fees collected
-    const totalRevenue = await TemporaryPermit.aggregate([
-      { $group: { _id: null, total: { $sum: '$totalFee' }, paid: { $sum: '$paid' }, balance: { $sum: '$balance' } } }
-    ])
+
 
     res.status(200).json({
       success: true,
@@ -766,15 +763,6 @@ exports.getStatistics = async (req, res) => {
           active: activePermits,
           expiringSoon: expiringPermits,
           expired: expiredPermits
-        },
-        vehicleTypes: {
-          cv: cvPermits,
-          pv: pvPermits
-        },
-        revenue: {
-          totalFee: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
-          paid: totalRevenue.length > 0 ? totalRevenue[0].paid : 0,
-          balance: totalRevenue.length > 0 ? totalRevenue[0].balance : 0
         },
         pendingPaymentCount,
         pendingPaymentAmount
