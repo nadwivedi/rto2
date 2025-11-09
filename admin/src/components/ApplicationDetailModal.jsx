@@ -49,25 +49,25 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
   }
 
   return (
-    <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-0 md:p-4'>
-      <div className='bg-white rounded-none md:rounded-2xl shadow-2xl max-w-[95vw] w-full h-full md:h-auto md:max-h-[95vh] overflow-hidden flex flex-col'>
+    <div className='fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
+      <div className='bg-white rounded-xl md:rounded-3xl shadow-2xl w-full md:w-[95%] lg:w-[90%] xl:w-[85%] max-h-[98vh] md:max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-indigo-600 to-purple-600 p-4 md:p-6 text-white'>
-          <div className='flex justify-between items-start'>
-            <div>
-              <div className='flex items-center gap-2 md:gap-3 mb-2'>
-                <h2 className='text-lg md:text-2xl font-bold'>Application Details</h2>
-                <span className={`px-2 md:px-3 py-1 rounded-full text-xs md:text-sm font-semibold border ${getStatusColor(status)}`}>
+        <div className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 p-3 md:p-5 text-white shadow-lg'>
+          <div className='flex justify-between items-start gap-2'>
+            <div className='min-w-0 flex-1'>
+              <div className='flex items-center gap-2 mb-1 md:mb-2 flex-wrap'>
+                <h2 className='text-base md:text-xl font-bold truncate'>DL Application Details</h2>
+                <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[9px] md:text-xs font-semibold border ${getStatusColor(status)}`}>
                   {status}
                 </span>
               </div>
-              <p className='text-xs md:text-sm text-indigo-100'>Application ID: {application.id}</p>
+              <p className='text-[10px] md:text-sm text-white/90 truncate'>Application ID: {application.id}</p>
             </div>
             <button
               onClick={onClose}
-              className='text-white hover:bg-white/20 rounded-lg p-2 transition'
+              className='text-white/90 hover:text-white hover:bg-white/20 rounded-lg md:rounded-xl p-1.5 md:p-2.5 transition-all duration-200 hover:rotate-90 flex-shrink-0'
             >
-              <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
               </svg>
             </button>
@@ -75,82 +75,84 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
         </div>
 
         {/* Content */}
-        <div className='flex-1 overflow-y-auto p-4 md:p-6'>
+        <div className='flex-1 overflow-y-auto p-3 md:p-5'>
           {/* Application Details */}
-          <div className='space-y-6'>
+          <div className='space-y-3 md:space-y-4'>
             {/* Personal Information */}
-            <div className='bg-gray-50 rounded-xl p-6 border border-gray-200'>
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='text-2xl'>👤</span>
+            <div className='bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg md:rounded-xl p-3 md:p-5 border-2 border-indigo-200'>
+              <h3 className='text-sm md:text-base font-bold text-indigo-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+                </svg>
                 Personal Information
               </h3>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+              <div className='grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3'>
                 {/* Full Name - Always show */}
-                <div>
-                  <label className='text-sm font-semibold text-gray-600'>Full Name</label>
-                  <p className='text-gray-800 font-medium mt-1'>{application.name}</p>
+                <div className='bg-white/80 p-2 rounded-lg col-span-2'>
+                  <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Full Name</label>
+                  <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.name}</p>
                 </div>
 
                 {/* Date of Birth - Always show */}
-                <div>
-                  <label className='text-sm font-semibold text-gray-600'>Date of Birth</label>
-                  <p className='text-gray-800 font-medium mt-1'>{formatDate(application.fullData?.dateOfBirth) || '15-08-1995'}</p>
+                <div className='bg-white/80 p-2 rounded-lg'>
+                  <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Date of Birth</label>
+                  <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{formatDate(application.fullData?.dateOfBirth) || '15-08-1995'}</p>
                 </div>
 
                 {/* Gender - Always show */}
-                <div>
-                  <label className='text-sm font-semibold text-gray-600'>Gender</label>
-                  <p className='text-gray-800 font-medium mt-1'>{application.fullData?.gender || 'Male'}</p>
+                <div className='bg-white/80 p-2 rounded-lg'>
+                  <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Gender</label>
+                  <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData?.gender || 'Male'}</p>
                 </div>
 
                 {/* Father's Name - Always show */}
-                <div>
-                  <label className='text-sm font-semibold text-gray-600'>Father's Name</label>
-                  <p className='text-gray-800 font-medium mt-1'>{application.fullData?.fatherName || 'Ramesh Kumar'}</p>
+                <div className='bg-white/80 p-2 rounded-lg col-span-2'>
+                  <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Father's Name</label>
+                  <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData?.fatherName || 'Ramesh Kumar'}</p>
                 </div>
 
                 {/* Blood Group - Show only if filled */}
                 {application.fullData?.bloodGroup && (
-                  <div>
-                    <label className='text-sm font-semibold text-gray-600'>Blood Group</label>
-                    <p className='text-gray-800 font-medium mt-1'>{application.fullData.bloodGroup}</p>
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Blood Group</label>
+                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData.bloodGroup}</p>
                   </div>
                 )}
 
                 {/* Mother's Name - Show only if filled */}
                 {application.fullData?.motherName && (
-                  <div>
-                    <label className='text-sm font-semibold text-gray-600'>Mother's Name</label>
-                    <p className='text-gray-800 font-medium mt-1'>{application.fullData.motherName}</p>
+                  <div className='bg-white/80 p-2 rounded-lg col-span-2'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Mother's Name</label>
+                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData.motherName}</p>
                   </div>
                 )}
 
                 {/* Education - Show only if filled */}
                 {application.fullData?.qualification && (
-                  <div>
-                    <label className='text-sm font-semibold text-gray-600'>Education</label>
-                    <p className='text-gray-800 font-medium mt-1'>{application.fullData.qualification}</p>
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Education</label>
+                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData.qualification}</p>
                   </div>
                 )}
 
                 {/* Phone Number - Always show */}
-                <div>
-                  <label className='text-sm font-semibold text-gray-600'>Phone Number</label>
-                  <p className='text-gray-800 font-medium mt-1'>{application.mobile || application.fullData?.mobileNumber || '+91 9876543210'}</p>
+                <div className='bg-white/80 p-2 rounded-lg'>
+                  <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Phone Number</label>
+                  <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.mobile || application.fullData?.mobileNumber || '+91 9876543210'}</p>
                 </div>
 
                 {/* Email - Show only if filled */}
                 {(application.email || application.fullData?.email) && (
-                  <div>
-                    <label className='text-sm font-semibold text-gray-600'>Email</label>
-                    <p className='text-gray-800 font-medium mt-1'>{application.email || application.fullData?.email}</p>
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Email</label>
+                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5 break-all'>{application.email || application.fullData?.email}</p>
                   </div>
                 )}
 
                 {/* Address - Always show */}
-                <div className='md:col-span-3'>
-                  <label className='text-sm font-semibold text-gray-600'>Address</label>
-                  <p className='text-gray-800 font-medium mt-1'>
+                <div className='bg-white/80 p-2 rounded-lg col-span-2 md:col-span-3'>
+                  <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Address</label>
+                  <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5 leading-relaxed'>
                     {application.fullData?.address || '123, MG Road, Sector 15, Mumbai, Maharashtra - 400001'}
                   </p>
                 </div>
@@ -158,143 +160,131 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
             </div>
 
             {/* License Information - All three cards in same row for desktop */}
-            <div className='grid grid-cols-1 lg:grid-cols-7 gap-6'>
+            <div className='grid grid-cols-1 lg:grid-cols-7 gap-3 md:gap-4'>
               {/* License Class */}
-              <div className='bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border-2 border-blue-200 lg:col-span-1'>
-                <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                  <span className='text-2xl'>📋</span>
+              <div className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg md:rounded-xl p-3 md:p-4 border-2 border-blue-200 lg:col-span-1'>
+                <h3 className='text-sm md:text-base font-bold text-blue-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                  <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                  </svg>
                   License Class
                 </h3>
-                <div className='grid grid-cols-1 gap-4'>
-                  <div>
-                    <label className='text-sm font-semibold text-gray-600'>License Class</label>
-                    <p className='text-gray-800 font-bold mt-1 text-lg'>{application.type || application.fullData?.licenseClass || 'N/A'}</p>
+                <div className='bg-white/80 p-2 rounded-lg'>
+                  <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Class</label>
+                  <p className='text-sm md:text-lg font-bold text-gray-900 mt-0.5'>{application.type || application.fullData?.licenseClass || 'N/A'}</p>
+                </div>
+              </div>
+
+              {/* Learning License Information - Always show */}
+              <div className='bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg md:rounded-xl p-3 md:p-4 border-2 border-yellow-200 lg:col-span-3'>
+                <h3 className='text-sm md:text-base font-bold text-orange-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                  <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-orange-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' />
+                  </svg>
+                  Learning License
+                </h3>
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-2'>
+                  {/* LL Number */}
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>LL Number</label>
+                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5 font-mono'>{application.fullData?.learningLicenseNumber || 'N/A'}</p>
+                  </div>
+
+                  {/* LL Issue Date */}
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Issue Date</label>
+                    <p className='text-xs md:text-sm font-bold text-green-700 mt-0.5'>
+                      {application.fullData?.learningLicenseIssueDate ? formatDate(application.fullData.learningLicenseIssueDate) : 'N/A'}
+                    </p>
+                  </div>
+
+                  {/* LL Expiry Date */}
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Expiry Date</label>
+                    <p className='text-xs md:text-sm font-bold text-red-700 mt-0.5'>
+                      {application.fullData?.learningLicenseExpiryDate ? formatDate(application.fullData.learningLicenseExpiryDate) : 'N/A'}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Learning License Information - Show only if any LL field is filled */}
-              {(application.fullData?.learningLicenseNumber || application.fullData?.learningLicenseIssueDate || application.fullData?.learningLicenseExpiryDate) && (
-                <div className='bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl p-6 border-2 border-yellow-200 lg:col-span-3'>
-                  <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                    <span className='text-2xl'>🎓</span>
-                    Learning License Details
-                  </h3>
-                  <div className='grid grid-cols-1 xl:grid-cols-3 gap-4'>
-                    {/* LL Number - Show only if filled */}
-                    {application.fullData?.learningLicenseNumber && (
-                      <div>
-                        <label className='text-sm font-semibold text-gray-600'>LL Number</label>
-                        <p className='text-gray-800 font-mono font-bold mt-1 text-sm'>{application.fullData.learningLicenseNumber}</p>
-                      </div>
-                    )}
+              {/* Driving License Information - Always show */}
+              <div className='bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg md:rounded-xl p-3 md:p-4 border-2 border-purple-200 lg:col-span-3'>
+                <h3 className='text-sm md:text-base font-bold text-purple-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                  <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2' />
+                  </svg>
+                  Driving License
+                </h3>
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-2'>
+                  {/* License Number */}
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>DL Number</label>
+                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5 font-mono'>{application.licenseNumber || application.fullData?.licenseNumber || application.fullData?.LicenseNumber || 'N/A'}</p>
+                  </div>
 
-                    {/* LL Issue Date - Show only if filled */}
-                    {application.fullData?.learningLicenseIssueDate && (
-                      <div>
-                        <label className='text-sm font-semibold text-gray-600'>LL Issue Date</label>
-                        <p className='text-green-600 font-bold mt-1 text-sm'>
-                          {formatDate(application.fullData.learningLicenseIssueDate)}
-                        </p>
-                      </div>
-                    )}
+                  {/* License Issue Date */}
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Issue Date</label>
+                    <p className='text-xs md:text-sm font-bold text-green-700 mt-0.5'>
+                      {application.issueDate ||
+                       (application.fullData?.LicenseIssueDate && formatDate(application.fullData?.LicenseIssueDate)) ||
+                       application.fullData?.licenseIssueDate || 'N/A'}
+                    </p>
+                  </div>
 
-                    {/* LL Expiry Date - Show only if filled */}
-                    {application.fullData?.learningLicenseExpiryDate && (
-                      <div>
-                        <label className='text-sm font-semibold text-gray-600'>LL Expiry Date</label>
-                        <p className='text-red-600 font-bold mt-1 text-sm'>
-                          {formatDate(application.fullData.learningLicenseExpiryDate)}
-                        </p>
-                      </div>
-                    )}
+                  {/* License Expiry Date */}
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Expiry Date</label>
+                    <p className='text-xs md:text-sm font-bold text-red-700 mt-0.5'>
+                      {application.expiryDate ||
+                       (application.fullData?.LicenseExpiryDate && formatDate(application.fullData?.LicenseExpiryDate)) ||
+                       application.fullData?.licenseExpiryDate || 'N/A'}
+                    </p>
                   </div>
                 </div>
-              )}
-
-              {/* Driving License Information - Show only if any DL field is filled */}
-              {(application.licenseNumber || application.fullData?.licenseNumber || application.fullData?.LicenseNumber ||
-                application.issueDate || application.fullData?.LicenseIssueDate || application.fullData?.licenseIssueDate ||
-                application.expiryDate || application.fullData?.LicenseExpiryDate || application.fullData?.licenseExpiryDate) && (
-                <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border-2 border-purple-200 lg:col-span-3'>
-                  <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                    <span className='text-2xl'>🪪</span>
-                    Driving License Details
-                  </h3>
-                  <div className='grid grid-cols-1 xl:grid-cols-3 gap-4'>
-                    {/* License Number - Show only if filled */}
-                    {(application.licenseNumber || application.fullData?.licenseNumber || application.fullData?.LicenseNumber) && (
-                      <div>
-                        <label className='text-sm font-semibold text-gray-600'>DL Number</label>
-                        <p className='text-gray-800 font-mono font-bold mt-1 text-sm'>{application.licenseNumber || application.fullData?.licenseNumber || application.fullData?.LicenseNumber}</p>
-                      </div>
-                    )}
-
-                    {/* License Issue Date - Show only if filled */}
-                    {(application.issueDate || application.fullData?.LicenseIssueDate || application.fullData?.licenseIssueDate) && (
-                      <div>
-                        <label className='text-sm font-semibold text-gray-600'>DL Issue Date</label>
-                        <p className='text-green-600 font-bold mt-1 text-sm'>
-                          {application.issueDate ||
-                           (application.fullData?.LicenseIssueDate && formatDate(application.fullData?.LicenseIssueDate)) ||
-                           application.fullData?.licenseIssueDate}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* License Expiry Date - Show only if filled */}
-                    {(application.expiryDate || application.fullData?.LicenseExpiryDate || application.fullData?.licenseExpiryDate) && (
-                      <div>
-                        <label className='text-sm font-semibold text-gray-600'>DL Expiry Date</label>
-                        <p className='text-red-600 font-bold mt-1 text-sm'>
-                          {application.expiryDate ||
-                           (application.fullData?.LicenseExpiryDate && formatDate(application.fullData?.LicenseExpiryDate)) ||
-                           application.fullData?.licenseExpiryDate}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
 
             {/* Payment Information */}
-            <div className='bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200 relative'>
+            <div className='bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg md:rounded-xl p-3 md:p-5 border-2 border-green-200 relative'>
               {/* PAID Stamp - Show only when balance is 0 */}
               {(application.fullData?.balanceAmount === 0 || application.balanceAmount === 0) && (
-                <div className='absolute top-4 right-4 md:top-6 md:right-6 z-10'>
-                  <div className='text-6xl md:text-7xl font-black text-green-600 opacity-30 transform -rotate-12 border-8 border-green-600 rounded-lg px-4 py-2'>
+                <div className='absolute top-2 right-2 md:top-4 md:right-4 z-10'>
+                  <div className='text-3xl md:text-5xl lg:text-6xl font-black text-green-600 opacity-25 transform -rotate-12 border-4 md:border-6 border-green-600 rounded-lg px-2 py-1 md:px-3 md:py-1.5'>
                     PAID
                   </div>
                 </div>
               )}
 
-              <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                <span className='text-2xl'>💰</span>
-                Payment Information
+              <h3 className='text-sm md:text-base font-bold text-green-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z' />
+                </svg>
+                Payment Details
               </h3>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3'>
                 {/* Total Amount */}
-                <div className='bg-white rounded-lg p-4 border border-green-200'>
-                  <label className='text-sm font-semibold text-gray-600'>Total Amount</label>
-                  <p className='text-2xl font-black text-gray-800 mt-2'>
-                    ₹ {application.fullData?.totalAmount?.toLocaleString() || application.totalAmount?.toLocaleString() || '0'}
+                <div className='bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-2.5 md:p-3 border-2 border-blue-200'>
+                  <label className='text-[10px] md:text-xs font-semibold text-blue-700'>Total Amount</label>
+                  <p className='text-base md:text-xl lg:text-2xl font-black text-blue-900 mt-1'>
+                    ₹{application.fullData?.totalAmount?.toLocaleString() || application.totalAmount?.toLocaleString() || '0'}
                   </p>
                 </div>
 
                 {/* Paid Amount */}
-                <div className='bg-white rounded-lg p-4 border border-green-200'>
-                  <label className='text-sm font-semibold text-gray-600'>Paid Amount</label>
-                  <p className='text-2xl font-black text-green-600 mt-2'>
-                    ₹ {application.fullData?.paidAmount?.toLocaleString() || application.paidAmount?.toLocaleString() || '0'}
+                <div className='bg-gradient-to-br from-green-100 to-emerald-100 rounded-lg p-2.5 md:p-3 border-2 border-green-300'>
+                  <label className='text-[10px] md:text-xs font-semibold text-green-700'>Paid Amount</label>
+                  <p className='text-base md:text-xl lg:text-2xl font-black text-green-800 mt-1'>
+                    ₹{application.fullData?.paidAmount?.toLocaleString() || application.paidAmount?.toLocaleString() || '0'}
                   </p>
                 </div>
 
                 {/* Balance Amount */}
-                <div className='bg-white rounded-lg p-4 border border-orange-200'>
-                  <label className='text-sm font-semibold text-gray-600'>Balance Amount</label>
-                  <p className='text-2xl font-black text-orange-600 mt-2'>
-                    ₹ {application.fullData?.balanceAmount?.toLocaleString() || application.balanceAmount?.toLocaleString() || '0'}
+                <div className={`rounded-lg p-2.5 md:p-3 border-2 ${(application.fullData?.balanceAmount || application.balanceAmount || 0) > 0 ? 'bg-gradient-to-br from-orange-50 to-red-50 border-orange-200' : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200'}`}>
+                  <label className={`text-[10px] md:text-xs font-semibold ${(application.fullData?.balanceAmount || application.balanceAmount || 0) > 0 ? 'text-orange-700' : 'text-green-700'}`}>Balance</label>
+                  <p className={`text-base md:text-xl lg:text-2xl font-black mt-1 ${(application.fullData?.balanceAmount || application.balanceAmount || 0) > 0 ? 'text-orange-800' : 'text-green-800'}`}>
+                    ₹{application.fullData?.balanceAmount?.toLocaleString() || application.balanceAmount?.toLocaleString() || '0'}
                   </p>
                 </div>
               </div>
@@ -302,25 +292,27 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
 
             {/* Additional Details - Show only if aadhar or signature is uploaded */}
             {(application.fullData?.aadharCard || application.fullData?.signature) && (
-              <div className='bg-gray-50 rounded-xl p-6 border border-gray-200'>
-                <h3 className='text-lg font-bold text-gray-800 mb-4 flex items-center gap-2'>
-                  <span className='text-2xl'>📎</span>
-                  Additional Details
+              <div className='bg-gradient-to-br from-gray-50 to-slate-50 rounded-lg md:rounded-xl p-3 md:p-5 border-2 border-gray-200'>
+                <h3 className='text-sm md:text-base font-bold text-gray-900 mb-2 md:mb-3 flex items-center gap-1.5 md:gap-2'>
+                  <svg className='w-3.5 h-3.5 md:w-4 md:h-4 text-gray-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13' />
+                  </svg>
+                  Documents
                 </h3>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3'>
                   {/* Aadhar Card - Show only if uploaded */}
                   {application.fullData?.aadharCard && (
-                    <div>
-                      <label className='text-sm font-semibold text-gray-600'>Aadhar Card</label>
-                      <p className='text-gray-800 font-medium mt-1'>{application.fullData.aadharCard}</p>
+                    <div className='bg-white/80 p-2 rounded-lg'>
+                      <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Aadhar Card</label>
+                      <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData.aadharCard}</p>
                     </div>
                   )}
 
                   {/* Signature - Show only if uploaded */}
                   {application.fullData?.signature && (
-                    <div>
-                      <label className='text-sm font-semibold text-gray-600'>Signature</label>
-                      <p className='text-gray-800 font-medium mt-1'>{application.fullData.signature}</p>
+                    <div className='bg-white/80 p-2 rounded-lg'>
+                      <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Signature</label>
+                      <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData.signature}</p>
                     </div>
                   )}
                 </div>
@@ -330,20 +322,14 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
         </div>
 
         {/* Footer Actions */}
-        <div className='border-t border-gray-200 p-2 md:p-3 bg-gray-50'>
-          <div className='flex flex-col gap-2 md:flex-row md:justify-between md:items-center'>
-            <div className='text-xs text-gray-600 text-center md:text-left'>
-              Last updated: 2 hours ago
-            </div>
-
-            <div className='flex flex-col md:flex-row gap-2'>
-              <button
-                onClick={onClose}
-                className='px-4 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition text-sm cursor-pointer'
-              >
-                Close
-              </button>
-            </div>
+        <div className='border-t border-gray-200 px-3 py-2.5 md:px-5 md:py-3 bg-gray-50'>
+          <div className='flex justify-end'>
+            <button
+              onClick={onClose}
+              className='px-4 py-2 md:px-6 md:py-2 bg-gray-600 text-white rounded-lg md:rounded-xl hover:bg-gray-700 transition-all duration-200 font-bold text-sm shadow-md hover:shadow-lg'
+            >
+              Close
+            </button>
           </div>
         </div>
       </div>
