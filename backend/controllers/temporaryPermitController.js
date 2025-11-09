@@ -447,7 +447,6 @@ exports.updatePermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      status,
       notes
     } = req.body
 
@@ -610,8 +609,8 @@ exports.updatePermit = async (req, res) => {
     if (engineNumber !== undefined) updateData.engineNumber = engineNumber ? engineNumber.trim().toUpperCase() : ''
     if (ladenWeight !== undefined) updateData.ladenWeight = ladenWeight ? Number(ladenWeight) : null
     if (unladenWeight !== undefined) updateData.unladenWeight = unladenWeight ? Number(unladenWeight) : null
-    if (status !== undefined) updateData.status = status
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
+    // Note: status is managed by cron job and should not be manually updated
 
     const updatedPermit = await TemporaryPermit.findByIdAndUpdate(
       id,

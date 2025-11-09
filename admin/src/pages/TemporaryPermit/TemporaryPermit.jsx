@@ -312,7 +312,6 @@ Thank you!`
         vehicleType: formData.vehicleType,
         validFrom: formData.validFrom,
         validTo: formData.validTo,
-        validityPeriod: formData.vehicleType === 'CV' ? 3 : 4,
         issueDate: formData.validFrom,
         fatherName: formData.fatherName || '',
         address: formData.address || '',
@@ -330,8 +329,7 @@ Thank you!`
         purpose: formData.purpose || 'Temporary Use',
         totalFee: Number(formData.totalFee) || 1000,
         paid: Number(formData.paid) || 0,
-        balance: Number(formData.balance) || 0,
-        status: 'Active'
+        balance: Number(formData.balance) || 0
       }
 
       // Make PUT request to backend to update the permit
@@ -464,7 +462,6 @@ Thank you!`
         vehicleType: formData.vehicleType,
         validFrom: formData.validFrom,
         validTo: formData.validTo,
-        validityPeriod: formData.vehicleType === 'CV' ? 3 : 4,
         issueDate: formData.validFrom,
         fatherName: formData.fatherName || '',
         address: formData.address || '',
