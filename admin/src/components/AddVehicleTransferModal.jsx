@@ -76,10 +76,24 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
       return
     }
 
+    // Convert text fields to uppercase (except mobile numbers and numeric fields)
+    const uppercaseFields = [
+      'vehicleNumber',
+      'currentOwnerName',
+      'currentOwnerFatherName',
+      'currentOwnerAddress',
+      'newOwnerName',
+      'newOwnerFatherName',
+      'newOwnerAddress',
+      'byName'
+    ]
+
+    const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
+
     // Auto-format date field with automatic dash insertion
     if (name === 'transferDate') {
       // Remove all non-digit characters
-      let digitsOnly = value.replace(/[^\d]/g, '')
+      let digitsOnly = finalValue.replace(/[^\d]/g, '')
 
       // Limit to 8 digits (DDMMYYYY)
       digitsOnly = digitsOnly.slice(0, 8)
@@ -124,7 +138,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: finalValue
     }))
   }
 
