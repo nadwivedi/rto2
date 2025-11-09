@@ -269,12 +269,11 @@ const VehicleRegistration = () => {
                         <div className='p-3 space-y-2.5'>
                           {/* Vehicle Details */}
                           <div className='flex gap-2'>
-                            <div className='bg-gradient-to-br from-blue-50 to-cyan-50 p-2 rounded-lg border border-blue-200 flex-[0.6] min-w-0'>
-                              <p className='text-[10px] text-blue-600 font-semibold uppercase mb-1'>
-                                Chassis No
-                              </p>
-                              <div className='flex items-start gap-1'>
-                                <p className='text-[9.5px] font-mono font-semibold text-blue-900 break-all leading-tight flex-1'>{registration.chassisNumber || 'N/A'}</p>
+                            <div className='bg-gradient-to-br from-blue-50 to-cyan-50 p-2 rounded-lg border border-blue-200 flex-[0.6] min-w-0 relative'>
+                              <div className='flex items-center justify-between mb-1'>
+                                <p className='text-[10px] text-blue-600 font-semibold uppercase'>
+                                  Chassis No
+                                </p>
                                 {registration.chassisNumber && registration.chassisNumber !== 'N/A' && (
                                   <button
                                     onClick={() => handleCopyChassisNumber(registration.chassisNumber)}
@@ -287,6 +286,7 @@ const VehicleRegistration = () => {
                                   </button>
                                 )}
                               </div>
+                              <p className='text-[9.5px] font-mono font-semibold text-blue-900 break-all leading-tight'>{registration.chassisNumber || 'N/A'}</p>
                             </div>
                             <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-2 rounded-lg border border-green-200 flex-[0.4] min-w-0'>
                               <p className='text-[10px] text-green-600 font-semibold uppercase flex items-center gap-1 mb-1'>
@@ -370,7 +370,7 @@ const VehicleRegistration = () => {
                         <td className='px-6 py-4'>
                           <div className='flex items-center gap-2'>
                             <div className='flex items-center gap-1.5 bg-gradient-to-r from-blue-50 to-cyan-50 px-3 py-1.5 rounded-lg border border-blue-200'>
-                              <span className='text-[15px] font-mono font-semibold text-blue-900'>{registration.chassisNumber || 'N/A'}</span>
+                              <span className='text-[15.5px] font-mono font-semibold text-blue-900'>{registration.chassisNumber || 'N/A'}</span>
                             </div>
                             {registration.chassisNumber && registration.chassisNumber !== 'N/A' && (
                               <button
