@@ -109,8 +109,8 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
       return
     }
 
-    // Auto-uppercase for permit holder and vehicle number
-    if (name === 'permitHolder' || name === 'vehicleNo') {
+    // Auto-uppercase for permit number, permit holder and vehicle number
+    if (name === 'permitNumber' || name === 'permitHolder' || name === 'vehicleNo') {
       setFormData(prev => ({
         ...prev,
         [name]: value.toUpperCase()
