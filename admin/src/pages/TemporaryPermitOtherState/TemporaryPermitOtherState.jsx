@@ -63,28 +63,27 @@ const TemporaryPermitOtherState = () => {
       setLoading(true)
       setError(null)
 
-      const params = new URLSearchParams()
-      params.append('page', page.toString())
-      params.append('limit', pagination.limit.toString())
-
-      if (debouncedSearchQuery) {
-        params.append('search', debouncedSearchQuery)
+      let url = `${API_URL}/api/temporary-permits-other-state`
+      const params = {
+        page,
+        limit: pagination.limit,
+        search: debouncedSearchQuery
       }
 
-      if (statusFilter && statusFilter !== 'all') {
-        params.append('status', statusFilter)
+      if (statusFilter !== 'all') {
+        // Convert underscore to hyphen for API endpoints
+        const filterPath = statusFilter.replace('_', '-')
+        url = `${API_URL}/api/temporary-permits-other-state/${filterPath}`
       }
 
-      const response = await axios.get(`${API_URL}/api/temporary-permits-other-state`, {
-        params: Object.fromEntries(params)
-      })
+      const response = await axios.get(url, { params })
 
       if (response.data.success) {
         setPermits(response.data.data || [])
         setPagination({
           currentPage: response.data.pagination?.currentPage || 1,
           totalPages: response.data.pagination?.totalPages || 1,
-          totalRecords: response.data.pagination?.totalItems || 0,
+          totalRecords: response.data.pagination?.totalRecords || response.data.pagination?.totalItems || 0,
           limit: response.data.pagination?.itemsPerPage || 20
         })
       }

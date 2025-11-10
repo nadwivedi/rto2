@@ -62,7 +62,6 @@ exports.getAllInsurance = async (req, res) => {
       page = 1,
       limit = 20,
       search,
-      status,
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = req.query
@@ -78,17 +77,6 @@ exports.getAllInsurance = async (req, res) => {
         { ownerName: { $regex: search, $options: 'i' } },
         { mobileNumber: { $regex: search, $options: 'i' } }
       ]
-    }
-
-    // Filter by status or pending payment
-    if (status) {
-      if (status === 'pending') {
-        // Pending payment means balance > 0
-        query.balance = { $gt: 0 }
-      } else {
-        // Normal status filter
-        query.status = status
-      }
     }
 
     // Calculate pagination
@@ -119,6 +107,150 @@ exports.getAllInsurance = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch insurance records',
+      error: error.message
+    })
+  }
+}
+
+// Get expiring soon insurance records
+exports.getExpiringSoonInsurance = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
+
+    const query = { status: 'expiring_soon' }
+
+    if (search) {
+      query.$or = [
+        { policyNumber: { $regex: search, $options: 'i' } },
+        { vehicleNumber: { $regex: search, $options: 'i' } },
+        { ownerName: { $regex: search, $options: 'i' } },
+        { mobileNumber: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const insuranceRecords = await Insurance.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Insurance.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: insuranceRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + insuranceRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expiring soon insurance records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expiring soon insurance records',
+      error: error.message
+    })
+  }
+}
+
+// Get expired insurance records
+exports.getExpiredInsurance = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query
+
+    const query = { status: 'expired' }
+
+    if (search) {
+      query.$or = [
+        { policyNumber: { $regex: search, $options: 'i' } },
+        { vehicleNumber: { $regex: search, $options: 'i' } },
+        { ownerName: { $regex: search, $options: 'i' } },
+        { mobileNumber: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const insuranceRecords = await Insurance.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Insurance.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: insuranceRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + insuranceRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expired insurance records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expired insurance records',
+      error: error.message
+    })
+  }
+}
+
+// Get pending payment insurance records
+exports.getPendingInsurance = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+
+    const query = { balance: { $gt: 0 } }
+
+    if (search) {
+      query.$or = [
+        { policyNumber: { $regex: search, $options: 'i' } },
+        { vehicleNumber: { $regex: search, $options: 'i' } },
+        { ownerName: { $regex: search, $options: 'i' } },
+        { mobileNumber: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const insuranceRecords = await Insurance.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Insurance.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: insuranceRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + insuranceRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching pending payment insurance records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching pending payment insurance records',
       error: error.message
     })
   }

@@ -111,181 +111,208 @@ exports.getAllPermits = async (req, res) => {
       page = 1,
       limit = 20,
       search,
-      status,
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = req.query
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    let query = {}
 
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
-
-    // Determine if we need aggregation pipeline (for date-based status filtering)
-    const useDateBasedFilter = status && ['expired', 'expiring_soon', 'active'].includes(status)
-
-    if (useDateBasedFilter) {
-      // Use aggregation pipeline for date-based filtering
-      const pipeline = []
-
-      // Stage 1: Normalize date separator
-      pipeline.push({
-        $addFields: {
-          validToNormalized: {
-            $replaceAll: {
-              input: '$validTo',
-              find: '-',
-              replacement: '/'
-            }
-          }
-        }
-      })
-
-      // Stage 2: Add computed date field
-      pipeline.push({
-        $addFields: {
-          validToDateParsed: {
-            $dateFromString: {
-              dateString: {
-                $concat: [
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 2] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 1] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 0] }
-                ]
-              },
-              onError: null,
-              onNull: null
-            }
-          }
-        }
-      })
-
-      // Stage 3: Add computed status
-      pipeline.push({
-        $addFields: {
-          computedStatus: {
-            $switch: {
-              branches: [
-                { case: { $lt: ['$validToDateParsed', today] }, then: 'expired' },
-                {
-                  case: {
-                    $and: [
-                      { $gte: ['$validToDateParsed', today] },
-                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
-                    ]
-                  },
-                  then: 'expiring_soon'
-                },
-                { case: { $gt: ['$validToDateParsed', fifteenDaysFromNow] }, then: 'active' }
-              ],
-              default: 'active'
-            }
-          }
-        }
-      })
-
-      // Stage 4: Match status
-      pipeline.push({
-        $match: { computedStatus: status }
-      })
-
-      // Stage 5: Add search filter if provided
-      if (search) {
-        pipeline.push({
-          $match: {
-            $or: [
-              { permitNumber: { $regex: search, $options: 'i' } },
-              { permitHolder: { $regex: search, $options: 'i' } },
-              { vehicleNo: { $regex: search, $options: 'i' } },
-              { mobileNo: { $regex: search, $options: 'i' } }
-            ]
-          }
-        })
-      }
-
-      // Stage 6: Sort
-      const sortField = sortBy || 'createdAt'
-      const sortDirection = sortOrder === 'asc' ? 1 : -1
-      pipeline.push({ $sort: { [sortField]: sortDirection } })
-
-      // Stage 7: Count total
-      pipeline.push({
-        $facet: {
-          metadata: [{ $count: 'total' }],
-          data: [
-            { $skip: (parseInt(page) - 1) * parseInt(limit) },
-            { $limit: parseInt(limit) }
-          ]
-        }
-      })
-
-      const result = await TemporaryPermitOtherState.aggregate(pipeline)
-      const totalPermits = result[0]?.metadata[0]?.total || 0
-      const permits = result[0]?.data || []
-
-      res.json({
-        success: true,
-        data: permits,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalPermits / parseInt(limit)),
-          totalItems: totalPermits,
-          itemsPerPage: parseInt(limit)
-        }
-      })
-    } else {
-      // Use simple query for non-date-based filtering
-      let query = {}
-
-      // Search filter
-      if (search) {
-        query.$or = [
-          { permitNumber: { $regex: search, $options: 'i' } },
-          { permitHolder: { $regex: search, $options: 'i' } },
-          { vehicleNo: { $regex: search, $options: 'i' } },
-          { mobileNo: { $regex: search, $options: 'i' } }
-        ]
-      }
-
-      // Pending payment filter
-      if (status === 'pending') {
-        query.balance = { $gt: 0 }
-      }
-
-      // Count total permits
-      const totalPermits = await TemporaryPermitOtherState.countDocuments(query)
-
-      // Get permits with pagination and sorting
-      const sortField = sortBy || 'createdAt'
-      const sortDirection = sortOrder === 'asc' ? 1 : -1
-
-      const permits = await TemporaryPermitOtherState.find(query)
-        .sort({ [sortField]: sortDirection })
-        .limit(parseInt(limit))
-        .skip((parseInt(page) - 1) * parseInt(limit))
-        .populate('bill')
-
-      res.json({
-        success: true,
-        data: permits,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalPermits / parseInt(limit)),
-          totalItems: totalPermits,
-          itemsPerPage: parseInt(limit)
-        }
-      })
+    // Search filter
+    if (search) {
+      query.$or = [
+        { permitNumber: { $regex: search, $options: 'i' } },
+        { permitHolder: { $regex: search, $options: 'i' } },
+        { vehicleNo: { $regex: search, $options: 'i' } },
+        { mobileNo: { $regex: search, $options: 'i' } }
+      ]
     }
+
+    // Count total permits
+    const totalPermits = await TemporaryPermitOtherState.countDocuments(query)
+
+    // Get permits with pagination and sorting
+    const sortField = sortBy || 'createdAt'
+    const sortDirection = sortOrder === 'asc' ? 1 : -1
+
+    const permits = await TemporaryPermitOtherState.find(query)
+      .sort({ [sortField]: sortDirection })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .populate('bill')
+
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(totalPermits / parseInt(limit)),
+        totalRecords: totalPermits,
+        totalItems: totalPermits,
+        itemsPerPage: parseInt(limit)
+      }
+    })
   } catch (error) {
     console.error('Error fetching temporary permits (other state):', error)
     logError(error, req)
     res.status(500).json({
       success: false,
       message: 'Failed to fetch temporary permits (other state)',
+      error: error.message
+    })
+  }
+}
+
+// Get expiring soon permits
+exports.getExpiringSoonPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
+
+    const query = { status: 'expiring_soon' }
+
+    if (search) {
+      query.$or = [
+        { permitNumber: { $regex: search, $options: 'i' } },
+        { permitHolder: { $regex: search, $options: 'i' } },
+        { vehicleNo: { $regex: search, $options: 'i' } },
+        { mobileNo: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const permits = await TemporaryPermitOtherState.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('bill')
+
+    const total = await TemporaryPermitOtherState.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        totalItems: total,
+        itemsPerPage: parseInt(limit),
+        hasMore: skip + permits.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expiring soon permits:', error)
+    logError(error, req)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expiring soon permits',
+      error: error.message
+    })
+  }
+}
+
+// Get expired permits
+exports.getExpiredPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query
+
+    const query = { status: 'expired' }
+
+    if (search) {
+      query.$or = [
+        { permitNumber: { $regex: search, $options: 'i' } },
+        { permitHolder: { $regex: search, $options: 'i' } },
+        { vehicleNo: { $regex: search, $options: 'i' } },
+        { mobileNo: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const permits = await TemporaryPermitOtherState.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('bill')
+
+    const total = await TemporaryPermitOtherState.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        totalItems: total,
+        itemsPerPage: parseInt(limit),
+        hasMore: skip + permits.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expired permits:', error)
+    logError(error, req)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expired permits',
+      error: error.message
+    })
+  }
+}
+
+// Get pending payment permits
+exports.getPendingPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+
+    const query = { balance: { $gt: 0 } }
+
+    if (search) {
+      query.$or = [
+        { permitNumber: { $regex: search, $options: 'i' } },
+        { permitHolder: { $regex: search, $options: 'i' } },
+        { vehicleNo: { $regex: search, $options: 'i' } },
+        { mobileNo: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const permits = await TemporaryPermitOtherState.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .populate('bill')
+
+    const total = await TemporaryPermitOtherState.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        totalItems: total,
+        itemsPerPage: parseInt(limit),
+        hasMore: skip + permits.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching pending payment permits:', error)
+    logError(error, req)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching pending payment permits',
       error: error.message
     })
   }

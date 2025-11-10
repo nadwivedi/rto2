@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import AddInsuranceModal from './components/AddInsuranceModal'
@@ -55,14 +55,20 @@ const Insurance = () => {
   const fetchInsurances = async (page = pagination.currentPage) => {
     setLoading(true)
     try {
-      const response = await axios.get(`${API_URL}/api/insurance`, {
-        params: {
-          page,
-          limit: pagination.limit,
-          search: debouncedSearchQuery,
-          status: statusFilter === 'all' ? '' : statusFilter
-        }
-      })
+      let url = `${API_URL}/api/insurance`
+      const params = {
+        page,
+        limit: pagination.limit,
+        search: debouncedSearchQuery
+      }
+
+      if (statusFilter !== 'all') {
+        // Convert underscore to hyphen for API endpoints
+        const filterPath = statusFilter.replace('_', '-')
+        url = `${API_URL}/api/insurance/${filterPath}`
+      }
+
+      const response = await axios.get(url, { params })
 
       if (response.data.success) {
         setInsurances(response.data.data)
@@ -104,7 +110,7 @@ const Insurance = () => {
       fetchInsurances(1) // Reset to page 1 when filters change
       fetchStatistics()
     }
-  }, [debouncedSearchQuery])
+  }, [debouncedSearchQuery, statusFilter])
 
   // Page change handler
   const handlePageChange = (newPage) => {
@@ -124,18 +130,8 @@ const Insurance = () => {
     return 'Active'
   }
 
-  // Filter insurances based on status filter
-  const filteredInsurances = useMemo(() => {
-    if (statusFilter === 'all') {
-      return insurances
-    }
-    return insurances.filter(insurance => {
-      if (statusFilter === 'pending') {
-        return (insurance.balance || 0) > 0
-      }
-      return insurance.status === statusFilter
-    })
-  }, [insurances, statusFilter])
+  // No need for client-side filtering anymore - server handles it
+  const filteredInsurances = insurances
 
   const handleAddInsurance = async (formData) => {
     setLoading(true)

@@ -10,6 +10,15 @@ router.get('/statistics', insuranceController.getStatistics)
 // Get expiring insurance records (must be before /:id)
 router.get('/expiring', insuranceController.getExpiringInsurance)
 
+// Get expiring soon insurance records
+router.get('/expiring-soon', insuranceController.getExpiringSoonInsurance)
+
+// Get expired insurance records
+router.get('/expired', insuranceController.getExpiredInsurance)
+
+// Get pending payment insurance records
+router.get('/pending', insuranceController.getPendingInsurance)
+
 // Get insurance by policy number (must be before general /:id)
 router.get('/policy/:policyNumber', insuranceController.getInsuranceByPolicyNumber)
 

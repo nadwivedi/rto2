@@ -5,8 +5,20 @@ const temporaryPermitOtherStateController = require('../controllers/temporaryPer
 // GET all temporary permits (other state)
 router.get('/', temporaryPermitOtherStateController.getAllPermits)
 
+// GET statistics
+router.get('/statistics', temporaryPermitOtherStateController.getStatistics)
+
 // GET expiring soon count
 router.get('/expiring-soon-count', temporaryPermitOtherStateController.getExpiringSoonCount)
+
+// GET expiring soon permits
+router.get('/expiring-soon', temporaryPermitOtherStateController.getExpiringSoonPermits)
+
+// GET expired permits
+router.get('/expired', temporaryPermitOtherStateController.getExpiredPermits)
+
+// GET pending payment permits
+router.get('/pending', temporaryPermitOtherStateController.getPendingPermits)
 
 // GET single temporary permit by ID
 router.get('/:id', temporaryPermitOtherStateController.getPermitById)
