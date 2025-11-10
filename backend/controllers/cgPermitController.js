@@ -259,7 +259,6 @@ exports.getAllPermits = async (req, res) => {
       page = 1,
       limit = 20,
       search,
-      status,
       sortBy = 'createdAt',
       sortOrder = 'desc'
     } = req.query
@@ -270,15 +269,6 @@ exports.getAllPermits = async (req, res) => {
     // Search by vehicle number only
     if (search) {
       query.vehicleNumber = { $regex: search, $options: 'i' }
-    }
-
-    // Filter by status or pending payment
-    if (status) {
-      if (status === 'pending') {
-        query.balance = { $gt: 0 }
-      } else {
-        query.status = status
-      }
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -320,6 +310,87 @@ exports.getAllPermits = async (req, res) => {
     })
   }
 }
+
+// Get expiring soon CG permits
+exports.getExpiringSoonPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query;
+    const query = { status: 'expiring_soon' };
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' };
+    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit));
+    const total = await CgPermit.countDocuments(query);
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching expiring soon CG permits:', error);
+    res.status(500).json({ success: false, message: 'Error fetching expiring soon CG permits' });
+  }
+};
+
+// Get expired CG permits
+exports.getExpiredPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query;
+    const query = { status: 'expired' };
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' };
+    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit));
+    const total = await CgPermit.countDocuments(query);
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching expired CG permits:', error);
+    res.status(500).json({ success: false, message: 'Error fetching expired CG permits' });
+  }
+};
+
+// Get pending payment CG permits
+exports.getPendingPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    const query = { balance: { $gt: 0 } };
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' };
+    }
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
+    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit));
+    const total = await CgPermit.countDocuments(query);
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching pending CG permits:', error);
+    res.status(500).json({ success: false, message: 'Error fetching pending CG permits' });
+  }
+};
 
 // Get single CG permit by ID
 exports.getPermitById = async (req, res) => {

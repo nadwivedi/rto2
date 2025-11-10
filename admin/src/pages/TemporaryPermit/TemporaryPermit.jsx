@@ -23,9 +23,8 @@ const TemporaryPermit = () => {
   const [editingPermit, setEditingPermit] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [dateFilter, setDateFilter] = useState('All')
   const [whatsappLoading, setWhatsappLoading] = useState(null) // Track which permit is loading
-  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'pending'
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring_soon', 'expired', 'pending'
   const [initialPermitData, setInitialPermitData] = useState(null) // For pre-filling renewal data
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -86,20 +85,23 @@ const TemporaryPermit = () => {
   }
 
   const fetchPermits = async (page = pagination.currentPage) => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await axios.get(`${API_URL}/api/temporary-permits`, {
-        params: {
-          page,
-          limit: pagination.limit,
-          search: debouncedSearchQuery,
-          status: statusFilter !== 'all' ? statusFilter : undefined
-        }
-      })
+    setLoading(true)
+    setError(null)
+    let url = `${API_URL}/api/temporary-permits`
+    const params = {
+      page,
+      limit: pagination.limit,
+      search: debouncedSearchQuery
+    }
 
-      console.log(response);
-      
+    if (statusFilter !== 'all') {
+      // Convert underscore to hyphen for API endpoints if needed, e.g., 'expiring_soon' -> 'expiring-soon'
+      const filterPath = statusFilter.replace('_', '-')
+      url = `${API_URL}/api/temporary-permits/${filterPath}`
+    }
+
+    try {
+      const response = await axios.get(url, { params })
 
       // Transform backend data to match frontend structure
       const transformedPermits = response.data.data.map(permit => ({
@@ -421,12 +423,6 @@ Thank you!`
     return false
   }
 
-  const handleFilterChange = (filterType, value) => {
-    if (filterType === 'date') {
-      setDateFilter(value)
-    }
-  }
-
   const handleIssuePermit = async (formData) => {
     try {
       // Prepare data to match backend model
@@ -600,31 +596,6 @@ Thank you!`
               >
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
               </svg>
-            </div>
-
-            {/* Filters Group */}
-            <div className='flex flex-wrap gap-2'>
-              {/* Date Filter */}
-              <select
-                value={dateFilter}
-                onChange={(e) => handleFilterChange('date', e.target.value)}
-                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
-              >
-                <option value='All'>All Permits</option>
-                <option value='Expiring30Days'>Expiring in 30 Days</option>
-                <option value='Expiring60Days'>Expiring in 60 Days</option>
-                <option value='Expired'>Expired</option>
-              </select>
-
-              {/* Clear Filters */}
-              {dateFilter !== 'All' && (
-                <button
-                  onClick={() => handleFilterChange('date', 'All')}
-                  className='px-4 py-3 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
-                >
-                  Clear
-                </button>
-              )}
             </div>
 
             {/* New Permit Button */}

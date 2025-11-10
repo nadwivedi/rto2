@@ -330,7 +330,6 @@ exports.getAllPermits = async (req, res) => {
       page = 1,
       limit = 20,
       search,
-      status,
       vehicleType,
       sortBy = 'createdAt',
       sortOrder = 'desc'
@@ -342,15 +341,6 @@ exports.getAllPermits = async (req, res) => {
     // Search by vehicle number only
     if (search) {
       query.vehicleNumber = { $regex: search, $options: 'i' }
-    }
-
-    // Filter by status or pending payment
-    if (status) {
-      if (status === 'pending') {
-        query.balance = { $gt: 0 }
-      } else {
-        query.status = status
-      }
     }
 
     // Filter by vehicle type
@@ -380,8 +370,7 @@ exports.getAllPermits = async (req, res) => {
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
+        totalRecords: total
       }
     })
   } catch (error) {
@@ -392,6 +381,133 @@ exports.getAllPermits = async (req, res) => {
     })
   }
 }
+
+// Get expiring soon temporary permits
+exports.getExpiringSoonPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
+
+    const query = { status: 'expiring_soon' }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const permits = await TemporaryPermit.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await TemporaryPermit.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expiring soon permits:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expiring soon permits',
+      error: error.message
+    })
+  }
+}
+
+// Get expired temporary permits
+exports.getExpiredPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query
+
+    const query = { status: 'expired' }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const permits = await TemporaryPermit.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await TemporaryPermit.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expired permits:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expired permits',
+      error: error.message
+    })
+  }
+}
+
+// Get pending payment temporary permits
+exports.getPendingPermits = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+
+    const query = { balance: { $gt: 0 } }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const permits = await TemporaryPermit.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await TemporaryPermit.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching pending permits:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching pending permits',
+      error: error.message
+    })
+  }
+}
+
 
 // Get single temporary permit by ID
 exports.getPermitById = async (req, res) => {

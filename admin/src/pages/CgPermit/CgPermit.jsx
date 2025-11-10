@@ -10,6 +10,7 @@ import Pagination from '../../components/Pagination'
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
 const CgPermit = () => {
+  // Force recompile for debugging ReferenceError: loading is not defined
   // Demo data for when backend is not available
   const demoPermits = [
     {
@@ -135,12 +136,11 @@ const CgPermit = () => {
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
   const [showAdditionalDetails, setShowAdditionalDetails] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [dateFilter, setDateFilter] = useState('All')
+  const [loading, setLoading] = useState(true) // Re-initializing loading state
+  const [error, setError] = useState(null) // Error state
   const [whatsappLoading, setWhatsappLoading] = useState(null) // Track which permit is loading
   const [initialPermitData, setInitialPermitData] = useState(null) // For pre-filling renewal data
-  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring', 'pending'
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring_soon', 'expired', 'pending'
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -200,17 +200,22 @@ const CgPermit = () => {
   }
 
   const fetchPermits = async (page = pagination.currentPage) => {
+    setLoading(true)
+    setError(null)
+    let url = `${API_URL}/api/cg-permits`
+    const params = {
+      page,
+      limit: pagination.limit,
+      search: debouncedSearchQuery
+    }
+
+    if (statusFilter !== 'all') {
+      const filterPath = statusFilter.replace('_', '-')
+      url = `${API_URL}/api/cg-permits/${filterPath}`
+    }
+
     try {
-      setLoading(true)
-      setError(null)
-      const response = await axios.get(`${API_URL}/api/cg-permits`, {
-        params: {
-          page,
-          limit: pagination.limit,
-          search: debouncedSearchQuery,
-          status: statusFilter !== 'all' ? statusFilter : undefined
-        }
-      })
+      const response = await axios.get(url, { params })
 
       // Transform backend data to match frontend structure
       const transformedPermits = response.data.data.map(permit => ({
@@ -276,35 +281,33 @@ const CgPermit = () => {
   }
 
 
-  const getStatusColor = (validTo) => {
-    if (!validTo) return 'bg-gray-100 text-gray-700'
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const dateParts = validTo.split(/[/-]/)
-    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    validToDate.setHours(0, 0, 0, 0)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const getStatusColor = (status) => {
+    if (!status) return 'bg-gray-100 text-gray-700';
+    switch (status) {
+      case 'expired':
+        return 'bg-red-100 text-red-700';
+      case 'expiring_soon':
+        return 'bg-orange-100 text-orange-700';
+      case 'active':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
 
-    if (diffDays < 0) return 'bg-red-100 text-red-700'
-    if (diffDays <= 15) return 'bg-orange-100 text-orange-700'
-    return 'bg-green-100 text-green-700'
-  }
-
-  const getStatusText = (validTo) => {
-    if (!validTo) return 'Unknown'
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const dateParts = validTo.split(/[/-]/)
-    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    validToDate.setHours(0, 0, 0, 0)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 15) return 'Expiring Soon'
-    return 'Active'
-  }
+  const getStatusText = (status) => {
+    if (!status) return 'Unknown';
+    switch (status) {
+      case 'expired':
+        return 'Expired';
+      case 'expiring_soon':
+        return 'Expiring Soon';
+      case 'active':
+        return 'Active';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
 
   // Helper to convert DD-MM-YYYY to Date object
   const parseDate = (dateStr) => {
@@ -477,15 +480,15 @@ Thank you!`
 
   // Determine if renew button should be shown for a permit
   const shouldShowRenewButton = (permit) => {
-    const status = getStatusText(permit.validTill)
+    const { status } = permit;
 
     // Show renew button for expiring soon permits
-    if (status === 'Expiring Soon') {
+    if (status === 'expiring_soon') {
       return true
     }
 
     // Show renew button for expired permits
-    if (status === 'Expired') {
+    if (status === 'expired') {
       return true
     }
 
@@ -495,12 +498,6 @@ Thank you!`
   const handleEditPermit = (permit) => {
     setEditingPermit(permit)
     setShowEditPermitModal(true)
-  }
-
-  const handleFilterChange = (filterType, value) => {
-    if (filterType === 'date') {
-      setDateFilter(value)
-    }
   }
 
   const handleIssuePermit = async (formData) => {
@@ -755,31 +752,6 @@ Thank you!`
               </svg>
             </div>
 
-            {/* Filters Group */}
-            <div className='flex flex-wrap gap-2'>
-              {/* Date Filter */}
-              <select
-                value={dateFilter}
-                onChange={(e) => handleFilterChange('date', e.target.value)}
-                className='px-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 font-semibold bg-white hover:border-indigo-300 transition-all shadow-sm'
-              >
-                <option value='All'>All Permits</option>
-                <option value='Expiring30Days'>Expiring in 30 Days</option>
-                <option value='Expiring60Days'>Expiring in 60 Days</option>
-                <option value='Expired'>Expired</option>
-              </select>
-
-              {/* Clear Filters */}
-              {dateFilter !== 'All' && (
-                <button
-                  onClick={() => handleFilterChange('date', 'All')}
-                  className='px-4 py-3 text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
             {/* New Permit Button */}
             <button
               onClick={() => setShowIssuePermitModal(true)}
@@ -878,8 +850,8 @@ Thank you!`
                   <div className='p-3 space-y-2.5'>
                     {/* Status and Vehicle */}
                     <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.validTill)}`}>
-                        {getStatusText(permit.validTill)}
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.status)}`}>
+                        {getStatusText(permit.status)}
                       </span>
                       <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
                         <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
@@ -1079,8 +1051,8 @@ Thank you!`
                       )}
                     </td>
                     <td className='px-6 py-5'>
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.validTill)}`}>
-                        {getStatusText(permit.validTill)}
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.status)}`}>
+                        {getStatusText(permit.status)}
                       </span>
                     </td>
                     <td className='px-6 py-5'>

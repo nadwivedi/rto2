@@ -8,6 +8,15 @@ router.get('/', temporaryPermitController.getAllPermits)
 // GET statistics
 router.get('/statistics', temporaryPermitController.getStatistics)
 
+// GET expiring soon permits
+router.get('/expiring-soon', temporaryPermitController.getExpiringSoonPermits)
+
+// GET expired permits
+router.get('/expired', temporaryPermitController.getExpiredPermits)
+
+// GET pending payment permits
+router.get('/pending', temporaryPermitController.getPendingPermits)
+
 // POST share permit via WhatsApp (must be before /:id route)
 router.post('/:id/share', temporaryPermitController.sharePermit)
 
