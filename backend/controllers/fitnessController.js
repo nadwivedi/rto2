@@ -35,163 +35,36 @@ const getFitnessStatus = (validTo) => {
 // Get all fitness records
 exports.getAllFitness = async (req, res) => {
   try {
-    const { search, status, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const query = {}
 
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
-
-    // Determine if we need aggregation pipeline (for date-based status filtering)
-    const useDateBasedFilter = status && ['expired', 'expiring_soon', 'active'].includes(status)
-
-    if (useDateBasedFilter) {
-      // Use aggregation pipeline for date-based filtering
-      const pipeline = []
-
-      // Stage 1: Normalize date separator
-      pipeline.push({
-        $addFields: {
-          validToNormalized: {
-            $replaceAll: {
-              input: '$validTo',
-              find: '-',
-              replacement: '/'
-            }
-          }
-        }
-      })
-
-      // Stage 2: Add computed date field
-      pipeline.push({
-        $addFields: {
-          validToDateParsed: {
-            $dateFromString: {
-              dateString: {
-                $concat: [
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 2] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 1] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$validToNormalized', '/'] }, 0] }
-                ]
-              },
-              onError: null,
-              onNull: null
-            }
-          }
-        }
-      })
-
-      // Stage 3: Add computed status
-      pipeline.push({
-        $addFields: {
-          computedStatus: {
-            $switch: {
-              branches: [
-                { case: { $lt: ['$validToDateParsed', today] }, then: 'expired' },
-                {
-                  case: {
-                    $and: [
-                      { $gte: ['$validToDateParsed', today] },
-                      { $lte: ['$validToDateParsed', fifteenDaysFromNow] }
-                    ]
-                  },
-                  then: 'expiring_soon'
-                }
-              ],
-              default: 'active'
-            }
-          }
-        }
-      })
-
-      // Stage 4: Build match conditions
-      const matchConditions = { computedStatus: status }
-
-      // Add search filter (vehicle number only)
-      if (search) {
-        matchConditions.vehicleNumber = { $regex: search, $options: 'i' }
-      }
-
-      pipeline.push({ $match: matchConditions })
-
-      // Stage 5: Sort
-      const sortOptions = {}
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-      pipeline.push({ $sort: sortOptions })
-
-      // Stage 6: Count total for pagination (use facet to get both data and count)
-      pipeline.push({
-        $facet: {
-          metadata: [{ $count: 'total' }],
-          data: [
-            { $skip: (parseInt(page) - 1) * parseInt(limit) },
-            { $limit: parseInt(limit) }
-          ]
-        }
-      })
-
-      const results = await Fitness.aggregate(pipeline)
-      const total = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0
-      const fitnessRecords = results[0].data
-
-      res.json({
-        success: true,
-        data: fitnessRecords,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalRecords: total,
-          hasMore: (parseInt(page) - 1) * parseInt(limit) + fitnessRecords.length < total
-        }
-      })
-    } else {
-      // Use normal query for non-date-based filtering
-      const query = {}
-
-      // Search by vehicle number only
-      if (search) {
-        query.vehicleNumber = { $regex: search, $options: 'i' }
-      }
-
-      // Filter by status or pending payment
-      if (status) {
-        if (status === 'pending') {
-          query.balance = { $gt: 0 }
-        } else {
-          query.status = status
-        }
-      }
-
-      const skip = (parseInt(page) - 1) * parseInt(limit)
-
-      // Sort options
-      const sortOptions = {}
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-
-      // Execute query
-      const fitnessRecords = await Fitness.find(query)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(parseInt(limit))
-
-      // Get total count for pagination
-      const total = await Fitness.countDocuments(query)
-
-      res.json({
-        success: true,
-        data: fitnessRecords,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalRecords: total,
-          hasMore: skip + fitnessRecords.length < total
-        }
-      })
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
     }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const fitnessRecords = await Fitness.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Fitness.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: fitnessRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + fitnessRecords.length < total
+      }
+    })
   } catch (error) {
     console.error('Error fetching fitness records:', error)
     res.status(500).json({
@@ -201,6 +74,179 @@ exports.getAllFitness = async (req, res) => {
     })
   }
 }
+
+// Get expiring soon fitness records
+exports.getExpiringSoonFitness = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
+
+    const query = { status: 'expiring_soon' }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const fitnessRecords = await Fitness.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Fitness.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: fitnessRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + fitnessRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expiring soon fitness records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expiring soon fitness records',
+      error: error.message
+    })
+  }
+}
+
+// Get expired fitness records
+exports.getExpiredFitness = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query
+
+    const query = { status: 'expired' }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const fitnessRecords = await Fitness.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Fitness.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: fitnessRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + fitnessRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expired fitness records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expired fitness records',
+      error: error.message
+    })
+  }
+}
+
+// Get active fitness records
+exports.getActiveFitness = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
+
+    const query = { status: 'active' }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const fitnessRecords = await Fitness.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Fitness.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: fitnessRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + fitnessRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching active fitness records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching active fitness records',
+      error: error.message
+    })
+  }
+}
+
+// Get pending fitness records
+exports.getPendingFitness = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+
+    const query = { balance: { $gt: 0 } }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const fitnessRecords = await Fitness.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Fitness.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: fitnessRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + fitnessRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching pending fitness records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching pending fitness records',
+      error: error.message
+    })
+  }
+}
+
 
 // Get single fitness record by ID
 exports.getFitnessById = async (req, res) => {

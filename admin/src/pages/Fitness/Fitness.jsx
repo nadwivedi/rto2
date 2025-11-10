@@ -52,15 +52,21 @@ const Fitness = () => {
   // Fetch fitness records from API
   const fetchFitnessRecords = async (page = pagination.currentPage) => {
     setLoading(true)
+    let url = `${API_URL}/api/fitness`
+    const params = {
+      page,
+      limit: pagination.limit,
+      search: searchQuery
+    }
+
+    if (statusFilter !== 'all') {
+      // Convert underscore to hyphen for API endpoints
+      const filterPath = statusFilter.replace('_', '-')
+      url = `${API_URL}/api/fitness/${filterPath}`
+    }
+
     try {
-      const response = await axios.get(`${API_URL}/api/fitness`, {
-        params: {
-          page,
-          limit: pagination.limit,
-          search: searchQuery,
-          status: statusFilter !== 'all' ? statusFilter : undefined
-        }
-      })
+      const response = await axios.get(url, { params })
 
       if (response.data.success) {
         // Transform the data to match the display format
@@ -191,7 +197,7 @@ const Fitness = () => {
   const handleEditFitness = async (formData) => {
     setLoading(true)
     try {
-      const response = await axios.put(`${API_URL}/api/fitness/${selectedFitness.id}`, {
+      const response = await axios.put(`${API_URL}/api/fitness/id/${selectedFitness.id}`, {
         vehicleNumber: formData.vehicleNumber,
         validFrom: formData.validFrom,
         validTo: formData.validTo,
@@ -254,7 +260,7 @@ const Fitness = () => {
 
     setLoading(true)
     try {
-      const response = await axios.delete(`${API_URL}/api/fitness/${record.id}`)
+      const response = await axios.delete(`${API_URL}/api/fitness/id/${record.id}`)
 
       if (response.data.success) {
         toast.success('Fitness certificate deleted successfully!', {
