@@ -458,7 +458,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                 <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
                   {/* Personal Information */}
                   <div>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-indigo-600'>Personal Information</h4>
+                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-indigo-600'>Personal Information</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                       <div>
                         <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
