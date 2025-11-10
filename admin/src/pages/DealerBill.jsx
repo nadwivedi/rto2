@@ -3,6 +3,8 @@ import axios from 'axios'
 import AddDealerBillModal from '../components/AddDealerBillModal'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+console.log(API_URL);
+
 
 const DealerBill = () => {
   const [dealerBills, setDealerBills] = useState([])
