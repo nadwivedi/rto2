@@ -269,8 +269,21 @@ exports.getTaxStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
     const activeTax = await Tax.countDocuments({ status: 'active' })
-    const expiringSoonTax = await Tax.countDocuments({ status: 'expiring_soon' })
-    const expiredTax = await Tax.countDocuments({ status: 'expired' })
+
+    // For expiring soon and expired, exclude vehicles that also have active tax (renewed vehicles)
+    const vehiclesWithActiveTax = await Tax.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const expiringSoonTax = await Tax.countDocuments({
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActiveTax }
+    })
+
+    const expiredTax = await Tax.countDocuments({
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActiveTax }
+    })
+
     const total = await Tax.countDocuments()
 
     // Pending payment aggregation
@@ -439,10 +452,23 @@ exports.getExpiringSoonTaxes = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'taxTo', sortOrder = 'asc' } = req.query
 
-    const query = { status: 'expiring_soon' }
+    // Find all vehicle numbers that have active tax
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActiveTax = await Tax.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const query = {
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActiveTax }
+    }
 
     if (search) {
-      query.vehicleNumber = { $regex: search, $options: 'i' }
+      // Update the vehicleNumber condition to work with search
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActiveTax } },
+        { vehicleNumber: { $regex: search, $options: 'i' } }
+      ]
+      delete query.vehicleNumber
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -482,10 +508,23 @@ exports.getExpiredTaxes = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'taxTo', sortOrder = 'desc' } = req.query
 
-    const query = { status: 'expired' }
+    // Find all vehicle numbers that have active tax
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActiveTax = await Tax.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const query = {
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActiveTax }
+    }
 
     if (search) {
-      query.vehicleNumber = { $regex: search, $options: 'i' }
+      // Update the vehicleNumber condition to work with search
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActiveTax } },
+        { vehicleNumber: { $regex: search, $options: 'i' } }
+      ]
+      delete query.vehicleNumber
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
