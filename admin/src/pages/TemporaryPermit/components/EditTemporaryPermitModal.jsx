@@ -148,8 +148,8 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
       return
     }
 
-    // Parse DD/MM/YYYY format
-    const parts = formData.validFrom.trim().split('/')
+    // Parse DD-MM-YYYY format (with dashes)
+    const parts = formData.validFrom.trim().split('-')
 
     // Need exactly 3 parts (day, month, year)
     if (parts.length !== 3) {
@@ -209,12 +209,14 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
     // Calculate valid to date
     const validToDate = new Date(validFromDate)
     validToDate.setMonth(validToDate.getMonth() + monthsToAdd)
+    // Subtract 1 day because Valid From counts as day 1
+    validToDate.setDate(validToDate.getDate() - 1)
 
-    // Format date to DD/MM/YYYY
+    // Format date to DD-MM-YYYY (with dashes to match input format)
     const newDay = String(validToDate.getDate()).padStart(2, '0')
     const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
     const newYear = validToDate.getFullYear()
-    const formattedValidTo = `${newDay}/${newMonth}/${newYear}`
+    const formattedValidTo = `${newDay}-${newMonth}-${newYear}`
 
     // Only update if the calculated value is different
     if (formData.validTo !== formattedValidTo) {
@@ -535,7 +537,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
                     value={formData.validFrom}
                     onChange={handleChange}
                     onKeyDown={handleDateKeyDown}
-                    placeholder='24/01/24 or 24/01/2024'
+                    placeholder='DD-MM-YYYY (e.g., 24-01-2024)'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
@@ -557,7 +559,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
                   />
                   <p className='text-xs text-gray-500 mt-1'>
-                    CV = +3 months, PV = +4 months from Valid From date
+                    CV = +3 months - 1 day, PV = +4 months - 1 day (e.g., 22-02-2023 → 21-05-2023)
                   </p>
                 </div>
               </div>
