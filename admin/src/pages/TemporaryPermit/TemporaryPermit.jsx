@@ -158,38 +158,34 @@ const TemporaryPermit = () => {
   }
 
   // Calculate status color based on validTo date
-  const getStatusColor = (validTo) => {
-    if (!validTo) return 'bg-gray-100 text-gray-700'
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
-    const dateParts = validTo.split(/[/-]/)
-    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    validToDate.setHours(0, 0, 0, 0)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'bg-red-100 text-red-700'
-    if (diffDays <= 15) return 'bg-orange-100 text-orange-700'
-    return 'bg-green-100 text-green-700'
-  }
+  const getStatusColor = (status) => {
+    if (!status) return 'bg-gray-100 text-gray-700';
+    switch (status) {
+      case 'expired':
+        return 'bg-red-100 text-red-700';
+      case 'expiring_soon':
+        return 'bg-orange-100 text-orange-700';
+      case 'active':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
 
   // Calculate status text based on validTo date
-  const getStatusText = (validTo) => {
-    if (!validTo) return 'Unknown'
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
-    const dateParts = validTo.split(/[/-]/)
-    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    validToDate.setHours(0, 0, 0, 0)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 15) return 'Expiring Soon'
-    return 'Active'
-  }
+  const getStatusText = (status) => {
+    if (!status) return 'Unknown';
+    switch (status) {
+      case 'expired':
+        return 'Expired';
+      case 'expiring_soon':
+        return 'Expiring Soon';
+      case 'active':
+        return 'Active';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
 
   // Helper to convert DD-MM-YYYY to Date object
   const parseDate = (dateStr) => {
@@ -408,31 +404,17 @@ Thank you!`
     }
   }
 
-  // Helper function to get status based on validTill date
-  const getPermitStatus = (validTill) => {
-    if (!validTill) return 'Unknown'
-    const today = new Date()
-    const dateParts = validTill.split(/[/-]/)
-    const validTillDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    const diffTime = validTillDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 15) return 'Expiring Soon'
-    return 'Active'
-  }
-
   // Determine if renew button should be shown for a permit
   const shouldShowRenewButton = (permit) => {
-    const status = getPermitStatus(permit.validTill)
+    const { status } = permit;
 
     // Show renew button for expiring soon permits
-    if (status === 'Expiring Soon') {
+    if (status === 'expiring_soon') {
       return true
     }
 
     // Show renew button for expired permits
-    if (status === 'Expired') {
+    if (status === 'expired') {
       return true
     }
 
@@ -744,8 +726,8 @@ Thank you!`
                   <div className='p-3 space-y-2.5'>
                     {/* Status and Vehicle */}
                     <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.validTill)}`}>
-                        {getStatusText(permit.validTill)}
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.status)}`}>
+                        {getStatusText(permit.status)}
                       </span>
                       <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
                         <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
@@ -957,8 +939,8 @@ Thank you!`
                       )}
                     </td>
                     <td className='px-6 py-5'>
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.validTill)}`}>
-                        {getStatusText(permit.validTill)}
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.status)}`}>
+                        {getStatusText(permit.status)}
                       </span>
                     </td>
                     <td className='px-6 py-5'>

@@ -109,33 +109,33 @@ const Fitness = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const getStatusColor = (validTo) => {
-    if (!validTo) return 'bg-gray-100 text-gray-700'
-    const today = new Date()
-    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
-    const dateParts = validTo.split(/[/-]/)
-    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const getStatusColor = (status) => {
+    if (!status) return 'bg-gray-100 text-gray-700';
+    switch (status) {
+      case 'expired':
+        return 'bg-red-100 text-red-700';
+      case 'expiring_soon':
+        return 'bg-orange-100 text-orange-700';
+      case 'active':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
 
-    if (diffDays < 0) return 'bg-red-100 text-red-700'
-    if (diffDays <= 30) return 'bg-orange-100 text-orange-700'
-    return 'bg-green-100 text-green-700'
-  }
-
-  const getStatusText = (validTo) => {
-    if (!validTo) return 'Unknown'
-    const today = new Date()
-    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
-    const dateParts = validTo.split(/[/-]/)
-    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 30) return 'Expiring Soon'
-    return 'Active'
-  }
+  const getStatusText = (status) => {
+    if (!status) return 'Unknown';
+    switch (status) {
+      case 'expired':
+        return 'Expired';
+      case 'expiring_soon':
+        return 'Expiring Soon';
+      case 'active':
+        return 'Active';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
 
   // Helper function to parse date string (DD-MM-YYYY or DD/MM/YYYY)
   const parseDateString = (dateStr) => {
@@ -280,29 +280,19 @@ const Fitness = () => {
 
   // Determine if renew button should be shown for a record
   const shouldShowRenewButton = (record) => {
-    if (!record.validTo) return false
+    const { status } = record;
 
-    // Calculate days remaining
-    const today = new Date()
-    const dateParts = record.validTo.split(/[/-]/)
-    const validToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    const status = getStatusText(record.validTo)
-
-    // Show for expiring soon BUT only if within 15 days
-    if (status === 'Expiring Soon' && diffDays <= 15) {
+    // Show for expiring soon
+    if (status === 'expiring_soon') {
       return true
     }
 
     // For expired records, apply smart logic
-    if (status === 'Expired') {
+    if (status === 'expired') {
       // Check if this vehicle has any active or expiring soon fitness
       const hasActiveFitness = fitnessRecords.some((r) => {
         if (r.vehicleNumber === record.vehicleNumber) {
-          const rStatus = getStatusText(r.validTo)
-          return rStatus === 'Active' || rStatus === 'Expiring Soon'
+          return r.status === 'active' || r.status === 'expiring_soon'
         }
         return false
       })
@@ -314,7 +304,7 @@ const Fitness = () => {
 
       // Vehicle has no active fitness - show renew button only on latest expired record
       const expiredRecordsForVehicle = fitnessRecords.filter((r) => {
-        return r.vehicleNumber === record.vehicleNumber && getStatusText(r.validTo) === 'Expired'
+        return r.vehicleNumber === record.vehicleNumber && r.status === 'expired'
       })
 
       // Find the latest expired record
@@ -557,8 +547,8 @@ const Fitness = () => {
                         {/* Status Badge */}
                         <div className='flex items-center justify-between'>
                           <span className='text-xs text-gray-500 font-semibold uppercase'>Status</span>
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(record.validTo)}`}>
-                            {getStatusText(record.validTo)}
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(record.status)}`}>
+                            {getStatusText(record.status)}
                           </span>
                         </div>
 
@@ -680,8 +670,8 @@ const Fitness = () => {
                           {/* Status Badge */}
                           <div className='flex items-center justify-between'>
                             <span className='text-xs text-gray-500 font-semibold uppercase'>Status</span>
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(record.validTo)}`}>
-                              {getStatusText(record.validTo)}
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(record.status)}`}>
+                              {getStatusText(record.status)}
                             </span>
                           </div>
 
@@ -829,8 +819,8 @@ const Fitness = () => {
 
                         {/* Status */}
                         <td className='px-4 py-4'>
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(record.validTo)}`}>
-                            {getStatusText(record.validTo)}
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(record.status)}`}>
+                            {getStatusText(record.status)}
                           </span>
                         </td>
 

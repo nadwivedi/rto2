@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getTodayDate as utilGetTodayDate } from '../utils/dateFormatter'
+import { getTodayDate as utilGetTodayDate } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 

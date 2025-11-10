@@ -31,6 +31,17 @@ const TemporaryPermitOtherState = () => {
     pendingPaymentCount: 0
   })
 
+  const fetchStatistics = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/temporary-permits-other-state/statistics`);
+      if (response.data.success) {
+        setStatistics(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error);
+    }
+  };
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -43,6 +54,7 @@ const TemporaryPermitOtherState = () => {
   useEffect(() => {
     if (debouncedSearchQuery.length === 0 || debouncedSearchQuery.length >= 4) {
       fetchPermits(1)
+      fetchStatistics();
     }
   }, [debouncedSearchQuery, statusFilter])
 
@@ -75,9 +87,6 @@ const TemporaryPermitOtherState = () => {
           totalRecords: response.data.pagination?.totalItems || 0,
           limit: response.data.pagination?.itemsPerPage || 20
         })
-
-        // Calculate statistics from the data
-        calculateStatistics(response.data.data || [])
       }
     } catch (error) {
       console.error('Error fetching permits:', error)
@@ -86,40 +95,6 @@ const TemporaryPermitOtherState = () => {
     } finally {
       setLoading(false)
     }
-  }
-
-  const calculateStatistics = (permitsData) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    let active = 0
-    let expiringSoon = 0
-    let expired = 0
-    let pendingPayment = 0
-
-    permitsData.forEach(permit => {
-      const validTo = parseDate(permit.validTo)
-      if (validTo) {
-        const diffTime = validTo - today
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-        if (diffDays < 0) expired++
-        else if (diffDays <= 15) expiringSoon++
-        else active++
-      }
-
-      if ((permit.balance || 0) > 0) {
-        pendingPayment++
-      }
-    })
-
-    setStatistics({
-      total: permitsData.length,
-      active,
-      expiringSoon,
-      expired,
-      pendingPaymentCount: pendingPayment
-    })
   }
 
   const parseDate = (dateStr) => {
@@ -139,37 +114,33 @@ const TemporaryPermitOtherState = () => {
     return null
   }
 
-  const getStatusBadge = (validTo) => {
-    if (!validTo) return 'bg-gray-100 text-gray-700'
+  const getStatusColor = (status) => {
+    if (!status) return 'bg-gray-100 text-gray-700';
+    switch (status) {
+      case 'expired':
+        return 'bg-red-100 text-red-700';
+      case 'expiring_soon':
+        return 'bg-orange-100 text-orange-700';
+      case 'active':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
 
-    const validToDate = parseDate(validTo)
-    if (!validToDate) return 'bg-gray-100 text-gray-700'
-
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'bg-red-100 text-red-700'
-    if (diffDays <= 15) return 'bg-orange-100 text-orange-700'
-    return 'bg-green-100 text-green-700'
-  }
-
-  const getStatusText = (validTo) => {
-    if (!validTo) return 'Unknown'
-
-    const validToDate = parseDate(validTo)
-    if (!validToDate) return 'Unknown'
-
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 15) return 'Expiring Soon'
-    return 'Active'
-  }
+  const getStatusText = (status) => {
+    if (!status) return 'Unknown';
+    switch (status) {
+      case 'expired':
+        return 'Expired';
+      case 'expiring_soon':
+        return 'Expiring Soon';
+      case 'active':
+        return 'Active';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
 
   const handlePageChange = (newPage) => {
     fetchPermits(newPage)
@@ -428,8 +399,8 @@ const TemporaryPermitOtherState = () => {
 
                         {/* Status Badge */}
                         <div className='flex justify-end pt-1'>
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getStatusBadge(permit.validTo)}`}>
-                            {getStatusText(permit.validTo)}
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(permit.status)}`}>
+                            {getStatusText(permit.status)}
                           </span>
                         </div>
                       </div>
@@ -556,8 +527,8 @@ const TemporaryPermitOtherState = () => {
                           )}
                         </td>
                         <td className='px-6 py-5'>
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusBadge(permit.validTo)}`}>
-                            {getStatusText(permit.validTo)}
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(permit.status)}`}>
+                            {getStatusText(permit.status)}
                           </span>
                         </td>
                         <td className='px-6 py-5'>

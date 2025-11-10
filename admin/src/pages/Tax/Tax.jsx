@@ -35,6 +35,8 @@ const Tax = () => {
   const fetchStatistics = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/tax/statistics`)
+      console.log(response);
+      
       if (response.data.success) {
         setStatistics({
           total: response.data.data.total,
@@ -112,33 +114,33 @@ const Tax = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const getStatusColor = (taxTo) => {
-    if (!taxTo) return 'bg-gray-100 text-gray-700'
-    const today = new Date()
-    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
-    const dateParts = taxTo.split(/[/-]/)
-    const taxToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    const diffTime = taxToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  const getStatusColor = (status) => {
+    if (!status) return 'bg-gray-100 text-gray-700';
+    switch (status) {
+      case 'expired':
+        return 'bg-red-100 text-red-700';
+      case 'expiring_soon':
+        return 'bg-orange-100 text-orange-700';
+      case 'active':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
 
-    if (diffDays < 0) return 'bg-red-100 text-red-700'
-    if (diffDays <= 15) return 'bg-orange-100 text-orange-700'
-    return 'bg-green-100 text-green-700'
-  }
-
-  const getStatusText = (taxTo) => {
-    if (!taxTo) return 'Unknown'
-    const today = new Date()
-    // Handle both DD/MM/YYYY and DD-MM-YYYY formats
-    const dateParts = taxTo.split(/[/-]/)
-    const taxToDate = new Date(`${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`)
-    const diffTime = taxToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 15) return 'Expiring Soon'
-    return 'Active'
-  }
+  const getStatusText = (status) => {
+    if (!status) return 'Unknown';
+    switch (status) {
+      case 'expired':
+        return 'Expired';
+      case 'expiring_soon':
+        return 'Expiring Soon';
+      case 'active':
+        return 'Active';
+      default:
+        return status.charAt(0).toUpperCase() + status.slice(1);
+    }
+  };
 
   // Helper function to parse date string (DD-MM-YYYY or DD/MM/YYYY)
   const parseDateString = (dateStr) => {
@@ -247,20 +249,19 @@ const Tax = () => {
 
   // Determine if renew button should be shown for a record
   const shouldShowRenewButton = (record) => {
-    const status = getStatusText(record.taxTo)
+    const { status } = record;
 
     // Always show for expiring soon
-    if (status === 'Expiring Soon') {
+    if (status === 'expiring_soon') {
       return true
     }
 
     // For expired records, apply smart logic
-    if (status === 'Expired') {
+    if (status === 'expired') {
       // Check if this vehicle has any active or expiring soon tax
       const hasActiveTax = taxRecords.some((r) => {
         if (r.vehicleNumber === record.vehicleNumber) {
-          const rStatus = getStatusText(r.taxTo)
-          return rStatus === 'Active' || rStatus === 'Expiring Soon'
+          return r.status === 'active' || r.status === 'expiring_soon'
         }
         return false
       })
@@ -272,7 +273,7 @@ const Tax = () => {
 
       // Vehicle has no active tax - show renew button only on latest expired record
       const expiredRecordsForVehicle = taxRecords.filter((r) => {
-        return r.vehicleNumber === record.vehicleNumber && getStatusText(r.taxTo) === 'Expired'
+        return r.vehicleNumber === record.vehicleNumber && r.status === 'expired'
       })
 
       // Find the latest expired record
@@ -560,8 +561,8 @@ const Tax = () => {
                             <p className='text-[10px] text-gray-500 font-semibold uppercase'>Receipt No</p>
                             <p className='text-sm font-mono font-bold text-gray-900'>{record.receiptNo}</p>
                           </div>
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(record.taxTo)}`}>
-                            {getStatusText(record.taxTo)}
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold ${getStatusColor(record.status)}`}>
+                            {getStatusText(record.status)}
                           </span>
                         </div>
 
@@ -709,8 +710,8 @@ const Tax = () => {
 
                         {/* Status */}
                         <td className='px-4 py-4'>
-                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(record.taxTo)}`}>
-                            {getStatusText(record.taxTo)}
+                          <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(record.status)}`}>
+                            {getStatusText(record.status)}
                           </span>
                         </td>
 

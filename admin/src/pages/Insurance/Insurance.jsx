@@ -1,101 +1,12 @@
 import { useState, useMemo, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import AddInsuranceModal from '../components/AddInsuranceModal'
-import Pagination from '../components/Pagination'
+import AddInsuranceModal from './components/AddInsuranceModal'
+import Pagination from '../../components/Pagination'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const Insurance = () => {
-  // Demo data for when backend is not available (kept as fallback)
-  const demoInsurances = [
-    {
-      id: 'INS-2024-001',
-      vehicleNumber: 'CG-04-AB-1234',
-      vehicleType: 'Heavy Goods Vehicle',
-      ownerName: 'Rajesh Kumar',
-      policyNumber: 'INS123456789',
-      insuranceCompany: 'National Insurance Company',
-      policyType: 'Comprehensive',
-      issueDate: '2024-01-15',
-      validFrom: '2024-01-15',
-      validTo: '2025-01-14',
-      premiumAmount: 25000,
-      coverageAmount: 500000,
-      mobileNumber: '+91 9876543210',
-      agentName: 'Suresh Sharma',
-      agentContact: '+91 9988776655'
-    },
-    {
-      id: 'INS-2024-002',
-      vehicleNumber: 'CG-07-CD-5678',
-      vehicleType: 'Bus',
-      ownerName: 'Singh Transport',
-      policyNumber: 'INS123456790',
-      insuranceCompany: 'United India Insurance',
-      policyType: 'Comprehensive',
-      issueDate: '2024-02-10',
-      validFrom: '2024-02-10',
-      validTo: '2025-02-09',
-      premiumAmount: 35000,
-      coverageAmount: 800000,
-      mobileNumber: '+91 9876543211',
-      agentName: 'Ramesh Patel',
-      agentContact: '+91 9988776656'
-    },
-    {
-      id: 'INS-2024-003',
-      vehicleNumber: 'CG-20-EF-9012',
-      vehicleType: 'Truck',
-      ownerName: 'Patel Logistics',
-      policyNumber: 'INS123456791',
-      insuranceCompany: 'Oriental Insurance Company',
-      policyType: 'Third Party',
-      issueDate: '2024-03-05',
-      validFrom: '2024-03-05',
-      validTo: '2024-03-31',
-      premiumAmount: 8000,
-      coverageAmount: 200000,
-      mobileNumber: '+91 9876543212',
-      agentName: 'Vijay Kumar',
-      agentContact: '+91 9988776657'
-    },
-    {
-      id: 'INS-2024-004',
-      vehicleNumber: 'CG-10-GH-3456',
-      vehicleType: 'Pickup Truck',
-      ownerName: 'Verma Transport',
-      policyNumber: 'INS123456792',
-      insuranceCompany: 'New India Assurance',
-      policyType: 'Comprehensive',
-      issueDate: '2023-01-15',
-      validFrom: '2023-01-15',
-      validTo: '2024-01-14',
-      premiumAmount: 15000,
-      coverageAmount: 300000,
-      mobileNumber: '+91 9876543213',
-      agentName: 'Mohan Singh',
-      agentContact: '+91 9988776658'
-    },
-    {
-      id: 'INS-2024-005',
-      vehicleNumber: 'CG-04-IJ-7890',
-      vehicleType: 'Maxi Cab',
-      ownerName: 'Sharma Tours',
-      policyNumber: 'INS123456793',
-      insuranceCompany: 'ICICI Lombard',
-      policyType: 'Comprehensive',
-      issueDate: '2024-02-20',
-      validFrom: '2024-02-20',
-      validTo: '2025-02-19',
-      premiumAmount: 18000,
-      coverageAmount: 400000,
-      mobileNumber: '+91 9876543214',
-      agentName: 'Anil Verma',
-      agentContact: '+91 9988776659'
-    }
-  ]
-
   const [insurances, setInsurances] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
@@ -112,6 +23,33 @@ const Insurance = () => {
     totalRecords: 0,
     limit: 20
   })
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    expiringSoon: 0,
+    expired: 0,
+    pendingPaymentCount: 0,
+    pendingPaymentAmount: 0
+  })
+
+  const fetchStatistics = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/insurance/statistics`)
+      if (response.data.success) {
+        const { insurance, pendingPayments } = response.data.data
+        setStats({
+          total: insurance.total,
+          active: insurance.active,
+          expiringSoon: insurance.expiringSoon,
+          expired: insurance.expired,
+          pendingPaymentCount: pendingPayments.count,
+          pendingPaymentAmount: pendingPayments.amount
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error)
+    }
+  }
 
   // Fetch insurance records from API
   const fetchInsurances = async (page = pagination.currentPage) => {
@@ -121,7 +59,8 @@ const Insurance = () => {
         params: {
           page,
           limit: pagination.limit,
-          search: debouncedSearchQuery
+          search: debouncedSearchQuery,
+          status: statusFilter === 'all' ? '' : statusFilter
         }
       })
 
@@ -163,6 +102,7 @@ const Insurance = () => {
     // Only fetch if search query is empty or has at least 4 characters
     if (debouncedSearchQuery.length === 0 || debouncedSearchQuery.length >= 4) {
       fetchInsurances(1) // Reset to page 1 when filters change
+      fetchStatistics()
     }
   }, [debouncedSearchQuery])
 
@@ -172,25 +112,15 @@ const Insurance = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const getStatusColor = (validTo) => {
-    const today = new Date()
-    const validToDate = new Date(validTo)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'bg-red-100 text-red-700'
-    if (diffDays <= 30) return 'bg-orange-100 text-orange-700'
+  const getStatusColor = (status) => {
+    if (status === 'expired') return 'bg-red-100 text-red-700'
+    if (status === 'expiring_soon') return 'bg-orange-100 text-orange-700'
     return 'bg-green-100 text-green-700'
   }
 
-  const getStatusText = (validTo) => {
-    const today = new Date()
-    const validToDate = new Date(validTo)
-    const diffTime = validToDate - today
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 0) return 'Expired'
-    if (diffDays <= 30) return 'Expiring Soon'
+  const getStatusText = (status) => {
+    if (status === 'expired') return 'Expired'
+    if (status === 'expiring_soon') return 'Expiring Soon'
     return 'Active'
   }
 
@@ -199,21 +129,11 @@ const Insurance = () => {
     if (statusFilter === 'all') {
       return insurances
     }
-
     return insurances.filter(insurance => {
-      const status = getStatusText(insurance.validTo)
-
-      if (statusFilter === 'expiring_soon') {
-        return status === 'Expiring Soon'
-      }
-      if (statusFilter === 'expired') {
-        return status === 'Expired'
-      }
       if (statusFilter === 'pending') {
         return (insurance.balance || 0) > 0
       }
-
-      return true
+      return insurance.status === statusFilter
     })
   }, [insurances, statusFilter])
 
@@ -336,15 +256,13 @@ const Insurance = () => {
 
   // Determine if renew button should be shown for an insurance
   const shouldShowRenewButton = (insurance) => {
-    const status = getStatusText(insurance.validTo)
-
     // Show renew button for expiring soon insurances
-    if (status === 'Expiring Soon') {
+    if (insurance.status === 'expiring_soon') {
       return true
     }
 
     // Show renew button for expired insurances
-    if (status === 'Expired') {
+    if (insurance.status === 'expired') {
       return true
     }
 
@@ -356,18 +274,6 @@ const Insurance = () => {
       setDateFilter(value)
     }
   }
-
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const total = insurances.length
-    const active = insurances.filter(ins => getStatusText(ins.validTo) === 'Active').length
-    const expiring = insurances.filter(ins => getStatusText(ins.validTo) === 'Expiring Soon').length
-    const expired = insurances.filter(ins => getStatusText(ins.validTo) === 'Expired').length
-    const pendingPaymentCount = insurances.filter(ins => (ins.balance || 0) > 0).length
-    const pendingPaymentAmount = insurances.reduce((sum, ins) => sum + (ins.balance || 0), 0)
-
-    return { total, active, expiring, expired, pendingPaymentCount, pendingPaymentAmount }
-  }, [insurances])
 
   return (
     <>
@@ -409,7 +315,7 @@ const Insurance = () => {
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Expiring Soon</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{stats.expiring}</h3>
+                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{stats.expiringSoon}</h3>
                   </div>
                   <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
                     <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -606,12 +512,12 @@ const Insurance = () => {
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                         </svg>
                       </button>
-                      <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${getStatusColor(insurance.validTo)} border-2 ${
-                        getStatusText(insurance.validTo) === 'Expired' ? 'border-red-300' :
-                        getStatusText(insurance.validTo) === 'Expiring Soon' ? 'border-orange-300' :
+                      <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${getStatusColor(insurance.status)} border-2 ${
+                        getStatusText(insurance.status) === 'Expired' ? 'border-red-300' :
+                        getStatusText(insurance.status) === 'Expiring Soon' ? 'border-orange-300' :
                         'border-green-300'
                       }`}>
-                        {getStatusText(insurance.validTo)}
+                        {getStatusText(insurance.status)}
                       </span>
                     </div>
                   </div>
@@ -776,8 +682,8 @@ const Insurance = () => {
                     </td>
                     <td className='px-6 py-5'>
                       <div className='flex items-center justify-center'>
-                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(insurance.validTo)}`}>
-                          {getStatusText(insurance.validTo)}
+                        <span className={`px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(insurance.status)}`}>
+                          {getStatusText(insurance.status)}
                         </span>
                       </div>
                     </td>
