@@ -13,9 +13,9 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
     mobileNo: '',
     validFrom: '',
     validTo: '',
-    totalFee: 0,
-    paid: 0,
-    balance: 0,
+    totalFee: '',
+    paid: '',
+    balance: '',
     notes: ''
   })
   const [lastAction, setLastAction] = useState({})
@@ -46,9 +46,9 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
         mobileNo: permit.mobileNo || '',
         validFrom: formatDate(permit.validFrom) || '',
         validTo: formatDate(permit.validTo) || '',
-        totalFee: permit.totalFee || 0,
-        paid: permit.paid || 0,
-        balance: permit.balance || 0,
+        totalFee: permit.totalFee?.toString() || '',
+        paid: permit.paid?.toString() || '',
+        balance: permit.balance?.toString() || '',
         notes: permit.notes || ''
       })
     }
@@ -365,7 +365,7 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
                     value={formData.totalFee}
                     onChange={handleChange}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
-                    placeholder='0'
+                    placeholder=''
                     min='0'
                   />
                 </div>
@@ -381,7 +381,7 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
                     value={formData.paid}
                     onChange={handleChange}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
-                    placeholder='0'
+                    placeholder=''
                     min='0'
                   />
                 </div>

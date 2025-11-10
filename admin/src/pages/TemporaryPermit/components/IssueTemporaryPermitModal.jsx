@@ -573,7 +573,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
-                    placeholder='1000'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -587,7 +587,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />

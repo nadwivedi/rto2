@@ -317,7 +317,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -333,7 +333,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
                     required
                   />

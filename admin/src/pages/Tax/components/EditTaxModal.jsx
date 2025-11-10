@@ -385,7 +385,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                     name='totalAmount'
                     value={formData.totalAmount}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -401,7 +401,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                     name='paidAmount'
                     value={formData.paidAmount}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />

@@ -46,9 +46,9 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     typeBValidTo: '',
 
     // Fees
-    totalFee: '15000',
-    paid: '0',
-    balance: '15000'
+    totalFee: '',
+    paid: '',
+    balance: ''
   })
 
   // Populate form when permit changes
@@ -69,9 +69,9 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         authorizationNumber: permit.partB?.authorizationNumber || '',
         typeBValidFrom: permit.partB?.validFrom || '',
         typeBValidTo: permit.partB?.validTo || '',
-        totalFee: permit.totalFee?.toString() || '15000',
-        paid: permit.paid?.toString() || '0',
-        balance: permit.balance?.toString() || '15000'
+        totalFee: permit.totalFee?.toString() || '',
+        paid: permit.paid?.toString() || '',
+        balance: permit.balance?.toString() || ''
       })
     }
   }, [permit])
@@ -267,9 +267,9 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       authorizationNumber: '',
       typeBValidFrom: '', // Reset to empty
       typeBValidTo: '', // Reset to empty
-      totalFee: '15000',
-      paid: '0',
-      balance: '15000'
+      totalFee: '',
+      paid: '',
+      balance: ''
     })
     setPartAImage(null)
     setPartBImage(null)
@@ -484,7 +484,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
-                    placeholder='15000'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -498,7 +498,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -512,7 +512,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='balance'
                     value={formData.balance}
                     onChange={handleChange}
-                    placeholder='15000'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -544,7 +544,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                 <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
                   {/* Personal Information */}
                   <div>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-indigo-600'>Personal Information</h4>
+                    <h4 className='text-xs md:text-sm font-bold  mb-3 uppercase text-indigo-600'>Personal Information</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       <div>
                         <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -590,7 +590,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
 
                   {/* Document Uploads */}
                   <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-blue-600'>Document Uploads</h4>
+                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-blue-600'>Document Uploads</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       {/* Part A Image Upload */}
                       <div className='border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-500 transition cursor-pointer'>

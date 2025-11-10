@@ -12,11 +12,11 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     policyNumber: '',
-    validFrom: getTodayDate(),
+    validFrom: '',
     validTo: '',
-    totalFee: '0',
-    paid: '0',
-    balance: '0'
+    totalFee: '',
+    paid: '',
+    balance: ''
   })
 
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
@@ -29,11 +29,11 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       setFormData({
         vehicleNumber: initialData.vehicleNumber || '',
         policyNumber: initialData.policyNumber || '',
-        validFrom: initialData.validFrom || getTodayDate(),
+        validFrom: initialData.validFrom || '',
         validTo: initialData.validTo || '',
-        totalFee: initialData.totalFee?.toString() || '0',
-        paid: initialData.paid?.toString() || '0',
-        balance: initialData.balance?.toString() || '0',
+        totalFee: initialData.totalFee?.toString() || '',
+        paid: initialData.paid?.toString() || '',
+        balance: initialData.balance?.toString() || '',
         vehicleType: initialData.vehicleType || '',
         ownerName: initialData.ownerName || '',
         insuranceCompany: initialData.insuranceCompany || '',
@@ -42,25 +42,17 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
         agentName: initialData.agentName || '',
         agentContact: initialData.agentContact || ''
       })
-    } else if (isOpen && !initialData) {
-      // When modal opens without initialData, ensure validFrom is today
-      setFormData(prev => ({
-        ...prev,
-        validFrom: getTodayDate(),
-        validTo: ''
-      }))
     } else if (!isOpen) {
       // Reset form when modal closes
       setFormData({
         vehicleNumber: '',
         policyNumber: '',
-        validFrom: getTodayDate(),
+        validFrom: '',
         validTo: '',
-        totalFee: '0',
-        paid: '0',
-        balance: '0'
-      })
-      setVehicleError('')
+              totalFee: '',
+              paid: '',
+              balance: ''
+            })
       setFetchingVehicle(false)
     }
   }, [initialData, isOpen])
@@ -276,11 +268,11 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     setFormData({
       vehicleNumber: '',
       policyNumber: '',
-      validFrom: getTodayDate(),
+      validFrom: '',
       validTo: '',
-      totalFee: '0',
-      paid: '0',
-      balance: '0'
+      totalFee: '',
+      paid: '',
+      balance: ''
     })
     onClose()
   }
@@ -400,7 +392,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                 {/* Valid From */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid From <span className='text-red-500'>*</span> <span className='text-xs text-green-600'>(Today)</span>
+                    Valid From <span className='text-red-500'>*</span>
                   </label>
                   <input
                     type='text'
@@ -412,7 +404,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                     required
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Pre-filled with today's date. Type 2-digit year (24) to auto-expand to 2024</p>
+                  <p className='text-xs text-gray-500 mt-1'>Type 2-digit year (24) to auto-expand to 2024</p>
                 </div>
 
                 {/* Valid To (Auto-calculated) */}
@@ -452,7 +444,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -468,7 +460,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />

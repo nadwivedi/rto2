@@ -14,9 +14,9 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
     mobileNo: '',
     validFrom: '',
     validTo: '',
-    totalFee: 0,
-    paid: 0,
-    balance: 0,
+    totalFee: '',
+    paid: '',
+    balance: '',
     notes: ''
   })
   const [lastAction, setLastAction] = useState({})
@@ -150,9 +150,9 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
           mobileNo: '',
           validFrom: '',
           validTo: '',
-          totalFee: 0,
-          paid: 0,
-          balance: 0,
+          totalFee: '',
+          paid: '',
+          balance: '',
           notes: ''
         })
         setShowOptionalFields(false)
@@ -329,7 +329,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     value={formData.totalFee}
                     onChange={handleChange}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
-                    placeholder='0'
+                    placeholder=''
                     min='0'
                   />
                 </div>
@@ -345,7 +345,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     value={formData.paid}
                     onChange={handleChange}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
-                    placeholder='0'
+                    placeholder=''
                     min='0'
                   />
                 </div>

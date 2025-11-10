@@ -52,9 +52,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     typeBValidTo: '', // Empty - will be auto-calculated from typeBValidFrom
 
     // Fees
-    totalFee: '15000',
-    paid: '0',
-    balance: '15000'
+    totalFee: '',
+    paid: '',
+    balance: ''
   })
 
   // Fetch vehicle details when registration number is entered
@@ -305,9 +305,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
       authorizationNumber: '',
       typeBValidFrom: '', // Reset to empty
       typeBValidTo: '', // Reset to empty
-      totalFee: '15000',
-      paid: '0',
-      balance: '15000'
+      totalFee: '',
+      paid: '',
+      balance: ''
     })
     setPartAImage(null)
     setPartBImage(null)
@@ -441,7 +441,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.validFrom}
                     onChange={handleChange}
                     onBlur={handleDateBlur}
-                    placeholder='24-01-25 or 24/01/2025'
+                    placeholder='24-01-2025'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
@@ -540,7 +540,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
-                    placeholder='15000'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -554,7 +554,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
-                    placeholder='0'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -568,7 +568,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='balance'
                     value={formData.balance}
                     onChange={handleChange}
-                    placeholder='15000'
+                    placeholder=''
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -600,7 +600,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                 <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
                   {/* Personal Information */}
                   <div>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-indigo-600'>Personal Information</h4>
+                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-indigo-600'>Personal Information</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       <div>
                         <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -646,7 +646,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
                   {/* Vehicle Details */}
                   <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-blue-600'>Vehicle Details</h4>
+                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-blue-600'>Vehicle Details</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                       <div>
                         <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -708,7 +708,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
                   {/* Document Uploads */}
                   <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-blue-600'>Document Uploads</h4>
+                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-blue-600'>Document Uploads</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       {/* Part A Image Upload */}
                       <div className='border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-500 transition cursor-pointer'>
