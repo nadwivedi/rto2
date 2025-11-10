@@ -34,163 +34,40 @@ const getTaxStatus = (taxTo) => {
 // Get all tax records
 exports.getAllTax = async (req, res) => {
   try {
-    const { search, status, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const query = {}
 
-    const fifteenDaysFromNow = new Date()
-    fifteenDaysFromNow.setDate(today.getDate() + 15)
-    fifteenDaysFromNow.setHours(23, 59, 59, 999)
-
-    // Determine if we need aggregation pipeline (for date-based status filtering)
-    const useDateBasedFilter = status && ['expired', 'expiring_soon', 'active'].includes(status)
-
-    if (useDateBasedFilter) {
-      // Use aggregation pipeline for date-based filtering
-      const pipeline = []
-
-      // Stage 1: Normalize date separator
-      pipeline.push({
-        $addFields: {
-          taxToNormalized: {
-            $replaceAll: {
-              input: '$taxTo',
-              find: '-',
-              replacement: '/'
-            }
-          }
-        }
-      })
-
-      // Stage 2: Add computed date field
-      pipeline.push({
-        $addFields: {
-          taxToDateParsed: {
-            $dateFromString: {
-              dateString: {
-                $concat: [
-                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 2] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 1] },
-                  '-',
-                  { $arrayElemAt: [{ $split: ['$taxToNormalized', '/'] }, 0] }
-                ]
-              },
-              onError: null,
-              onNull: null
-            }
-          }
-        }
-      })
-
-      // Stage 3: Add computed status
-      pipeline.push({
-        $addFields: {
-          computedStatus: {
-            $switch: {
-              branches: [
-                { case: { $lt: ['$taxToDateParsed', today] }, then: 'expired' },
-                {
-                  case: {
-                    $and: [
-                      { $gte: ['$taxToDateParsed', today] },
-                      { $lte: ['$taxToDateParsed', fifteenDaysFromNow] }
-                    ]
-                  },
-                  then: 'expiring_soon'
-                }
-              ],
-              default: 'active'
-            }
-          }
-        }
-      })
-
-      // Stage 4: Build match conditions
-      const matchConditions = { computedStatus: status }
-
-      // Add search filter (vehicle number only)
-      if (search) {
-        matchConditions.vehicleNumber = { $regex: search, $options: 'i' }
-      }
-
-      pipeline.push({ $match: matchConditions })
-
-      // Stage 5: Sort
-      const sortOptions = {}
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-      pipeline.push({ $sort: sortOptions })
-
-      // Stage 6: Count total for pagination (use facet to get both data and count)
-      pipeline.push({
-        $facet: {
-          metadata: [{ $count: 'total' }],
-          data: [
-            { $skip: (parseInt(page) - 1) * parseInt(limit) },
-            { $limit: parseInt(limit) }
-          ]
-        }
-      })
-
-      const results = await Tax.aggregate(pipeline)
-      const total = results[0].metadata.length > 0 ? results[0].metadata[0].total : 0
-      const taxRecords = results[0].data
-
-      res.json({
-        success: true,
-        data: taxRecords,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalRecords: total,
-          hasMore: (parseInt(page) - 1) * parseInt(limit) + taxRecords.length < total
-        }
-      })
-    } else {
-      // Use normal query for non-date-based filtering
-      const query = {}
-
-      // Search by vehicle number only
-      if (search) {
-        query.vehicleNumber = { $regex: search, $options: 'i' }
-      }
-
-      // Filter by status or pending payment
-      if (status) {
-        if (status === 'pending') {
-          query.balanceAmount = { $gt: 0 }
-        } else {
-          query.status = status
-        }
-      }
-
-      const skip = (parseInt(page) - 1) * parseInt(limit)
-
-      // Sort options
-      const sortOptions = {}
-      sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-
-      // Execute query
-      const taxRecords = await Tax.find(query)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(parseInt(limit))
-
-      // Get total count for pagination
-      const total = await Tax.countDocuments(query)
-
-      res.json({
-        success: true,
-        data: taxRecords,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(total / parseInt(limit)),
-          totalRecords: total,
-          hasMore: skip + taxRecords.length < total
-        }
-      })
+    // Search by vehicle number
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
     }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    // Sort options
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    // Execute query
+    const taxRecords = await Tax.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    // Get total count for pagination
+    const total = await Tax.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: taxRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + taxRecords.length < total
+      }
+    })
   } catch (error) {
     console.error('Error fetching tax records:', error)
     res.status(500).json({
@@ -557,3 +434,131 @@ exports.downloadBillPDF = async (req, res) => {
     })
   }
 }
+// Get expiring soon tax records
+exports.getExpiringSoonTaxes = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'taxTo', sortOrder = 'asc' } = req.query
+
+    const query = { status: 'expiring_soon' }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const taxRecords = await Tax.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Tax.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: taxRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + taxRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expiring soon tax records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expiring soon tax records',
+      error: error.message
+    })
+  }
+};
+
+// Get expired tax records
+exports.getExpiredTaxes = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'taxTo', sortOrder = 'desc' } = req.query
+
+    const query = { status: 'expired' }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const taxRecords = await Tax.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Tax.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: taxRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + taxRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expired tax records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expired tax records',
+      error: error.message
+    })
+  }
+};
+
+// Get pending payment tax records
+exports.getPendingPaymentTaxes = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+
+    const query = { balanceAmount: { $gt: 0 } }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const taxRecords = await Tax.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Tax.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: taxRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + taxRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching pending payment tax records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching pending payment tax records',
+      error: error.message
+    })
+  }
+};

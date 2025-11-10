@@ -53,20 +53,29 @@ const Tax = () => {
   }
 
   // Fetch tax records from API
-  const fetchTaxRecords = async (page = pagination.currentPage) => {
-    setLoading(true)
+  const fetchTaxRecords = async (page = 1) => {
+    setLoading(true);
+    let url = `${API_URL}/api/tax`;
+    const params = {
+      page,
+      limit: pagination.limit,
+      search: searchQuery,
+    };
+
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'expiring_soon') {
+        url = `${API_URL}/api/tax/expiring-soon`;
+      } else if (statusFilter === 'expired') {
+        url = `${API_URL}/api/tax/expired`;
+      } else if (statusFilter === 'pending') {
+        url = `${API_URL}/api/tax/pending-payment`;
+      }
+    }
+
     try {
-      const response = await axios.get(`${API_URL}/api/tax`, {
-        params: {
-          page,
-          limit: pagination.limit,
-          search: searchQuery,
-          status: statusFilter !== 'all' ? statusFilter : undefined
-        }
-      })
+      const response = await axios.get(url, { params });
 
       if (response.data.success) {
-        // Transform the data to match the display format
         const transformedRecords = response.data.data.map(record => ({
           id: record._id,
           receiptNo: record.receiptNo,
@@ -77,40 +86,39 @@ const Tax = () => {
           balanceAmount: record.balanceAmount || 0,
           taxFrom: record.taxFrom,
           taxTo: record.taxTo,
-          status: record.status
-        }))
-        setTaxRecords(transformedRecords)
+          status: record.status,
+        }));
+        setTaxRecords(transformedRecords);
 
-        // Update pagination state
         if (response.data.pagination) {
           setPagination({
             currentPage: response.data.pagination.currentPage,
             totalPages: response.data.pagination.totalPages,
             totalRecords: response.data.pagination.totalRecords,
-            limit: pagination.limit
-          })
+            limit: pagination.limit,
+          });
         }
       }
     } catch (error) {
-      console.error('Error fetching tax records:', error)
+      console.error('Error fetching tax records:', error);
       toast.error('Failed to fetch tax records. Please check if the backend server is running.', {
         position: 'top-right',
-        autoClose: 3000
-      })
+        autoClose: 3000,
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Load tax records and statistics on component mount and when filters change
   useEffect(() => {
-    fetchTaxRecords(1) // Reset to page 1 when filters change
-    fetchStatistics() // Fetch fresh statistics
-  }, [searchQuery, statusFilter])
+    fetchTaxRecords(1); // Reset to page 1 when filters change
+    fetchStatistics(); // Fetch fresh statistics
+  }, [searchQuery, statusFilter]);
 
   // Page change handler
   const handlePageChange = (newPage) => {
-    fetchTaxRecords(newPage)
+    fetchTaxRecords(newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
