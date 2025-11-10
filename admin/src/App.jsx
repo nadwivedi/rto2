@@ -14,7 +14,7 @@ import TemporaryPermitOtherState from './pages/TemporaryPermitOtherState/Tempora
 import VehicleRegistration from './pages/VehicleRegistration/VehicleRegistration'
 import Insurance from './pages/Insurance/Insurance'
 import Fitness from './pages/Fitness/Fitness'
-import VehicleTransfer from './pages/VehicleTransfer'
+import VehicleTransfer from './pages/VehicleTransfer/VehicleTransfer'
 import DealerBill from './pages/DealerBill'
 import Tax from './pages/Tax/Tax'
 
