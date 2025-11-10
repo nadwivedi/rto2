@@ -7,6 +7,8 @@ import EditTemporaryPermitOtherStateModal from './components/EditTemporaryPermit
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
+import { getStatusColor, getStatusText } from '../../utils/statusUtils';
+
 const TemporaryPermitOtherState = () => {
   const [permits, setPermits] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
@@ -113,41 +115,13 @@ const TemporaryPermitOtherState = () => {
     return null
   }
 
-  const getStatusColor = (status) => {
-    if (!status) return 'bg-gray-100 text-gray-700';
-    switch (status) {
-      case 'expired':
-        return 'bg-red-100 text-red-700';
-      case 'expiring_soon':
-        return 'bg-orange-100 text-orange-700';
-      case 'active':
-        return 'bg-green-100 text-green-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getStatusText = (status) => {
-    if (!status) return 'Unknown';
-    switch (status) {
-      case 'expired':
-        return 'Expired';
-      case 'expiring_soon':
-        return 'Expiring Soon';
-      case 'active':
-        return 'Active';
-      default:
-        return status.charAt(0).toUpperCase() + status.slice(1);
-    }
-  };
-
   const handlePageChange = (newPage) => {
     fetchPermits(newPage)
   }
 
   const handleEditPermit = (permit) => {
     setEditingPermit(permit)
-    setShowEditPermitModal(true)
+    setShowEditModal(true)
   }
 
   const handleDeletePermit = async (id) => {
