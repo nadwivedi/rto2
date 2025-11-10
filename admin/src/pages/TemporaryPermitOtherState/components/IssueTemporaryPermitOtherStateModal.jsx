@@ -19,49 +19,102 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
     balance: 0,
     notes: ''
   })
+  const [lastAction, setLastAction] = useState({})
+
+  useEffect(() => {
+    if (formData.validFrom) {
+      const parts = formData.validFrom.split('-')
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10)
+        const month = parseInt(parts[1], 10) - 1
+        const year = parseInt(parts[2], 10)
+
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
+          const validFromDate = new Date(year, month, day)
+          if (!isNaN(validFromDate.getTime())) {
+            const validToDate = new Date(validFromDate)
+            validToDate.setDate(validToDate.getDate() + 27) // 28 days including start date
+
+            const newDay = String(validToDate.getDate()).padStart(2, '0')
+            const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
+            const newYear = validToDate.getFullYear()
+
+            setFormData(prev => ({
+              ...prev,
+              validTo: `${newDay}-${newMonth}-${newYear}`
+            }))
+          }
+        }
+      }
+    }
+  }, [formData.validFrom])
+
+  const handleDateKeyDown = (e) => {
+    const { name } = e.target
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      setLastAction({ [name]: 'delete' })
+    } else {
+      setLastAction({ [name]: 'typing' })
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => {
-      const updated = { ...prev, [name]: value }
 
-      // Auto-calculate balance when totalFee or paid changes
-      if (name === 'totalFee' || name === 'paid') {
-        const totalFee = parseFloat(name === 'totalFee' ? value : prev.totalFee) || 0
-        const paid = parseFloat(name === 'paid' ? value : prev.paid) || 0
-        updated.balance = totalFee - paid
+    if (name === 'totalFee' || name === 'paid') {
+      setFormData(prev => {
+        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
+        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
+        const balance = totalFee - paid
+
+        return {
+          ...prev,
+          [name]: value,
+          balance: balance.toString()
+        }
+      })
+      return
+    }
+
+    if (name === 'validFrom' || name === 'validTo') {
+      let digitsOnly = value.replace(/[^\d]/g, '')
+      digitsOnly = digitsOnly.slice(0, 8)
+      const isDeleting = lastAction[name] === 'delete'
+      let formatted = digitsOnly
+
+      if (digitsOnly.length === 0) {
+        formatted = ''
+      } else if (digitsOnly.length <= 2) {
+        formatted = digitsOnly
+        if (digitsOnly.length === 2 && !isDeleting) {
+          formatted = digitsOnly + '-'
+        }
+      } else if (digitsOnly.length <= 4) {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
+        if (digitsOnly.length === 4 && !isDeleting) {
+          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
+        }
+      } else {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
       }
 
-      return updated
-    })
-  }
-
-  // Handle DD-MM-YYYY format input for dates
-  const handleDateInput = (e, fieldName) => {
-    let value = e.target.value.replace(/[^\d-]/g, '') // Only allow digits and dashes
-
-    // Auto-insert dashes
-    if (value.length === 2 && !value.includes('-')) {
-      value = value + '-'
-    } else if (value.length === 5 && value.split('-').length === 2) {
-      value = value + '-'
-    }
-
-    // Limit to DD-MM-YYYY format (10 characters)
-    if (value.length > 10) {
-      value = value.substring(0, 10)
-    }
-
-    // Auto-expand 2-digit year to 4-digit (e.g., 24 -> 2024)
-    if (value.length === 8) {
-      const parts = value.split('-')
-      if (parts.length === 3 && parts[2].length === 2) {
-        const yearPrefix = parts[2] >= '00' && parts[2] <= '50' ? '20' : '19'
-        value = `${parts[0]}-${parts[1]}-${yearPrefix}${parts[2]}`
+      if (digitsOnly.length === 6 && !isDeleting) {
+        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
+        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
       }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+      return
     }
 
-    setFormData(prev => ({ ...prev, [fieldName]: value }))
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -219,7 +272,8 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     type='text'
                     name='validFrom'
                     value={formData.validFrom}
-                    onChange={(e) => handleDateInput(e, 'validFrom')}
+                    onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     placeholder='DD-MM-YYYY (e.g., 01-01-2024)'
                     required
@@ -236,7 +290,8 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     type='text'
                     name='validTo'
                     value={formData.validTo}
-                    onChange={(e) => handleDateInput(e, 'validTo')}
+                    onChange={handleChange}
+                    onKeyDown={handleDateKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     placeholder='DD-MM-YYYY (e.g., 31-12-2024)'
                     required
