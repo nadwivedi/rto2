@@ -1,10 +1,12 @@
 import { useState, useMemo, useEffect } from 'react'
+import axios from 'axios'
 import { toast } from 'react-toastify'
 import QuickDLApplicationForm from './components/QuickDLApplicationForm'
 import EditDLApplicationForm from './components/EditDLApplicationForm'
 import ApplicationDetailModal from './components/ApplicationDetailModal'
-import { drivingLicenseAPI } from '../../services/api'
 import Pagination from '../../components/Pagination'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const DrivingLicence = () => {
   const [applications, setApplications] = useState([])
@@ -42,16 +44,20 @@ const DrivingLicence = () => {
       console.log('Fetching expiring counts...')
 
       // Fetch LL expiring count
-      const llResponse = await drivingLicenseAPI.getLLExpiringSoon({ page: 1, limit: 1 })
-      console.log('LL Response:', llResponse)
-      const llCount = llResponse.pagination?.totalItems || 0
+      const llResponse = await axios.get(`${API_URL}/api/driving-licenses/ll-expiring-soon`, {
+        params: { page: 1, limit: 1 }
+      })
+      console.log('LL Response:', llResponse.data)
+      const llCount = llResponse.data.pagination?.totalItems || 0
       console.log('LL Count:', llCount)
       setLlExpiringCount(llCount)
 
       // Fetch DL expiring count
-      const dlResponse = await drivingLicenseAPI.getDLExpiringSoon({ page: 1, limit: 1 })
-      console.log('DL Response:', dlResponse)
-      const dlCount = dlResponse.pagination?.totalItems || 0
+      const dlResponse = await axios.get(`${API_URL}/api/driving-licenses/dl-expiring-soon`, {
+        params: { page: 1, limit: 1 }
+      })
+      console.log('DL Response:', dlResponse.data)
+      const dlCount = dlResponse.data.pagination?.totalItems || 0
       console.log('DL Count:', dlCount)
       setDlExpiringCount(dlCount)
 
@@ -75,12 +81,12 @@ const DrivingLicence = () => {
       if (typeFilter !== 'All') params.licenseClass = typeFilter
       if (paymentStatusFilter !== 'All') params.paymentStatus = paymentStatusFilter
 
-      const response = await drivingLicenseAPI.getAll(params)
+      const response = await axios.get(`${API_URL}/api/driving-licenses`, { params })
 
-      console.log('API Response:', response) // Debug log
+      console.log('API Response:', response.data) // Debug log
 
       // Transform backend data to match frontend format
-      const transformedData = (response.data || []).map(app => {
+      const transformedData = (response.data.data || []).map(app => {
 
         // Safely handle date
         let formattedDate = '-'
@@ -153,11 +159,11 @@ const DrivingLicence = () => {
       setApplications(transformedData)
 
       // Update pagination state
-      if (response.pagination) {
+      if (response.data.pagination) {
         setPagination({
-          currentPage: response.pagination.currentPage,
-          totalPages: response.pagination.totalPages,
-          totalRecords: response.pagination.totalItems,
+          currentPage: response.data.pagination.currentPage,
+          totalPages: response.data.pagination.totalPages,
+          totalRecords: response.data.pagination.totalItems,
           limit: pagination.limit
         })
       }
@@ -286,9 +292,9 @@ const DrivingLicence = () => {
     }
 
     try {
-      const response = await drivingLicenseAPI.delete(app.id)
+      const response = await axios.delete(`${API_URL}/api/driving-licenses/${app.id}`)
 
-      if (response.success) {
+      if (response.data.success) {
         toast.success('Application deleted successfully!', { autoClose: 700 })
         fetchApplications() // Refresh the list
         fetchExpiringCounts() // Refresh the expiring counts
@@ -340,9 +346,9 @@ const DrivingLicence = () => {
         applicationStatus: 'pending'
       }
 
-      const response = await drivingLicenseAPI.create(applicationData)
+      const response = await axios.post(`${API_URL}/api/driving-licenses`, applicationData)
 
-      if (response.success) {
+      if (response.data.success) {
         toast.success('Application submitted successfully!', { autoClose: 700 })
         fetchApplications() // Refresh the list
         fetchExpiringCounts() // Refresh the expiring counts
@@ -398,9 +404,9 @@ const DrivingLicence = () => {
         notes: formData.notes
       }
 
-      const response = await drivingLicenseAPI.update(selectedApplication.id, applicationData)
+      const response = await axios.put(`${API_URL}/api/driving-licenses/${selectedApplication.id}`, applicationData)
 
-      if (response.success) {
+      if (response.data.success) {
         toast.success('Application updated successfully!', { autoClose: 700 })
         setIsEditFormOpen(false)
         fetchApplications() // Refresh the list
