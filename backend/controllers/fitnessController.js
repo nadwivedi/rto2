@@ -3,6 +3,7 @@ const CustomBill = require('../models/CustomBill')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
 const path = require('path')
 const fs = require('fs')
+const { request } = require('http')
 
 // helper function to calculate status
 const getFitnessStatus = (validTo) => {
@@ -78,12 +79,26 @@ exports.getAllFitness = async (req, res) => {
 // Get expiring soon fitness records
 exports.getExpiringSoonFitness = async (req, res) => {
   try {
+
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
 
-    const query = { status: 'expiring_soon' }
+    // Find all vehicle numbers that have both expiring_soon and active fitness
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const query = {
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActiveFitness }
+    }
 
     if (search) {
-      query.vehicleNumber = { $regex: search, $options: 'i' }
+      // Update the vehicleNumber condition to work with search
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActiveFitness } },
+        { vehicleNumber: { $regex: search, $options: 'i' } }
+      ]
+      delete query.vehicleNumber
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -123,10 +138,23 @@ exports.getExpiredFitness = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query
 
-    const query = { status: 'expired' }
+    // Find all vehicle numbers that have active fitness
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const query = {
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActiveFitness }
+    }
 
     if (search) {
-      query.vehicleNumber = { $regex: search, $options: 'i' }
+      // Update the vehicleNumber condition to work with search
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActiveFitness } },
+        { vehicleNumber: { $regex: search, $options: 'i' } }
+      ]
+      delete query.vehicleNumber
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -435,8 +463,21 @@ exports.getFitnessStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
     const activeFitness = await Fitness.countDocuments({ status: 'active' })
-    const expiringSoonFitness = await Fitness.countDocuments({ status: 'expiring_soon' })
-    const expiredFitness = await Fitness.countDocuments({ status: 'expired' })
+
+    // For expiring soon and expired, exclude vehicles that also have active fitness (renewed vehicles)
+    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const expiringSoonFitness = await Fitness.countDocuments({
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActiveFitness }
+    })
+
+    const expiredFitness = await Fitness.countDocuments({
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActiveFitness }
+    })
+
     const total = await Fitness.countDocuments()
 
     // Pending payment aggregation
