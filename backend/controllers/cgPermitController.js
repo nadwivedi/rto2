@@ -315,10 +315,26 @@ exports.getAllPermits = async (req, res) => {
 exports.getExpiringSoonPermits = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query;
-    const query = { status: 'expiring_soon' };
+
+    // Find all vehicle numbers that have active permits
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active' })
+      .distinct('vehicleNumber');
+
+    const query = {
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActivePermits }
+    };
+
     if (search) {
-      query.vehicleNumber = { $regex: search, $options: 'i' };
+      // Update the vehicleNumber condition to work with search
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActivePermits } },
+        { vehicleNumber: { $regex: search, $options: 'i' } }
+      ];
+      delete query.vehicleNumber;
     }
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
     const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit));
@@ -342,10 +358,26 @@ exports.getExpiringSoonPermits = async (req, res) => {
 exports.getExpiredPermits = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query;
-    const query = { status: 'expired' };
+
+    // Find all vehicle numbers that have active permits
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active' })
+      .distinct('vehicleNumber');
+
+    const query = {
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActivePermits }
+    };
+
     if (search) {
-      query.vehicleNumber = { $regex: search, $options: 'i' };
+      // Update the vehicleNumber condition to work with search
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActivePermits } },
+        { vehicleNumber: { $regex: search, $options: 'i' } }
+      ];
+      delete query.vehicleNumber;
     }
+
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
     const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit));
@@ -669,8 +701,21 @@ exports.getStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
     const activePermits = await CgPermit.countDocuments({ status: 'active' })
-    const expiringPermits = await CgPermit.countDocuments({ status: 'expiring_soon' })
-    const expiredPermits = await CgPermit.countDocuments({ status: 'expired' })
+
+    // For expiring soon and expired, exclude vehicles that also have active permits (renewed vehicles)
+    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const expiringPermits = await CgPermit.countDocuments({
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActivePermits }
+    })
+
+    const expiredPermits = await CgPermit.countDocuments({
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActivePermits }
+    })
+
     const total = await CgPermit.countDocuments()
 
     // Pending payment aggregation

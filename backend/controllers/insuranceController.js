@@ -117,15 +117,29 @@ exports.getExpiringSoonInsurance = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
 
-    const query = { status: 'expiring_soon' }
+    // Find all vehicle numbers that have active insurance
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const query = {
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActiveInsurance }
+    }
 
     if (search) {
-      query.$or = [
-        { policyNumber: { $regex: search, $options: 'i' } },
-        { vehicleNumber: { $regex: search, $options: 'i' } },
-        { ownerName: { $regex: search, $options: 'i' } },
-        { mobileNumber: { $regex: search, $options: 'i' } }
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActiveInsurance } },
+        {
+          $or: [
+            { policyNumber: { $regex: search, $options: 'i' } },
+            { vehicleNumber: { $regex: search, $options: 'i' } },
+            { ownerName: { $regex: search, $options: 'i' } },
+            { mobileNumber: { $regex: search, $options: 'i' } }
+          ]
+        }
       ]
+      delete query.vehicleNumber
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -165,15 +179,29 @@ exports.getExpiredInsurance = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query
 
-    const query = { status: 'expired' }
+    // Find all vehicle numbers that have active insurance
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const query = {
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActiveInsurance }
+    }
 
     if (search) {
-      query.$or = [
-        { policyNumber: { $regex: search, $options: 'i' } },
-        { vehicleNumber: { $regex: search, $options: 'i' } },
-        { ownerName: { $regex: search, $options: 'i' } },
-        { mobileNumber: { $regex: search, $options: 'i' } }
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActiveInsurance } },
+        {
+          $or: [
+            { policyNumber: { $regex: search, $options: 'i' } },
+            { vehicleNumber: { $regex: search, $options: 'i' } },
+            { ownerName: { $regex: search, $options: 'i' } },
+            { mobileNumber: { $regex: search, $options: 'i' } }
+          ]
+        }
       ]
+      delete query.vehicleNumber
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -461,8 +489,21 @@ exports.getStatistics = async (req, res) => {
   try {
     const totalInsurance = await Insurance.countDocuments()
     const activeInsurance = await Insurance.countDocuments({ status: 'active' })
-    const expiringSoonInsurance = await Insurance.countDocuments({ status: 'expiring_soon' })
-    const expiredInsurance = await Insurance.countDocuments({ status: 'expired' })
+
+    // For expiring soon and expired, exclude vehicles that also have active insurance (renewed vehicles)
+    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active' })
+      .distinct('vehicleNumber')
+
+    const expiringSoonInsurance = await Insurance.countDocuments({
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActiveInsurance }
+    })
+
+    const expiredInsurance = await Insurance.countDocuments({
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActiveInsurance }
+    })
+
     const cancelledInsurance = await Insurance.countDocuments({ status: 'cancelled' })
 
     // Total fees collected

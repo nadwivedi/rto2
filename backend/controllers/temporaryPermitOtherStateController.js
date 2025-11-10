@@ -167,15 +167,29 @@ exports.getExpiringSoonPermits = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
 
-    const query = { status: 'expiring_soon' }
+    // Find all vehicle numbers that have active permits
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active' })
+      .distinct('vehicleNo')
+
+    const query = {
+      status: 'expiring_soon',
+      vehicleNo: { $nin: vehiclesWithActivePermits }
+    }
 
     if (search) {
-      query.$or = [
-        { permitNumber: { $regex: search, $options: 'i' } },
-        { permitHolder: { $regex: search, $options: 'i' } },
-        { vehicleNo: { $regex: search, $options: 'i' } },
-        { mobileNo: { $regex: search, $options: 'i' } }
+      query.$and = [
+        { vehicleNo: { $nin: vehiclesWithActivePermits } },
+        {
+          $or: [
+            { permitNumber: { $regex: search, $options: 'i' } },
+            { permitHolder: { $regex: search, $options: 'i' } },
+            { vehicleNo: { $regex: search, $options: 'i' } },
+            { mobileNo: { $regex: search, $options: 'i' } }
+          ]
+        }
       ]
+      delete query.vehicleNo
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -219,15 +233,29 @@ exports.getExpiredPermits = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query
 
-    const query = { status: 'expired' }
+    // Find all vehicle numbers that have active permits
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active' })
+      .distinct('vehicleNo')
+
+    const query = {
+      status: 'expired',
+      vehicleNo: { $nin: vehiclesWithActivePermits }
+    }
 
     if (search) {
-      query.$or = [
-        { permitNumber: { $regex: search, $options: 'i' } },
-        { permitHolder: { $regex: search, $options: 'i' } },
-        { vehicleNo: { $regex: search, $options: 'i' } },
-        { mobileNo: { $regex: search, $options: 'i' } }
+      query.$and = [
+        { vehicleNo: { $nin: vehiclesWithActivePermits } },
+        {
+          $or: [
+            { permitNumber: { $regex: search, $options: 'i' } },
+            { permitHolder: { $regex: search, $options: 'i' } },
+            { vehicleNo: { $regex: search, $options: 'i' } },
+            { mobileNo: { $regex: search, $options: 'i' } }
+          ]
+        }
       ]
+      delete query.vehicleNo
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -431,8 +459,21 @@ exports.getStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
     const activePermits = await TemporaryPermitOtherState.countDocuments({ status: 'active' });
-    const expiringPermits = await TemporaryPermitOtherState.countDocuments({ status: 'expiring_soon' });
-    const expiredPermits = await TemporaryPermitOtherState.countDocuments({ status: 'expired' });
+
+    // For expiring soon and expired, exclude vehicles that also have active permits (renewed vehicles)
+    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active' })
+      .distinct('vehicleNo')
+
+    const expiringPermits = await TemporaryPermitOtherState.countDocuments({
+      status: 'expiring_soon',
+      vehicleNo: { $nin: vehiclesWithActivePermits }
+    });
+
+    const expiredPermits = await TemporaryPermitOtherState.countDocuments({
+      status: 'expired',
+      vehicleNo: { $nin: vehiclesWithActivePermits }
+    });
+
     const total = await TemporaryPermitOtherState.countDocuments();
 
     // Pending payment aggregation
