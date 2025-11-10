@@ -266,8 +266,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       return
     }
 
-    // Auto-uppercase for permit number and vehicle number
-    if (name === 'permitNumber' || name === 'vehicleNumber') {
+    // Auto-uppercase for permit number, permit holder name and vehicle number
+    if (name === 'permitNumber' || name === 'vehicleNumber' || name === 'permitHolderName') {
       setFormData(prev => ({
         ...prev,
         [name]: value.toUpperCase()
@@ -405,7 +405,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='CG04AB1234'
+                      placeholder='CG01AB1234'
                       className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
                       required
                       minLength='10'

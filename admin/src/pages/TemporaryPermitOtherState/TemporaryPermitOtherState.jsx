@@ -121,7 +121,7 @@ const TemporaryPermitOtherState = () => {
 
   const handleEditPermit = (permit) => {
     setEditingPermit(permit)
-    setShowEditModal(true)
+    setShowEditPermitModal(true)
   }
 
   const handleDeletePermit = async (id) => {
