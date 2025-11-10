@@ -81,7 +81,7 @@ const TemporaryPermitOtherState = () => {
       const response = await axios.get(url, { params })
 
       if (response.data.success) {
-        setPermits(response.data || [])
+        setPermits(response.data.data || [])
         setPagination({
           currentPage: response.data.pagination?.currentPage || 1,
           totalPages: response.data.pagination?.totalPages || 1,
