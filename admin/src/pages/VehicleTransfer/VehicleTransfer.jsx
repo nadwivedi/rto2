@@ -342,7 +342,7 @@ const VehicleTransfer = () => {
             
               <div className='hidden lg:block overflow-x-auto'>
                 <table className='w-full'>
-                  <thead className='bg-gradient-to-r from-teal-600 via-cyan-600 to-blue-600'>
+                  <thead className={theme.tableHeader}>
                     <tr>
                       <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle No</th>
                       <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Old Owner</th>

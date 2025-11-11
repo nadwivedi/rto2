@@ -469,7 +469,7 @@ const Tax = () => {
                             <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
                               {record.vehicleNumber?.substring(0, 2) || 'V'}
                             </div>
-                            <div className='text-sm font-mono font-bold text-gray-900'>{record.vehicleNumber}</div>
+                            <div className='text-[14px] font-semibold text-gray-900'>{record.vehicleNumber}</div>
                           </div>
                         </td>
 
