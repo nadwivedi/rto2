@@ -6,6 +6,7 @@ import AddButton from '../../components/AddButton';
 import EditTaxModal from './components/EditTaxModal'
 import Pagination from '../../components/Pagination'
 import SearchBar from '../../components/SearchBar'
+import StatisticsCard from '../../components/StatisticsCard'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -320,97 +321,54 @@ const Tax = () => {
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
-              {/* Total Tax Records */}
-              <div
+              <StatisticsCard
+                title='Total Tax Records'
+                value={statistics.total}
+                color='blue'
+                isActive={statusFilter === 'all'}
                 onClick={() => setStatusFilter('all')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'all' ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl' : 'border-blue-100'
-                }`}
-                title={statusFilter === 'all' ? 'Currently showing all records' : 'Click to show all records'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Tax Records</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-blue-600'>{statistics.total}</h3>
-                    <p className='text-[7px] lg:text-[9px] text-emerald-600 font-bold mt-0.5'>({statistics.active} active)</p>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tax Expiring Soon */}
-              <div
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='Tax Expiring Soon'
+                value={statistics.expiring}
+                color='orange'
+                isActive={statusFilter === 'expiring_soon'}
                 onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'expiring_soon' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
-                }`}
-                title={statusFilter === 'expiring_soon' ? 'Click to clear filter' : 'Click to filter expiring records'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Tax Expiring Soon</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{statistics.expiring}</h3>
-                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 15 days</p>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tax Expired */}
-              <div
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='Tax Expired'
+                value={statistics.expired}
+                color='red'
+                isActive={statusFilter === 'expired'}
                 onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'expired' ? 'border-red-500 ring-2 ring-red-300 shadow-xl' : 'border-red-100'
-                }`}
-                title={statusFilter === 'expired' ? 'Click to clear filter' : 'Click to filter expired records'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Tax Expired</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-red-600'>{statistics.expired}</h3>
-                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Tax expired</p>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Pending Payment */}
-              <div
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='Pending Payment'
+                value={statistics.pendingPaymentCount}
+                color='yellow'
+                isActive={statusFilter === 'pending'}
                 onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'pending' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
-                }`}
-                title={statusFilter === 'pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='flex-1'>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-yellow-600'>{statistics.pendingPaymentCount}</h3>
-                    {statistics.pendingPaymentAmount > 0 && (
-                      <p className='text-[7px] lg:text-[9px] text-gray-500 font-semibold mt-0.5'>
-                        ₹{statistics.pendingPaymentAmount.toLocaleString('en-IN')}
-                      </p>
-                    )}
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                }
+              />
             </div>
           </div>
 

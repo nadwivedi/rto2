@@ -10,6 +10,7 @@ import { isPartBExpiringSoon, isPartAExpiringSoon, getDaysRemaining } from '../.
 import Pagination from '../../components/Pagination'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
+import StatisticsCard from '../../components/StatisticsCard'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -553,97 +554,54 @@ Thank you for your business!
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
-              {/* Total Permits */}
-              <div
+              <StatisticsCard
+                title='Total Permits'
+                value={stats.total}
+                color='blue'
+                isActive={statusFilter === 'all'}
                 onClick={() => setStatusFilter('all')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'all' ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl' : 'border-indigo-100'
-                }`}
-                title={statusFilter === 'all' ? 'Currently showing all permits' : 'Click to show all permits'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Permits</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.total}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-
-              {/* Part A - Expiring Soon */}
-              <div
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='Part A - Expiring Soon'
+                value={stats.expiring}
+                color='orange'
+                isActive={statusFilter === 'partAExpiring'}
                 onClick={() => setStatusFilter(statusFilter === 'partAExpiring' ? 'all' : 'partAExpiring')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'partAExpiring' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
-                }`}
-                title={statusFilter === 'partAExpiring' ? 'Click to clear filter' : 'Click to filter Part A expiring permits'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Part A - Expiring Soon</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-orange-600'>{stats.expiring}</h3>
-                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Part B - Expiring Soon */}
-              <div
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='Part B - Expiring Soon'
+                value={stats.partBExpiring}
+                color='purple'
+                isActive={statusFilter === 'partBExpiring'}
                 onClick={() => setStatusFilter(statusFilter === 'partBExpiring' ? 'all' : 'partBExpiring')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'partBExpiring' ? 'border-purple-500 ring-2 ring-purple-300 shadow-xl' : 'border-purple-100'
-                }`}
-                title={statusFilter === 'partBExpiring' ? 'Click to clear filter' : 'Click to filter Part B expiring permits'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Part B - Expiring Soon</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-purple-600'>{stats.partBExpiring}</h3>
-                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Pending Payment */}
-              <div
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='Pending Payment'
+                value={stats.pendingPaymentCount}
+                color='yellow'
+                isActive={statusFilter === 'pending'}
                 onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  statusFilter === 'pending' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
-                }`}
-                title={statusFilter === 'pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div className='flex-1'>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-yellow-600'>{stats.pendingPaymentCount}</h3>
-                    {stats.pendingPaymentAmount > 0 && (
-                      <p className='text-[7px] lg:text-[9px] text-gray-500 font-semibold mt-0.5'>
-                        ₹{stats.pendingPaymentAmount.toLocaleString('en-IN')}
-                      </p>
-                    )}
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                }
+              />
             </div>
           </div>
 
