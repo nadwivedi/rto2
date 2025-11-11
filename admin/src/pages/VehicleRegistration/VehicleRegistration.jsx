@@ -123,6 +123,53 @@ const VehicleRegistration = () => {
     setShowDetailsModal(true)
   }
 
+  const handleShare = async (registration) => {
+    const shareText = `
+🚗 Vehicle Registration Details
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📋 Registration Number: ${registration.vehicleNumber || registration.registrationNumber || 'N/A'}
+📅 Registration Date: ${registration.dateOfRegistration || 'N/A'}
+
+👤 Owner Details:
+   Name: ${registration.ownerName || 'N/A'}
+   S/W/D of: ${registration.sonWifeDaughterOf || 'N/A'}
+
+🔧 Vehicle Identification:
+   Chassis No: ${registration.chassisNumber || 'N/A'}
+   Engine No: ${registration.engineNumber || 'N/A'}
+
+⚖️ Weight Information:
+   Laden Weight: ${registration.ladenWeight ? `${registration.ladenWeight} kg` : 'N/A'}
+   Unladen Weight: ${registration.unladenWeight ? `${registration.unladenWeight} kg` : 'N/A'}
+    `.trim()
+
+    // Check if Web Share API is available
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Vehicle Registration Details',
+          text: shareText
+        })
+        toast.success('Details shared successfully!', { position: 'top-right', autoClose: 2000 })
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Error sharing:', error)
+          toast.error('Failed to share details', { position: 'top-right', autoClose: 2000 })
+        }
+      }
+    } else {
+      // Fallback to copying to clipboard
+      try {
+        await navigator.clipboard.writeText(shareText)
+        toast.success('Details copied to clipboard!', { position: 'top-right', autoClose: 2000 })
+      } catch (error) {
+        console.error('Error copying to clipboard:', error)
+        toast.error('Failed to copy details', { position: 'top-right', autoClose: 2000 })
+      }
+    }
+  }
+
   // Page change handler
   const handlePageChange = (newPage) => {
     fetchRegistrations(newPage)
@@ -225,6 +272,15 @@ const VehicleRegistration = () => {
                               <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleShare(registration)}
+                              className='p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-all cursor-pointer'
+                              title='Share'
+                            >
+                              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' />
                               </svg>
                             </button>
                             <button
@@ -401,6 +457,15 @@ const VehicleRegistration = () => {
                               <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleShare(registration)}
+                              className='p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 cursor-pointer'
+                              title='Share'
+                            >
+                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' />
                               </svg>
                             </button>
                             <button

@@ -35,7 +35,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   // Handle Enter key to move to next field
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault() // Prevent form submission
+      e.preventDefault() // Prevent default form submission
 
       // Get all form inputs, textareas, and selects
       const form = e.target.form
@@ -51,9 +51,12 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       // Find current element index
       const currentIndex = formElements.indexOf(e.target)
 
-      // Move to next element
+      // Move to next element or submit if on last field
       if (currentIndex > -1 && currentIndex < formElements.length - 1) {
         formElements[currentIndex + 1].focus()
+      } else if (currentIndex === formElements.length - 1) {
+        // Last field - submit the form
+        form.requestSubmit()
       }
     }
   }
@@ -757,6 +760,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='sonWifeDaughterOf'
                         value={formData.sonWifeDaughterOf}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='Enter father/husband/parent name'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -783,6 +787,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='address'
                         value={formData.address}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='Enter complete address with pin code'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -805,6 +810,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='mobileNumber'
                         value={formData.mobileNumber}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         maxLength='10'
                         placeholder='Enter 10-digit mobile number'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
@@ -828,6 +834,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='email'
                         value={formData.email}
                         onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='Enter email address'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
