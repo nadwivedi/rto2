@@ -5,6 +5,7 @@ import QuickDLApplicationForm from './components/QuickDLApplicationForm'
 import EditDLApplicationForm from './components/EditDLApplicationForm'
 import ApplicationDetailModal from './components/ApplicationDetailModal'
 import Pagination from '../../components/Pagination'
+import AddButton from '../../components/AddButton'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -658,18 +659,7 @@ const DrivingLicence = () => {
             </div>
 
             {/* New Application Button */}
-            <button
-              onClick={() => setIsFormOpen(true)}
-              className='px-3 lg:px-5 py-2 lg:py-3 text-xs lg:text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-bold whitespace-nowrap cursor-pointer lg:ml-auto shadow-lg hover:shadow-xl transform hover:scale-105'
-            >
-              <span className='flex items-center gap-1 lg:gap-2'>
-                <svg className='w-4 h-4 lg:w-5 lg:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                </svg>
-                <span className='hidden sm:inline'>New Application</span>
-                <span className='sm:hidden'>New</span>
-              </span>
-            </button>
+            <AddButton onClick={() => setIsFormOpen(true)} title='New Application' />
           </div>
         </div>
 

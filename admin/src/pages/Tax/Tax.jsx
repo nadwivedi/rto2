@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import AddTaxModal from './components/AddTaxModal'
+import AddButton from '../../components/AddButton';
 import EditTaxModal from './components/EditTaxModal'
 import Pagination from '../../components/Pagination'
 
@@ -436,16 +437,7 @@ const Tax = () => {
                 </div>
 
                 {/* Add Button */}
-                <button
-                  onClick={() => setIsAddModalOpen(true)}
-                  className='px-4 lg:px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-xl font-bold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 cursor-pointer'
-                >
-                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                  </svg>
-                  <span className='hidden lg:inline'>Add New Tax Record</span>
-                  <span className='lg:hidden'>Add New</span>
-                </button>
+                <AddButton onClick={() => setIsAddModalOpen(true)} title='Add New Tax Record' />
               </div>
 
               {/* Results count and filter status */}

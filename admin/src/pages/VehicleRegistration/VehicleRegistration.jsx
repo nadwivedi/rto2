@@ -4,6 +4,7 @@ import { toast } from 'react-toastify'
 import RegisterVehicleModal from './components/RegisterVehicleModal'
 import Pagination from '../../components/Pagination'
 import ViewVehicleRegistrationModal from './components/ViewVehicleRegistrationModal'
+import AddButton from '../../components/AddButton'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -177,19 +178,13 @@ const VehicleRegistration = () => {
                 </div>
 
                 {/* Register Button */}
-                <button
+                <AddButton
                   onClick={() => {
                     setEditData(null)
                     setShowModal(true)
                   }}
-                  className='px-4 lg:px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl font-bold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 cursor-pointer'
-                >
-                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                  </svg>
-                  <span className='hidden lg:inline'>Register New Vehicle</span>
-                  <span className='lg:hidden'>Register</span>
-                </button>
+                  title='Register New Vehicle'
+                />
               </div>
 
               {/* Results count */}

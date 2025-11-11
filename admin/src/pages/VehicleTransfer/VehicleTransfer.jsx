@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import AddVehicleTransferModal from './components/AddVehicleTransferModal'
 import VehicleTransferDetailModal from './components/VehicleTransferDetailModal'
 import Pagination from '../../components/Pagination'
+import AddButton from '../../components/AddButton'
 
 const VehicleTransfer = () => {
   const [transfers, setTransfers] = useState([])
@@ -202,16 +203,7 @@ const VehicleTransfer = () => {
               
 
                 {/* New Transfer Button */}
-                <button
-                  onClick={handleAddNew}
-                  className='px-4 lg:px-6 py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl hover:shadow-xl font-bold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 cursor-pointer'
-                >
-                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                  </svg>
-                  <span className='hidden lg:inline'>New Transfer</span>
-                  <span className='lg:hidden'>New</span>
-                </button>
+                <AddButton onClick={handleAddNew} title='New Transfer' />
               </div>
 
               {/* Results count */}

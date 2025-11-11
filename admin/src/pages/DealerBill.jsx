@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import AddDealerBillModal from '../components/AddDealerBillModal'
+import AddButton from '../components/AddButton'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 console.log(API_URL);
@@ -125,15 +126,7 @@ const DealerBill = () => {
               <h1 className='text-2xl md:text-3xl font-black text-gray-800'>Dealer Bills</h1>
               <p className='text-sm text-gray-600 mt-1'>Manage dealer bills for Permit, Fitness, and Registration</p>
             </div>
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className='px-6 py-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all font-bold flex items-center gap-2'
-            >
-              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-              </svg>
-              Add Dealer Bill
-            </button>
+            <AddButton onClick={() => setIsAddModalOpen(true)} title='Add Dealer Bill' />
           </div>
         </div>
 

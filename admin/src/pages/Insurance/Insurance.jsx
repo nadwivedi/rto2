@@ -3,6 +3,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import AddInsuranceModal from './components/AddInsuranceModal'
 import Pagination from '../../components/Pagination'
+import AddButton from '../../components/AddButton'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -428,17 +429,7 @@ const Insurance = () => {
             </div>
 
             {/* New Insurance Button */}
-            <button
-              onClick={() => setIsAddModalOpen(true)}
-              className='px-5 py-3 text-sm bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all font-bold whitespace-nowrap cursor-pointer lg:ml-auto shadow-lg hover:shadow-xl transform hover:scale-105'
-            >
-              <span className='flex items-center gap-2'>
-                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                </svg>
-                New Insurance Record
-              </span>
-            </button>
+            <AddButton onClick={() => setIsAddModalOpen(true)} title='New Insurance Record' />
           </div>
         </div>
 
