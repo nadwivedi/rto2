@@ -336,6 +336,7 @@ const Tax = () => {
               <StatisticsCard
                 title='Tax Expiring Soon'
                 value={statistics.expiring}
+                subtext='Within 15 days'
                 color='orange'
                 isActive={statusFilter === 'expiring_soon'}
                 onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
@@ -348,6 +349,7 @@ const Tax = () => {
               <StatisticsCard
                 title='Tax Expired'
                 value={statistics.expired}
+                subtext='expired tax'
                 color='red'
                 isActive={statusFilter === 'expired'}
                 onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}

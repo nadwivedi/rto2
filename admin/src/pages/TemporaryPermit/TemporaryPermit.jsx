@@ -472,6 +472,7 @@ Thank you!`
               <StatisticsCard
                 title='Expiring Soon'
                 value={statistics.expiringSoon}
+                subtext='within 15days'
                 color='orange'
                 isActive={statusFilter === 'expiring_soon'}
                 onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
@@ -484,6 +485,7 @@ Thank you!`
               <StatisticsCard
                 title='Expired'
                 value={statistics.expired}
+                subtext='expired permit'
                 color='red'
                 isActive={statusFilter === 'expired'}
                 onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
@@ -496,6 +498,7 @@ Thank you!`
               <StatisticsCard
                 title='Pending Payment'
                 value={statistics.pendingPaymentCount}
+                extraValue={`₹${statistics.pendingPaymentAmount.toLocaleString('en-IN')}`}
                 color='yellow'
                 isActive={statusFilter === 'pending'}
                 onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}

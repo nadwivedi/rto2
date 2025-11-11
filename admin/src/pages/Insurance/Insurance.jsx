@@ -287,6 +287,7 @@ const Insurance = () => {
               <StatisticsCard
                 title='Expiring Soon'
                 value={stats.expiringSoon}
+                subtext='Within 30 days'
                 color='orange'
                 isActive={statusFilter === 'expiring_soon'}
                 onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
@@ -299,6 +300,7 @@ const Insurance = () => {
               <StatisticsCard
                 title='Expired'
                 value={stats.expired}
+                subtext='expired insurance'
                 color='red'
                 isActive={statusFilter === 'expired'}
                 onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
