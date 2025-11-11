@@ -360,6 +360,7 @@ const Tax = () => {
               <StatisticsCard
                 title='Pending Payment'
                 value={statistics.pendingPaymentCount}
+                extraValue={`₹${statistics.pendingPaymentAmount.toLocaleString('en-IN')}`}
                 color='yellow'
                 isActive={statusFilter === 'pending'}
                 onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}

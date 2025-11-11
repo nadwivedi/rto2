@@ -175,6 +175,7 @@ const CgPermit = () => {
           pendingPaymentCount: response.data.data.pendingPaymentCount,
           pendingPaymentAmount: response.data.data.pendingPaymentAmount
         })
+        
       }
     } catch (error) {
       console.error('Error fetching CG permit statistics:', error)
@@ -630,6 +631,7 @@ Thank you!`
                 color='orange'
                 isActive={statusFilter === 'expiring_soon'}
                 onClick={() => setStatusFilter(statusFilter === 'expiring_soon' ? 'all' : 'expiring_soon')}
+                subtext='Within 30 days'
                 icon={
                   <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
@@ -642,6 +644,7 @@ Thank you!`
                 color='red'
                 isActive={statusFilter === 'expired'}
                 onClick={() => setStatusFilter(statusFilter === 'expired' ? 'all' : 'expired')}
+                subtext='Expired Permits'
                 icon={
                   <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
@@ -651,6 +654,7 @@ Thank you!`
               <StatisticsCard
                 title='Pending Payment'
                 value={statistics.pendingPaymentCount}
+                extraValue={`₹${statistics.pendingPaymentAmount.toLocaleString('en-IN')}`}
                 color='yellow'
                 isActive={statusFilter === 'pending'}
                 onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}

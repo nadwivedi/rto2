@@ -1,4 +1,4 @@
-const StatisticsCard = ({ title, value, icon, color, onClick, isActive }) => {
+const StatisticsCard = ({ title, value, icon, color, onClick, isActive, extraValue, subtext }) => {
   const colorClasses = {
     blue: {
       border: 'border-blue-500',
@@ -47,7 +47,7 @@ const StatisticsCard = ({ title, value, icon, color, onClick, isActive }) => {
     }
   };
 
-  const activeClasses = isActive ? `${colorClasses[color]?.border} ring-2 ${colorClasses[color]?.ring} shadow-xl` : `border-${color}-100`;
+  const activeClasses = isActive ? `${colorClasses[color]?.border} ring-2 ${colorClasses[color]?.ring} shadow-xl` : 'border-transparent';
 
   return (
     <div
@@ -59,6 +59,8 @@ const StatisticsCard = ({ title, value, icon, color, onClick, isActive }) => {
         <div>
           <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>{title}</p>
           <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{value}</h3>
+          {extraValue && <p className='text-[8px] lg:text-xs text-orange-600 font-bold mt-0.5'>{extraValue}</p>}
+          {subtext && <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>{subtext}</p>}
         </div>
         <div className={`w-8 h-8 lg:w-11 lg:h-11 ${colorClasses[color]?.bg} rounded-lg flex items-center justify-center shadow-md`}>
           {icon}

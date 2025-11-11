@@ -7,6 +7,7 @@ import ApplicationDetailModal from './components/ApplicationDetailModal'
 import Pagination from '../../components/Pagination'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
+import StatisticsCard from '../../components/StatisticsCard'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -423,114 +424,73 @@ const DrivingLicence = () => {
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
-              {/* Total Applications */}
-              <div
+              <StatisticsCard
+                title='Total Applications'
+                value={stats.total}
+                color='blue'
+                isActive={dlExpiryFilter === 'All' && llExpiryFilter === 'All' && paymentStatusFilter === 'All'}
                 onClick={() => {
                   setDlExpiryFilter('All')
                   setLlExpiryFilter('All')
                   setPaymentStatusFilter('All')
                 }}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  dlExpiryFilter === 'All' && llExpiryFilter === 'All' && paymentStatusFilter === 'All'
-                    ? 'border-blue-500 ring-2 ring-blue-300 shadow-xl'
-                    : 'border-indigo-100'
-                }`}
-                title={
-                  dlExpiryFilter === 'All' && llExpiryFilter === 'All' && paymentStatusFilter === 'All'
-                    ? 'Currently showing all applications'
-                    : 'Click to show all applications'
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                  </svg>
                 }
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Total Applications</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.total}</h3>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* DL Expiring Soon */}
-              <div
+              />
+              <StatisticsCard
+                title='DL Expiring Soon'
+                value={stats.expiringSoon}
+                color='purple'
+                isActive={dlExpiryFilter === '30'}
                 onClick={() => {
                   setDlExpiryFilter(dlExpiryFilter === '30' ? 'All' : '30')
                   setLlExpiryFilter('All')
                   setPaymentStatusFilter('All')
                 }}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  dlExpiryFilter === '30' ? 'border-purple-500 ring-2 ring-purple-300 shadow-xl' : 'border-purple-100'
-                }`}
-                title={dlExpiryFilter === '30' ? 'Click to clear filter' : 'Click to filter DL expiring soon'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>DL Expiring Soon</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.expiringSoon}</h3>
-                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* LL Expiring Soon */}
-              <div
+                subtext='Within 30 days'
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='LL Expiring Soon'
+                value={stats.llExpiringSoon}
+                color='yellow'
+                isActive={llExpiryFilter === '30'}
                 onClick={() => {
                   setLlExpiryFilter(llExpiryFilter === '30' ? 'All' : '30')
                   setDlExpiryFilter('All')
                   setPaymentStatusFilter('All')
                 }}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  llExpiryFilter === '30' ? 'border-yellow-500 ring-2 ring-yellow-300 shadow-xl' : 'border-yellow-100'
-                }`}
-                title={llExpiryFilter === '30' ? 'Click to clear filter' : 'Click to filter LL expiring soon'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>LL Expiring Soon</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.llExpiringSoon}</h3>
-                    <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>Within 30 days</p>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Pending Payment */}
-              <div
+                subtext='Within 30 days'
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='Pending Payment'
+                value={stats.pendingCount}
+                color='orange'
+                isActive={paymentStatusFilter === 'Pending'}
                 onClick={() => {
                   setPaymentStatusFilter(paymentStatusFilter === 'Pending' ? 'All' : 'Pending')
                   setDlExpiryFilter('All')
                   setLlExpiryFilter('All')
                 }}
-                className={`bg-white rounded-lg shadow-md border p-2 lg:p-3.5 hover:shadow-lg transition-all duration-300 cursor-pointer hover:scale-105 transform ${
-                  paymentStatusFilter === 'Pending' ? 'border-orange-500 ring-2 ring-orange-300 shadow-xl' : 'border-orange-100'
-                }`}
-                title={paymentStatusFilter === 'Pending' ? 'Click to clear filter' : 'Click to filter pending payments'}
-              >
-                <div className='flex items-center justify-between'>
-                  <div>
-                    <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>Pending Payment</p>
-                    <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{stats.pendingCount}</h3>
-                    <p className='text-[8px] lg:text-xs text-orange-600 font-bold mt-0.5'>₹{stats.totalPending.toLocaleString('en-IN')}</p>
-                  </div>
-                  <div className='w-8 h-8 lg:w-11 lg:h-11 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md'>
-                    <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  </div>
-                </div>
-              </div>
+                extraValue={`₹${stats.totalPending.toLocaleString('en-IN')}`}
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                }
+              />
             </div>
           </div>
 
