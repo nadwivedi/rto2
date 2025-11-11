@@ -8,12 +8,14 @@ import Pagination from '../../components/Pagination'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
 import FitnessMobileCardView from './components/FitnessMobileCardView'
+import { getTheme } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 import { getStatusColor, getStatusText } from '../../utils/statusUtils';
 
 const Fitness = () => {
+  const theme = getTheme()
   const [fitnessRecords, setFitnessRecords] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -420,7 +422,7 @@ const Fitness = () => {
            
               <div className='hidden lg:block overflow-x-auto'>
               <table className='w-full'>
-                <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
+                <thead className={theme.tableHeader}>
                   <tr>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle Number</th>
                     <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>

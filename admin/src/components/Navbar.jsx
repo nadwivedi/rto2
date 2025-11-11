@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { getTheme } from "../context/ThemeContext";
 
 const Navbar = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const theme = getTheme();
 
   const menuItems = [
     {
@@ -99,7 +101,7 @@ const Navbar = () => {
       )}
 
       {/* Mobile Header - Only visible on mobile */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-gradient-to-r from-indigo-900 via-purple-900 to-blue-900 text-white shadow-lg z-50">
+      <div className={`lg:hidden fixed top-0 left-0 right-0 ${theme.navbar} text-white shadow-lg z-50`}>
         <div className="flex items-center justify-between px-4 py-3">
           {/* Hamburger Menu Button */}
           <button
@@ -222,7 +224,7 @@ const Navbar = () => {
       </div>
 
       {/* Desktop Navbar - Only visible on desktop */}
-      <nav className="hidden lg:block fixed top-0 left-0 right-0 bg-gradient-to-r from-indigo-900 via-purple-900 to-blue-900 text-white shadow-2xl z-50">
+      <nav className={`hidden lg:block fixed top-0 left-0 right-0 ${theme.navbar} text-white shadow-2xl z-50`}>
         <div className="px-4 py-3">
           {/* Menu Items - Horizontal */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">

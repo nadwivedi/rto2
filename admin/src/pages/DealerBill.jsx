@@ -3,12 +3,14 @@ import axios from 'axios'
 import AddDealerBillModal from '../components/AddDealerBillModal'
 import AddButton from '../components/AddButton'
 import SearchBar from '../components/SearchBar'
+import { getTheme } from '../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 console.log(API_URL);
 
 
 const DealerBill = () => {
+  const theme = getTheme()
   const [dealerBills, setDealerBills] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -158,7 +160,7 @@ const DealerBill = () => {
 
           <div className='overflow-x-auto'>
             <table className='w-full'>
-              <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
+              <thead className={theme.tableHeader}>
                 <tr>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Bill Number</th>
                   <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Customer Name</th>

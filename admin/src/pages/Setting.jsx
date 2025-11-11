@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx'
 import ImportModal from '../components/ImportModal'
 import ExportModal from '../components/ExportModal'
 import ExportExcelModal from '../components/ExportExcelModal'
+import { getAllThemes } from '../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -20,6 +21,14 @@ const Setting = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [isExportExcelModalOpen, setIsExportExcelModalOpen] = useState(false)
+
+  const themes = getAllThemes()
+  const currentTheme = localStorage.getItem('theme') || 'theme1'
+
+  const handleThemeChange = (themeName) => {
+    localStorage.setItem('theme', themeName)
+    window.location.reload()
+  }
 
   const handleLogout = () => {
     logout()
@@ -163,6 +172,50 @@ const Setting = () => {
 
       {/* Settings Cards */}
       <div className='space-y-4'>
+        {/* Theme Settings */}
+        <div className='bg-white rounded-xl p-6 shadow-lg border border-gray-200'>
+          <div className='flex items-center gap-3 mb-4'>
+            <div className='w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-xl'>
+              🎨
+            </div>
+            <div>
+              <h2 className='text-lg font-bold text-gray-800'>Theme Settings</h2>
+              <p className='text-xs text-gray-500'>Customize the appearance of your application</p>
+            </div>
+          </div>
+
+          <div className='space-y-3'>
+            <label className='text-sm font-semibold text-gray-700'>Select Theme</label>
+            <div className='flex flex-wrap gap-3'>
+              {Object.keys(themes).map((themeName) => {
+                const themeData = themes[themeName]
+                const isSelected = currentTheme === themeName
+                return (
+                  <button
+                    key={themeName}
+                    onClick={() => handleThemeChange(themeName)}
+                    className={`px-3 py-2 rounded-lg border-2 transition-all flex items-center gap-2 ${
+                      isSelected
+                        ? 'border-indigo-600 bg-indigo-50 shadow-md'
+                        : 'border-gray-200 bg-white hover:border-indigo-300 hover:shadow-sm'
+                    }`}
+                  >
+                    <span className='font-semibold text-gray-800 text-xs capitalize'>
+                      {themeName.replace('theme', 'Theme ')}
+                    </span>
+                    <div className={`w-16 h-5 rounded ${themeData.navbar}`}></div>
+                    {isSelected && (
+                      <div className='w-4 h-4 bg-indigo-600 rounded-full flex items-center justify-center text-white text-[10px]'>
+                        ✓
+                      </div>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
         {/* Export Data */}
         <div className='bg-white rounded-xl p-6 shadow-lg border border-gray-200'>
           <div className='flex items-center gap-3 mb-4'>

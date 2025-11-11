@@ -5,8 +5,10 @@ import Pagination from '../../components/Pagination'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
+import { getTheme } from '../../context/ThemeContext'
 
 const VehicleTransfer = () => {
+  const theme = getTheme()
   const [transfers, setTransfers] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)

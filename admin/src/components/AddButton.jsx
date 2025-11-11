@@ -1,8 +1,12 @@
+import { getTheme } from '../context/ThemeContext';
+
 const AddButton = ({ onClick, title }) => {
+  const theme = getTheme();
+
   return (
     <button
       onClick={onClick}
-      className='px-4 lg:px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:shadow-xl font-bold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 cursor-pointer'
+      className={`px-4 lg:px-6 py-3 ${theme.addButton} text-white rounded-xl hover:shadow-xl font-bold text-sm transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 cursor-pointer`}
     >
       <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />

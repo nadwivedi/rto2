@@ -11,10 +11,12 @@ import Pagination from '../../components/Pagination'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
+import { getTheme } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const NationalPermit = () => {
+  const theme = getTheme()
   const [permits, setPermits] = useState([])
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -801,7 +803,7 @@ Thank you for your business!
         {/* Desktop Table View */}
         <div className='hidden lg:block overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200'>
           <table className='w-full'>
-            <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
+            <thead className={theme.tableHeader}>
               <tr>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Number</th>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Holder</th>

@@ -8,10 +8,12 @@ import Pagination from '../../components/Pagination'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
+import { getTheme } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const DrivingLicence = () => {
+  const theme = getTheme()
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -769,7 +771,7 @@ const DrivingLicence = () => {
         {/* Desktop Table View */}
         <div className='hidden lg:block overflow-x-auto'>
           <table className='w-full'>
-            <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
+            <thead className={theme.tableHeader}>
               <tr>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Applicant Details</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Class</th>

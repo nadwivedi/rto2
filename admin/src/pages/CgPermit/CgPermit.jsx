@@ -11,12 +11,14 @@ import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
 import CgPermitMobileCardView from './components/CgPermitMobileCardView'
+import { getTheme } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
 import { getStatusColor, getStatusText } from '../../utils/statusUtils';
 
 const CgPermit = () => {
+  const theme = getTheme()
   // Force recompile for debugging ReferenceError: loading is not defined
   // Demo data for when backend is not available
   const demoPermits = [
@@ -703,7 +705,7 @@ Thank you!`
         {/* Desktop Table View */}
         <div className='hidden lg:block overflow-x-auto'>
           <table className='w-full'>
-            <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
+            <thead className={theme.tableHeader}>
               <tr>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle/Permit No.</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Permit Holder</th>

@@ -7,12 +7,14 @@ import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
 import InsuranceMobileCardView from './components/InsuranceMobileCardView'
+import { getTheme } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 import { getStatusColor, getStatusText } from '../../utils/statusUtils';
 
 const Insurance = () => {
+  const theme = getTheme()
   const [insurances, setInsurances] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
@@ -403,7 +405,7 @@ const Insurance = () => {
         {/* Desktop Table View */}
         <div className='hidden lg:block overflow-x-auto'>
           <table className='w-full'>
-            <thead className='bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600'>
+            <thead className={theme.tableHeader}>
               <tr>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Policy Number</th>
                 <th className='px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider'>Vehicle No.</th>
