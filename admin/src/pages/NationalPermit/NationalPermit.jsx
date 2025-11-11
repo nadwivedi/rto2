@@ -9,6 +9,7 @@ import RenewPartAModal from './components/RenewPartAModal'
 import { isPartBExpiringSoon, isPartAExpiringSoon, getDaysRemaining } from '../../utils/dateHelpers'
 import Pagination from '../../components/Pagination'
 import AddButton from '../../components/AddButton'
+import SearchBar from '../../components/SearchBar'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -670,23 +671,11 @@ Thank you for your business!
         <div className='px-3 lg:px-6 py-3 lg:py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
           <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center'>
             {/* Search Bar */}
-            <div className='relative flex-1 lg:max-w-md'>
-              <input
-                type='text'
-                placeholder='Search by permit number, holder, or vehicle...'
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className='w-full pl-9 lg:pl-11 pr-3 lg:pr-4 py-2 lg:py-3 text-xs lg:text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
-              />
-              <svg
-                className='absolute left-2.5 lg:left-3.5 top-1/2 transform -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-indigo-400'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
-              </svg>
-            </div>
+            <SearchBar
+              value={searchQuery}
+              onChange={(value) => setSearchQuery(value)}
+              placeholder='Search by permit number, holder, or vehicle...'
+            />
 
             {/* Filters Group */}
             <div className='flex flex-wrap gap-2'>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import AddDealerBillModal from '../components/AddDealerBillModal'
 import AddButton from '../components/AddButton'
+import SearchBar from '../components/SearchBar'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 console.log(API_URL);
@@ -46,11 +47,6 @@ const DealerBill = () => {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value)
-    setCurrentPage(1)
   }
 
   const handlePageChange = (page) => {
@@ -144,23 +140,14 @@ const DealerBill = () => {
           <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
             <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center justify-between'>
               {/* Search Bar */}
-              <div className='relative flex-1 lg:max-w-md'>
-                <input
-                  type='text'
-                  placeholder='Search by bill number or customer name...'
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className='w-full pl-11 pr-4 py-3 text-sm border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-400 transition-all bg-white shadow-sm'
-                />
-                <svg
-                  className='absolute left-3.5 top-1/2 transform -translate-y-1/2 w-5 h-5 text-indigo-400'
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
-                </svg>
-              </div>
+              <SearchBar
+                value={searchQuery}
+                onChange={(value) => {
+                  setSearchQuery(value);
+                  setCurrentPage(1);
+                }}
+                placeholder='Search by bill number or customer name...'
+              />
 
               {/* Total Count */}
               <div className='text-sm font-bold text-gray-700'>
