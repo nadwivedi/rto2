@@ -450,7 +450,7 @@ const VehicleRegistration = () => {
                           <span className='text-sm text-gray-700'>{registration.unladenWeight ? `${registration.unladenWeight} kg` : 'N/A'}</span>
                         </td>
                         <td className='px-6 py-4'>
-                          <div className='flex items-center justify-center gap-2'>
+                          <div className='flex items-center justify-end gap-0.5 pr-1'>
                             <button
                               onClick={() => handleViewDetails(registration)}
                               className='p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 cursor-pointer'
