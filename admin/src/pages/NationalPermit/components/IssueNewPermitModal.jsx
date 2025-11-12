@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { validateVehicleNumberRealtime, cleanVehicleNumber, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -8,6 +9,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const [partBImage, setPartBImage] = useState(null)
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
+  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
 
   // Helper function to format date as DD-MM-YYYY
   const formatDate = (date) => {
@@ -201,8 +203,24 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Auto-uppercase for permit numbers (Type A and Type B) and vehicle number
-    if (name === 'permitNumber' || name === 'authorizationNumber' || name === 'vehicleNumber') {
+    // Handle vehicle number with format enforcement and validation
+    if (name === 'vehicleNumber') {
+      // Enforce format: only allow correct characters at each position
+      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+
+      // Validate in real-time
+      const validation = validateVehicleNumberRealtime(enforcedValue)
+      setVehicleValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
+    // Auto-uppercase for permit numbers (Type A and Type B)
+    if (name === 'permitNumber' || name === 'authorizationNumber') {
       setFormData(prev => ({
         ...prev,
         [name]: value.toUpperCase()
@@ -280,6 +298,13 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Validate vehicle number before submitting
+    if (!vehicleValidation.isValid && formData.vehicleNumber) {
+      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
     if (onSubmit) {
       onSubmit({
         ...formData,
@@ -314,6 +339,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     setShowOptionalFields(false)
     setVehicleError('')
     setFetchingVehicle(false)
+    setVehicleValidation({ isValid: false, message: '' })
     onClose()
   }
 
@@ -353,7 +379,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                 {/* Vehicle Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Vehicle Number
+                    Vehicle Number <span className='text-red-500'>*</span>
                   </label>
                   <div className='relative'>
                     <input
@@ -361,9 +387,17 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='MH12AB1234'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
+                      placeholder='CG04AA1234'
+                      maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                        formData.vehicleNumber && !vehicleValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.vehicleNumber && vehicleValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
                       autoFocus
+                      required
                     />
                     {fetchingVehicle && (
                       <div className='absolute right-3 top-2.5'>
@@ -373,13 +407,26 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                         </svg>
                       </div>
                     )}
+                    {!fetchingVehicle && vehicleValidation.isValid && formData.vehicleNumber && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
+                      </div>
+                    )}
                   </div>
+                  {vehicleValidation.message && !fetchingVehicle && (
+                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {vehicleValidation.message}
+                    </p>
+                  )}
                   {vehicleError && (
                     <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
                   )}
-                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.permitHolderName && (
+                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.permitHolderName && vehicleValidation.isValid && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner details auto-filled</p>
                   )}
+                 
                 </div>
 
                 {/* Permit Number */}

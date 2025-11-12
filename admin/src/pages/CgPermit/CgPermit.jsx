@@ -198,11 +198,8 @@ const CgPermit = () => {
 
   // Fetch permits from backend on component mount and when filters change
   useEffect(() => {
-    // Only fetch if search query is empty or has at least 4 characters
-    if (debouncedSearchQuery.length === 0 || debouncedSearchQuery.length >= 4) {
-      fetchPermits(1)
-      fetchStatistics()
-    }
+    fetchPermits(1)
+    fetchStatistics()
   }, [debouncedSearchQuery, statusFilter])
 
   // Page change handler

@@ -61,10 +61,8 @@ const TemporaryPermitOtherState = () => {
 
   // Fetch permits from backend
   useEffect(() => {
-    if (debouncedSearchQuery.length === 0 || debouncedSearchQuery.length >= 4) {
-      fetchPermits(1)
-      fetchStatistics();
-    }
+    fetchPermits(1)
+    fetchStatistics();
   }, [debouncedSearchQuery, statusFilter])
 
   const fetchPermits = async (page = pagination.currentPage) => {
