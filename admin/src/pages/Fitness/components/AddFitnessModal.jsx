@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { handleDateBlur as utilHandleDateBlur } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
@@ -12,7 +11,6 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     paid: '',
     balance: ''
   })
-  const [lastAction, setLastAction] = useState({})
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
@@ -93,15 +91,6 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     }
   }, [isOpen, onClose])
 
-  const handleDateKeyDown = (e) => {
-    const { name } = e.target
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      setLastAction({ [name]: 'delete' })
-    } else {
-      setLastAction({ [name]: 'typing' })
-    }
-  }
-
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -140,82 +129,90 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       return
     }
 
-    // Auto-format date fields with automatic dash insertion
+    // Handle date fields with real-time validation and auto-dash
     if (name === 'validFrom' || name === 'validTo') {
-      // Remove all non-digit characters
+      const oldValue = formData[name] || ''
+
+      // If user is deleting (new value is shorter), just update
+      if (value.length < oldValue.length) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value.replace(/[^\d-]/g, '').slice(0, 10)
+        }))
+        return
+      }
+
+      // Remove non-digits for validation
       let digitsOnly = value.replace(/[^\d]/g, '')
 
-      // Limit to 8 digits (DDMMYYYY)
-      digitsOnly = digitsOnly.slice(0, 8)
-
-      // Validate day (first 2 digits) - max 31
+      // Validate and cap day (first 2 digits)
       if (digitsOnly.length >= 1) {
         const firstDigit = parseInt(digitsOnly[0], 10)
-        // If first digit is 4-9, auto-pad to 04-09
+        // If first digit is 4-9, auto-pad with 0 (e.g., 5 → 05, 6 → 06)
+        // because day can't be 40+, 50+, etc.
         if (firstDigit >= 4 && digitsOnly.length === 1) {
-          digitsOnly = '0' + digitsOnly[0] + digitsOnly.slice(1)
+          digitsOnly = '0' + digitsOnly
         }
-        // If first digit is 0 and alone, keep it (waiting for second digit)
-        // If first digit is 1-3, keep it (could be 10-31)
-      }
-      if (digitsOnly.length >= 2) {
-        const day = parseInt(digitsOnly.slice(0, 2), 10)
-        // Day must be 01-31, if more than 31, cap at 31
-        if (day > 31) {
-          digitsOnly = '31' + digitsOnly.slice(2)
-        } else if (day === 0 || day === '00') {
-          digitsOnly = '01' + digitsOnly.slice(2) // Convert 00 to 01
+        // If first digit > 3, don't allow it (day can't start with 4-9 unless auto-padded)
+        else if (firstDigit > 3) {
+          return // Don't update state
         }
       }
 
-      // Validate month (digits 3-4) - max 12
+      if (digitsOnly.length >= 2) {
+        const day = parseInt(digitsOnly.slice(0, 2), 10)
+        // If day > 31, don't allow the second digit
+        if (day > 31 || day === 0) {
+          return // Don't update state
+        }
+      }
+
+      // Validate and cap month (digits 3-4)
       if (digitsOnly.length >= 3) {
         const monthFirstDigit = parseInt(digitsOnly[2], 10)
-        // If first digit of month is 2-9, auto-pad to 02-09
+        // If first digit of month is 2-9, auto-pad with 0 (e.g., 5 → 05)
+        // because month can't be 20+, 30+, etc.
         if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
           digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
         }
-        // If first digit is 0 or 1, wait for second digit (could be 01-12)
+        // If first digit of month > 1, don't allow it (month can only start with 0 or 1)
+        else if (monthFirstDigit > 1) {
+          return // Don't update state
+        }
       }
+
       if (digitsOnly.length >= 4) {
         const month = parseInt(digitsOnly.slice(2, 4), 10)
-        // Month must be 01-12, if more than 12, cap at 12
-        if (month > 12) {
-          digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
-        } else if (month === 0 || month === '00') {
-          digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4) // Convert 00 to 01
+        // If month > 12 or 00, don't allow the second digit
+        if (month > 12 || month === 0) {
+          return // Don't update state
         }
       }
 
-      // Check if user was deleting
-      const isDeleting = lastAction[name] === 'delete'
+      // Limit to 8 digits total
+      digitsOnly = digitsOnly.slice(0, 8)
 
-      // Format based on length
-      let formatted = digitsOnly
-
-      if (digitsOnly.length === 0) {
-        formatted = ''
-      } else if (digitsOnly.length <= 2) {
-        formatted = digitsOnly
-        // Only add trailing dash if user just typed the 2nd digit (not deleting)
-        if (digitsOnly.length === 2 && !isDeleting) {
-          formatted = digitsOnly + '-'
+      // Auto-expand 2-digit year to 4-digit (e.g., 23 → 2023, 24 → 2024)
+      // Only expand when we have exactly 6 digits (DDMMYY)
+      // Don't expand if year is "20" - let user continue typing manually (2002, 2012, etc.)
+      if (digitsOnly.length === 6) {
+        const yearPart = digitsOnly.slice(4, 6)
+        if (yearPart !== '20') {
+          const yearNum = parseInt(yearPart, 10)
+          // Expand 2-digit year: 00-50 → 2000-2050, 51-99 → 1951-1999
+          const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+          digitsOnly = digitsOnly.slice(0, 4) + String(fullYear)
         }
-      } else if (digitsOnly.length <= 4) {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
-        // Only add trailing dash if user just typed the 4th digit (not deleting)
-        if (digitsOnly.length === 4 && !isDeleting) {
-          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
-        }
-      } else {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
       }
 
-      // Auto-expand 2-digit year (only when typing, not deleting)
-      if (digitsOnly.length === 6 && !isDeleting) {
-        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
-        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
+      // Format with auto-dash insertion (add dash after 2nd and 4th digit)
+      let formatted = ''
+      for (let i = 0; i < digitsOnly.length; i++) {
+        formatted += digitsOnly[i]
+        // Add dash after 2nd digit (day) and after 4th digit (month)
+        if (i === 1 || i === 3) {
+          formatted += '-'
+        }
       }
 
       setFormData(prev => ({
@@ -232,7 +229,71 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   }
 
   const handleDateBlur = (e) => {
-    utilHandleDateBlur(e, setFormData)
+    const { name, value } = e.target
+
+    if (!value) return // Skip if empty
+
+    // Remove all non-digit characters
+    let digitsOnly = value.replace(/[^\d]/g, '')
+
+    // Limit to 8 digits (DDMMYYYY)
+    digitsOnly = digitsOnly.slice(0, 8)
+
+    // Parse parts
+    let day = ''
+    let month = ''
+    let year = ''
+
+    if (digitsOnly.length >= 2) {
+      day = digitsOnly.slice(0, 2)
+      let dayNum = parseInt(day, 10)
+
+      // Validate day: 01-31
+      if (dayNum === 0) dayNum = 1
+      if (dayNum > 31) dayNum = 31
+      day = String(dayNum).padStart(2, '0')
+    } else if (digitsOnly.length === 1) {
+      day = '0' + digitsOnly[0]
+    }
+
+    if (digitsOnly.length >= 4) {
+      month = digitsOnly.slice(2, 4)
+      let monthNum = parseInt(month, 10)
+
+      // Validate month: 01-12
+      if (monthNum === 0) monthNum = 1
+      if (monthNum > 12) monthNum = 12
+      month = String(monthNum).padStart(2, '0')
+    } else if (digitsOnly.length === 3) {
+      month = '0' + digitsOnly[2]
+    }
+
+    if (digitsOnly.length >= 5) {
+      year = digitsOnly.slice(4)
+
+      // Auto-expand 2-digit year to 4-digit
+      if (year.length === 2) {
+        const yearNum = parseInt(year, 10)
+        year = String(yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum)
+      } else if (year.length === 4) {
+        // Keep as is
+      } else if (year.length > 4) {
+        year = year.slice(0, 4)
+      }
+    }
+
+    // Format the date only if we have at least day and month
+    if (day && month) {
+      let formatted = `${day}-${month}`
+      if (year) {
+        formatted += `-${year}`
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+    }
   }
 
   const handleSubmit = (e) => {
@@ -370,9 +431,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
-                    onKeyDown={handleDateKeyDown}
                     onBlur={handleDateBlur}
-                    placeholder='24-01-25 or 24/01/2025'
+                    placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
@@ -388,9 +448,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
-                    onKeyDown={handleDateKeyDown}
                     onBlur={handleDateBlur}
-                    placeholder='Auto-calculated or enter manually'
+                    placeholder='DD-MM-YYYY (auto-calculated)'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
                   />
                 </div>

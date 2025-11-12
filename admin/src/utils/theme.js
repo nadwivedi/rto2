@@ -61,7 +61,7 @@ export const vehicleNumberDesigns = {
   },
 
 
-  design4: {
+  design3: {
     name: 'Dark Mode',
     description: 'Dark background with light text',
     container: 'flex items-center gap-0.5',
@@ -72,7 +72,7 @@ export const vehicleNumberDesigns = {
   },
 
 
-  design7: {
+  design4: {
     name: 'Minimal Clean',
     description: 'Simple and clean design',
     container: 'flex items-center gap-1',
@@ -82,7 +82,7 @@ export const vehicleNumberDesigns = {
     last4Digits: 'text-sm font-inter font-bold text-gray-900 underline decoration-2 decoration-indigo-500',
   },
 
-  design8: {
+  design5: {
     name: 'Premium Gold',
     description: 'Luxury gold accent',
     container: 'flex items-center gap-0.5',
@@ -92,7 +92,7 @@ export const vehicleNumberDesigns = {
     last4Digits: 'text-sm font-inter font-bold text-amber-900 bg-gradient-to-r from-amber-200 to-yellow-300 px-2 py-0.5 rounded border border-amber-400',
   },
 
-  design10: {
+  design6: {
     name: 'Sleek Blue',
     description: 'Simple blue accent',
     container: 'flex items-center gap-0',
@@ -103,7 +103,7 @@ export const vehicleNumberDesigns = {
   },
 
 
-  design11: {
+  design7: {
     name: 'Sharp Teal',
     description: 'Bold teal emphasis',
     container: 'flex items-center gap-0',
@@ -114,7 +114,7 @@ export const vehicleNumberDesigns = {
   },
   
 
-  design13: {
+  design8: {
     name: 'Steel Gray',
     description: 'Professional gray',
     container: 'flex items-center gap-0',
@@ -125,7 +125,7 @@ export const vehicleNumberDesigns = {
   },
 
 
-  design14: {
+  design9: {
     name: 'Dash Classic',
     description: 'Classic with dashes',
     container: 'flex items-center gap-0',
