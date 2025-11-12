@@ -463,14 +463,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                   {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.ownerName && vehicleValidation.isValid && !initialData && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner name auto-filled</p>
                   )}
-                  {!initialData && (
-                    <p className='text-xs text-gray-500 mt-1'>
-                      Format: <span className='text-blue-600 font-mono'>CG</span>
-                      <span className='text-green-600 font-mono'>04</span>
-                      <span className='text-purple-600 font-mono'>AA</span>
-                      <span className='text-orange-600 font-mono'>1234</span>
-                    </p>
-                  )}
+                 
                 </div>
 
                 {/* Receipt Number */}

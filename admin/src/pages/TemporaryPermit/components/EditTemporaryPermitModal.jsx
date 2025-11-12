@@ -479,13 +479,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
                   {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.permitHolderName && vehicleValidation.isValid && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner details auto-filled</p>
                   )}
-                  <p className='text-xs text-gray-500 mt-1'>
-                    Format: <span className='text-orange-600 font-semibold'>LL</span>
-                    <span className='text-blue-600 font-semibold'>DD</span>
-                    <span className='text-purple-600 font-semibold'>LL</span>
-                    <span className='text-green-600 font-semibold'>DDDD</span>
-                    <span className='ml-1 text-gray-400'>(e.g., CG04AA1234)</span>
-                  </p>
+                  
                 </div>
 
                 {/* Permit Number */}

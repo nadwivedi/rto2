@@ -295,14 +295,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                       {vehicleValidation.message}
                     </p>
                   )}
-                  {!initialData && !vehicleValidation.message && !formData.vehicleNumber && (
-                    <p className='text-xs mt-1 text-gray-500'>
-                      Format: <span className='font-mono font-semibold text-emerald-600'>CG</span>
-                      <span className='font-mono font-semibold text-indigo-600'>04</span>
-                      <span className='font-mono font-semibold text-purple-600'>AA</span>
-                      <span className='font-mono font-semibold text-blue-600'>1234</span> (State + District + Series + Number)
-                    </p>
-                  )}
+                  
                 </div>
               </div>
             </div>

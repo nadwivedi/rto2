@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
+  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [formData, setFormData] = useState({
     registrationNumber: '',
     dateOfRegistration: '',
@@ -64,10 +66,17 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   useEffect(() => {
     if (editData) {
       // Set registrationNumber from either registrationNumber or vehicleNumber for backward compatibility
+      const regNumber = editData.registrationNumber || editData.vehicleNumber || ''
       setFormData({
         ...editData,
-        registrationNumber: editData.registrationNumber || editData.vehicleNumber || ''
+        registrationNumber: regNumber
       })
+
+      // Validate existing registration number
+      if (regNumber) {
+        const validation = validateVehicleNumberRealtime(regNumber)
+        setVehicleValidation(validation)
+      }
     } else {
       setFormData({
         registrationNumber: '',
@@ -91,6 +100,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         purchaseDeliveryDate: '',
         saleAmount: ''
       })
+      setVehicleValidation({ isValid: false, message: '' })
     }
     setError('')
   }, [editData, isOpen])
@@ -98,8 +108,24 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
+    // Handle registration number (vehicle number) with format enforcement and validation
+    if (name === 'registrationNumber') {
+      // Enforce format: only allow correct characters at each position
+      const enforcedValue = enforceVehicleNumberFormat(formData.registrationNumber, value)
+
+      // Validate in real-time
+      const validation = validateVehicleNumberRealtime(enforcedValue)
+      setVehicleValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
     // Convert specific fields to uppercase
-    const uppercaseFields = ['registrationNumber', 'chassisNumber', 'engineNumber', 'makerName', 'makerModel', 'colour', 'ownerName', 'sonWifeDaughterOf', 'address']
+    const uppercaseFields = ['chassisNumber', 'engineNumber', 'makerName', 'makerModel', 'colour', 'ownerName', 'sonWifeDaughterOf', 'address']
     const processedValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
 
     setFormData(prev => ({
@@ -186,6 +212,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Validate registration number before submitting
+    if (!vehicleValidation.isValid && formData.registrationNumber) {
+      toast.error('Please enter a valid registration number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -291,7 +324,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   <div className='group'>
                     <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
                       Registration Number <span className='text-red-500'>*</span>
-                      <span className='text-xs text-gray-500 ml-1'>(10 digits)</span>
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
@@ -306,24 +338,30 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         onChange={handleChange}
                         onKeyDown={handleKeyDown}
                         required
-                        minLength='10'
                         maxLength='10'
-                        placeholder='CG01AB1234 (10 chars)'
-                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                        placeholder='CG04AA1234'
+                        className={`w-full pl-9 md:pl-12 pr-10 md:pr-12 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 rounded-lg md:rounded-xl focus:ring-2 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400 ${
+                          formData.registrationNumber && !vehicleValidation.isValid
+                            ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                            : formData.registrationNumber && vehicleValidation.isValid
+                            ? 'border-green-500 focus:ring-green-500 focus:border-green-500'
+                            : 'border-gray-200 focus:ring-indigo-500 focus:border-indigo-500'
+                        }`}
                       />
-                      {formData.registrationNumber && formData.registrationNumber.length < 10 && (
+                      {vehicleValidation.isValid && formData.registrationNumber && (
                         <div className='absolute inset-y-0 right-0 pr-2.5 md:pr-4 flex items-center pointer-events-none'>
-                          <span className='text-xs font-semibold text-red-500'>
-                            {formData.registrationNumber.length}/10
-                          </span>
-                        </div>
-                      )}
-                      {formData.registrationNumber && formData.registrationNumber.length === 10 && (
-                        <div className='absolute inset-y-0 right-0 pr-2.5 md:pr-4 flex items-center pointer-events-none'>
-                          <span className='text-xs font-semibold text-green-500'>✓</span>
+                          <svg className='h-4 w-4 md:h-5 md:w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                          </svg>
                         </div>
                       )}
                     </div>
+                    {vehicleValidation.message && (
+                      <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                        {vehicleValidation.message}
+                      </p>
+                    )}
+                    
                   </div>
 
                   {/* Date of Registration */}

@@ -315,11 +315,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                     {vehicleValidation.message}
                   </p>
                 )}
-                {!formData.vehicleNumber && (
-                  <p className='text-xs mt-1 text-gray-500'>
-                    Format: <span className='font-mono font-semibold text-teal-600'>CG01AB1234</span> (10 characters, no spaces)
-                  </p>
-                )}
+                
               </div>
 
               {/* Transfer Date */}

@@ -258,12 +258,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                       {vehicleValidation.message}
                     </p>
                   )}
-                  {!formData.vehicleNo && (
-                    <p className='text-xs text-gray-500 mt-1'>
-                      Format: <span className='font-mono font-semibold text-orange-600'>LL DD LL DDDD</span>
-                      <span className='text-gray-400'> (e.g., CG04AA1234)</span>
-                    </p>
-                  )}
+                  
                 </div>
 
                 {/* Permit Number */}
