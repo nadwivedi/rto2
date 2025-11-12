@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
+import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
@@ -24,7 +25,6 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [lastAction, setLastAction] = useState({})
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
@@ -57,15 +57,6 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
     }
     setError('')
   }, [editData, isOpen])
-
-  const handleDateKeyDown = (e) => {
-    const { name } = e.target
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      setLastAction({ [name]: 'delete' })
-    } else {
-      setLastAction({ [name]: 'typing' })
-    }
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -105,6 +96,19 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
       return
     }
 
+    // Handle date fields with smart date input
+    if (name === 'transferDate') {
+      const formatted = handleSmartDateInput(value, formData[name] || '')
+
+      if (formatted !== null) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted
+        }))
+      }
+      return
+    }
+
     // Convert text fields to uppercase (except mobile numbers and numeric fields)
     const uppercaseFields = [
       'vehicleNumber',
@@ -119,113 +123,10 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
     const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
 
-    // Auto-format date field with automatic dash insertion
-    if (name === 'transferDate') {
-      // Remove all non-digit characters
-      let digitsOnly = finalValue.replace(/[^\d]/g, '')
-
-      // Limit to 8 digits (DDMMYYYY)
-      digitsOnly = digitsOnly.slice(0, 8)
-
-      // Validate day (first 2 digits) - max 31
-      if (digitsOnly.length >= 1) {
-        const firstDigit = parseInt(digitsOnly[0], 10)
-        // If first digit is 4-9, auto-pad to 04-09
-        if (firstDigit >= 4 && digitsOnly.length === 1) {
-          digitsOnly = '0' + digitsOnly[0] + digitsOnly.slice(1)
-        }
-        // If first digit is 0 and alone, keep it (waiting for second digit)
-        // If first digit is 1-3, keep it (could be 10-31)
-      }
-      if (digitsOnly.length >= 2) {
-        const day = parseInt(digitsOnly.slice(0, 2), 10)
-        // Day must be 01-31, if more than 31, cap at 31
-        if (day > 31) {
-          digitsOnly = '31' + digitsOnly.slice(2)
-        } else if (day === 0 || day === '00') {
-          digitsOnly = '01' + digitsOnly.slice(2) // Convert 00 to 01
-        }
-      }
-
-      // Validate month (digits 3-4) - max 12
-      if (digitsOnly.length >= 3) {
-        const monthFirstDigit = parseInt(digitsOnly[2], 10)
-        // If first digit of month is 2-9, auto-pad to 02-09
-        if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
-          digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
-        }
-        // If first digit is 0 or 1, wait for second digit (could be 01-12)
-      }
-      if (digitsOnly.length >= 4) {
-        const month = parseInt(digitsOnly.slice(2, 4), 10)
-        // Month must be 01-12, if more than 12, cap at 12
-        if (month > 12) {
-          digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
-        } else if (month === 0 || month === '00') {
-          digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4) // Convert 00 to 01
-        }
-      }
-
-      // Check if user was deleting
-      const isDeleting = lastAction[name] === 'delete'
-
-      // Format based on length
-      let formatted = digitsOnly
-
-      if (digitsOnly.length === 0) {
-        formatted = ''
-      } else if (digitsOnly.length <= 2) {
-        formatted = digitsOnly
-        // Only add trailing dash if user just typed the 2nd digit (not deleting)
-        if (digitsOnly.length === 2 && !isDeleting) {
-          formatted = digitsOnly + '-'
-        }
-      } else if (digitsOnly.length <= 4) {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
-        // Only add trailing dash if user just typed the 4th digit (not deleting)
-        if (digitsOnly.length === 4 && !isDeleting) {
-          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
-        }
-      } else {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
-      }
-
-      // Auto-expand 2-digit year (only when typing, not deleting)
-      if (digitsOnly.length === 6 && !isDeleting) {
-        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
-        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        [name]: formatted
-      }))
-      return
-    }
-
     setFormData(prev => ({
       ...prev,
       [name]: finalValue
     }))
-  }
-
-  const handleDateBlur = (e) => {
-    const { name, value } = e.target
-    const parts = value.split('-')
-
-    if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-      let year = parts[2]
-      if (year.length === 2 && /^\d{2}$/.test(year)) {
-        const yearNum = parseInt(year, 10)
-        year = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-      }
-
-      if (year.toString().length === 4) {
-        const formattedValue = `${parts[0]}-${parts[1]}-${year}`
-        setFormData(prev => ({ ...prev, [name]: formattedValue }))
-      }
-    }
   }
 
   const handleSubmit = async (e) => {
@@ -378,10 +279,8 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='transferDate'
                   value={formData.transferDate}
                   onChange={handleChange}
-                  onKeyDown={handleDateKeyDown}
-                  onBlur={handleDateBlur}
                   required
-                  placeholder='24-01-25 or 24/01/2025'
+                  placeholder='22-12-2023'
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
                 />
               </div>

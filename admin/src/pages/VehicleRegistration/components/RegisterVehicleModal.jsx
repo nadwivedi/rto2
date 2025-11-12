@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -32,7 +33,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [lastAction, setLastAction] = useState({})
 
   // Handle Enter key to move to next field
   const handleKeyDown = (e) => {
@@ -134,119 +134,16 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     }))
   }
 
-  const handleDateKeyDown = (e) => {
-    const { name } = e.target
-
-    // Handle Enter key navigation
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      const form = e.target.form
-      const formElements = Array.from(form.elements).filter(
-        element =>
-          (element.tagName === 'INPUT' ||
-           element.tagName === 'TEXTAREA' ||
-           element.tagName === 'SELECT') &&
-          !element.disabled &&
-          element.type !== 'submit'
-      )
-      const currentIndex = formElements.indexOf(e.target)
-      if (currentIndex > -1 && currentIndex < formElements.length - 1) {
-        formElements[currentIndex + 1].focus()
-      }
-      return
-    }
-
-    // Handle date typing tracking
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      setLastAction({ [name]: 'delete' })
-    } else {
-      setLastAction({ [name]: 'typing' })
-    }
-  }
-
   const handleDateChange = (e) => {
     const { name, value } = e.target
+    const formatted = handleSmartDateInput(value, formData[name] || '')
 
-    // Remove all non-digit characters
-    let digitsOnly = value.replace(/[^\d]/g, '')
-
-    // Limit to 8 digits (DDMMYYYY)
-    digitsOnly = digitsOnly.slice(0, 8)
-
-    // Validate day (first 2 digits) - max 31
-    if (digitsOnly.length >= 1) {
-      const firstDigit = parseInt(digitsOnly[0], 10)
-      // If first digit is 4-9, auto-pad to 04-09
-      if (firstDigit >= 4 && digitsOnly.length === 1) {
-        digitsOnly = '0' + digitsOnly[0] + digitsOnly.slice(1)
-      }
-      // If first digit is 0 and alone, keep it (waiting for second digit)
-      // If first digit is 1-3, keep it (could be 10-31)
+    if (formatted !== null) {
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
     }
-    if (digitsOnly.length >= 2) {
-      const day = parseInt(digitsOnly.slice(0, 2), 10)
-      // Day must be 01-31, if more than 31, cap at 31
-      if (day > 31) {
-        digitsOnly = '31' + digitsOnly.slice(2)
-      } else if (day === 0 || day === '00') {
-        digitsOnly = '01' + digitsOnly.slice(2) // Convert 00 to 01
-      }
-    }
-
-    // Validate month (digits 3-4) - max 12
-    if (digitsOnly.length >= 3) {
-      const monthFirstDigit = parseInt(digitsOnly[2], 10)
-      // If first digit of month is 2-9, auto-pad to 02-09
-      if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
-        digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
-      }
-      // If first digit is 0 or 1, wait for second digit (could be 01-12)
-    }
-    if (digitsOnly.length >= 4) {
-      const month = parseInt(digitsOnly.slice(2, 4), 10)
-      // Month must be 01-12, if more than 12, cap at 12
-      if (month > 12) {
-        digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
-      } else if (month === 0 || month === '00') {
-        digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4) // Convert 00 to 01
-      }
-    }
-
-    // Check if user was deleting
-    const isDeleting = lastAction[name] === 'delete'
-
-    // Format based on length
-    let formatted = digitsOnly
-
-    if (digitsOnly.length === 0) {
-      formatted = ''
-    } else if (digitsOnly.length <= 2) {
-      formatted = digitsOnly
-      // Only add trailing dash if user just typed the 2nd digit (not deleting)
-      if (digitsOnly.length === 2 && !isDeleting) {
-        formatted = digitsOnly + '-'
-      }
-    } else if (digitsOnly.length <= 4) {
-      formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
-      // Only add trailing dash if user just typed the 4th digit (not deleting)
-      if (digitsOnly.length === 4 && !isDeleting) {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
-      }
-    } else {
-      formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
-    }
-
-    // Auto-expand 2-digit year (only when typing, not deleting)
-    if (digitsOnly.length === 6 && !isDeleting) {
-      const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
-      const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-      formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: formatted
-    }))
   }
 
   const handleSubmit = async (e) => {
@@ -419,8 +316,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='dateOfRegistration'
                         value={formData.dateOfRegistration}
                         onChange={handleDateChange}
-                        onKeyDown={handleDateKeyDown}
-                        placeholder='DD-MM-YYYY'
+                        placeholder='22-12-2023'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>
@@ -749,8 +645,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='purchaseDeliveryDate'
                         value={formData.purchaseDeliveryDate}
                         onChange={handleDateChange}
-                        onKeyDown={handleDateKeyDown}
-                        placeholder='DD-MM-YYYY'
+                        placeholder='22-12-2023'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
                     </div>

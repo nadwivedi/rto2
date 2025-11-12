@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { formatDate, getOneYearFromNow, parseFormattedDate } from '../../../utils/dateHelpers'
+import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -14,172 +15,18 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Auto-format date as user types (DD-MM-YYYY)
-  const handleDateInput = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target
-    const input = e.target
-    const cursorPos = input.selectionStart
-    const prevValue = formData[name]
 
-    // Handle backspace on dash - remove the dash and the digit before it
-    if (value.length < prevValue.length) {
-      // User is deleting
-      const deletedChar = prevValue[cursorPos]
-      if (deletedChar === '-') {
-        // User backspaced a dash, so remove the digit before it too
-        const newValue = prevValue.slice(0, cursorPos - 1) + prevValue.slice(cursorPos + 1)
-
-        // Update state with the modified value
-        if (name === 'validFrom') {
-          const parsedDate = parseFormattedDate(newValue)
-          if (parsedDate && !isNaN(parsedDate.getTime())) {
-            const validToDate = getOneYearFromNow(parsedDate)
-            setFormData(prev => ({
-              ...prev,
-              [name]: newValue,
-              validTo: formatDate(validToDate)
-            }))
-          } else {
-            setFormData(prev => ({
-              ...prev,
-              [name]: newValue
-            }))
-          }
-        } else {
-          setFormData(prev => ({
-            ...prev,
-            [name]: newValue
-          }))
-        }
-        setError('')
-        return
-      }
-    }
-
-    // Remove all non-numeric characters except dashes
-    let cleaned = value.replace(/[^\d-]/g, '')
-
-    // Remove any dashes to rebuild the format
-    let numbers = cleaned.replace(/-/g, '')
-
-    // Limit to 8 digits (DDMMYYYY)
-    numbers = numbers.slice(0, 8)
-
-    // Format as DD-MM-YYYY with dash after 2 and 4 digits
-    let formatted = ''
-    if (numbers.length > 0) {
-      formatted = numbers.slice(0, 2) // DD
-
-      // Add dash after day if we have 2+ digits
-      if (numbers.length >= 2) {
-        formatted += '-'
-      }
-
-      if (numbers.length >= 3) {
-        formatted += numbers.slice(2, 4) // MM
-      }
-
-      // Add dash after month if we have 4+ digits
-      if (numbers.length >= 4) {
-        formatted += '-'
-      }
-
-      if (numbers.length >= 5) {
-        formatted += numbers.slice(4, 8) // YYYY
-      }
-    }
-
-    // If Valid From changes, automatically calculate Valid To
-    if (name === 'validFrom') {
-      const parsedDate = parseFormattedDate(formatted)
-      if (parsedDate && !isNaN(parsedDate.getTime())) {
-        const validToDate = getOneYearFromNow(parsedDate)
-        setFormData(prev => ({
-          ...prev,
-          [name]: formatted,
-          validTo: formatDate(validToDate)
-        }))
-      } else {
+    // Auto-format date fields with smart date input
+    if (name === 'validFrom' || name === 'validTo') {
+      const formatted = handleSmartDateInput(value, formData[name] || '')
+      if (formatted !== null) {
         setFormData(prev => ({
           ...prev,
           [name]: formatted
         }))
       }
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: formatted
-      }))
-    }
-
-    setError('')
-  }
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-
-    // Auto-format date fields with validation
-    if (name === 'validFrom' || name === 'validTo') {
-      let digitsOnly = value.replace(/[^\d]/g, '')
-      digitsOnly = digitsOnly.slice(0, 8)
-
-      // Validate day (first 2 digits) - max 31
-      if (digitsOnly.length >= 1) {
-        const firstDigit = parseInt(digitsOnly[0], 10)
-        if (firstDigit >= 4 && digitsOnly.length === 1) {
-          digitsOnly = '0' + digitsOnly[0] + digitsOnly.slice(1)
-        }
-      }
-      if (digitsOnly.length >= 2) {
-        const day = parseInt(digitsOnly.slice(0, 2), 10)
-        if (day > 31) {
-          digitsOnly = '31' + digitsOnly.slice(2)
-        } else if (day === 0 || day === '00') {
-          digitsOnly = '01' + digitsOnly.slice(2)
-        }
-      }
-
-      // Validate month (digits 3-4) - max 12
-      if (digitsOnly.length >= 3) {
-        const monthFirstDigit = parseInt(digitsOnly[2], 10)
-        if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
-          digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
-        }
-      }
-      if (digitsOnly.length >= 4) {
-        const month = parseInt(digitsOnly.slice(2, 4), 10)
-        if (month > 12) {
-          digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
-        } else if (month === 0 || month === '00') {
-          digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4)
-        }
-      }
-
-      // Format with dashes
-      let formatted = digitsOnly
-      if (digitsOnly.length === 0) {
-        formatted = ''
-      } else if (digitsOnly.length <= 2) {
-        formatted = digitsOnly
-        if (digitsOnly.length === 2) formatted = digitsOnly + '-'
-      } else if (digitsOnly.length <= 4) {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
-        if (digitsOnly.length === 4) formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
-      } else {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
-      }
-
-      // Auto-expand 2-digit year
-      if (digitsOnly.length === 6) {
-        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
-        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        [name]: formatted
-      }))
       setError('')
       return
     }
@@ -330,13 +177,12 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
                 type='text'
                 name='validFrom'
                 value={formData.validFrom}
-                onChange={handleDateInput}
-                placeholder='27-10-2025'
-                maxLength='10'
+                onChange={handleChange}
+                placeholder='Type: 271025 or 27102025'
                 className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'
                 required
               />
-              <p className='text-xs text-gray-500 mt-1'>Format: DD-MM-YYYY (4-digit year)</p>
+              <p className='text-xs text-gray-500 mt-1'>Smart input: auto-formats as you type</p>
             </div>
 
             {/* Valid To */}
@@ -348,9 +194,8 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
                 type='text'
                 name='validTo'
                 value={formData.validTo}
-                onChange={handleDateInput}
-                placeholder='26-10-2026'
-                maxLength='10'
+                onChange={handleChange}
+                placeholder='Auto-calculated'
                 className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent bg-gray-50'
                 required
               />

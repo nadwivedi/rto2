@@ -3,6 +3,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
+import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -22,7 +23,6 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
     balance: '',
     notes: ''
   })
-  const [lastAction, setLastAction] = useState({})
 
   useEffect(() => {
     if (permit) {
@@ -95,15 +95,6 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
     }
   }, [formData.validFrom])
 
-  const handleDateKeyDown = (e) => {
-    const { name } = e.target
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      setLastAction({ [name]: 'delete' })
-    } else {
-      setLastAction({ [name]: 'typing' })
-    }
-  }
-
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -148,77 +139,13 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
     }
 
     if (name === 'validFrom' || name === 'validTo') {
-      let digitsOnly = value.replace(/[^\d]/g, '')
-      digitsOnly = digitsOnly.slice(0, 8)
-
-      // Validate day (first 2 digits) - max 31
-      if (digitsOnly.length >= 1) {
-        const firstDigit = parseInt(digitsOnly[0], 10)
-        // If first digit is 4-9, auto-pad to 04-09
-        if (firstDigit >= 4 && digitsOnly.length === 1) {
-          digitsOnly = '0' + digitsOnly[0] + digitsOnly.slice(1)
-        }
-        // If first digit is 0 and alone, keep it (waiting for second digit)
-        // If first digit is 1-3, keep it (could be 10-31)
+      const formatted = handleSmartDateInput(value, formData[name] || '')
+      if (formatted !== null) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted
+        }))
       }
-      if (digitsOnly.length >= 2) {
-        const day = parseInt(digitsOnly.slice(0, 2), 10)
-        // Day must be 01-31, if more than 31, cap at 31
-        if (day > 31) {
-          digitsOnly = '31' + digitsOnly.slice(2)
-        } else if (day === 0 || day === '00') {
-          digitsOnly = '01' + digitsOnly.slice(2) // Convert 00 to 01
-        }
-      }
-
-      // Validate month (digits 3-4) - max 12
-      if (digitsOnly.length >= 3) {
-        const monthFirstDigit = parseInt(digitsOnly[2], 10)
-        // If first digit of month is 2-9, auto-pad to 02-09
-        if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
-          digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
-        }
-        // If first digit is 0 or 1, wait for second digit (could be 01-12)
-      }
-      if (digitsOnly.length >= 4) {
-        const month = parseInt(digitsOnly.slice(2, 4), 10)
-        // Month must be 01-12, if more than 12, cap at 12
-        if (month > 12) {
-          digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
-        } else if (month === 0 || month === '00') {
-          digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4) // Convert 00 to 01
-        }
-      }
-
-      const isDeleting = lastAction[name] === 'delete'
-      let formatted = digitsOnly
-
-      if (digitsOnly.length === 0) {
-        formatted = ''
-      } else if (digitsOnly.length <= 2) {
-        formatted = digitsOnly
-        if (digitsOnly.length === 2 && !isDeleting) {
-          formatted = digitsOnly + '-'
-        }
-      } else if (digitsOnly.length <= 4) {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
-        if (digitsOnly.length === 4 && !isDeleting) {
-          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
-        }
-      } else {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
-      }
-
-      if (digitsOnly.length === 6 && !isDeleting) {
-        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
-        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        [name]: formatted
-      }))
       return
     }
 
@@ -421,12 +348,11 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
-                    onKeyDown={handleDateKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                    placeholder='DD-MM-YYYY (e.g., 01-01-2024)'
+                    placeholder='DD-MM-YYYY'
                     required
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Type 2-digit year (24) to auto-expand to 2024</p>
+                  <p className='text-xs text-gray-500 mt-1'>Smart input: type 5 → 05-, auto-expands years</p>
                 </div>
 
                 {/* Valid To */}
@@ -439,12 +365,11 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
-                    onKeyDown={handleDateKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                    placeholder='DD-MM-YYYY (e.g., 31-12-2024)'
+                    placeholder='Auto-calculated (28 days)'
                     required
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Enter permit expiry date</p>
+                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated: 28 days from Valid From date</p>
                 </div>
               </div>
             </div>

@@ -6,6 +6,115 @@
  */
 
 /**
+ * Smart date input handler with real-time validation, auto-padding, and auto-dash insertion
+ *
+ * Features:
+ * - Auto-pads single digits: 5 → 05 (for day/month when they can't exceed 3x or 1x)
+ * - Prevents invalid input: day max 31, month max 12
+ * - Auto-dash insertion: 22 → 22-, 2212 → 22-12-
+ * - Auto-year expansion: 221223 → 22-12-2023 (except for "20")
+ * - Allows natural editing and deletion
+ *
+ * @param {string} value - The new input value
+ * @param {string} oldValue - The previous input value (for detecting deletion)
+ * @returns {string|null} - Formatted date string, or null if input should be rejected
+ *
+ * @example
+ * // In your handleChange function:
+ * const handleChange = (e) => {
+ *   const { name, value } = e.target
+ *   if (name === 'validFrom' || name === 'validTo') {
+ *     const formatted = handleSmartDateInput(value, formData[name])
+ *     if (formatted !== null) {
+ *       setFormData(prev => ({ ...prev, [name]: formatted }))
+ *     }
+ *     return
+ *   }
+ * }
+ */
+export const handleSmartDateInput = (value, oldValue = '') => {
+  // If user is deleting (new value is shorter), just clean and allow it
+  if (value.length < oldValue.length) {
+    return value.replace(/[^\d-]/g, '').slice(0, 10)
+  }
+
+  // Remove non-digits for validation
+  let digitsOnly = value.replace(/[^\d]/g, '')
+
+  // Validate and cap day (first 2 digits)
+  if (digitsOnly.length >= 1) {
+    const firstDigit = parseInt(digitsOnly[0], 10)
+    // If first digit is 4-9, auto-pad with 0 (e.g., 5 → 05, 6 → 06)
+    // because day can't be 40+, 50+, etc.
+    if (firstDigit >= 4 && digitsOnly.length === 1) {
+      digitsOnly = '0' + digitsOnly
+    }
+    // If first digit > 3, don't allow it (day can't start with 4-9 unless auto-padded)
+    else if (firstDigit > 3) {
+      return null // Reject input
+    }
+  }
+
+  if (digitsOnly.length >= 2) {
+    const day = parseInt(digitsOnly.slice(0, 2), 10)
+    // If day > 31 or 00, don't allow the second digit
+    if (day > 31 || day === 0) {
+      return null // Reject input
+    }
+  }
+
+  // Validate and cap month (digits 3-4)
+  if (digitsOnly.length >= 3) {
+    const monthFirstDigit = parseInt(digitsOnly[2], 10)
+    // If first digit of month is 2-9, auto-pad with 0 (e.g., 5 → 05)
+    // because month can't be 20+, 30+, etc.
+    if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
+      digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
+    }
+    // If first digit of month > 1, don't allow it (month can only start with 0 or 1)
+    else if (monthFirstDigit > 1) {
+      return null // Reject input
+    }
+  }
+
+  if (digitsOnly.length >= 4) {
+    const month = parseInt(digitsOnly.slice(2, 4), 10)
+    // If month > 12 or 00, don't allow the second digit
+    if (month > 12 || month === 0) {
+      return null // Reject input
+    }
+  }
+
+  // Limit to 8 digits total
+  digitsOnly = digitsOnly.slice(0, 8)
+
+  // Auto-expand 2-digit year to 4-digit (e.g., 23 → 2023, 24 → 2024)
+  // Only expand when we have exactly 6 digits (DDMMYY)
+  // Don't expand if year is "20" - let user continue typing manually (2002, 2012, etc.)
+  if (digitsOnly.length === 6) {
+    const yearPart = digitsOnly.slice(4, 6)
+    if (yearPart !== '20') {
+      const yearNum = parseInt(yearPart, 10)
+      // Expand 2-digit year: 00-50 → 2000-2050, 51-99 → 1951-1999
+      const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+      digitsOnly = digitsOnly.slice(0, 4) + String(fullYear)
+    }
+  }
+
+  // Format with auto-dash insertion (add dash after 2nd and 4th digit)
+  let formatted = ''
+  for (let i = 0; i < digitsOnly.length; i++) {
+    formatted += digitsOnly[i]
+    // Add dash after 2nd digit (day) and after 4th digit (month)
+    if (i === 1 || i === 3) {
+      formatted += '-'
+    }
+  }
+
+  return formatted
+}
+
+/**
  * Formats a date string with automatic dash insertion
  *
  * @param {string} value - The input value from the date field

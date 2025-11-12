@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
+import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const [showOptionalFields, setShowOptionalFields] = useState(true) // Show optional fields by default in edit mode
@@ -215,68 +216,15 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       return
     }
 
-    // Auto-format date fields with validation
+    // Auto-format date fields with smart date input
     if (name === 'validFrom' || name === 'validTo' || name === 'typeBValidFrom' || name === 'typeBValidTo') {
-      let digitsOnly = value.replace(/[^\d]/g, '')
-      digitsOnly = digitsOnly.slice(0, 8)
-
-      // Validate day (first 2 digits) - max 31
-      if (digitsOnly.length >= 1) {
-        const firstDigit = parseInt(digitsOnly[0], 10)
-        if (firstDigit >= 4 && digitsOnly.length === 1) {
-          digitsOnly = '0' + digitsOnly[0] + digitsOnly.slice(1)
-        }
+      const formatted = handleSmartDateInput(value, formData[name] || '')
+      if (formatted !== null) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted
+        }))
       }
-      if (digitsOnly.length >= 2) {
-        const day = parseInt(digitsOnly.slice(0, 2), 10)
-        if (day > 31) {
-          digitsOnly = '31' + digitsOnly.slice(2)
-        } else if (day === 0 || day === '00') {
-          digitsOnly = '01' + digitsOnly.slice(2)
-        }
-      }
-
-      // Validate month (digits 3-4) - max 12
-      if (digitsOnly.length >= 3) {
-        const monthFirstDigit = parseInt(digitsOnly[2], 10)
-        if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
-          digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
-        }
-      }
-      if (digitsOnly.length >= 4) {
-        const month = parseInt(digitsOnly.slice(2, 4), 10)
-        if (month > 12) {
-          digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
-        } else if (month === 0 || month === '00') {
-          digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4)
-        }
-      }
-
-      // Format with dashes
-      let formatted = digitsOnly
-      if (digitsOnly.length === 0) {
-        formatted = ''
-      } else if (digitsOnly.length <= 2) {
-        formatted = digitsOnly
-        if (digitsOnly.length === 2) formatted = digitsOnly + '-'
-      } else if (digitsOnly.length <= 4) {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
-        if (digitsOnly.length === 4) formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
-      } else {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
-      }
-
-      // Auto-expand 2-digit year
-      if (digitsOnly.length === 6) {
-        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
-        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        [name]: formatted
-      }))
       return
     }
 
@@ -285,39 +233,6 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       ...prev,
       [name]: value
     }))
-  }
-
-  // Handle date formatting when user leaves the field (onBlur)
-  const handleDateBlur = (e) => {
-    const { name, value } = e.target
-
-    // Only format date fields
-    if (name === 'validFrom' || name === 'validTo' || name === 'typeBValidFrom' || name === 'typeBValidTo') {
-      const parts = value.split(/[/-]/)
-
-      // Only format if we have a complete date with 3 parts
-      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-        const day = parts[0]
-        const month = parts[1]
-        let year = parts[2]
-
-        // Auto-expand 2-digit year to 4-digit (only when exactly 2 digits)
-        if (year.length === 2 && /^\d{2}$/.test(year)) {
-          const yearNum = parseInt(year, 10)
-          // Convert 2-digit year to 4-digit (00-50 → 2000-2050, 51-99 → 1951-1999)
-          year = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        }
-
-        // Normalize to DD-MM-YYYY format (if year is 4 digits or was expanded)
-        if (year.toString().length === 4) {
-          const formattedValue = `${day}-${month}-${year}`
-          setFormData(prev => ({
-            ...prev,
-            [name]: formattedValue
-          }))
-        }
-      }
-    }
   }
 
   const handleFileChange = (e, type) => {
@@ -503,8 +418,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
-                    onBlur={handleDateBlur}
-                    placeholder='24-01-25 or 24/01/2025'
+                    placeholder='Type: 240125 or 24012025'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
@@ -520,7 +434,6 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
-                    onBlur={handleDateBlur}
                     placeholder='Will be calculated automatically'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50'
                     required
@@ -561,8 +474,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='typeBValidFrom'
                     value={formData.typeBValidFrom}
                     onChange={handleChange}
-                    onBlur={handleDateBlur}
-                    placeholder='24-01-25 or 24/01/2025'
+                    placeholder='Type: 240125 or 24012025'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                     required
                   />
@@ -578,7 +490,6 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     name='typeBValidTo'
                     value={formData.typeBValidTo}
                     onChange={handleChange}
-                    onBlur={handleDateBlur}
                     placeholder='Will be calculated automatically'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50'
                     required

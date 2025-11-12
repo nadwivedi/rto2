@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
+import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
   // Get current date in DD-MM-YYYY format
@@ -87,7 +88,6 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
   })
 
   const [showAllFields, setShowAllFields] = useState(false)
-  const [lastAction, setLastAction] = useState({})
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
   // Date of Birth state
@@ -246,15 +246,6 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
     }
   }, [dobMonth, dobYear])
 
-  const handleDateKeyDown = (e) => {
-    const { name } = e.target
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      setLastAction({ [name]: 'delete' })
-    } else {
-      setLastAction({ [name]: 'typing' })
-    }
-  }
-
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -284,86 +275,13 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
 
     // Apply date formatting for license date fields
     if (name === 'licenseIssueDate' || name === 'licenseExpiryDate' || name === 'learningLicenseIssueDate' || name === 'learningLicenseExpiryDate' || name === 'drivingLicenseIssueDate' || name === 'drivingLicenseExpiryDate') {
-      // Remove all non-digit characters
-      let digitsOnly = value.replace(/[^\d]/g, '')
-
-      // Limit to 8 digits (DDMMYYYY)
-      digitsOnly = digitsOnly.slice(0, 8)
-
-      // Validate day (first 2 digits) - max 31
-      if (digitsOnly.length >= 1) {
-        const firstDigit = parseInt(digitsOnly[0], 10)
-        // If first digit is 4-9, auto-pad to 04-09
-        if (firstDigit >= 4 && digitsOnly.length === 1) {
-          digitsOnly = '0' + digitsOnly[0] + digitsOnly.slice(1)
-        }
-        // If first digit is 0 and alone, keep it (waiting for second digit)
-        // If first digit is 1-3, keep it (could be 10-31)
+      const formatted = handleSmartDateInput(value, formData[name] || '')
+      if (formatted !== null) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: formatted
+        }))
       }
-      if (digitsOnly.length >= 2) {
-        const day = parseInt(digitsOnly.slice(0, 2), 10)
-        // Day must be 01-31, if more than 31, cap at 31
-        if (day > 31) {
-          digitsOnly = '31' + digitsOnly.slice(2)
-        } else if (day === 0 || day === '00') {
-          digitsOnly = '01' + digitsOnly.slice(2) // Convert 00 to 01
-        }
-      }
-
-      // Validate month (digits 3-4) - max 12
-      if (digitsOnly.length >= 3) {
-        const monthFirstDigit = parseInt(digitsOnly[2], 10)
-        // If first digit of month is 2-9, auto-pad to 02-09
-        if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
-          digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
-        }
-        // If first digit is 0 or 1, wait for second digit (could be 01-12)
-      }
-      if (digitsOnly.length >= 4) {
-        const month = parseInt(digitsOnly.slice(2, 4), 10)
-        // Month must be 01-12, if more than 12, cap at 12
-        if (month > 12) {
-          digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
-        } else if (month === 0 || month === '00') {
-          digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4) // Convert 00 to 01
-        }
-      }
-
-      // Check if user was deleting
-      const isDeleting = lastAction[name] === 'delete'
-
-      // Format based on length
-      let formatted = digitsOnly
-
-      if (digitsOnly.length === 0) {
-        formatted = ''
-      } else if (digitsOnly.length <= 2) {
-        formatted = digitsOnly
-        // Only add trailing dash if user just typed the 2nd digit (not deleting)
-        if (digitsOnly.length === 2 && !isDeleting) {
-          formatted = digitsOnly + '-'
-        }
-      } else if (digitsOnly.length <= 4) {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
-        // Only add trailing dash if user just typed the 4th digit (not deleting)
-        if (digitsOnly.length === 4 && !isDeleting) {
-          formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
-        }
-      } else {
-        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
-      }
-
-      // Auto-expand 2-digit year (only when typing, not deleting)
-      if (digitsOnly.length === 6 && !isDeleting) {
-        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
-        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
-        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
-      }
-
-      setFormData(prev => ({
-        ...prev,
-        [name]: formatted
-      }))
     } else {
       // Convert to uppercase for text fields (name, father's name, mother's name, address, city, state, license numbers)
       const uppercaseFields = ['name', 'fatherName', 'motherName', 'address', 'city', 'state', 'licenseNumber', 'learningLicenseNumber', 'drivingLicenseNumber']
@@ -666,8 +584,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                             name='learningLicenseIssueDate'
                             value={formData.learningLicenseIssueDate}
                             onChange={handleChange}
-                            onKeyDown={handleDateKeyDown}
-                            placeholder='DD-MM-YYYY'
+                            placeholder='Type: 07112025'
                             className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-green-600 font-semibold'
                           />
                         </div>
@@ -681,8 +598,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                             name='learningLicenseExpiryDate'
                             value={formData.learningLicenseExpiryDate}
                             onChange={handleChange}
-                            onKeyDown={handleDateKeyDown}
-                            placeholder='DD-MM-YYYY'
+                            placeholder='Type: 07112025'
                             className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-red-600 font-semibold'
                           />
                         </div>
@@ -726,8 +642,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                           name='licenseIssueDate'
                           value={formData.licenseIssueDate}
                           onChange={handleChange}
-                          onKeyDown={handleDateKeyDown}
-                          placeholder='DD-MM-YYYY'
+                          placeholder='Type: 07112025'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-green-600 font-semibold'
                         />
                       </div>
@@ -741,8 +656,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                           name='licenseExpiryDate'
                           value={formData.licenseExpiryDate}
                           onChange={handleChange}
-                          onKeyDown={handleDateKeyDown}
-                          placeholder='DD-MM-YYYY'
+                          placeholder='Type: 07112025'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-red-600 font-semibold'
                         />
                       </div>
