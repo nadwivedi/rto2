@@ -178,6 +178,73 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    // Auto-format date fields with validation
+    if (name === 'validFrom' || name === 'validTo' || name === 'typeBValidFrom' || name === 'typeBValidTo') {
+      let digitsOnly = value.replace(/[^\d]/g, '')
+      digitsOnly = digitsOnly.slice(0, 8)
+
+      // Validate day (first 2 digits) - max 31
+      if (digitsOnly.length >= 1) {
+        const firstDigit = parseInt(digitsOnly[0], 10)
+        if (firstDigit >= 4 && digitsOnly.length === 1) {
+          digitsOnly = '0' + digitsOnly[0] + digitsOnly.slice(1)
+        }
+      }
+      if (digitsOnly.length >= 2) {
+        const day = parseInt(digitsOnly.slice(0, 2), 10)
+        if (day > 31) {
+          digitsOnly = '31' + digitsOnly.slice(2)
+        } else if (day === 0 || day === '00') {
+          digitsOnly = '01' + digitsOnly.slice(2)
+        }
+      }
+
+      // Validate month (digits 3-4) - max 12
+      if (digitsOnly.length >= 3) {
+        const monthFirstDigit = parseInt(digitsOnly[2], 10)
+        if (monthFirstDigit >= 2 && digitsOnly.length === 3) {
+          digitsOnly = digitsOnly.slice(0, 2) + '0' + digitsOnly[2] + digitsOnly.slice(3)
+        }
+      }
+      if (digitsOnly.length >= 4) {
+        const month = parseInt(digitsOnly.slice(2, 4), 10)
+        if (month > 12) {
+          digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
+        } else if (month === 0 || month === '00') {
+          digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4)
+        }
+      }
+
+      // Format with dashes
+      let formatted = digitsOnly
+      if (digitsOnly.length === 0) {
+        formatted = ''
+      } else if (digitsOnly.length <= 2) {
+        formatted = digitsOnly
+        if (digitsOnly.length === 2) formatted = digitsOnly + '-'
+      } else if (digitsOnly.length <= 4) {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2)
+        if (digitsOnly.length === 4) formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2) + '-'
+      } else {
+        formatted = digitsOnly.slice(0, 2) + '-' + digitsOnly.slice(2, 4) + '-' + digitsOnly.slice(4)
+      }
+
+      // Auto-expand 2-digit year
+      if (digitsOnly.length === 6) {
+        const yearNum = parseInt(digitsOnly.slice(4, 6), 10)
+        const fullYear = yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum
+        formatted = `${digitsOnly.slice(0, 2)}-${digitsOnly.slice(2, 4)}-${fullYear}`
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+      setError('')
+      return
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
