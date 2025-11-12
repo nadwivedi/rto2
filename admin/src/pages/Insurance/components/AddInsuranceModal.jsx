@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getTodayDate as utilGetTodayDate } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -24,6 +25,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   const [vehicleError, setVehicleError] = useState('')
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [lastAction, setLastAction] = useState({})
+  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
   // Pre-fill form when initialData is provided (for edit/renewal) or reset on open
   useEffect(() => {
@@ -197,14 +199,17 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
       setFormData(prev => {
-        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
-        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
-        const balance = totalFee - paid
+        const paymentResult = handlePaymentCalculation(name, value, prev)
+
+        // Reset validation flag since paid is now capped
+        setPaidExceedsTotal(paymentResult.paidExceedsTotal)
 
         return {
           ...prev,
-          [name]: value,
-          balance: balance.toString()
+          [name]: name === 'paid' ? paymentResult.paid : value,
+          totalFee: name === 'totalFee' ? value : prev.totalFee,
+          paid: name === 'paid' ? paymentResult.paid : prev.paid,
+          balance: paymentResult.balance
         }
       })
       return
@@ -280,6 +285,12 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       return
     }
 
+    // Validate paid amount doesn't exceed total fee
+    if (paidExceedsTotal) {
+      alert('Paid amount cannot be more than the total fee!')
+      return
+    }
+
     if (onSubmit) {
       // Add issueDate to the form data before submitting (issueDate = validFrom)
       const submitData = {
@@ -300,6 +311,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       balance: ''
     })
     setVehicleValidation({ isValid: false, message: '' })
+    setPaidExceedsTotal(false)
     onClose()
   }
 
@@ -499,9 +511,18 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     value={formData.paid}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
+                      paidExceedsTotal
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {paidExceedsTotal && (
+                    <p className='text-xs mt-1 text-red-600 font-semibold'>
+                      Paid amount cannot exceed total fee!
+                    </p>
+                  )}
                 </div>
 
                 {/* Balance (Auto-calculated) */}

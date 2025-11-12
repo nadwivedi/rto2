@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { handleDateBlur as utilHandleDateBlur } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   })
   const [lastAction, setLastAction] = useState({})
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
+  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
   // Pre-fill form when initialData is provided (for renewal)
   useEffect(() => {
@@ -31,6 +33,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         paid: '',
         balance: ''
       })
+      setPaidExceedsTotal(false)
     }
   }, [initialData, isOpen])
 
@@ -121,14 +124,17 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
       setFormData(prev => {
-        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
-        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
-        const balance = totalFee - paid
+        const paymentResult = handlePaymentCalculation(name, value, prev)
+
+        // Reset validation flag since paid is now capped
+        setPaidExceedsTotal(paymentResult.paidExceedsTotal)
 
         return {
           ...prev,
-          [name]: value,
-          balance: balance.toString()
+          [name]: name === 'paid' ? paymentResult.paid : value,
+          totalFee: name === 'totalFee' ? value : prev.totalFee,
+          paid: name === 'paid' ? paymentResult.paid : prev.paid,
+          balance: paymentResult.balance
         }
       })
       return
@@ -199,6 +205,12 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       return
     }
 
+    // Validate paid amount doesn't exceed total fee
+    if (paidExceedsTotal) {
+      alert('Paid amount cannot be more than the total fee!')
+      return
+    }
+
     if (onSubmit) {
       onSubmit(formData)
     }
@@ -212,6 +224,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       balance: ''
     })
     setVehicleValidation({ isValid: false, message: '' })
+    setPaidExceedsTotal(false)
     onClose()
   }
 
@@ -380,9 +393,18 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     value={formData.paid}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
+                      paidExceedsTotal
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-purple-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {paidExceedsTotal && (
+                    <p className='text-xs mt-1 text-red-600 font-semibold'>
+                      Paid amount cannot exceed total fee!
+                    </p>
+                  )}
                 </div>
 
                 {/* Balance (Auto-calculated) */}

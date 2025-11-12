@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { handleDateBlur as utilHandleDateBlur } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -10,6 +11,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [dateError, setDateError] = useState({ taxFrom: '', taxTo: '' })
   const [lastAction, setLastAction] = useState({})
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
+  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
   const [formData, setFormData] = useState({
     receiptNo: '',
@@ -156,13 +158,25 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   // Auto-calculate balance when total amount or paid amount changes
   useEffect(() => {
     const total = parseFloat(formData.totalAmount) || 0
-    const paid = parseFloat(formData.paidAmount) || 0
-    const calculatedBalance = total - paid
+    let paid = parseFloat(formData.paidAmount) || 0
 
-    setFormData(prev => ({
-      ...prev,
-      balance: calculatedBalance.toString()
-    }))
+    // Cap paid amount at total if it exceeds
+    if (paid > total && total > 0) {
+      paid = total
+      setPaidExceedsTotal(false)
+      setFormData(prev => ({
+        ...prev,
+        paidAmount: paid.toString(),
+        balance: '0'
+      }))
+    } else {
+      const calculatedBalance = total - paid
+      setPaidExceedsTotal(false)
+      setFormData(prev => ({
+        ...prev,
+        balance: calculatedBalance.toString()
+      }))
+    }
   }, [formData.totalAmount, formData.paidAmount])
 
   // Keyboard shortcuts
@@ -347,6 +361,12 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       return
     }
 
+    // Validate paid amount doesn't exceed total fee
+    if (paidExceedsTotal) {
+      alert('Paid amount cannot be more than the total fee!')
+      return
+    }
+
     if (onSubmit) {
       onSubmit(formData)
     }
@@ -366,6 +386,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     setVehicleError('')
     setFetchingVehicle(false)
     setVehicleValidation({ isValid: false, message: '' })
+    setPaidExceedsTotal(false)
     onClose()
   }
 
@@ -539,9 +560,18 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                     value={formData.paidAmount}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
+                      paidExceedsTotal
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {paidExceedsTotal && (
+                    <p className='text-xs mt-1 text-red-600 font-semibold'>
+                      Paid amount cannot exceed total fee!
+                    </p>
+                  )}
                 </div>
 
                 {/* Balance (Auto-calculated) */}

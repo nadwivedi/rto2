@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const [showOptionalFields, setShowOptionalFields] = useState(true) // Show optional fields by default in edit mode
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
+  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
   const [formData, setFormData] = useState({
     // Required fields
@@ -140,14 +142,17 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
       setFormData(prev => {
-        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
-        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
-        const balance = totalFee - paid
+        const paymentResult = handlePaymentCalculation(name, value, prev)
+
+        // Reset validation flag since paid is now capped
+        setPaidExceedsTotal(paymentResult.paidExceedsTotal)
 
         return {
           ...prev,
-          [name]: value,
-          balance: balance.toString()
+          [name]: name === 'paid' ? paymentResult.paid : value,
+          totalFee: name === 'totalFee' ? value : prev.totalFee,
+          paid: name === 'paid' ? paymentResult.paid : prev.paid,
+          balance: paymentResult.balance
         }
       })
       return
@@ -258,6 +263,12 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     // Validate vehicle number before submitting
     if (!vehicleValidation.isValid && formData.vehicleNumber) {
       alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
+    // Validate paid amount doesn't exceed total fee
+    if (paidExceedsTotal) {
+      alert('Paid amount cannot be more than the total fee!')
       return
     }
 
@@ -457,9 +468,18 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.paid}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
+                      paidExceedsTotal
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-green-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {paidExceedsTotal && (
+                    <p className='text-xs mt-1 text-red-600 font-semibold'>
+                      Paid amount cannot exceed total fee!
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>

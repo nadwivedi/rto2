@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { handleDateBlur as utilHandleDateBlur } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -10,6 +11,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
   const [dateError, setDateError] = useState({ taxFrom: '', taxTo: '' })
   const [lastAction, setLastAction] = useState({})
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
+  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
   const [formData, setFormData] = useState({
     receiptNo: '',
@@ -99,13 +101,25 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
   // Auto-calculate balance when total amount or paid amount changes
   useEffect(() => {
     const total = parseFloat(formData.totalAmount) || 0
-    const paid = parseFloat(formData.paidAmount) || 0
-    const calculatedBalance = total - paid
+    let paid = parseFloat(formData.paidAmount) || 0
 
-    setFormData(prev => ({
-      ...prev,
-      balance: calculatedBalance.toString()
-    }))
+    // Cap paid amount at total if it exceeds
+    if (paid > total && total > 0) {
+      paid = total
+      setPaidExceedsTotal(false)
+      setFormData(prev => ({
+        ...prev,
+        paidAmount: paid.toString(),
+        balance: '0'
+      }))
+    } else {
+      const calculatedBalance = total - paid
+      setPaidExceedsTotal(false)
+      setFormData(prev => ({
+        ...prev,
+        balance: calculatedBalance.toString()
+      }))
+    }
   }, [formData.totalAmount, formData.paidAmount])
 
   // Calculate tax to date (3 months from tax from)
@@ -268,6 +282,12 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
     // Validate vehicle number before submitting
     if (!vehicleValidation.isValid && formData.vehicleNumber) {
       alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
+    // Validate paid amount doesn't exceed total fee
+    if (paidExceedsTotal) {
+      alert('Paid amount cannot be more than the total fee!')
       return
     }
 
@@ -437,9 +457,18 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                     value={formData.paidAmount}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
+                      paidExceedsTotal
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent'
+                    }`}
                     required
                   />
+                  {paidExceedsTotal && (
+                    <p className='text-xs mt-1 text-red-600 font-semibold'>
+                      Paid amount cannot exceed total fee!
+                    </p>
+                  )}
                 </div>
 
                 {/* Balance (Auto-calculated) */}

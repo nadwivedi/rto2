@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }) => {
   const [loading, setLoading] = useState(false)
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
+  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
   const [formData, setFormData] = useState({
     permitNumber: '',
     permitHolder: '',
@@ -53,6 +55,9 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
         balance: permit.balance?.toString() || '',
         notes: permit.notes || ''
       })
+
+      // Reset validation states
+      setPaidExceedsTotal(false)
 
       // Validate the existing vehicle number
       if (permit.vehicleNo) {
@@ -120,14 +125,14 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
 
     if (name === 'totalFee' || name === 'paid') {
       setFormData(prev => {
-        const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
-        const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(prev.paid) || 0
-        const balance = totalFee - paid
-
+        const paymentResult = handlePaymentCalculation(name, value, prev)
+        setPaidExceedsTotal(paymentResult.paidExceedsTotal)
         return {
           ...prev,
-          [name]: value,
-          balance: balance.toString()
+          [name]: name === 'paid' ? paymentResult.paid : value,
+          totalFee: name === 'totalFee' ? value : prev.totalFee,
+          paid: name === 'paid' ? paymentResult.paid : prev.paid,
+          balance: paymentResult.balance
         }
       })
       return
@@ -189,6 +194,12 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
     // Validate vehicle number before submitting
     if (!vehicleValidation.isValid && formData.vehicleNo) {
       toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
+    // Validate payment amount
+    if (paidExceedsTotal) {
+      toast.error('Paid amount cannot be more than the total fee!')
       return
     }
 
@@ -432,10 +443,19 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
+                      paidExceedsTotal
+                        ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                        : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent'
+                    }`}
                     placeholder=''
                     min='0'
                   />
+                  {paidExceedsTotal && (
+                    <p className='text-xs mt-1 text-red-600 font-semibold'>
+                      Paid amount cannot exceed total fee!
+                    </p>
+                  )}
                 </div>
 
                 {/* Balance (Auto-calculated) */}

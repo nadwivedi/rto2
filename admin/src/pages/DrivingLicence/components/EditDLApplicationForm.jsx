@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
   // Get current date in DD-MM-YYYY format
@@ -87,6 +88,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
 
   const [showAllFields, setShowAllFields] = useState(false)
   const [lastAction, setLastAction] = useState({})
+  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
   // Date of Birth state
   const [dobDay, setDobDay] = useState('')
@@ -217,17 +219,6 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
     }
   }, [isOpen, onClose])
 
-  // Auto-calculate balance amount
-  useEffect(() => {
-    const total = parseFloat(formData.totalAmount) || 0
-    const paid = parseFloat(formData.paidAmount) || 0
-    const balance = total - paid
-
-    setFormData(prev => ({
-      ...prev,
-      balanceAmount: balance >= 0 ? balance : 0
-    }))
-  }, [formData.totalAmount, formData.paidAmount])
 
   // Update dateOfBirth when day, month, or year changes
   useEffect(() => {
@@ -266,6 +257,30 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    // Handle payment calculation with validation
+    if (name === 'totalAmount' || name === 'paidAmount') {
+      setFormData(prev => {
+        // Map field names to match utility function expectations
+        const mappedData = {
+          totalFee: prev.totalAmount,
+          paid: prev.paidAmount
+        }
+        const mappedName = name === 'totalAmount' ? 'totalFee' : 'paid'
+
+        const paymentResult = handlePaymentCalculation(mappedName, value, mappedData)
+        setPaidExceedsTotal(paymentResult.paidExceedsTotal)
+
+        return {
+          ...prev,
+          [name]: name === 'paidAmount' ? paymentResult.paid : value,
+          totalAmount: name === 'totalAmount' ? value : prev.totalAmount,
+          paidAmount: name === 'paidAmount' ? paymentResult.paid : prev.paidAmount,
+          balanceAmount: parseFloat(paymentResult.balance) || 0
+        }
+      })
+      return
+    }
 
     // Apply date formatting for license date fields
     if (name === 'licenseIssueDate' || name === 'licenseExpiryDate' || name === 'learningLicenseIssueDate' || name === 'learningLicenseExpiryDate' || name === 'drivingLicenseIssueDate' || name === 'drivingLicenseExpiryDate') {
@@ -344,6 +359,12 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Validate payment amount
+    if (paidExceedsTotal) {
+      alert('Paid amount cannot be more than the total fee!')
+      return
+    }
 
     // Show confirmation popup
     const confirmed = window.confirm('Are you sure you want to update this application?')
@@ -729,10 +750,19 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                             value={formData.paidAmount}
                             onChange={handleChange}
                             max={formData.totalAmount}
-                            className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-base md:text-lg'
+                            className={`w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 font-semibold text-base md:text-lg ${
+                              paidExceedsTotal
+                                ? 'border-red-500 focus:ring-red-500 bg-red-50'
+                                : 'border-gray-300 focus:ring-green-500 focus:border-transparent'
+                            }`}
                             required
                           />
                         </div>
+                        {paidExceedsTotal && (
+                          <p className='text-xs mt-1 text-red-600 font-semibold'>
+                            Paid amount cannot exceed total fee!
+                          </p>
+                        )}
                       </div>
                     </div>
 
