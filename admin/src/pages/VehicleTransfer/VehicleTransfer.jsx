@@ -5,10 +5,12 @@ import Pagination from '../../components/Pagination'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
-import { getTheme } from '../../context/ThemeContext'
+import { getTheme, getVehicleNumberDesign } from '../../context/ThemeContext'
+import { getVehicleNumberParts } from '../../utils/vehicleNoCheck'
 
 const VehicleTransfer = () => {
   const theme = getTheme()
+  const vehicleDesign = getVehicleNumberDesign()
   const [transfers, setTransfers] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -219,7 +221,22 @@ const VehicleTransfer = () => {
                             </svg>
                           </div>
                           <div>
-                            <div className='text-sm font-mono font-bold text-gray-900'>{transfer.vehicleNumber}</div>
+                            <div className='text-sm font-bold text-gray-900'>
+                              {(() => {
+                                const parts = getVehicleNumberParts(transfer.vehicleNumber);
+                                if (!parts) {
+                                  return <span className='font-mono'>{transfer.vehicleNumber}</span>;
+                                }
+                                return (
+                                  <div className={vehicleDesign.container}>
+                                    <span className={vehicleDesign.stateCode}>{parts.stateCode}</span>
+                                    <span className={vehicleDesign.districtCode}>{parts.districtCode}</span>
+                                    <span className={vehicleDesign.series}>{parts.series}</span>
+                                    <span className={vehicleDesign.last4Digits}>{parts.last4Digits}</span>
+                                  </div>
+                                );
+                              })()}
+                            </div>
                             <div className='text-xs text-gray-600'>Vehicle Transfer</div>
                           </div>
                         </div>
@@ -362,10 +379,43 @@ const VehicleTransfer = () => {
                           {/* Vehicle Number */}
                           <td className='px-4 py-4'>
                             <div className='flex items-center gap-3'>
-                              <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold shadow-md text-xs'>
-                                {transfer.vehicleNumber?.substring(0, 2) || 'V'}
+                              <div>
+                                {(() => {
+                                  const parts = getVehicleNumberParts(transfer.vehicleNumber);
+                                  if (!parts) {
+                                    return (
+                                      <div className='text-sm font-inter font-bold text-gray-900'>
+                                        {transfer.vehicleNumber}
+                                      </div>
+                                    );
+                                  }
+                                  return (
+                                    <div className={vehicleDesign.container}>
+                                      <svg
+                                        className="w-4 h-6 mr-0.5   text-blue-800 flex-shrink-0"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                                      </svg>
+
+                                      <span className={vehicleDesign.stateCode}>
+                                        {parts.stateCode}
+                                      </span>
+                                      <span className={vehicleDesign.districtCode}>
+                                        {parts.districtCode}
+                                      </span>
+                                      <span className={vehicleDesign.series}>
+                                        {parts.series}
+                                      </span>
+                                      <span className={vehicleDesign.last4Digits}>
+                                        {parts.last4Digits}
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
                               </div>
-                              <div className='text-sm font-inter font-bold text-gray-900'>{transfer.vehicleNumber}</div>
                             </div>
                           </td>
 

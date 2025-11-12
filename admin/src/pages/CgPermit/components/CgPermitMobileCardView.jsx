@@ -1,5 +1,7 @@
 import React from 'react';
 import { getStatusColor, getStatusText } from '../../../utils/statusUtils';
+import { getVehicleNumberParts } from '../../../utils/vehicleNoCheck';
+import { getVehicleNumberDesign } from '../../../context/ThemeContext';
 
 const CgPermitMobileCardView = ({
   loading,
@@ -13,6 +15,8 @@ const CgPermitMobileCardView = ({
   handleDeletePermit,
   API_URL
 }) => {
+  const vehicleDesign = getVehicleNumberDesign();
+
   return (
     <div className='block lg:hidden'>
       {loading ? (
@@ -99,13 +103,28 @@ const CgPermitMobileCardView = ({
                   <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(permit.status)}`}>
                     {getStatusText(permit.status)}
                   </span>
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
-                    <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
-                      <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
-                      <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
-                    </svg>
-                    {permit.vehicleNo}
-                  </span>
+                  {(() => {
+                    const parts = getVehicleNumberParts(permit.vehicleNo);
+                    if (!parts) {
+                      return (
+                        <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
+                          <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
+                            <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                            <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                          </svg>
+                          {permit.vehicleNo}
+                        </span>
+                      );
+                    }
+                    return (
+                      <div className={vehicleDesign.container}>
+                        <span className={vehicleDesign.stateCode}>{parts.stateCode}</span>
+                        <span className={vehicleDesign.districtCode}>{parts.districtCode}</span>
+                        <span className={vehicleDesign.series}>{parts.series}</span>
+                        <span className={vehicleDesign.last4Digits}>{parts.last4Digits}</span>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Payment Details */}

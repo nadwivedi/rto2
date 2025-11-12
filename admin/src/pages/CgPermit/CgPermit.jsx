@@ -11,14 +11,16 @@ import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
 import CgPermitMobileCardView from './components/CgPermitMobileCardView'
-import { getTheme } from '../../context/ThemeContext'
+import { getTheme, getVehicleNumberDesign } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
 import { getStatusColor, getStatusText } from '../../utils/statusUtils';
+import { getVehicleNumberParts } from '../../utils/vehicleNoCheck';
 
 const CgPermit = () => {
   const theme = getTheme()
+  const vehicleDesign = getVehicleNumberDesign()
   // Force recompile for debugging ReferenceError: loading is not defined
   // Demo data for when backend is not available
   const demoPermits = [
@@ -736,12 +738,46 @@ Thank you!`
                   <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 transition-all duration-300 group'>
                     <td className='px-6 py-5'>
                       <div className='flex flex-col gap-1.5'>
-                        <div className='flex items-center gap-1.5'>
-                          <svg className='w-4 h-4 text-blue-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
-                            <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
-                            <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
-                          </svg>
-                          <span className='text-[15px] font-semibold text-gray-900'>{permit.vehicleNo}</span>
+                        <div>
+                          {(() => {
+                            const parts = getVehicleNumberParts(permit.vehicleNo);
+                            if (!parts) {
+                              return (
+                                <div className='flex items-center gap-1.5'>
+                                  <svg className='w-4 h-4 text-blue-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                                    <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                                    <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                                  </svg>
+                                  <span className='text-[15px] font-semibold text-gray-900'>{permit.vehicleNo}</span>
+                                </div>
+                              );
+                            }
+                            return (
+                              <div className={vehicleDesign.container}>
+                                <svg
+                                  className="w-4 h-6 mr-0.5   text-blue-800 flex-shrink-0"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                  <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                                </svg>
+
+                                <span className={vehicleDesign.stateCode}>
+                                  {parts.stateCode}
+                                </span>
+                                <span className={vehicleDesign.districtCode}>
+                                  {parts.districtCode}
+                                </span>
+                                <span className={vehicleDesign.series}>
+                                  {parts.series}
+                                </span>
+                                <span className={vehicleDesign.last4Digits}>
+                                  {parts.last4Digits}
+                                </span>
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className='flex items-center gap-1.5'>
                           <svg className='w-3.5 h-3.5 text-indigo-600 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
