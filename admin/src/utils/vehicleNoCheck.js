@@ -125,9 +125,64 @@ export const validateVehicleNumberRealtime = (vehicleNumber) => {
 }
 
 /**
+ * State code to State name mapping for Indian states and UTs
+ */
+const STATE_CODE_MAP = {
+  'AN': 'Andaman and Nicobar Islands',
+  'AP': 'Andhra Pradesh',
+  'AR': 'Arunachal Pradesh',
+  'AS': 'Assam',
+  'BR': 'Bihar',
+  'CH': 'Chandigarh',
+  'CG': 'Chhattisgarh',
+  'DD': 'Daman and Diu',
+  'DL': 'Delhi',
+  'DN': 'Dadra and Nagar Haveli',
+  'GA': 'Goa',
+  'GJ': 'Gujarat',
+  'HP': 'Himachal Pradesh',
+  'HR': 'Haryana',
+  'JH': 'Jharkhand',
+  'JK': 'Jammu and Kashmir',
+  'KA': 'Karnataka',
+  'KL': 'Kerala',
+  'LA': 'Ladakh',
+  'LD': 'Lakshadweep',
+  'MH': 'Maharashtra',
+  'ML': 'Meghalaya',
+  'MN': 'Manipur',
+  'MP': 'Madhya Pradesh',
+  'MZ': 'Mizoram',
+  'NL': 'Nagaland',
+  'OD': 'Odisha',
+  'OR': 'Odisha',
+  'PB': 'Punjab',
+  'PY': 'Puducherry',
+  'RJ': 'Rajasthan',
+  'SK': 'Sikkim',
+  'TN': 'Tamil Nadu',
+  'TR': 'Tripura',
+  'TS': 'Telangana',
+  'UK': 'Uttarakhand',
+  'UP': 'Uttar Pradesh',
+  'WB': 'West Bengal'
+}
+
+/**
+ * Get state name from state code
+ * @param {string} stateCode - Two letter state code
+ * @returns {string} - Full state name or state code if not found
+ */
+export const getStateName = (stateCode) => {
+  if (!stateCode) return ''
+  const code = stateCode.toUpperCase()
+  return STATE_CODE_MAP[code] || code
+}
+
+/**
  * Get vehicle number parts
  * @param {string} vehicleNumber - Vehicle number
- * @returns {object} - { stateCode, districtCode, series, number }
+ * @returns {object} - { stateCode, stateName, districtCode, series, number, last4Digits, rtoCode }
  */
 export const parseVehicleNumber = (vehicleNumber) => {
   const cleaned = cleanVehicleNumber(vehicleNumber)
@@ -143,19 +198,55 @@ export const parseVehicleNumber = (vehicleNumber) => {
 
   const hasDoubleLetterSeries = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/.test(cleaned)
 
+  const stateCode = cleaned.substring(0, 2)
+  const districtCode = cleaned.substring(2, 4)
+
   if (hasDoubleLetterSeries) {
+    const series = cleaned.substring(4, 6)
+    const number = cleaned.substring(6, 10)
+
     return {
-      stateCode: cleaned.substring(0, 2),
-      districtCode: cleaned.substring(2, 4),
-      series: cleaned.substring(4, 6),
-      number: cleaned.substring(6, 10)
+      stateCode,
+      stateName: getStateName(stateCode),
+      districtCode,
+      rtoCode: `${stateCode}${districtCode}`,
+      series,
+      number,
+      last4Digits: number,
+      fullNumber: cleaned
     }
   } else {
+    const series = cleaned.substring(4, 5)
+    const number = cleaned.substring(5, 10)
+
     return {
-      stateCode: cleaned.substring(0, 2),
-      districtCode: cleaned.substring(2, 4),
-      series: cleaned.substring(4, 5),
-      number: cleaned.substring(5, 10)
+      stateCode,
+      stateName: getStateName(stateCode),
+      districtCode,
+      rtoCode: `${stateCode}${districtCode}`,
+      series,
+      number,
+      last4Digits: number.substring(number.length - 4),
+      fullNumber: cleaned
     }
   }
+}
+
+/**
+ * Get formatted parts for display with custom styling
+ * @param {string} vehicleNumber - Vehicle number
+ * @returns {object} - Parsed parts ready for custom display
+ * @example
+ * const parts = getVehicleNumberParts('CG04AA4793')
+ * // Returns: {
+ * //   stateCode: 'CG',
+ * //   stateName: 'Chhattisgarh',
+ * //   rtoCode: 'CG04',
+ * //   series: 'AA',
+ * //   last4Digits: '4793',
+ * //   fullNumber: 'CG04AA4793'
+ * // }
+ */
+export const getVehicleNumberParts = (vehicleNumber) => {
+  return parseVehicleNumber(vehicleNumber)
 }

@@ -8,14 +8,16 @@ import Pagination from '../../components/Pagination'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
 import FitnessMobileCardView from './components/FitnessMobileCardView'
-import { getTheme } from '../../context/ThemeContext'
+import { getTheme, getVehicleNumberDesign } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 import { getStatusColor, getStatusText } from '../../utils/statusUtils';
+import { getVehicleNumberParts } from '../../utils/vehicleNoCheck';
 
 const Fitness = () => {
   const theme = getTheme()
+  const vehicleDesign = getVehicleNumberDesign()
   const [fitnessRecords, setFitnessRecords] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -442,10 +444,20 @@ const Fitness = () => {
                         {/* Vehicle Number */}
                         <td className='px-4 py-4'>
                           <div className='flex items-center gap-3'>
-                            <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md'>
-                              {record.vehicleNumber?.substring(0, 2) || 'V'}
-                            </div>
-                            <div className='text-sm font-mono font-bold text-gray-900'>{record.vehicleNumber}</div>
+                            {(() => {
+                              const parts = getVehicleNumberParts(record.vehicleNumber)
+                              if (!parts) {
+                                return <div className='text-sm font-inter font-bold text-gray-900'>{record.vehicleNumber}</div>
+                              }
+                              return (
+                                <div className={vehicleDesign.container}>
+                                  <span className={vehicleDesign.stateCode}>{parts.stateCode}</span>
+                                  <span className={vehicleDesign.districtCode}>{parts.districtCode}</span>
+                                  <span className={vehicleDesign.series}>{parts.series}</span>
+                                  <span className={vehicleDesign.last4Digits}>{parts.last4Digits}</span>
+                                </div>
+                              )
+                            })()}
                           </div>
                         </td>
 

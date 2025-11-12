@@ -1,5 +1,7 @@
 import React from 'react';
 import { getStatusColor, getStatusText } from '../../../utils/statusUtils';
+import { getVehicleNumberParts } from '../../../utils/vehicleNoCheck';
+import { getVehicleNumberDesign } from '../../../context/ThemeContext';
 
 const FitnessMobileCardView = ({
   fitnessRecords,
@@ -9,6 +11,8 @@ const FitnessMobileCardView = ({
   setIsEditModalOpen,
   handleDeleteFitness,
 }) => {
+  const vehicleDesign = getVehicleNumberDesign()
+
   return (
     <div className='block lg:hidden'>
       {fitnessRecords.length > 0 ? (
@@ -22,7 +26,20 @@ const FitnessMobileCardView = ({
                     {record.vehicleNumber?.substring(0, 2) || 'V'}
                   </div>
                   <div>
-                    <div className='text-sm font-mono font-bold text-gray-900'>{record.vehicleNumber}</div>
+                    {(() => {
+                      const parts = getVehicleNumberParts(record.vehicleNumber)
+                      if (!parts) {
+                        return <div className='text-sm font-mono font-bold text-gray-900'>{record.vehicleNumber}</div>
+                      }
+                      return (
+                        <div className={`${vehicleDesign.container} mb-1`}>
+                          <span className={vehicleDesign.stateCode}>{parts.stateCode}</span>
+                          <span className={vehicleDesign.districtCode}>{parts.districtCode}</span>
+                          <span className={vehicleDesign.series}>{parts.series}</span>
+                          <span className={vehicleDesign.last4Digits}>{parts.last4Digits}</span>
+                        </div>
+                      )
+                    })()}
                     <div className='text-xs text-gray-600'>Fitness Certificate</div>
                   </div>
                 </div>

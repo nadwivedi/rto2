@@ -7,7 +7,7 @@ import * as XLSX from 'xlsx'
 import ImportModal from '../components/ImportModal'
 import ExportModal from '../components/ExportModal'
 import ExportExcelModal from '../components/ExportExcelModal'
-import { getAllThemes } from '../context/ThemeContext'
+import { getAllThemes, getAllVehicleNumberDesigns } from '../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -25,8 +25,16 @@ const Setting = () => {
   const themes = getAllThemes()
   const currentTheme = localStorage.getItem('theme') || 'theme1'
 
+  const vehicleNumberDesigns = getAllVehicleNumberDesigns()
+  const currentVehicleDesign = localStorage.getItem('vehicleNumberDesign') || 'design1'
+
   const handleThemeChange = (themeName) => {
     localStorage.setItem('theme', themeName)
+    window.location.reload()
+  }
+
+  const handleVehicleDesignChange = (designName) => {
+    localStorage.setItem('vehicleNumberDesign', designName)
     window.location.reload()
   }
 
@@ -209,6 +217,60 @@ const Setting = () => {
                         ✓
                       </div>
                     )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Vehicle Number Design Settings */}
+        <div className='bg-white rounded-xl p-6 shadow-lg border border-gray-200'>
+          <div className='flex items-center gap-3 mb-4'>
+            <div className='w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center text-white text-xl'>
+              🚗
+            </div>
+            <div>
+              <h2 className='text-lg font-bold text-gray-800'>Vehicle Number Design</h2>
+              <p className='text-xs text-gray-500'>Customize how vehicle numbers are displayed</p>
+            </div>
+          </div>
+
+          <div className='space-y-3'>
+            <label className='text-sm font-semibold text-gray-700'>Select Design</label>
+            <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3'>
+              {Object.keys(vehicleNumberDesigns).map((designName) => {
+                const design = vehicleNumberDesigns[designName]
+                const isSelected = currentVehicleDesign === designName
+                return (
+                  <button
+                    key={designName}
+                    onClick={() => handleVehicleDesignChange(designName)}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      isSelected
+                        ? 'border-indigo-600 bg-indigo-50 shadow-md'
+                        : 'border-gray-200 bg-white hover:border-indigo-300 hover:shadow-sm'
+                    }`}
+                  >
+                    <div className='flex flex-col items-center mb-2'>
+                      <div className='text-center mb-1.5'>
+                        <div className='font-semibold text-gray-800 text-xs leading-tight'>{design.name}</div>
+                      </div>
+                      {isSelected && (
+                        <div className='w-4 h-4 bg-indigo-600 rounded-full flex items-center justify-center text-white text-[10px]'>
+                          ✓
+                        </div>
+                      )}
+                    </div>
+                    {/* Preview with larger text */}
+                    <div className='mt-2 p-2 bg-gray-50 rounded flex justify-center items-center min-h-[55px]'>
+                      <div className={design.container}>
+                        <span className={design.stateCode.replace('text-sm', 'text-xs')}>CG</span>
+                        <span className={design.districtCode.replace('text-sm', 'text-xs')}>04</span>
+                        <span className={design.series.replace('text-sm', 'text-xs')}>AA</span>
+                        <span className={design.last4Digits.replace('text-sm', 'text-xs')}>4793</span>
+                      </div>
+                    </div>
                   </button>
                 )
               })}
