@@ -365,7 +365,7 @@ const VehicleTransfer = () => {
                               <div className='flex-shrink-0 h-10 w-10 bg-gradient-to-br from-teal-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold shadow-md text-xs'>
                                 {transfer.vehicleNumber?.substring(0, 2) || 'V'}
                               </div>
-                              <div className='text-sm font-mono font-bold text-gray-900'>{transfer.vehicleNumber}</div>
+                              <div className='text-sm font-inter font-bold text-gray-900'>{transfer.vehicleNumber}</div>
                             </div>
                           </td>
 

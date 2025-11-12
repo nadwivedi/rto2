@@ -1,5 +1,7 @@
 import React from 'react';
 import { getStatusColor, getStatusText } from '../../../utils/statusUtils';
+import { getVehicleNumberParts } from '../../../utils/vehicleNoCheck';
+import { getVehicleNumberDesign } from '../../../context/ThemeContext';
 import Pagination from '../../../components/Pagination';
 
 const InsuranceMobileCardView = ({
@@ -13,6 +15,8 @@ const InsuranceMobileCardView = ({
   loading,
   searchQuery
 }) => {
+  const vehicleDesign = getVehicleNumberDesign()
+
   return (
     <div className='block lg:hidden'>
       {filteredInsurances.length > 0 ? (
@@ -28,7 +32,8 @@ const InsuranceMobileCardView = ({
                     </svg>
                   </div>
                   <div>
-                    <div className='text-xs font-mono font-bold text-gray-900'>{insurance.policyNumber}</div>
+                    <div className='text-xs font-bold text-gray-900'>{insurance.vehicleNumber}</div>
+                    <div className='text-xs font-mono text-gray-600 mt-0.5'>{insurance.policyNumber}</div>
                     <div className='text-xs text-gray-600 mt-0.5'>{insurance.ownerName || '-'}</div>
                     <div className='text-xs text-gray-500 flex items-center mt-1'>
                       <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -83,13 +88,28 @@ const InsuranceMobileCardView = ({
               <div className='p-3 space-y-2.5'>
                 {/* Vehicle and Insurance Company */}
                 <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
-                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
-                    <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
-                      <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
-                      <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
-                    </svg>
-                    {insurance.vehicleNumber}
-                  </span>
+                  {(() => {
+                    const parts = getVehicleNumberParts(insurance.vehicleNumber)
+                    if (!parts) {
+                      return (
+                        <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200'>
+                          <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
+                            <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                            <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                          </svg>
+                          {insurance.vehicleNumber}
+                        </span>
+                      )
+                    }
+                    return (
+                      <div className={vehicleDesign.container}>
+                        <span className={vehicleDesign.stateCode}>{parts.stateCode}</span>
+                        <span className={vehicleDesign.districtCode}>{parts.districtCode}</span>
+                        <span className={vehicleDesign.series}>{parts.series}</span>
+                        <span className={vehicleDesign.last4Digits}>{parts.last4Digits}</span>
+                      </div>
+                    )
+                  })()}
                   <span className='text-xs font-semibold text-gray-600'>{insurance.vehicleType}</span>
                 </div>
 

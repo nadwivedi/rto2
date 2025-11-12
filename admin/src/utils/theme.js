@@ -97,7 +97,7 @@ export const vehicleNumberDesigns = {
     stateCode: 'text-sm font-inter font-bold text-gray-700',
     districtCode: 'text-sm font-inter font-bold text-gray-700',
     series: 'text-sm font-inter font-bold text-gray-700',
-    last4Digits: 'text-sm font-inter font-bold text-white bg-gray-800 px-2 py-0.5 rounded',
+    last4Digits: 'text-sm font-inter font-bold text-white bg-gray-600 px-2 py-0.5 rounded',
   },
 
   design6: {
@@ -287,5 +287,65 @@ export const vehicleNumberDesigns = {
     districtCode: 'text-sm font-inter font-semibold text-gray-700',
     series: 'text-sm font-inter font-semibold text-gray-700',
     last4Digits: 'text-lg font-inter font-extrabold text-amber-700 ml-0.5',
+  },
+
+  design25: {
+    name: 'Dash Classic',
+    description: 'Classic with dashes',
+    container: 'flex items-center gap-0',
+    stateCode: 'text-sm font-inter font-semibold text-gray-700 after:content-["-"] after:mx-0.5 after:text-gray-400',
+    districtCode: 'text-sm font-inter font-semibold text-gray-700 after:content-["-"] after:mx-0.5 after:text-gray-400',
+    series: 'text-sm font-inter font-semibold text-gray-700 after:content-["-"] after:mx-0.5 after:text-gray-400',
+    last4Digits: 'text-sm font-inter font-bold text-indigo-600',
+  },
+
+  design26: {
+    name: 'Dash Blue',
+    description: 'Blue with dashes',
+    container: 'flex items-center gap-0',
+    stateCode: 'text-sm font-inter font-semibold text-blue-700 after:content-["-"] after:mx-0.5 after:text-blue-300',
+    districtCode: 'text-sm font-inter font-semibold text-blue-700 after:content-["-"] after:mx-0.5 after:text-blue-300',
+    series: 'text-sm font-inter font-semibold text-blue-700 after:content-["-"] after:mx-0.5 after:text-blue-300',
+    last4Digits: 'text-sm font-inter font-bold text-blue-900 bg-blue-50 px-1 py-0.5 rounded',
+  },
+
+  design27: {
+    name: 'Dash Green',
+    description: 'Green with dashes',
+    container: 'flex items-center gap-0',
+    stateCode: 'text-sm font-inter font-semibold text-green-700 after:content-["-"] after:mx-0.5 after:text-green-300',
+    districtCode: 'text-sm font-inter font-semibold text-green-700 after:content-["-"] after:mx-0.5 after:text-green-300',
+    series: 'text-sm font-inter font-semibold text-green-700 after:content-["-"] after:mx-0.5 after:text-green-300',
+    last4Digits: 'text-sm font-inter font-bold text-green-900 bg-green-50 px-1 py-0.5 rounded',
+  },
+
+  design28: {
+    name: 'Dash Red',
+    description: 'Red with dashes',
+    container: 'flex items-center gap-0',
+    stateCode: 'text-sm font-inter font-semibold text-red-700 after:content-["-"] after:mx-0.5 after:text-red-300',
+    districtCode: 'text-sm font-inter font-semibold text-red-700 after:content-["-"] after:mx-0.5 after:text-red-300',
+    series: 'text-sm font-inter font-semibold text-red-700 after:content-["-"] after:mx-0.5 after:text-red-300',
+    last4Digits: 'text-sm font-inter font-bold text-red-900 bg-red-50 px-1 py-0.5 rounded',
+  },
+
+  design29: {
+    name: 'Dash Purple',
+    description: 'Purple with dashes',
+    container: 'flex items-center gap-0',
+    stateCode: 'text-sm font-inter font-semibold text-purple-700 after:content-["-"] after:mx-0.5 after:text-purple-300',
+    districtCode: 'text-sm font-inter font-semibold text-purple-700 after:content-["-"] after:mx-0.5 after:text-purple-300',
+    series: 'text-sm font-inter font-semibold text-purple-700 after:content-["-"] after:mx-0.5 after:text-purple-300',
+    last4Digits: 'text-sm font-inter font-bold text-purple-900 bg-purple-50 px-1 py-0.5 rounded',
+  },
+
+  design30: {
+    name: 'Dash Bold',
+    description: 'Bold with thick dashes',
+    container: 'flex items-center gap-0',
+    stateCode: 'text-sm font-inter font-bold text-gray-800 after:content-["-"] after:mx-1 after:text-gray-600 after:font-extrabold',
+    districtCode: 'text-sm font-inter font-bold text-gray-800 after:content-["-"] after:mx-1 after:text-gray-600 after:font-extrabold',
+    series: 'text-sm font-inter font-bold text-gray-800 after:content-["-"] after:mx-1 after:text-gray-600 after:font-extrabold',
+    last4Digits: 'text-sm font-inter font-extrabold text-gray-900 bg-yellow-100 px-1.5 py-0.5 rounded',
   },
 };
