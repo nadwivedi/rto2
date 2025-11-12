@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
+import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 
 const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const [showOptionalFields, setShowOptionalFields] = useState(true) // Show optional fields by default in edit mode
+  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
 
   const [formData, setFormData] = useState({
     // Required fields
@@ -28,10 +30,11 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   // Populate form when permit changes
   useEffect(() => {
     if (permit) {
+      const vehicleNum = permit.vehicleNo || permit.vehicleNumber || ''
       setFormData({
         permitNumber: permit.permitNumber || '',
         permitHolder: permit.permitHolder || '',
-        vehicleNumber: permit.vehicleNo || permit.vehicleNumber || '',
+        vehicleNumber: vehicleNum,
         validFrom: permit.validFrom || '',
         validTo: permit.validTill || permit.validTo || '',
         fatherName: permit.fatherName || '',
@@ -42,6 +45,11 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         paid: permit.paid?.toString() || '',
         balance: permit.balance?.toString() || ''
       })
+      // Validate the vehicle number when loading
+      if (vehicleNum) {
+        const validation = validateVehicleNumberRealtime(vehicleNum)
+        setVehicleValidation(validation)
+      }
     }
   }, [permit])
 
@@ -113,6 +121,22 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
+    // Handle vehicle number with format enforcement and validation
+    if (name === 'vehicleNumber') {
+      // Enforce format: only allow correct characters at each position
+      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+
+      // Validate in real-time
+      const validation = validateVehicleNumberRealtime(enforcedValue)
+      setVehicleValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
       setFormData(prev => {
@@ -175,8 +199,17 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       return
     }
 
+    // Auto-uppercase for permit numbers
+    if (name === 'permitNumber') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value.toUpperCase()
+      }))
+      return
+    }
+
     // Convert specific fields to uppercase
-    const uppercaseFields = ['permitNumber', 'permitHolder', 'vehicleNumber', 'fatherName', 'address', 'chassisNumber', 'engineNumber']
+    const uppercaseFields = ['permitHolder', 'fatherName', 'address', 'chassisNumber', 'engineNumber']
     const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
 
     // For other fields, just store the value
@@ -221,6 +254,13 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Validate vehicle number before submitting
+    if (!vehicleValidation.isValid && formData.vehicleNumber) {
+      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
     if (onSubmit) {
       onSubmit(formData)
     }
@@ -296,7 +336,6 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
-                    <span className='text-xs text-gray-500 ml-1'>(10 digits)</span>
                   </label>
                   <div className='relative'>
                     <input
@@ -304,25 +343,30 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='CG01AB1234'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                      required
-                      minLength='10'
+                      placeholder='CG04AA1234'
                       maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                        formData.vehicleNumber && !vehicleValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.vehicleNumber && vehicleValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
+                      required
                     />
-                    {formData.vehicleNumber && formData.vehicleNumber.length < 10 && (
+                    {vehicleValidation.isValid && formData.vehicleNumber && (
                       <div className='absolute right-3 top-2.5'>
-                        <span className='text-xs font-semibold text-red-500'>
-                          {formData.vehicleNumber.length}/10
-                        </span>
-                      </div>
-                    )}
-                    {formData.vehicleNumber && formData.vehicleNumber.length === 10 && (
-                      <div className='absolute right-3 top-2.5'>
-                        <span className='text-xs font-semibold text-green-500'>✓</span>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
                       </div>
                     )}
                   </div>
+                  {vehicleValidation.message && (
+                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {vehicleValidation.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Mobile Number */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
@@ -23,10 +24,16 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [lastAction, setLastAction] = useState({})
+  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
 
   useEffect(() => {
     if (editData) {
       setFormData(editData)
+      // Validate vehicle number if editing
+      if (editData.vehicleNumber) {
+        const validation = validateVehicleNumberRealtime(editData.vehicleNumber)
+        setVehicleValidation(validation)
+      }
     } else {
       setFormData({
         vehicleNumber: '',
@@ -44,6 +51,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
         totalFee: '',
         paid: ''
       })
+      setVehicleValidation({ isValid: false, message: '' })
     }
     setError('')
   }, [editData, isOpen])
@@ -59,6 +67,22 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    // Handle vehicle number with format enforcement and validation
+    if (name === 'vehicleNumber') {
+      // Enforce format: only allow correct characters at each position
+      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+
+      // Validate in real-time
+      const validation = validateVehicleNumberRealtime(enforcedValue)
+      setVehicleValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
 
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
@@ -162,6 +186,13 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Validate vehicle number before submitting
+    if (!vehicleValidation.isValid && formData.vehicleNumber) {
+      setError('Please enter a valid vehicle number in the format: CG01AB1234 (10 characters, no spaces)')
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -254,15 +285,41 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                   Vehicle Number <span className='text-red-500'>*</span>
                 </label>
-                <input
-                  type='text'
-                  name='vehicleNumber'
-                  value={formData.vehicleNumber}
-                  onChange={handleChange}
-                  required
-                  placeholder='CG01AB1234'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent uppercase font-mono'
-                />
+                <div className='relative'>
+                  <input
+                    type='text'
+                    name='vehicleNumber'
+                    value={formData.vehicleNumber}
+                    onChange={handleChange}
+                    required
+                    placeholder='CG01AB1234'
+                    maxLength='10'
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                      formData.vehicleNumber && !vehicleValidation.isValid
+                        ? 'border-red-500 focus:ring-red-500'
+                        : formData.vehicleNumber && vehicleValidation.isValid
+                        ? 'border-green-500 focus:ring-green-500'
+                        : 'border-gray-300 focus:ring-teal-500'
+                    }`}
+                  />
+                  {vehicleValidation.isValid && formData.vehicleNumber && (
+                    <div className='absolute right-3 top-2.5'>
+                      <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+                {vehicleValidation.message && (
+                  <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                    {vehicleValidation.message}
+                  </p>
+                )}
+                {!formData.vehicleNumber && (
+                  <p className='text-xs mt-1 text-gray-500'>
+                    Format: <span className='font-mono font-semibold text-teal-600'>CG01AB1234</span> (10 characters, no spaces)
+                  </p>
+                )}
               </div>
 
               {/* Transfer Date */}

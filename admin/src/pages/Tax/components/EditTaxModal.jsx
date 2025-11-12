@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { handleDateBlur as utilHandleDateBlur } from '../../../utils/dateFormatter'
+import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -8,6 +9,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
   const [vehicleError, setVehicleError] = useState('')
   const [dateError, setDateError] = useState({ taxFrom: '', taxTo: '' })
   const [lastAction, setLastAction] = useState({})
+  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
 
   const [formData, setFormData] = useState({
     receiptNo: '',
@@ -174,8 +176,24 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Remove dashes from vehicle number and receipt number to store as uppercase
-    if (name === 'vehicleNumber' || name === 'receiptNo') {
+    // Handle vehicle number with format enforcement and validation
+    if (name === 'vehicleNumber') {
+      // Enforce format: only allow correct characters at each position
+      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+
+      // Validate in real-time
+      const validation = validateVehicleNumberRealtime(enforcedValue)
+      setVehicleValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
+    // Remove dashes from receipt number to store as uppercase
+    if (name === 'receiptNo') {
       const cleanedValue = value.replace(/-/g, '').toUpperCase()
       setFormData(prev => ({
         ...prev,
@@ -246,6 +264,13 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Validate vehicle number before submitting
+    if (!vehicleValidation.isValid && formData.vehicleNumber) {
+      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
     if (onSubmit) {
       onSubmit(formData)
     }
@@ -290,7 +315,6 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
-                    <span className='text-xs text-gray-500 ml-1'>(10 digits)</span>
                   </label>
                   <div className='relative'>
                     <input
@@ -298,11 +322,16 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='CG04AB1234'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                      required
-                      minLength='10'
+                      placeholder='CG04AA1234'
                       maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                        formData.vehicleNumber && !vehicleValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.vehicleNumber && vehicleValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
+                      required
                       autoFocus
                     />
                     {fetchingVehicle && (
@@ -313,25 +342,31 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                         </svg>
                       </div>
                     )}
-                    {!fetchingVehicle && formData.vehicleNumber && formData.vehicleNumber.length < 10 && (
+                    {!fetchingVehicle && vehicleValidation.isValid && formData.vehicleNumber && (
                       <div className='absolute right-3 top-2.5'>
-                        <span className='text-xs font-semibold text-red-500'>
-                          {formData.vehicleNumber.length}/10
-                        </span>
-                      </div>
-                    )}
-                    {!fetchingVehicle && formData.vehicleNumber && formData.vehicleNumber.length === 10 && (
-                      <div className='absolute right-3 top-2.5'>
-                        <span className='text-xs font-semibold text-green-500'>✓</span>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
                       </div>
                     )}
                   </div>
+                  {vehicleValidation.message && !fetchingVehicle && (
+                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {vehicleValidation.message}
+                    </p>
+                  )}
                   {vehicleError && (
                     <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
                   )}
-                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.ownerName && (
+                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.ownerName && vehicleValidation.isValid && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner name auto-filled</p>
                   )}
+                  <p className='text-xs text-gray-500 mt-1'>
+                    Format: <span className='text-blue-600 font-mono'>CG</span>
+                    <span className='text-green-600 font-mono'>04</span>
+                    <span className='text-purple-600 font-mono'>AA</span>
+                    <span className='text-orange-600 font-mono'>1234</span>
+                  </p>
                 </div>
 
                 {/* Receipt Number */}

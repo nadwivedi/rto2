@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
   const [loading, setLoading] = useState(false)
   const [showOptionalFields, setShowOptionalFields] = useState(false)
+  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [formData, setFormData] = useState({
     permitNumber: '',
     permitHolder: '',
@@ -61,6 +63,22 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
+    // Handle vehicle number with format enforcement and validation
+    if (name === 'vehicleNo') {
+      // Enforce format: only allow correct characters at each position
+      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNo, value)
+
+      // Validate in real-time
+      const validation = validateVehicleNumberRealtime(enforcedValue)
+      setVehicleValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
     if (name === 'totalFee' || name === 'paid') {
       setFormData(prev => {
         const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(prev.totalFee) || 0
@@ -76,8 +94,8 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
       return
     }
 
-    // Auto-uppercase for permit number, permit holder and vehicle number
-    if (name === 'permitNumber' || name === 'permitHolder' || name === 'vehicleNo') {
+    // Auto-uppercase for permit number and permit holder
+    if (name === 'permitNumber' || name === 'permitHolder') {
       setFormData(prev => ({
         ...prev,
         [name]: value.toUpperCase()
@@ -129,6 +147,12 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    // Validate vehicle number before submitting
+    if (!vehicleValidation.isValid && formData.vehicleNo) {
+      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
     // Validation
     if (!formData.permitNumber || !formData.permitHolder || !formData.vehicleNo ||
         !formData.mobileNo || !formData.validFrom || !formData.validTo) {
@@ -156,6 +180,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
           notes: ''
         })
         setShowOptionalFields(false)
+        setVehicleValidation({ isValid: false, message: '' })
         onPermitIssued()
       }
     } catch (error) {
@@ -203,15 +228,42 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
                   </label>
-                  <input
-                    type='text'
-                    name='vehicleNo'
-                    value={formData.vehicleNo}
-                    onChange={handleChange}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono uppercase'
-                    placeholder='CG01AB1234'
-                    required
-                  />
+                  <div className='relative'>
+                    <input
+                      type='text'
+                      name='vehicleNo'
+                      value={formData.vehicleNo}
+                      onChange={handleChange}
+                      placeholder='CG04AA1234'
+                      maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                        formData.vehicleNo && !vehicleValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.vehicleNo && vehicleValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-orange-500'
+                      }`}
+                      required
+                    />
+                    {vehicleValidation.isValid && formData.vehicleNo && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {vehicleValidation.message && (
+                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {vehicleValidation.message}
+                    </p>
+                  )}
+                  {!formData.vehicleNo && (
+                    <p className='text-xs text-gray-500 mt-1'>
+                      Format: <span className='font-mono font-semibold text-orange-600'>LL DD LL DDDD</span>
+                      <span className='text-gray-400'> (e.g., CG04AA1234)</span>
+                    </p>
+                  )}
                 </div>
 
                 {/* Permit Number */}

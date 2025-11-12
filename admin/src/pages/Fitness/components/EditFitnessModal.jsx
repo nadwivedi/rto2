@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { handleDateBlur as utilHandleDateBlur } from '../../../utils/dateFormatter'
+import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 
 const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
     balance: '0'
   })
   const [lastAction, setLastAction] = useState({})
+  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
 
   // Populate form when fitness record changes
   useEffect(() => {
@@ -94,6 +96,22 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
+    // Handle vehicle number with format enforcement and validation
+    if (name === 'vehicleNumber') {
+      // Enforce format: only allow correct characters at each position
+      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+
+      // Validate in real-time
+      const validation = validateVehicleNumberRealtime(enforcedValue)
+      setVehicleValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
       setFormData(prev => {
@@ -107,16 +125,6 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
           balance: balance.toString()
         }
       })
-      return
-    }
-
-    // Remove dashes from vehicle number to store as CG04AB1234 instead of CG-04-AB-1234
-    if (name === 'vehicleNumber') {
-      const cleanedValue = value.replace(/-/g, '').toUpperCase()
-      setFormData(prev => ({
-        ...prev,
-        [name]: cleanedValue
-      }))
       return
     }
 
@@ -178,6 +186,13 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Validate vehicle number before submitting
+    if (!vehicleValidation.isValid && formData.vehicleNumber) {
+      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
     if (onSubmit) {
       onSubmit(formData)
     }
@@ -222,7 +237,6 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
-                    <span className='text-xs text-gray-500 ml-1'>(10 digits)</span>
                   </label>
                   <div className='relative'>
                     <input
@@ -230,26 +244,39 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='CG04AB1234'
-                      className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono uppercase'
-                      required
-                      minLength='10'
+                      placeholder='CG04AA1234'
                       maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                        formData.vehicleNumber && !vehicleValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.vehicleNumber && vehicleValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-emerald-500'
+                      }`}
+                      required
                       autoFocus
                     />
-                    {formData.vehicleNumber && formData.vehicleNumber.length < 10 && (
+                    {vehicleValidation.isValid && formData.vehicleNumber && (
                       <div className='absolute right-3 top-2.5'>
-                        <span className='text-xs font-semibold text-red-500'>
-                          {formData.vehicleNumber.length}/10
-                        </span>
-                      </div>
-                    )}
-                    {formData.vehicleNumber && formData.vehicleNumber.length === 10 && (
-                      <div className='absolute right-3 top-2.5'>
-                        <span className='text-xs font-semibold text-green-500'>✓</span>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
                       </div>
                     )}
                   </div>
+                  {vehicleValidation.message && (
+                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {vehicleValidation.message}
+                    </p>
+                  )}
+                  {!vehicleValidation.message && !formData.vehicleNumber && (
+                    <p className='text-xs mt-1 text-gray-500'>
+                      Format: <span className='font-mono font-semibold text-emerald-600'>CG</span>
+                      <span className='font-mono font-semibold text-indigo-600'>04</span>
+                      <span className='font-mono font-semibold text-purple-600'>AA</span>
+                      <span className='font-mono font-semibold text-blue-600'>1234</span> (State + District + Series + Number)
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

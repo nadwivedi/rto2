@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
+import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 
 const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const [showOptionalFields, setShowOptionalFields] = useState(true) // Show optional fields by default in edit mode
   const [partAImage, setPartAImage] = useState(null)
   const [partBImage, setPartBImage] = useState(null)
+  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
 
   // Helper function to format date as DD-MM-YYYY
   const formatDate = (date) => {
@@ -167,8 +169,24 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Auto-uppercase for permit numbers (Type A and Type B) and vehicle number
-    if (name === 'permitNumber' || name === 'authorizationNumber' || name === 'vehicleNumber') {
+    // Handle vehicle number with format enforcement and validation
+    if (name === 'vehicleNumber') {
+      // Enforce format: only allow correct characters at each position
+      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+
+      // Validate in real-time
+      const validation = validateVehicleNumberRealtime(enforcedValue)
+      setVehicleValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
+    // Auto-uppercase for permit numbers (Type A and Type B)
+    if (name === 'permitNumber' || name === 'authorizationNumber') {
       setFormData(prev => ({
         ...prev,
         [name]: value.toUpperCase()
@@ -313,17 +331,42 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                 {/* Vehicle Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Vehicle Number
+                    Vehicle Number <span className='text-red-500'>*</span>
                   </label>
-                  <input
-                    type='text'
-                    name='vehicleNumber'
-                    value={formData.vehicleNumber}
-                    onChange={handleChange}
-                    placeholder='MH12AB1234'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
-                    autoFocus
-                  />
+                  <div className='relative'>
+                    <input
+                      type='text'
+                      name='vehicleNumber'
+                      value={formData.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder='CG04AA1234'
+                      maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                        formData.vehicleNumber && !vehicleValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.vehicleNumber && vehicleValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
+                      autoFocus
+                      required
+                    />
+                    {vehicleValidation.isValid && formData.vehicleNumber && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {vehicleValidation.message && (
+                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {vehicleValidation.message}
+                    </p>
+                  )}
+                  <p className='text-xs text-gray-500 mt-1'>
+                    <span className='font-semibold'>Format:</span> <span className='text-blue-600'>AA</span> (letters) + <span className='text-green-600'>00</span> (digits) + <span className='text-blue-600'>AA</span> (letters) + <span className='text-green-600'>0000</span> (digits)
+                  </p>
                 </div>
 
                 {/* Permit Number */}
