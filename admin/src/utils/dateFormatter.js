@@ -57,9 +57,13 @@ export const handleSmartDateInput = (value, oldValue = '') => {
 
   if (digitsOnly.length >= 2) {
     const day = parseInt(digitsOnly.slice(0, 2), 10)
-    // If day > 31 or 00, don't allow the second digit
-    if (day > 31 || day === 0) {
-      return null // Reject input
+    // If day > 31, auto-correct to 31 (e.g., 38 → 31, 44 → 31)
+    if (day > 31) {
+      digitsOnly = '31' + digitsOnly.slice(2)
+    }
+    // If day is 00, auto-correct to 01
+    else if (day === 0) {
+      digitsOnly = '01' + digitsOnly.slice(2)
     }
   }
 
@@ -79,9 +83,13 @@ export const handleSmartDateInput = (value, oldValue = '') => {
 
   if (digitsOnly.length >= 4) {
     const month = parseInt(digitsOnly.slice(2, 4), 10)
-    // If month > 12 or 00, don't allow the second digit
-    if (month > 12 || month === 0) {
-      return null // Reject input
+    // If month > 12, auto-correct to 12 (e.g., 13 → 12, 19 → 12)
+    if (month > 12) {
+      digitsOnly = digitsOnly.slice(0, 2) + '12' + digitsOnly.slice(4)
+    }
+    // If month is 00, auto-correct to 01
+    else if (month === 0) {
+      digitsOnly = digitsOnly.slice(0, 2) + '01' + digitsOnly.slice(4)
     }
   }
 
