@@ -45,7 +45,7 @@ const RenewTemporaryPermitOtherStateModal = ({ isOpen, onClose, onSubmit, oldPer
     }
   }, [oldPermit, isOpen])
 
-  // Calculate valid to date (7 days from valid from for other state permit)
+  // Calculate valid to date (28 days from valid from for other state permit)
   useEffect(() => {
     if (formData.validFrom) {
       // Parse DD-MM-YYYY
@@ -60,8 +60,8 @@ const RenewTemporaryPermitOtherStateModal = ({ isOpen, onClose, onSubmit, oldPer
 
           if (!isNaN(validFromDate.getTime())) {
             const validToDate = new Date(validFromDate)
-            // Other state permits are typically valid for 7 days
-            validToDate.setDate(validToDate.getDate() + 7 - 1)
+            // Other state permits are typically valid for 28 days (including start date)
+            validToDate.setDate(validToDate.getDate() + 27) // 28 days including start date
 
             const newDay = String(validToDate.getDate()).padStart(2, '0')
             const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
@@ -379,7 +379,7 @@ const RenewTemporaryPermitOtherStateModal = ({ isOpen, onClose, onSubmit, oldPer
             <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-blue-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                Validity Period (7 Days)
+                Validity Period
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
@@ -398,12 +398,13 @@ const RenewTemporaryPermitOtherStateModal = ({ isOpen, onClose, onSubmit, oldPer
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                     required
                   />
+                  <p className='text-xs text-gray-500 mt-1'>Smart input: type 5 → 05-, auto-expands years</p>
                 </div>
 
                 {/* Valid To (Auto-calculated) */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid To <span className='text-xs text-blue-500'>(Auto-calculated - 7 Days)</span>
+                    Valid To <span className='text-xs text-blue-500'>(Auto-calculated)</span>
                   </label>
                   <input
                     type='text'
@@ -411,9 +412,10 @@ const RenewTemporaryPermitOtherStateModal = ({ isOpen, onClose, onSubmit, oldPer
                     value={formData.validTo}
                     onChange={handleChange}
                     onBlur={handleDateBlur}
-                    placeholder='DD-MM-YYYY (auto-calculated)'
+                    placeholder='Auto-calculated (28 days)'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50/50'
                   />
+                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated: 28 days from Valid From date</p>
                 </div>
               </div>
             </div>

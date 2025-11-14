@@ -68,37 +68,91 @@ const RenewTemporaryPermitModal = ({ isOpen, onClose, onSubmit, oldPermit }) => 
     }
   }, [oldPermit, isOpen])
 
-  // Calculate valid to date (30 days from valid from for temporary permit)
+  // Calculate valid to date based on vehicle type (CV=3 months, PV=4 months)
   useEffect(() => {
-    if (formData.validFrom) {
-      // Parse DD-MM-YYYY
-      const parts = formData.validFrom.split(/[/-]/)
-      if (parts.length === 3) {
-        const day = parseInt(parts[0], 10)
-        const month = parseInt(parts[1], 10) - 1
-        const year = parseInt(parts[2], 10)
-
-        if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
-          const validFromDate = new Date(year, month, day)
-
-          if (!isNaN(validFromDate.getTime())) {
-            const validToDate = new Date(validFromDate)
-            // Temporary permits are typically valid for 30 days
-            validToDate.setDate(validToDate.getDate() + 30 - 1)
-
-            const newDay = String(validToDate.getDate()).padStart(2, '0')
-            const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
-            const newYear = validToDate.getFullYear()
-
-            setFormData(prev => ({
-              ...prev,
-              validTo: `${newDay}-${newMonth}-${newYear}`
-            }))
-          }
-        }
-      }
+    // Only calculate if both validFrom and vehicleType are present
+    if (!formData.validFrom || !formData.vehicleType) {
+      return
     }
-  }, [formData.validFrom])
+
+    // Parse DD-MM-YYYY format (with dashes)
+    const parts = formData.validFrom.trim().split('-')
+
+    // Need exactly 3 parts (day, month, year)
+    if (parts.length !== 3) {
+      return
+    }
+
+    const day = parseInt(parts[0], 10)
+    const month = parseInt(parts[1], 10)
+    const year = parseInt(parts[2], 10)
+
+    // Validate the parsed values
+    if (isNaN(day) || isNaN(month) || isNaN(year)) {
+      return
+    }
+
+    // Year should be 4 digits and reasonable
+    if (year < 1900 || year > 2100) {
+      return
+    }
+
+    // Month should be 1-12
+    if (month < 1 || month > 12) {
+      return
+    }
+
+    // Day should be 1-31 (basic check)
+    if (day < 1 || day > 31) {
+      return
+    }
+
+    // Create date object (month is 0-indexed in JavaScript)
+    const validFromDate = new Date(year, month - 1, day)
+
+    // Check if the date is valid (handles invalid dates like Feb 30)
+    if (isNaN(validFromDate.getTime())) {
+      return
+    }
+
+    // Verify the date object has the same day/month/year we set
+    // (protects against dates like "31/02/2025" which JavaScript adjusts)
+    if (validFromDate.getDate() !== day ||
+        validFromDate.getMonth() !== month - 1 ||
+        validFromDate.getFullYear() !== year) {
+      return
+    }
+
+    // Determine months to add based on vehicle type
+    let monthsToAdd = 0
+    if (formData.vehicleType === 'CV') {
+      monthsToAdd = 3
+    } else if (formData.vehicleType === 'PV') {
+      monthsToAdd = 4
+    } else {
+      return
+    }
+
+    // Calculate valid to date
+    const validToDate = new Date(validFromDate)
+    validToDate.setMonth(validToDate.getMonth() + monthsToAdd)
+    // Subtract 1 day because Valid From counts as day 1
+    validToDate.setDate(validToDate.getDate() - 1)
+
+    // Format date to DD-MM-YYYY (with dashes to match input format)
+    const newDay = String(validToDate.getDate()).padStart(2, '0')
+    const newMonth = String(validToDate.getMonth() + 1).padStart(2, '0')
+    const newYear = validToDate.getFullYear()
+    const formattedValidTo = `${newDay}-${newMonth}-${newYear}`
+
+    // Only update if the calculated value is different
+    if (formData.validTo !== formattedValidTo) {
+      setFormData(prev => ({
+        ...prev,
+        validTo: formattedValidTo
+      }))
+    }
+  }, [formData.validFrom, formData.vehicleType, formData.validTo])
 
   // Auto-calculate balance when total fee or paid changes
   useEffect(() => {
@@ -269,13 +323,13 @@ const RenewTemporaryPermitModal = ({ isOpen, onClose, onSubmit, oldPermit }) => 
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
       <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-orange-600 to-red-600 p-2 md:p-3 text-white flex-shrink-0'>
+        <div className='bg-gradient-to-r from-gray-700 to-gray-800 p-2 md:p-3 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
             <div>
               <h2 className='text-lg md:text-2xl font-bold'>
                 Renew Temporary Permit
               </h2>
-              <p className='text-orange-100 text-xs md:text-sm mt-1'>
+              <p className='text-gray-300 text-xs md:text-sm mt-1'>
                 Renew temporary permit for {oldPermit?.vehicleNumber}
               </p>
             </div>
@@ -388,7 +442,7 @@ const RenewTemporaryPermitModal = ({ isOpen, onClose, onSubmit, oldPermit }) => 
                 <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
                   Vehicle Type <span className='text-red-500'>*</span>
                   {oldPermit?.vehicleType && (
-                    <span className='ml-2 text-xs text-orange-600 font-normal'>(Pre-filled)</span>
+                    <span className='ml-2 text-xs text-gray-600 font-normal'>(Pre-filled)</span>
                   )}
                 </label>
                 <div className='grid grid-cols-2 gap-3'>
@@ -397,22 +451,22 @@ const RenewTemporaryPermitModal = ({ isOpen, onClose, onSubmit, oldPermit }) => 
                     onClick={() => setFormData(prev => ({ ...prev, vehicleType: 'CV' }))}
                     className={`px-4 py-3 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
                       formData.vehicleType === 'CV'
-                        ? 'bg-orange-600 text-white shadow-lg ring-2 ring-orange-300'
-                        : 'bg-white text-gray-700 border-2 border-orange-200 hover:border-orange-400'
+                        ? 'bg-gray-700 text-white shadow-lg ring-2 ring-gray-400'
+                        : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-500'
                     }`}
                   >
-                    Commercial Vehicle (CV)
+                    CV - Commercial Vehicle (3 months)
                   </button>
                   <button
                     type='button'
                     onClick={() => setFormData(prev => ({ ...prev, vehicleType: 'PV' }))}
                     className={`px-4 py-3 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
                       formData.vehicleType === 'PV'
-                        ? 'bg-orange-600 text-white shadow-lg ring-2 ring-orange-300'
-                        : 'bg-white text-gray-700 border-2 border-orange-200 hover:border-orange-400'
+                        ? 'bg-gray-700 text-white shadow-lg ring-2 ring-gray-400'
+                        : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-500'
                     }`}
                   >
-                    Passenger Vehicle (PV)
+                    PV - Passenger Vehicle (4 months)
                   </button>
                 </div>
               </div>
@@ -422,7 +476,7 @@ const RenewTemporaryPermitModal = ({ isOpen, onClose, onSubmit, oldPermit }) => 
             <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-blue-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                Validity Period (30 Days)
+                Validity Period
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
@@ -441,12 +495,13 @@ const RenewTemporaryPermitModal = ({ isOpen, onClose, onSubmit, oldPermit }) => 
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                     required
                   />
+                  <p className='text-xs text-gray-500 mt-1'>Smart input: type 5 → 05-, auto-expands years</p>
                 </div>
 
                 {/* Valid To (Auto-calculated) */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid To <span className='text-xs text-blue-500'>(Auto-calculated - 30 Days)</span>
+                    Valid To <span className='text-xs text-blue-500'>(Auto-calculated)</span>
                   </label>
                   <input
                     type='text'
@@ -454,9 +509,12 @@ const RenewTemporaryPermitModal = ({ isOpen, onClose, onSubmit, oldPermit }) => 
                     value={formData.validTo}
                     onChange={handleChange}
                     onBlur={handleDateBlur}
-                    placeholder='DD-MM-YYYY (auto-calculated)'
+                    placeholder='Auto-calculated'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-blue-50/50'
                   />
+                  <p className='text-xs text-gray-500 mt-1'>
+                    Auto-calculated: CV = +3 months - 1 day, PV = +4 months - 1 day
+                  </p>
                 </div>
               </div>
             </div>
@@ -719,7 +777,7 @@ const RenewTemporaryPermitModal = ({ isOpen, onClose, onSubmit, oldPermit }) => 
 
               <button
                 type='submit'
-                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-gray-700 to-gray-900 text-white rounded-lg hover:shadow-lg hover:from-gray-600 hover:to-gray-800 font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
               >
                 <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
