@@ -5,6 +5,7 @@ import PermitBillModal from '../../components/PermitBillModal'
 import SharePermitModal from '../../components/SharePermitModal'
 import IssueCgPermitModal from './components/IssueCgPermitModal'
 import EditCgPermitModal from './components/EditCgPermitModal'
+import RenewCgPermitModal from './components/RenewCgPermitModal'
 import Pagination from '../../components/Pagination'
 import ViewCgPermitModal from './components/ViewCgPermitModal'
 import AddButton from '../../components/AddButton'
@@ -146,6 +147,8 @@ const CgPermit = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
+  const [showRenewPermitModal, setShowRenewPermitModal] = useState(false)
+  const [permitToRenew, setPermitToRenew] = useState(null)
   const [showAdditionalDetails, setShowAdditionalDetails] = useState(false)
   const [loading, setLoading] = useState(true) // Re-initializing loading state
   const [error, setError] = useState(null) // Error state
@@ -244,6 +247,7 @@ const CgPermit = () => {
         balance: permit.balance || 0,
         paid: permit.paid || 0,
         status: permit.status || 'Active', // Status field for edit modal
+        isRenewed: permit.isRenewed || false, // Renewal status
         fatherName: permit.fatherName || '', // Optional field for edit modal
         email: permit.email || '', // Optional field for edit modal
         address: permit.address || 'N/A',
@@ -403,19 +407,59 @@ Thank you!`
   }
 
   const handleRenewClick = (permit) => {
-    // Pre-fill vehicle number and other details for renewal
-    setInitialPermitData({
-      vehicleNumber: permit.vehicleNo,
-      permitHolderName: permit.permitHolder || '',
-      permitType: permit.permitType || '',
-      address: permit.address || '',
-      mobileNumber: permit.mobileNumber || '',
-      chassisNumber: permit.chassisNumber || '',
-      engineNumber: permit.engineNumber || '',
-      route: permit.route || '',
-      goodsType: permit.goodsType || ''
-    })
-    setShowIssuePermitModal(true)
+    setPermitToRenew(permit)
+    setShowRenewPermitModal(true)
+  }
+
+  const handleRenewSubmit = async (formData) => {
+    try {
+      // Make POST request to renew endpoint
+      const response = await axios.post(`${API_URL}/api/cg-permits/renew`, formData)
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to renew CG permit')
+      }
+
+      // Show success message
+      toast.success('CG Permit renewed successfully!', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+
+      // Close the modal
+      setShowRenewPermitModal(false)
+      setPermitToRenew(null)
+
+      // Refresh the permits list and statistics
+      await fetchPermits()
+      await fetchStatistics()
+    } catch (error) {
+      console.error('Error renewing CG permit:', error)
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data
+
+        // Show main error message
+        const mainMessage = errorData.errorCount > 1
+          ? `${errorData.message} (${errorData.errorCount} errors)`
+          : (errorData.message || 'Failed to renew CG permit')
+
+        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
+            }, (index + 1) * 150)
+          })
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to renew CG permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
+      }
+    }
   }
 
   const handleDeletePermit = async (permit) => {
@@ -460,19 +504,8 @@ Thank you!`
 
   // Determine if renew button should be shown for a permit
   const shouldShowRenewButton = (permit) => {
-    const { status } = permit;
-
-    // Show renew button for expiring soon permits
-    if (status === 'expiring_soon') {
-      return true
-    }
-
-    // Show renew button for expired permits
-    if (status === 'expired') {
-      return true
-    }
-
-    return false
+    // Show renew button only if permit is not already renewed and status is expiring_soon or expired
+    return !permit.isRenewed && (permit.status === 'expired' || permit.status === 'expiring_soon')
   }
 
   const handleEditPermit = (permit) => {
@@ -974,6 +1007,17 @@ Thank you!`
         }}
         onSubmit={handleUpdatePermit}
         permit={editingPermit}
+      />
+
+      {/* Renew CG Permit Modal */}
+      <RenewCgPermitModal
+        isOpen={showRenewPermitModal}
+        onClose={() => {
+          setShowRenewPermitModal(false)
+          setPermitToRenew(null)
+        }}
+        onSubmit={handleRenewSubmit}
+        permitData={permitToRenew}
       />
 
       {/* Bill Modal */}

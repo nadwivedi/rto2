@@ -1174,14 +1174,166 @@ exports.downloadBillPDF = async (req, res) => {
     res.sendFile(pdfPath)
   } catch (error) {
     console.error('Error downloading bill PDF:', error)
-    
-    
+
+
     res.status(500).json({
       success: false,
       message: 'Operation failed'
-      
-      
-      
+
+
+
+    })
+  }
+}
+
+// Renew temporary permit
+exports.renewPermit = async (req, res) => {
+  try {
+    const {
+      oldPermitId,
+      permitNumber,
+      permitHolder,
+      vehicleNumber,
+      vehicleType,
+      validFrom,
+      validTo,
+      fatherName,
+      address,
+      mobileNumber,
+      email,
+      chassisNumber,
+      engineNumber,
+      ladenWeight,
+      unladenWeight,
+      totalFee,
+      paid,
+      balance,
+      notes
+    } = req.body
+
+    // Validate required fields
+    if (!oldPermitId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Old permit ID is required for renewal'
+      })
+    }
+
+    if (!permitNumber || !permitHolder || !vehicleNumber || !vehicleType || !validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number, permit holder, vehicle number, vehicle type, valid from, and valid to are required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee is required'
+      })
+    }
+
+    // Find the old permit
+    const oldPermit = await TemporaryPermit.findById(oldPermitId)
+    if (!oldPermit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Old permit record not found'
+      })
+    }
+
+    // Mark old permit as renewed
+    oldPermit.isRenewed = true
+    await oldPermit.save()
+
+    // Calculate status for new permit
+    const status = getTemporaryPermitStatus(validTo)
+
+    // Prepare new permit data
+    const newPermitData = {
+      permitNumber: permitNumber.trim(),
+      permitHolder: permitHolder.trim(),
+      vehicleNumber: vehicleNumber.trim().toUpperCase(),
+      vehicleType: vehicleType.toUpperCase(),
+      validFrom,
+      validTo,
+      totalFee: Number(totalFee),
+      paid: paid !== undefined ? Number(paid) : 0,
+      balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0),
+      status,
+      isRenewed: false  // New permit is not renewed yet
+    }
+
+    // Add optional fields if provided
+    if (fatherName && fatherName.trim() !== '') newPermitData.fatherName = fatherName.trim()
+    if (address && address.trim() !== '') newPermitData.address = address.trim()
+    if (mobileNumber && mobileNumber.trim() !== '') newPermitData.mobileNumber = mobileNumber.trim()
+    if (email && email.trim() !== '') newPermitData.email = email.trim().toLowerCase()
+    if (chassisNumber && chassisNumber.trim() !== '') newPermitData.chassisNumber = chassisNumber.trim().toUpperCase()
+    if (engineNumber && engineNumber.trim() !== '') newPermitData.engineNumber = engineNumber.trim().toUpperCase()
+    if (ladenWeight !== undefined && ladenWeight !== null) newPermitData.ladenWeight = Number(ladenWeight)
+    if (unladenWeight !== undefined && unladenWeight !== null) newPermitData.unladenWeight = Number(unladenWeight)
+    if (notes && notes.trim() !== '') newPermitData.notes = notes.trim()
+
+    // Create new permit
+    const newPermit = new TemporaryPermit(newPermitData)
+    await newPermit.save()
+
+    // Create CustomBill for new permit
+    const billNumber = await generateCustomBillNumber(CustomBill)
+    const vehicleTypeFull = newPermit.vehicleType === 'CV' ? 'Commercial Vehicle' : 'Passenger Vehicle'
+    const customBill = new CustomBill({
+      billNumber,
+      customerName: newPermit.permitHolder,
+      billDate: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
+      items: [
+        {
+          description: `Temporary Permit (Renewal - ${vehicleTypeFull})\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNumber}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}`,
+          quantity: 1,
+          rate: newPermit.totalFee,
+          amount: newPermit.totalFee
+        }
+      ],
+      totalAmount: newPermit.totalFee
+    })
+    await customBill.save()
+
+    // Update new permit with bill reference
+    newPermit.bill = customBill._id
+    await newPermit.save()
+
+    // Fire PDF generation in background
+    generateCustomBillPDF(customBill)
+      .then(pdfPath => {
+        customBill.billPdfPath = pdfPath
+        return customBill.save()
+      })
+      .then(() => {
+        console.log('Bill PDF generated successfully for renewed permit:', newPermit.permitNumber)
+      })
+      .catch(pdfError => {
+        console.error('Error generating PDF (non-critical):', pdfError)
+      })
+
+    // Return success with both old and new permits
+    res.status(201).json({
+      success: true,
+      message: 'Temporary permit renewed successfully. Bill is being generated in background.',
+      data: {
+        oldPermit,
+        newPermit
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing temporary permit:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error renewing temporary permit',
+      error: error.message
     })
   }
 }

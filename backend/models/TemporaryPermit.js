@@ -102,6 +102,12 @@ const TemporaryPermitSchema = new mongoose.Schema({
     index: true
   },
 
+  // Renewal status - set to true when this permit has been renewed
+  isRenewed: {
+    type: Boolean,
+    default: false
+  },
+
   // Admin Notes
   notes: {
     type: String,

@@ -52,6 +52,12 @@ const taxSchema = new mongoose.Schema({
     default: 'active'
   },
 
+  // Renewal status - set to true when this tax has been renewed
+  isRenewed: {
+    type: Boolean,
+    default: false
+  },
+
   bill: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CustomBill'

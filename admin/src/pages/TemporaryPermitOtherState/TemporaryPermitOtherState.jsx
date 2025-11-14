@@ -3,6 +3,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
 import IssueTemporaryPermitOtherStateModal from './components/IssueTemporaryPermitOtherStateModal'
+import RenewTemporaryPermitOtherStateModal from './components/RenewTemporaryPermitOtherStateModal'
 import EditTemporaryPermitOtherStateModal from './components/EditTemporaryPermitOtherStateModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
@@ -21,8 +22,10 @@ const TemporaryPermitOtherState = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
+  const [showRenewPermitModal, setShowRenewPermitModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
+  const [permitToRenew, setPermitToRenew] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [statusFilter, setStatusFilter] = useState('all')
@@ -135,11 +138,69 @@ const TemporaryPermitOtherState = () => {
         await axios.delete(`${API_URL}/api/temporary-permits-other-state/${id}`)
         toast.success('Permit deleted successfully')
         fetchPermits(pagination.currentPage)
+        fetchStatistics()
       } catch (error) {
         console.error('Error deleting permit:', error)
         toast.error('Failed to delete permit')
       }
     }
+  }
+
+  const handleRenewClick = (permit) => {
+    setPermitToRenew(permit)
+    setShowRenewPermitModal(true)
+  }
+
+  const handleRenewSubmit = async (formData) => {
+    setLoading(true)
+    try {
+      const response = await axios.post(`${API_URL}/api/temporary-permits-other-state/renew`, {
+        oldPermitId: formData.oldPermitId,
+        permitNumber: formData.permitNumber,
+        permitHolder: formData.permitHolder,
+        vehicleNo: formData.vehicleNo,
+        mobileNo: formData.mobileNo,
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        totalFee: parseFloat(formData.totalFee),
+        paid: parseFloat(formData.paid),
+        balance: parseFloat(formData.balance),
+        notes: formData.notes
+      })
+
+      if (response.data.success) {
+        toast.success('Temporary permit (other state) renewed successfully!', {
+          position: 'top-right',
+          autoClose: 3000
+        })
+        setShowRenewPermitModal(false)
+        setPermitToRenew(null)
+        await fetchPermits()
+        await fetchStatistics()
+      } else {
+        toast.error(`Error: ${response.data.message}`, {
+          position: 'top-right',
+          autoClose: 3000
+        })
+      }
+    } catch (error) {
+      console.error('Error renewing temporary permit (other state):', error)
+      toast.error(
+        error.response?.data?.message || 'Failed to renew temporary permit (other state).',
+        {
+          position: 'top-right',
+          autoClose: 3000
+        }
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Determine if renew button should be shown for a permit
+  const shouldShowRenewButton = (permit) => {
+    // Simple logic: show renew button only if not renewed and status is expired or expiring_soon
+    return !permit.isRenewed && (permit.status === 'expired' || permit.status === 'expiring_soon')
   }
 
   return (
@@ -248,6 +309,17 @@ const TemporaryPermitOtherState = () => {
                           </div>
                         </div>
                         <div className='flex items-center gap-1.5'>
+                          {shouldShowRenewButton(permit) && (
+                            <button
+                              onClick={() => handleRenewClick(permit)}
+                              className='p-1.5 text-green-600 hover:bg-green-100 rounded-lg transition-all'
+                              title='Renew'
+                            >
+                              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                              </svg>
+                            </button>
+                          )}
                           <button
                             onClick={() => handleEditPermit(permit)}
                             className='p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-all'
@@ -500,8 +572,20 @@ const TemporaryPermitOtherState = () => {
                           </span>
                         </td>
                         <td className='px-1 py-5'>
-                          <div className='flex items-center justify-center gap-'>
+                          <div className='flex items-center justify-center gap-2'>
 
+                            {/* renew button */}
+                            {shouldShowRenewButton(permit) && (
+                              <button
+                                onClick={() => handleRenewClick(permit)}
+                                className='p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                                title='Renew Permit'
+                              >
+                                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                                </svg>
+                              </button>
+                            )}
 
                             {/* edit button */}
                             <button
@@ -572,9 +656,21 @@ const TemporaryPermitOtherState = () => {
           onPermitIssued={() => {
             setShowIssuePermitModal(false)
             fetchPermits(pagination.currentPage)
+            fetchStatistics()
           }}
         />
       )}
+
+      {/* Renew Temporary Permit (Other State) Modal */}
+      <RenewTemporaryPermitOtherStateModal
+        isOpen={showRenewPermitModal}
+        onClose={() => {
+          setShowRenewPermitModal(false)
+          setPermitToRenew(null)
+        }}
+        onSubmit={handleRenewSubmit}
+        oldPermit={permitToRenew}
+      />
 
       {showEditPermitModal && editingPermit && (
         <EditTemporaryPermitOtherStateModal
@@ -587,6 +683,7 @@ const TemporaryPermitOtherState = () => {
             setShowEditPermitModal(false)
             setEditingPermit(null)
             fetchPermits(pagination.currentPage)
+            fetchStatistics()
           }}
         />
       )}

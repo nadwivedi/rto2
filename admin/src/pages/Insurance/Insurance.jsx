@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import AddInsuranceModal from "./components/AddInsuranceModal";
+import RenewInsuranceModal from "./components/RenewInsuranceModal";
 import Pagination from "../../components/Pagination";
 import AddButton from "../../components/AddButton";
 import SearchBar from "../../components/SearchBar";
@@ -22,6 +23,8 @@ const Insurance = () => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
+  const [insuranceToRenew, setInsuranceToRenew] = useState(null);
   const [selectedInsurance, setSelectedInsurance] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState("All");
@@ -167,18 +170,39 @@ const Insurance = () => {
   };
 
   const handleRenewClick = (insurance) => {
-    // Pre-fill vehicle number and other details for renewal
-    setInitialInsuranceData({
-      vehicleNumber: insurance.vehicleNumber,
-      vehicleType: insurance.vehicleType || "",
-      ownerName: insurance.ownerName || "",
-      insuranceCompany: insurance.insuranceCompany || "",
-      policyType: insurance.policyType || "",
-      mobileNumber: insurance.mobileNumber || "",
-      agentName: insurance.agentName || "",
-      agentContact: insurance.agentContact || "",
-    });
-    setIsAddModalOpen(true);
+    setInsuranceToRenew(insurance);
+    setIsRenewModalOpen(true);
+  };
+
+  const handleRenewSubmit = async (formData) => {
+    try {
+      // Make POST request to renew endpoint
+      const response = await axios.post(`${API_URL}/api/insurance/renew`, formData);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to renew insurance');
+      }
+
+      // Show success message
+      toast.success('Insurance renewed successfully!', {
+        position: 'top-right',
+        autoClose: 3000
+      });
+
+      // Close the modal
+      setIsRenewModalOpen(false);
+      setInsuranceToRenew(null);
+
+      // Refresh the insurance list and statistics
+      await fetchInsurances();
+      await fetchStatistics();
+    } catch (error) {
+      console.error('Error renewing insurance:', error);
+      toast.error(`Failed to renew insurance: ${error.message}`, {
+        position: 'top-right',
+        autoClose: 5000
+      });
+    }
   };
 
   const handleEditClick = (insurance) => {
@@ -264,17 +288,8 @@ const Insurance = () => {
 
   // Determine if renew button should be shown for an insurance
   const shouldShowRenewButton = (insurance) => {
-    // Show renew button for expiring soon insurances
-    if (insurance.status === "expiring_soon") {
-      return true;
-    }
-
-    // Show renew button for expired insurances
-    if (insurance.status === "expired") {
-      return true;
-    }
-
-    return false;
+    // Show renew button only if insurance is not already renewed and status is expiring_soon or expired
+    return !insurance.isRenewed && (insurance.status === 'expired' || insurance.status === 'expiring_soon');
   };
 
   const handleFilterChange = (filterType, value) => {
@@ -791,6 +806,17 @@ const Insurance = () => {
             onSubmit={handleEditInsurance}
             initialData={selectedInsurance} // Pass selected insurance data for editing
             isEditMode={true}
+          />
+
+          {/* Renew Insurance Modal */}
+          <RenewInsuranceModal
+            isOpen={isRenewModalOpen}
+            onClose={() => {
+              setIsRenewModalOpen(false);
+              setInsuranceToRenew(null);
+            }}
+            onSubmit={handleRenewSubmit}
+            insuranceData={insuranceToRenew}
           />
         </div>
       </div>

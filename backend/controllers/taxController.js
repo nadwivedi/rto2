@@ -657,3 +657,137 @@ exports.getPendingPaymentTaxes = async (req, res) => {
     })
   }
 };
+
+// Renew tax record
+exports.renewTax = async (req, res) => {
+  try {
+    const {
+      oldTaxId,
+      receiptNo,
+      vehicleNumber,
+      ownerName,
+      totalAmount,
+      paidAmount,
+      balanceAmount,
+      taxFrom,
+      taxTo
+    } = req.body
+
+    // Validate required fields
+    if (!oldTaxId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Old tax ID is required for renewal'
+      })
+    }
+
+    if (!receiptNo || !vehicleNumber || !taxFrom || !taxTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Receipt number, vehicle number, tax from, and tax to are required'
+      })
+    }
+
+    if(totalAmount === undefined || totalAmount === null || paidAmount === undefined || paidAmount === null || balanceAmount === undefined || balanceAmount === null){
+      return res.status(400).json({success:false , message:'total amount, paid amount, and balance amount are required'})
+    }
+
+    // Validate that paid amount can't be greater than total amount
+    if(paidAmount > totalAmount){
+      return res.status(400).json({success:false , message:'paid amount cannot be greater than total amount'})
+    }
+
+    // Validate that balance amount can't be negative
+    if(balanceAmount < 0){
+      return res.status(400).json({success:false , message:'balance amount cannot be negative'})
+    }
+
+    // Find the old tax record
+    const oldTax = await Tax.findById(oldTaxId)
+    if (!oldTax) {
+      return res.status(404).json({
+        success: false,
+        message: 'Old tax record not found'
+      })
+    }
+
+    // Mark old tax as renewed
+    oldTax.isRenewed = true
+    await oldTax.save()
+
+    // Calculate status for new tax
+    const status = getTaxStatus(taxTo);
+
+    // Create new tax record
+    const newTax = new Tax({
+      receiptNo,
+      vehicleNumber,
+      ownerName,
+      totalAmount,
+      paidAmount,
+      balanceAmount,
+      taxFrom,
+      taxTo,
+      status,
+      isRenewed: false  // New tax is not renewed yet
+    })
+
+    await newTax.save()
+
+    // Create CustomBill for new tax
+    const billNumber = await generateCustomBillNumber(CustomBill)
+    const customBill = new CustomBill({
+      billNumber,
+      customerName: `Vehicle: ${newTax.vehicleNumber}`,
+      billDate: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
+      items: [
+        {
+          description: `Tax Payment (Renewal)\nReceipt No: ${newTax.receiptNo}\nVehicle No: ${newTax.vehicleNumber}\nTax Period: ${newTax.taxFrom} to ${newTax.taxTo}`,
+          quantity: 1,
+          rate: newTax.totalAmount,
+          amount: newTax.totalAmount
+        }
+      ],
+      totalAmount: newTax.totalAmount
+    })
+    await customBill.save()
+
+    // Update new tax with bill reference
+    newTax.bill = customBill._id
+    await newTax.save()
+
+    // Fire PDF generation in background
+    generateCustomBillPDF(customBill)
+      .then(pdfPath => {
+        customBill.billPdfPath = pdfPath
+        return customBill.save()
+      })
+      .then(() => {
+        console.log('Bill PDF generated successfully for renewed tax:', newTax.receiptNo)
+      })
+      .catch(pdfError => {
+        console.error('Error generating PDF (non-critical):', pdfError)
+      })
+
+    // Return success with both old and new tax records
+    res.status(201).json({
+      success: true,
+      message: 'Tax renewed successfully. Bill is being generated in background.',
+      data: {
+        oldTax,
+        newTax
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing tax record:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error renewing tax record',
+      error: error.message
+    })
+  }
+};

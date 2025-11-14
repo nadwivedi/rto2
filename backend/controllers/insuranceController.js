@@ -651,3 +651,107 @@ exports.getStatistics = async (req, res) => {
   }
 }
 
+// Renew insurance
+exports.renewInsurance = async (req, res) => {
+  try {
+    const {
+      oldInsuranceId,
+      policyNumber,
+      vehicleNumber,
+      mobileNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      remarks
+    } = req.body
+
+    // Validate required fields
+    if (!oldInsuranceId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Old insurance ID is required'
+      })
+    }
+
+    if (!policyNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Policy number is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required'
+      })
+    }
+
+    if (!validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid from and valid to dates are required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee, paid amount, and balance are required'
+      })
+    }
+
+    // Find the old insurance
+    const oldInsurance = await Insurance.findById(oldInsuranceId)
+
+    if (!oldInsurance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Old insurance record not found'
+      })
+    }
+
+    // Mark old insurance as renewed
+    oldInsurance.isRenewed = true
+    await oldInsurance.save()
+
+    // Calculate status for new insurance
+    const status = getInsuranceStatus(validTo)
+
+    // Create new insurance record
+    const newInsurance = new Insurance({
+      policyNumber: policyNumber.trim().toUpperCase(),
+      vehicleNumber: vehicleNumber.trim().toUpperCase(),
+      mobileNumber: mobileNumber ? mobileNumber.trim() : undefined,
+      validFrom: validFrom.trim(),
+      validTo: validTo.trim(),
+      totalFee: Number(totalFee),
+      paid: Number(paid),
+      balance: Number(balance),
+      status,
+      isRenewed: false,  // New insurance is not renewed yet
+      remarks: remarks ? remarks.trim() : undefined
+    })
+
+    await newInsurance.save()
+
+    res.status(201).json({
+      success: true,
+      message: 'Insurance renewed successfully',
+      data: {
+        oldInsurance,
+        newInsurance
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing insurance:', error)
+    res.status(400).json({
+      success: false,
+      message: 'Failed to renew insurance',
+      error: error.message
+    })
+  }
+}
+

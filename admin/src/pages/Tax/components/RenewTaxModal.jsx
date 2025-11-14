@@ -1,17 +1,12 @@
 import { useState, useEffect } from 'react'
-import { handleDateBlur as utilHandleDateBlur, handleSmartDateInput } from '../../../utils/dateFormatter'
-import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
+import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
-const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
+const RenewTaxModal = ({ isOpen, onClose, onSubmit, oldTax }) => {
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
-  const [dateError, setDateError] = useState({ taxFrom: '', taxTo: '' })
-  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
-  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
-
   const [formData, setFormData] = useState({
     receiptNo: '',
     vehicleNumber: '',
@@ -23,22 +18,18 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     taxTo: ''
   })
   const [taxPeriod, setTaxPeriod] = useState('Q1') // Q1=3mo, Q2=6mo, Q3=9mo, Q4=12mo
+  const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
-  // Validate date and check if it's valid
-  const isValidDate = (day, month, year) => {
-    // Basic range checks
-    if (day < 1 || day > 31) return false
-    if (month < 1 || month > 12) return false
-    if (year < 1900 || year > 2100) return false
-
-    // Check days in month
-    const daysInMonth = new Date(year, month, 0).getDate()
-    return day <= daysInMonth
-  }
-
-  // Reset form when modal closes
+  // Pre-fill vehicle number and owner name when oldTax is provided
   useEffect(() => {
-    if (!isOpen) {
+    if (oldTax && isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: oldTax.vehicleNumber || '',
+        ownerName: oldTax.ownerName || ''
+      }))
+    } else if (!isOpen) {
+      // Reset form when modal closes
       setFormData({
         receiptNo: '',
         vehicleNumber: '',
@@ -49,58 +40,11 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
         taxFrom: '',
         taxTo: ''
       })
-      setTaxPeriod('Q1') // Reset to Q1
-      setDateError({ taxFrom: '', taxTo: '' })
+      setTaxPeriod('Q1')
+      setPaidExceedsTotal(false)
       setVehicleError('')
-      setFetchingVehicle(false)
     }
-  }, [isOpen])
-
-  // Fetch vehicle details when registration number is entered
-  useEffect(() => {
-    const fetchVehicleDetails = async () => {
-      const registrationNum = formData.vehicleNumber.trim()
-
-      // Only fetch if registration number has at least 10 characters (complete registration number like CG12AA4793)
-      if (registrationNum.length < 10) {
-        setVehicleError('')
-        return
-      }
-
-      setFetchingVehicle(true)
-      setVehicleError('')
-
-      try {
-        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
-        const data = await response.json()
-
-        if (response.ok && data.success) {
-          // Auto-fill the owner name from vehicle registration
-          setFormData(prev => ({ 
-            ...prev,
-            ownerName: data.data.ownerName || prev.ownerNam
-          }))
-          setVehicleError('')
-        } else {
-          setVehicleError('Vehicle not found in registration database')
-        }
-      } catch (error) {
-        console.error('Error fetching vehicle details:', error)
-        setVehicleError('Error fetching vehicle details')
-      } finally {
-        setFetchingVehicle(false)
-      }
-    }
-
-    // Debounce the API call - wait 500ms after user stops typing
-    const timeoutId = setTimeout(() => {
-      if (formData.vehicleNumber) {
-        fetchVehicleDetails()
-      }
-    }, 500) // Wait 500ms after user stops typing
-
-    return () => clearTimeout(timeoutId)
-  }, [formData.vehicleNumber])
+  }, [oldTax, isOpen])
 
   // Calculate tax to date based on selected quarter period
   useEffect(() => {
@@ -194,22 +138,6 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Handle vehicle number with format enforcement and validation
-    if (name === 'vehicleNumber') {
-      // Enforce format: only allow correct characters at each position
-      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
-
-      // Validate in real-time
-      const validation = validateVehicleNumberRealtime(enforcedValue)
-      setVehicleValidation(validation)
-
-      setFormData(prev => ({
-        ...prev,
-        [name]: enforcedValue
-      }))
-      return
-    }
-
     // Remove dashes from receipt number to store as uppercase
     if (name === 'receiptNo') {
       const cleanedValue = value.replace(/-/g, '').toUpperCase()
@@ -233,109 +161,119 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     }
 
     // Convert owner name to uppercase
-    const uppercaseFields = ['ownerName']
-    const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
+    if (name === 'ownerName') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value.toUpperCase()
+      }))
+      return
+    }
 
     setFormData(prev => ({
       ...prev,
-      [name]: finalValue
+      [name]: value
     }))
   }
 
   const handleDateBlur = (e) => {
     const { name, value } = e.target
 
-    // Only format date fields
-    if (name === 'taxFrom' || name === 'taxTo') {
-      if (!value.trim()) {
-        setDateError(prev => ({ ...prev, [name]: '' }))
-        return
+    if (!value) return // Skip if empty
+
+    // Remove all non-digit characters
+    let digitsOnly = value.replace(/[^\d]/g, '')
+
+    // Limit to 8 digits (DDMMYYYY)
+    digitsOnly = digitsOnly.slice(0, 8)
+
+    // Parse parts
+    let day = ''
+    let month = ''
+    let year = ''
+
+    if (digitsOnly.length >= 2) {
+      day = digitsOnly.slice(0, 2)
+      let dayNum = parseInt(day, 10)
+
+      // Validate day: 01-31
+      if (dayNum === 0) dayNum = 1
+      if (dayNum > 31) dayNum = 31
+      day = String(dayNum).padStart(2, '0')
+    } else if (digitsOnly.length === 1) {
+      day = '0' + digitsOnly[0]
+    }
+
+    if (digitsOnly.length >= 4) {
+      month = digitsOnly.slice(2, 4)
+      let monthNum = parseInt(month, 10)
+
+      // Validate month: 01-12
+      if (monthNum === 0) monthNum = 1
+      if (monthNum > 12) monthNum = 12
+      month = String(monthNum).padStart(2, '0')
+    } else if (digitsOnly.length === 3) {
+      month = '0' + digitsOnly[2]
+    }
+
+    if (digitsOnly.length >= 5) {
+      year = digitsOnly.slice(4)
+
+      // Auto-expand 2-digit year to 4-digit
+      if (year.length === 2) {
+        const yearNum = parseInt(year, 10)
+        year = String(yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum)
+      } else if (year.length === 4) {
+        // Keep as is
+      } else if (year.length > 4) {
+        year = year.slice(0, 4)
+      }
+    }
+
+    // Format the date only if we have at least day and month
+    if (day && month) {
+      let formatted = `${day}-${month}`
+      if (year) {
+        formatted += `-${year}`
       }
 
-      const parts = value.split(/[/-]/)
-
-      // Only format if we have a complete date with 3 parts
-      if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
-        let day = parseInt(parts[0], 10)
-        let month = parseInt(parts[1], 10)
-        let year = parseInt(parts[2], 10)
-
-        // Auto-expand 2-digit year to 4-digit (only when exactly 2 digits)
-        if (parts[2].length === 2 && /^\d{2}$/.test(parts[2])) {
-          // Convert 2-digit year to 4-digit (00-50 → 2000-2050, 51-99 → 1951-1999)
-          year = year <= 50 ? 2000 + year : 1900 + year
-        }
-
-        // Validate the date
-        if (!isValidDate(day, month, year)) {
-          setDateError(prev => ({
-            ...prev,
-            [name]: `Invalid date. ${month === 2 ? 'February' : month === 4 || month === 6 || month === 9 || month === 11 ? 'This month' : 'This month'} ${
-              month === 2 ? 'has max 28/29 days' : month === 4 || month === 6 || month === 9 || month === 11 ? 'has max 30 days' : 'has max 31 days'
-            }`
-          }))
-          // Clear the invalid date
-          setFormData(prev => ({
-            ...prev,
-            [name]: ''
-          }))
-          return
-        }
-
-        // Clear error if date is valid
-        setDateError(prev => ({ ...prev, [name]: '' }))
-
-        // Normalize to DD-MM-YYYY format (if year is 4 digits or was expanded)
-        if (year.toString().length === 4) {
-          const formattedDay = String(day).padStart(2, '0')
-          const formattedMonth = String(month).padStart(2, '0')
-          const formattedValue = `${formattedDay}-${formattedMonth}-${year}`
-          setFormData(prev => ({
-            ...prev,
-            [name]: formattedValue
-          }))
-        }
-      } else {
-        setDateError(prev => ({ ...prev, [name]: 'Please enter date in DD-MM-YYYY or DD/MM/YYYY format' }))
-      }
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
     }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Validate vehicle number before submitting
-    if (!vehicleValidation.isValid && formData.vehicleNumber) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
-      return
-    }
-
     // Validate paid amount doesn't exceed total fee
     if (paidExceedsTotal) {
-      alert('Paid amount cannot be more than the total fee!')
+      alert('Paid amount cannot be more than the total amount!')
       return
     }
 
-    if (onSubmit) {
-      onSubmit(formData)
+    if (onSubmit && oldTax) {
+      // Pass formData along with oldTaxId
+      onSubmit({
+        ...formData,
+        oldTaxId: oldTax._id || oldTax.id
+      })
     }
+
     // Reset form
     setFormData({
       receiptNo: '',
       vehicleNumber: '',
       ownerName: '',
-      totalAmount: '0',
-      paidAmount: '0',
-      balance: '0',
+      totalAmount: '',
+      paidAmount: '',
+      balance: '',
       taxFrom: '',
       taxTo: ''
     })
-    setTaxPeriod('Q1') // Reset to Q1
-    setDateError({ taxFrom: '', taxTo: '' })
-    setVehicleError('')
-    setFetchingVehicle(false)
-    setVehicleValidation({ isValid: false, message: '' })
+    setTaxPeriod('Q1')
     setPaidExceedsTotal(false)
+    setVehicleError('')
     onClose()
   }
 
@@ -345,14 +283,14 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
       <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-2 md:p-3 text-white flex-shrink-0'>
+        <div className='bg-gradient-to-r from-purple-600 to-pink-600 p-2 md:p-3 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
             <div>
               <h2 className='text-lg md:text-2xl font-bold'>
-                Add New Tax Record
+                Renew Tax Record
               </h2>
-              <p className='text-blue-100 text-xs md:text-sm mt-1'>
-                Quarterly vehicle tax payment record (3 months)
+              <p className='text-purple-100 text-xs md:text-sm mt-1'>
+                Renew tax for {oldTax?.vehicleNumber}
               </p>
             </div>
             <button
@@ -369,65 +307,55 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
         {/* Form Content */}
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+            {/* Old Tax Info Banner */}
+            {oldTax && (
+              <div className='bg-amber-50 border-l-4 border-amber-500 p-3 md:p-4 rounded mb-4 md:mb-6'>
+                <div className='flex items-start gap-2'>
+                  <svg className='w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                  <div>
+                    <p className='text-sm md:text-base font-semibold text-amber-800'>Renewing Existing Tax</p>
+                    <p className='text-xs md:text-sm text-amber-700 mt-1'>
+                      Vehicle: <span className='font-mono font-bold'>{oldTax.vehicleNumber}</span> |
+                      Previous Period: {oldTax.taxFrom} to {oldTax.taxTo}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Section 1: Vehicle & Receipt Details */}
-            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
+                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
                 Vehicle & Receipt Details
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
-                {/* Vehicle Number */}
+                {/* Vehicle Number - Read Only */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
+                    <span className='ml-2 text-xs text-purple-600 font-normal'>(Auto-filled from existing record)</span>
                   </label>
                   <div className='relative'>
                     <input
                       type='text'
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
-                      onChange={handleChange}
-                      placeholder='CG04AA1234'
+                      placeholder='Vehicle Number'
                       maxLength='10'
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
-                        formData.vehicleNumber && !vehicleValidation.isValid
-                          ? 'border-red-500 focus:ring-red-500'
-                          : formData.vehicleNumber && vehicleValidation.isValid
-                          ? 'border-green-500 focus:ring-green-500'
-                          : 'border-gray-300 focus:ring-indigo-500'
-                      }`}
+                      className='w-full px-3 py-2 border border-purple-300 rounded-lg bg-purple-50 font-mono font-semibold text-gray-700'
+                      readOnly
                       required
-                      autoFocus
                     />
-                    {fetchingVehicle && (
-                      <div className='absolute right-3 top-2.5'>
-                        <svg className='animate-spin h-5 w-5 text-indigo-500' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
-                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
-                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
-                        </svg>
-                      </div>
-                    )}
-                    {!fetchingVehicle && vehicleValidation.isValid && formData.vehicleNumber && (
-                      <div className='absolute right-3 top-2.5'>
-                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                        </svg>
-                      </div>
-                    )}
+                    <div className='absolute right-3 top-2.5'>
+                      <svg className='h-5 w-5 text-purple-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' />
+                      </svg>
+                    </div>
                   </div>
-                  {vehicleValidation.message && !fetchingVehicle && (
-                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
-                      {vehicleValidation.message}
-                    </p>
-                  )}
-                  {vehicleError && (
-                    <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
-                  )}
-                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.ownerName && vehicleValidation.isValid && (
-                    <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner name auto-filled</p>
-                  )}
-                 
                 </div>
 
                 {/* Receipt Number */}
@@ -441,8 +369,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.receiptNo}
                     onChange={handleChange}
                     placeholder='RCP001'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono uppercase'
                     required
+                    autoFocus
                   />
                 </div>
 
@@ -450,6 +379,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Owner Name
+                    {oldTax?.ownerName && (
+                      <span className='ml-2 text-xs text-purple-600 font-normal'>(Pre-filled)</span>
+                    )}
                   </label>
                   <input
                     type='text'
@@ -457,7 +389,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.ownerName}
                     onChange={handleChange}
                     placeholder='Enter owner name'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
+                      oldTax?.ownerName ? 'bg-purple-50' : ''
+                    }`}
                   />
                 </div>
               </div>
@@ -481,7 +415,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     name='totalAmount'
                     value={formData.totalAmount}
                     onChange={handleChange}
-                    placeholder=''
+                    placeholder='0'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -497,7 +431,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     name='paidAmount'
                     value={formData.paidAmount}
                     onChange={handleChange}
-                    placeholder=''
+                    placeholder='0'
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
@@ -507,7 +441,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                   />
                   {paidExceedsTotal && (
                     <p className='text-xs mt-1 text-red-600 font-semibold'>
-                      Paid amount cannot exceed total fee!
+                      Paid amount cannot exceed total amount!
                     </p>
                   )}
                 </div>
@@ -551,9 +485,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             {/* Section 3: Tax Period */}
-            <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
+                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
                 Tax Period
               </h3>
 
@@ -568,8 +502,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     onClick={() => setTaxPeriod('Q1')}
                     className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
                       taxPeriod === 'Q1'
-                        ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
-                        : 'bg-white text-gray-700 border-2 border-purple-200 hover:border-purple-400'
+                        ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-300'
+                        : 'bg-white text-gray-700 border-2 border-indigo-200 hover:border-indigo-400'
                     }`}
                   >
                     Q1
@@ -580,8 +514,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     onClick={() => setTaxPeriod('Q2')}
                     className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
                       taxPeriod === 'Q2'
-                        ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
-                        : 'bg-white text-gray-700 border-2 border-purple-200 hover:border-purple-400'
+                        ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-300'
+                        : 'bg-white text-gray-700 border-2 border-indigo-200 hover:border-indigo-400'
                     }`}
                   >
                     Q2
@@ -592,8 +526,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     onClick={() => setTaxPeriod('Q3')}
                     className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
                       taxPeriod === 'Q3'
-                        ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
-                        : 'bg-white text-gray-700 border-2 border-purple-200 hover:border-purple-400'
+                        ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-300'
+                        : 'bg-white text-gray-700 border-2 border-indigo-200 hover:border-indigo-400'
                     }`}
                   >
                     Q3
@@ -604,8 +538,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     onClick={() => setTaxPeriod('Q4')}
                     className={`px-3 py-2 rounded-lg font-semibold text-sm transition-all cursor-pointer ${
                       taxPeriod === 'Q4'
-                        ? 'bg-purple-600 text-white shadow-lg ring-2 ring-purple-300'
-                        : 'bg-white text-gray-700 border-2 border-purple-200 hover:border-purple-400'
+                        ? 'bg-indigo-600 text-white shadow-lg ring-2 ring-indigo-300'
+                        : 'bg-white text-gray-700 border-2 border-indigo-200 hover:border-indigo-400'
                     }`}
                   >
                     Q4
@@ -627,19 +561,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                      dateError.taxFrom ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
-                  {dateError.taxFrom && (
-                    <p className='text-xs text-red-600 mt-1 flex items-center gap-1'>
-                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
-                        <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
-                      </svg>
-                      {dateError.taxFrom}
-                    </p>
-                  )}
                 </div>
 
                 {/* Tax To (Auto-calculated) */}
@@ -654,18 +578,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (auto-calculated)'
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50 ${
-                      dateError.taxTo ? 'border-red-500 bg-red-50' : 'border-gray-300'
-                    }`}
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
                   />
-                  {dateError.taxTo && (
-                    <p className='text-xs text-red-600 mt-1 flex items-center gap-1'>
-                      <svg className='w-3 h-3' fill='currentColor' viewBox='0 0 20 20'>
-                        <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
-                      </svg>
-                      {dateError.taxTo}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -688,12 +602,12 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
 
               <button
                 type='submit'
-                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
               >
                 <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
                 </svg>
-                Add Tax Record
+                Renew Tax
               </button>
             </div>
           </div>
@@ -703,4 +617,4 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
   )
 }
 
-export default AddTaxModal
+export default RenewTaxModal

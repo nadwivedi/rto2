@@ -32,6 +32,9 @@ router.get('/number/:permitNumber', temporaryPermitController.getPermitByNumber)
 // POST create new temporary permit
 router.post('/', temporaryPermitController.createPermit)
 
+// POST renew temporary permit
+router.post('/renew', temporaryPermitController.renewPermit)
+
 // PUT update temporary permit
 router.put('/:id', temporaryPermitController.updatePermit)
 

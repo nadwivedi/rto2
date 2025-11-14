@@ -1012,3 +1012,144 @@ exports.downloadBillPDF = async (req, res) => {
     })
   }
 }
+
+// Renew CG permit
+exports.renewPermit = async (req, res) => {
+  try {
+    const {
+      oldPermitId,
+      permitNumber,
+      permitHolder,
+      vehicleNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      fatherName,
+      mobileNumber,
+      email,
+      notes
+    } = req.body
+
+    // Validate required fields
+    if (!oldPermitId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Old permit ID is required for renewal'
+      })
+    }
+
+    if (!permitNumber || !permitHolder || !vehicleNumber || !validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number, permit holder, vehicle number, valid from, and valid to are required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee, paid amount, and balance are required'
+      })
+    }
+
+    // Find the old permit
+    const oldPermit = await CgPermit.findById(oldPermitId)
+    if (!oldPermit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Old permit record not found'
+      })
+    }
+
+    // Mark old permit as renewed
+    oldPermit.isRenewed = true
+    await oldPermit.save()
+
+    // Calculate status for new permit
+    const status = getCgPermitStatus(validTo)
+
+    // Prepare validated permit data
+    const permitData = {
+      permitNumber: permitNumber.trim(),
+      permitHolder: permitHolder.trim(),
+      vehicleNumber: vehicleNumber.trim().toUpperCase(),
+      validFrom: validFrom.trim(),
+      validTo: validTo.trim(),
+      totalFee: Number(totalFee),
+      paid: Number(paid),
+      balance: Number(balance),
+      fatherName: fatherName ? fatherName.trim() : undefined,
+      mobileNumber: mobileNumber ? mobileNumber.trim() : undefined,
+      email: email ? email.trim() : undefined,
+      notes: notes ? notes.trim() : undefined,
+      status,
+      isRenewed: false  // New permit is not renewed yet
+    }
+
+    // Create new CG permit without bill reference first
+    const newPermit = new CgPermit(permitData)
+    await newPermit.save()
+
+    // Generate bill number and create CustomBill
+    const billNumber = await generateCustomBillNumber(CustomBill)
+    const customBill = new CustomBill({
+      billNumber,
+      customerName: newPermit.permitHolder,
+      billDate: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
+      items: [
+        {
+          description: `CG Permit (Renewal)\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNumber}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}`,
+          quantity: 1,
+          rate: newPermit.totalFee,
+          amount: newPermit.totalFee
+        }
+      ],
+      totalAmount: newPermit.totalFee
+    })
+    await customBill.save()
+
+    // Update permit with bill reference
+    newPermit.bill = customBill._id
+    await newPermit.save()
+
+    // Fire PDF generation in background (non-blocking)
+    generateCustomBillPDF(customBill)
+      .then(pdfPath => {
+        customBill.billPdfPath = pdfPath
+        return customBill.save()
+      })
+      .then(() => {
+        console.log('Bill PDF generated successfully for renewed CG permit:', newPermit.permitNumber)
+      })
+      .catch(pdfError => {
+        console.error('Error generating PDF (non-critical):', pdfError)
+      })
+
+    // Return success with both old and new permits
+    res.status(201).json({
+      success: true,
+      message: 'CG permit renewed successfully. Bill is being generated in background.',
+      data: {
+        oldPermit,
+        newPermit
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing CG permit:', error)
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: getSimplifiedTimestamp()
+    })
+  }
+}

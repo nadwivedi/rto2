@@ -59,6 +59,12 @@ const TemporaryPermitOtherStateSchema = new mongoose.Schema({
     index: true
   },
 
+  // Renewal status - set to true when this permit has been renewed
+  isRenewed: {
+    type: Boolean,
+    default: false
+  },
+
   // Bill Reference
   bill: {
     type: mongoose.Schema.Types.ObjectId,

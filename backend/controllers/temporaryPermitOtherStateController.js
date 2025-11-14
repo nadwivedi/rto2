@@ -616,3 +616,138 @@ exports.getStatistics = async (req, res) => {
     });
   }
 };
+
+// Renew temporary permit (other state)
+exports.renewPermit = async (req, res) => {
+  try {
+    const {
+      oldPermitId,
+      permitNumber,
+      permitHolder,
+      vehicleNo,
+      mobileNo,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      notes
+    } = req.body
+
+    // Validate required fields
+    if (!oldPermitId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Old permit ID is required for renewal'
+      })
+    }
+
+    if (!permitNumber || !permitHolder || !vehicleNo || !mobileNo || !validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number, permit holder, vehicle number, mobile number, valid from, and valid to are required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee is required'
+      })
+    }
+
+    // Find the old permit
+    const oldPermit = await TemporaryPermitOtherState.findById(oldPermitId)
+    if (!oldPermit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Old permit record not found'
+      })
+    }
+
+    // Mark old permit as renewed
+    oldPermit.isRenewed = true
+    await oldPermit.save()
+
+    // Calculate status for new permit
+    const status = getTemporaryPermitOtherStateStatus(validTo)
+
+    // Create new permit
+    const newPermit = new TemporaryPermitOtherState({
+      permitNumber,
+      permitHolder,
+      vehicleNo,
+      mobileNo,
+      validFrom,
+      validTo,
+      totalFee: Number(totalFee),
+      paid: paid !== undefined ? Number(paid) : 0,
+      balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0),
+      status,
+      isRenewed: false,  // New permit is not renewed yet
+      notes: notes || ''
+    })
+
+    await newPermit.save()
+
+    // Create CustomBill for new permit
+    const billNumber = await generateCustomBillNumber(CustomBill)
+    const customBill = new CustomBill({
+      billNumber,
+      customerName: newPermit.permitHolder,
+      billDate: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
+      items: [
+        {
+          description: `Temporary Permit - Other State (Renewal)\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNo}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}`,
+          quantity: 1,
+          rate: newPermit.totalFee,
+          amount: newPermit.totalFee
+        }
+      ],
+      totalAmount: newPermit.totalFee
+    })
+    await customBill.save()
+
+    // Update new permit with bill reference
+    newPermit.bill = customBill._id
+    await newPermit.save()
+
+    // Fire PDF generation in background
+    generateCustomBillPDF(customBill)
+      .then(pdfPath => {
+        customBill.billPdfPath = pdfPath
+        return customBill.save()
+      })
+      .then(() => {
+        console.log('Bill PDF generated successfully for renewed permit (other state):', newPermit.permitNumber)
+      })
+      .catch(pdfError => {
+        console.error('Error generating PDF (non-critical):', pdfError)
+      })
+
+    // Return success with both old and new permits
+    res.status(201).json({
+      success: true,
+      message: 'Temporary permit (other state) renewed successfully. Bill is being generated in background.',
+      data: {
+        oldPermit,
+        newPermit
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing temporary permit (other state):', error)
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: getSimplifiedTimestamp()
+    })
+  }
+};

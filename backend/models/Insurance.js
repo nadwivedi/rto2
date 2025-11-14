@@ -60,6 +60,12 @@ const InsuranceSchema = new mongoose.Schema({
     default: 'active'
   },
 
+  // Renewal status - set to true when this insurance has been renewed
+  isRenewed: {
+    type: Boolean,
+    default: false
+  },
+
   // Additional Information
   remarks: {
     type: String,

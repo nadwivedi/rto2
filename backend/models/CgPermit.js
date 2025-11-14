@@ -74,6 +74,12 @@ const CgPermitSchema = new mongoose.Schema({
     index: true
   },
 
+  // Renewal status - set to true when this permit has been renewed
+  isRenewed: {
+    type: Boolean,
+    default: false
+  },
+
   // Document Uploads
   documents: {
     permitDocument: String

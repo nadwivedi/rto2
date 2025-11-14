@@ -45,10 +45,11 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
   // Pre-fill form when permitData is provided (for editing)
   useEffect(() => {
     if (permitData && isOpen) {
+      const vehicleNum = permitData.vehicleNo || ''
       setFormData({
         permitNumber: permitData.permitNumber || '',
         permitHolderName: permitData.permitHolder || '',
-        vehicleNumber: permitData.vehicleNo || '',
+        vehicleNumber: vehicleNum,
         vehicleType: permitData.vehicleType || '',
         validFrom: permitData.validFrom || '',
         validTo: permitData.validTill || '',
@@ -65,6 +66,12 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
         paid: permitData.paid?.toString() || '0',
         balance: permitData.balance?.toString() || '1000'
       })
+
+      // Validate the pre-filled vehicle number
+      if (vehicleNum) {
+        const validation = validateVehicleNumberRealtime(vehicleNum)
+        setVehicleValidation(validation)
+      }
     } else if (!isOpen) {
       // Reset form when modal closes
       setFormData({
@@ -317,11 +324,14 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Validate vehicle number before submitting
-    if (!vehicleValidation.isValid && formData.vehicleNumber) {
+    // Check if vehicle number has changed from original
+    const vehicleNumberChanged = permitData && formData.vehicleNumber !== permitData.vehicleNo
+
+    // Only validate vehicle number if it was changed
+    if (vehicleNumberChanged && !vehicleValidation.isValid && formData.vehicleNumber) {
       alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
       return
     }
@@ -333,34 +343,9 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
     }
 
     if (onSubmit) {
-      onSubmit(formData)
+      await onSubmit(formData)
+      // Parent component will close the modal after successful update
     }
-    // Reset form
-    setFormData({
-      permitNumber: '',
-      permitHolderName: '',
-      vehicleNumber: '',
-      vehicleType: '',
-      validFrom: '',
-      validTo: '',
-      fatherName: '',
-      address: '',
-      mobileNumber: '',
-      email: '',
-      chassisNumber: '',
-      engineNumber: '',
-      ladenWeight: '',
-      unladenWeight: '',
-      purpose: '',
-      totalFee: '1000',
-      paid: '0',
-      balance: '1000'
-    })
-    setShowOptionalFields(false)
-    setVehicleError('')
-    setFetchingVehicle(false)
-    setVehicleValidation({ isValid: false, message: '' })
-    onClose()
   }
 
   if (!isOpen) return null

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import AddTaxModal from "./components/AddTaxModal";
+import RenewTaxModal from "./components/RenewTaxModal";
 import AddButton from "../../components/AddButton";
 import EditTaxModal from "./components/EditTaxModal";
 import Pagination from "../../components/Pagination";
@@ -21,11 +22,12 @@ const Tax = () => {
   const [taxRecords, setTaxRecords] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTax, setSelectedTax] = useState(null);
+  const [taxToRenew, setTaxToRenew] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'active', 'expiring', 'expired'
-  const [initialTaxData, setInitialTaxData] = useState(null); // For pre-filling renewal data
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -88,6 +90,7 @@ const Tax = () => {
       if (response.data.success) {
         const transformedRecords = response.data.data.map((record) => ({
           id: record._id,
+          _id: record._id, // Keep _id for operations
           receiptNo: record.receiptNo,
           vehicleNumber: record.vehicleNumber,
           ownerName: record.ownerName,
@@ -97,6 +100,7 @@ const Tax = () => {
           taxFrom: record.taxFrom,
           taxTo: record.taxTo,
           status: record.status,
+          isRenewed: record.isRenewed || false, // IMPORTANT: Include isRenewed field
         }));
         setTaxRecords(transformedRecords);
 
@@ -235,64 +239,59 @@ const Tax = () => {
   };
 
   const handleRenewClick = (record) => {
-    // Pre-fill vehicle number and owner name for renewal
-    setInitialTaxData({
-      vehicleNumber: record.vehicleNumber,
-      ownerName: record.ownerName || "",
-    });
-    setIsAddModalOpen(true);
+    setTaxToRenew(record);
+    setIsRenewModalOpen(true);
+  };
+
+  const handleRenewSubmit = async (formData) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/tax/renew`, {
+        oldTaxId: formData.oldTaxId,
+        receiptNo: formData.receiptNo,
+        vehicleNumber: formData.vehicleNumber,
+        ownerName: formData.ownerName,
+        totalAmount: parseFloat(formData.totalAmount),
+        paidAmount: parseFloat(formData.paidAmount),
+        balanceAmount: parseFloat(formData.balance),
+        taxFrom: formData.taxFrom,
+        taxTo: formData.taxTo,
+      });
+
+      if (response.data.success) {
+        toast.success("Tax renewed successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        setIsRenewModalOpen(false);
+        setTaxToRenew(null);
+        // Refresh the list and statistics from the server
+        await fetchTaxRecords();
+        await fetchStatistics();
+      } else {
+        toast.error(`Error: ${response.data.message}`, {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error renewing tax record:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to renew tax record.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Determine if renew button should be shown for a record
   const shouldShowRenewButton = (record) => {
-    const { status } = record;
-
-    // Always show for expiring soon
-    if (status === "expiring_soon") {
-      return true;
-    }
-
-    // For expired records, apply smart logic
-    if (status === "expired") {
-      // Check if this vehicle has any active or expiring soon tax
-      const hasActiveTax = taxRecords.some((r) => {
-        if (r.vehicleNumber === record.vehicleNumber) {
-          return r.status === "active" || r.status === "expiring_soon";
-        }
-        return false;
-      });
-
-      // If vehicle has active tax, don't show renew button on expired records
-      if (hasActiveTax) {
-        return false;
-      }
-
-      // Vehicle has no active tax - show renew button only on latest expired record
-      const expiredRecordsForVehicle = taxRecords.filter((r) => {
-        return (
-          r.vehicleNumber === record.vehicleNumber && r.status === "expired"
-        );
-      });
-
-      // Find the latest expired record
-      let latestExpired = null;
-      expiredRecordsForVehicle.forEach((r) => {
-        if (!latestExpired) {
-          latestExpired = r;
-        } else {
-          const currentDate = parseDateString(r.taxTo);
-          const latestDate = parseDateString(latestExpired.taxTo);
-          if (currentDate > latestDate) {
-            latestExpired = r;
-          }
-        }
-      });
-
-      // Show button only if this is the latest expired record
-      return latestExpired && latestExpired.id === record.id;
-    }
-
-    return false;
+    // Simple logic: show renew button only if not renewed and status is expired or expiring_soon
+    return !record.isRenewed && (record.status === "expired" || record.status === "expiring_soon");
   };
 
   const handleDeleteTax = async (id) => {
@@ -831,12 +830,19 @@ const Tax = () => {
       {/* Add Tax Modal */}
       <AddTaxModal
         isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setInitialTaxData(null); // Clear initial data when closing
-        }}
+        onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddTax}
-        initialData={initialTaxData}
+      />
+
+      {/* Renew Tax Modal */}
+      <RenewTaxModal
+        isOpen={isRenewModalOpen}
+        onClose={() => {
+          setIsRenewModalOpen(false);
+          setTaxToRenew(null);
+        }}
+        onSubmit={handleRenewSubmit}
+        oldTax={taxToRenew}
       />
 
       {/* Edit Tax Modal */}

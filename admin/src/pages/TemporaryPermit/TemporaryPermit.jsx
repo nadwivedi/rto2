@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import PermitBillModal from "../../components/PermitBillModal";
 import SharePermitModal from "../../components/SharePermitModal";
 import IssueTemporaryPermitModal from "./components/IssueTemporaryPermitModal";
+import RenewTemporaryPermitModal from "./components/RenewTemporaryPermitModal";
 import EditTemporaryPermitModal from "./components/EditTemporaryPermitModal";
 import Pagination from "../../components/Pagination";
 import AddButton from "../../components/AddButton";
@@ -24,15 +25,16 @@ const TemporaryPermit = () => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [selectedPermit, setSelectedPermit] = useState(null);
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false);
+  const [showRenewPermitModal, setShowRenewPermitModal] = useState(false);
   const [showBillModal, setShowBillModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showEditPermitModal, setShowEditPermitModal] = useState(false);
   const [editingPermit, setEditingPermit] = useState(null);
+  const [permitToRenew, setPermitToRenew] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [whatsappLoading, setWhatsappLoading] = useState(null); // Track which permit is loading
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'active', 'expiring_soon', 'expired', 'pending'
-  const [initialPermitData, setInitialPermitData] = useState(null); // For pre-filling renewal data
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -112,6 +114,7 @@ const TemporaryPermit = () => {
       // Transform backend data to match frontend structure
       const transformedPermits = response.data.data.map((permit) => ({
         id: permit._id,
+        _id: permit._id, // Keep _id for operations
         permitNumber: permit.permitNumber,
         vehicleType: permit.vehicleType,
         vehicleTypeFull:
@@ -121,6 +124,7 @@ const TemporaryPermit = () => {
         validityPeriod: permit.validityPeriod,
         permitHolder: permit.permitHolder,
         vehicleNo: permit.vehicleNumber || "N/A",
+        vehicleNumber: permit.vehicleNumber || "N/A",
         issueDate: permit.issueDate,
         validFrom: permit.validFrom,
         validTill: permit.validTo,
@@ -131,11 +135,19 @@ const TemporaryPermit = () => {
         balance: permit.balance || 0,
         paid: permit.paid || 0,
         address: permit.address || "N/A",
+        fatherName: permit.fatherName || "",
+        email: permit.email || "",
         mobileNumber: permit.mobileNumber || "N/A",
+        chassisNumber: permit.chassisNumber || "",
+        engineNumber: permit.engineNumber || "",
+        ladenWeight: permit.ladenWeight || "",
+        unladenWeight: permit.unladenWeight || "",
+        notes: permit.notes || "",
         route: permit.route || "N/A",
         purpose: permit.purpose || "Temporary Use",
         issuingAuthority: permit.issuingAuthority,
         vehicleModel: permit.vehicleModel || "N/A",
+        isRenewed: permit.isRenewed || false, // IMPORTANT: Include isRenewed field
         vehicleClass: permit.vehicleClass || "N/A",
         chassisNumber: permit.chassisNumber || "N/A",
         engineNumber: permit.engineNumber || "N/A",
@@ -352,18 +364,63 @@ Thank you!`;
   };
 
   const handleRenewClick = (permit) => {
-    // Pre-fill vehicle number and other details for renewal
-    setInitialPermitData({
-      vehicleNumber: permit.vehicleNo,
-      permitHolderName: permit.permitHolder || "",
-      vehicleType: permit.vehicleType || "",
-      address: permit.address || "",
-      mobileNumber: permit.mobileNumber || "",
-      chassisNumber: permit.chassisNumber || "",
-      engineNumber: permit.engineNumber || "",
-      purpose: permit.purpose || "",
-    });
-    setShowIssuePermitModal(true);
+    setPermitToRenew(permit);
+    setShowRenewPermitModal(true);
+  };
+
+  const handleRenewSubmit = async (formData) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/temporary-permits/renew`, {
+        oldPermitId: formData.oldPermitId,
+        permitNumber: formData.permitNumber,
+        permitHolder: formData.permitHolder,
+        vehicleNumber: formData.vehicleNumber,
+        vehicleType: formData.vehicleType,
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        totalFee: parseFloat(formData.totalFee),
+        paid: parseFloat(formData.paid),
+        balance: parseFloat(formData.balance),
+        fatherName: formData.fatherName,
+        address: formData.address,
+        mobileNumber: formData.mobileNumber,
+        email: formData.email,
+        chassisNumber: formData.chassisNumber,
+        engineNumber: formData.engineNumber,
+        ladenWeight: formData.ladenWeight ? Number(formData.ladenWeight) : undefined,
+        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : undefined,
+        notes: formData.notes
+      });
+
+      if (response.data.success) {
+        toast.success("Temporary permit renewed successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        setShowRenewPermitModal(false);
+        setPermitToRenew(null);
+        // Refresh the list and statistics from the server
+        await fetchPermits();
+        await fetchStatistics();
+      } else {
+        toast.error(`Error: ${response.data.message}`, {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error renewing temporary permit:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to renew temporary permit.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeletePermit = async (permit) => {
@@ -411,19 +468,8 @@ Thank you!`;
 
   // Determine if renew button should be shown for a permit
   const shouldShowRenewButton = (permit) => {
-    const { status } = permit;
-
-    // Show renew button for expiring soon permits
-    if (status === "expiring_soon") {
-      return true;
-    }
-
-    // Show renew button for expired permits
-    if (status === "expired") {
-      return true;
-    }
-
-    return false;
+    // Simple logic: show renew button only if not renewed and status is expired or expiring_soon
+    return !permit.isRenewed && (permit.status === "expired" || permit.status === "expiring_soon");
   };
 
   const handleIssuePermit = async (formData) => {
@@ -1413,12 +1459,19 @@ Thank you!`;
           {/* Add New Temporary Permit Modal */}
           <IssueTemporaryPermitModal
             isOpen={showIssuePermitModal}
-            onClose={() => {
-              setShowIssuePermitModal(false);
-              setInitialPermitData(null); // Clear initial data when closing
-            }}
+            onClose={() => setShowIssuePermitModal(false)}
             onSubmit={handleIssuePermit}
-            initialData={initialPermitData} // Pass initial data for renewal
+          />
+
+          {/* Renew Temporary Permit Modal */}
+          <RenewTemporaryPermitModal
+            isOpen={showRenewPermitModal}
+            onClose={() => {
+              setShowRenewPermitModal(false);
+              setPermitToRenew(null);
+            }}
+            onSubmit={handleRenewSubmit}
+            oldPermit={permitToRenew}
           />
 
           {/* Edit Temporary Permit Modal */}
