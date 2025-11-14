@@ -1,14 +1,16 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import IssueNewPermitModal from './components/IssueNewPermitModal'
-import EditNationalPermitModal from './components/EditNationalPermitModal'
-import PermitBillModal from '../../components/PermitBillModal'
-import RenewPartBModal from './components/RenewPartBModal'
-import RenewPartAModal from './components/RenewPartAModal'
-import NationalPermitDetailsModal from './components/NationalPermitDetailsModal'
 import { getDaysRemaining, parseFormattedDate } from '../../utils/dateHelpers'
 import Pagination from '../../components/Pagination'
+
+// Lazy load modals for better performance
+const IssueNewPermitModal = lazy(() => import('./components/IssueNewPermitModal'))
+const EditNationalPermitModal = lazy(() => import('./components/EditNationalPermitModal'))
+const PermitBillModal = lazy(() => import('../../components/PermitBillModal'))
+const RenewPartBModal = lazy(() => import('./components/RenewPartBModal'))
+const RenewPartAModal = lazy(() => import('./components/RenewPartAModal'))
+const NationalPermitDetailsModal = lazy(() => import('./components/NationalPermitDetailsModal'))
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -934,67 +936,86 @@ const NationalPermit = () => {
       </>
       )}
 
-      {/* Permit Details Modal */}
-      <NationalPermitDetailsModal
-        isOpen={showDetailsModal}
-        onClose={() => {
-          setShowDetailsModal(false)
-          setSelectedPermit(null)
-        }}
-        permit={selectedPermit}
-        onViewBill={handleViewBill}
-      />
-      {/* Add New Permit Modal */}
-      <IssueNewPermitModal
-        isOpen={showIssuePermitModal}
-        onClose={() => setShowIssuePermitModal(false)}
-        onSubmit={handleIssuePermit}
-      />
+      {/* Permit Details Modal - Lazy Loaded */}
+      {showDetailsModal && (
+        <Suspense fallback={null}>
+          <NationalPermitDetailsModal
+            isOpen={showDetailsModal}
+            onClose={() => {
+              setShowDetailsModal(false)
+              setSelectedPermit(null)
+            }}
+            permit={selectedPermit}
+            onViewBill={handleViewBill}
+          />
+        </Suspense>
+      )}
 
-      {/* Edit Permit Modal */}
-      <EditNationalPermitModal
-        isOpen={showEditPermitModal}
-        onClose={() => {
-          setShowEditPermitModal(false)
-          setEditingPermit(null)
-        }}
-        onSubmit={handleUpdatePermit}
-        permit={editingPermit}
-      />
+      {/* Add New Permit Modal - Lazy Loaded */}
+      {showIssuePermitModal && (
+        <Suspense fallback={null}>
+          <IssueNewPermitModal
+            isOpen={showIssuePermitModal}
+            onClose={() => setShowIssuePermitModal(false)}
+            onSubmit={handleIssuePermit}
+          />
+        </Suspense>
+      )}
 
-      {/* Bill Modal */}
+      {/* Edit Permit Modal - Lazy Loaded */}
+      {showEditPermitModal && (
+        <Suspense fallback={null}>
+          <EditNationalPermitModal
+            isOpen={showEditPermitModal}
+            onClose={() => {
+              setShowEditPermitModal(false)
+              setEditingPermit(null)
+            }}
+            onSubmit={handleUpdatePermit}
+            permit={editingPermit}
+          />
+        </Suspense>
+      )}
+
+      {/* Bill Modal - Lazy Loaded */}
       {showBillModal && selectedPermit && (
-        <PermitBillModal
-          permit={selectedPermit}
-          onClose={() => {
-            setShowBillModal(false)
-            setSelectedPermit(null)
-          }}
-        />
+        <Suspense fallback={null}>
+          <PermitBillModal
+            permit={selectedPermit}
+            onClose={() => {
+              setShowBillModal(false)
+              setSelectedPermit(null)
+            }}
+          />
+        </Suspense>
       )}
 
-      {/* Renew Part B Modal */}
+      {/* Renew Part B Modal - Lazy Loaded */}
       {showRenewPartBModal && renewingPermit && (
-        <RenewPartBModal
-          permit={renewingPermit}
-          onClose={() => {
-            setShowRenewPartBModal(false)
-            setRenewingPermit(null)
-          }}
-          onRenewalSuccess={handleRenewalSuccess}
-        />
+        <Suspense fallback={null}>
+          <RenewPartBModal
+            permit={renewingPermit}
+            onClose={() => {
+              setShowRenewPartBModal(false)
+              setRenewingPermit(null)
+            }}
+            onRenewalSuccess={handleRenewalSuccess}
+          />
+        </Suspense>
       )}
 
-      {/* Renew Part A Modal */}
+      {/* Renew Part A Modal - Lazy Loaded */}
       {showRenewPartAModal && renewingPermit && (
-        <RenewPartAModal
-          permit={renewingPermit}
-          onClose={() => {
-            setShowRenewPartAModal(false)
-            setRenewingPermit(null)
-          }}
-          onRenewalSuccess={handleRenewalSuccess}
-        />
+        <Suspense fallback={null}>
+          <RenewPartAModal
+            permit={renewingPermit}
+            onClose={() => {
+              setShowRenewPartAModal(false)
+              setRenewingPermit(null)
+            }}
+            onRenewalSuccess={handleRenewalSuccess}
+          />
+        </Suspense>
       )}
       </div>
       </div>

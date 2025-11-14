@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
-import IssueTemporaryPermitOtherStateModal from './components/IssueTemporaryPermitOtherStateModal'
-import RenewTemporaryPermitOtherStateModal from './components/RenewTemporaryPermitOtherStateModal'
-import EditTemporaryPermitOtherStateModal from './components/EditTemporaryPermitOtherStateModal'
+
+// Lazy load modals for better performance
+const IssueTemporaryPermitOtherStateModal = lazy(() => import('./components/IssueTemporaryPermitOtherStateModal'))
+const RenewTemporaryPermitOtherStateModal = lazy(() => import('./components/RenewTemporaryPermitOtherStateModal'))
+const EditTemporaryPermitOtherStateModal = lazy(() => import('./components/EditTemporaryPermitOtherStateModal'))
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -581,43 +583,52 @@ const TemporaryPermitOtherState = () => {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modals - Lazy Loaded */}
       {showIssuePermitModal && (
-        <IssueTemporaryPermitOtherStateModal
-          onClose={() => setShowIssuePermitModal(false)}
-          onPermitIssued={() => {
-            setShowIssuePermitModal(false)
-            fetchPermits(pagination.currentPage)
-            fetchStatistics()
-          }}
-        />
+        <Suspense fallback={null}>
+          <IssueTemporaryPermitOtherStateModal
+            onClose={() => setShowIssuePermitModal(false)}
+            onPermitIssued={() => {
+              setShowIssuePermitModal(false)
+              fetchPermits(pagination.currentPage)
+              fetchStatistics()
+            }}
+          />
+        </Suspense>
       )}
 
-      {/* Renew Temporary Permit (Other State) Modal */}
-      <RenewTemporaryPermitOtherStateModal
-        isOpen={showRenewPermitModal}
-        onClose={() => {
-          setShowRenewPermitModal(false)
-          setPermitToRenew(null)
-        }}
-        onSubmit={handleRenewSubmit}
-        oldPermit={permitToRenew}
-      />
+      {/* Renew Temporary Permit (Other State) Modal - Lazy Loaded */}
+      {showRenewPermitModal && (
+        <Suspense fallback={null}>
+          <RenewTemporaryPermitOtherStateModal
+            isOpen={showRenewPermitModal}
+            onClose={() => {
+              setShowRenewPermitModal(false)
+              setPermitToRenew(null)
+            }}
+            onSubmit={handleRenewSubmit}
+            oldPermit={permitToRenew}
+          />
+        </Suspense>
+      )}
 
+      {/* Edit Modal - Lazy Loaded */}
       {showEditPermitModal && editingPermit && (
-        <EditTemporaryPermitOtherStateModal
-          permit={editingPermit}
-          onClose={() => {
-            setShowEditPermitModal(false)
-            setEditingPermit(null)
-          }}
-          onPermitUpdated={() => {
-            setShowEditPermitModal(false)
-            setEditingPermit(null)
-            fetchPermits(pagination.currentPage)
-            fetchStatistics()
-          }}
-        />
+        <Suspense fallback={null}>
+          <EditTemporaryPermitOtherStateModal
+            permit={editingPermit}
+            onClose={() => {
+              setShowEditPermitModal(false)
+              setEditingPermit(null)
+            }}
+            onPermitUpdated={() => {
+              setShowEditPermitModal(false)
+              setEditingPermit(null)
+              fetchPermits(pagination.currentPage)
+              fetchStatistics()
+            }}
+          />
+        </Suspense>
       )}
     </>
   )

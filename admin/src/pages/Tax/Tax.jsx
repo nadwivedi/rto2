@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import AddTaxModal from "./components/AddTaxModal";
-import RenewTaxModal from "./components/RenewTaxModal";
 import AddButton from "../../components/AddButton";
-import EditTaxModal from "./components/EditTaxModal";
+
+// Lazy load modals for better performance
+const AddTaxModal = lazy(() => import("./components/AddTaxModal"));
+const EditTaxModal = lazy(() => import("./components/EditTaxModal"));
+const RenewTaxModal = lazy(() => import("./components/RenewTaxModal"));
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -910,31 +912,43 @@ const Tax = () => {
         </div>
       </div>
 
-      {/* Add Tax Modal */}
-      <AddTaxModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddTax}
-      />
+      {/* Add Tax Modal - Lazy Loaded */}
+      {isAddModalOpen && (
+        <Suspense fallback={null}>
+          <AddTaxModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSubmit={handleAddTax}
+          />
+        </Suspense>
+      )}
 
-      {/* Renew Tax Modal */}
-      <RenewTaxModal
-        isOpen={isRenewModalOpen}
-        onClose={() => {
-          setIsRenewModalOpen(false);
-          setTaxToRenew(null);
-        }}
-        onSubmit={handleRenewSubmit}
-        oldTax={taxToRenew}
-      />
+      {/* Renew Tax Modal - Lazy Loaded */}
+      {isRenewModalOpen && (
+        <Suspense fallback={null}>
+          <RenewTaxModal
+            isOpen={isRenewModalOpen}
+            onClose={() => {
+              setIsRenewModalOpen(false);
+              setTaxToRenew(null);
+            }}
+            onSubmit={handleRenewSubmit}
+            oldTax={taxToRenew}
+          />
+        </Suspense>
+      )}
 
-      {/* Edit Tax Modal */}
-      <EditTaxModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSubmit={handleEditTax}
-        tax={selectedTax}
-      />
+      {/* Edit Tax Modal - Lazy Loaded */}
+      {isEditModalOpen && (
+        <Suspense fallback={null}>
+          <EditTaxModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSubmit={handleEditTax}
+            tax={selectedTax}
+          />
+        </Suspense>
+      )}
     </>
   );
 };

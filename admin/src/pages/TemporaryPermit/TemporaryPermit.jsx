@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import PermitBillModal from "../../components/PermitBillModal";
-import SharePermitModal from "../../components/SharePermitModal";
-import IssueTemporaryPermitModal from "./components/IssueTemporaryPermitModal";
-import RenewTemporaryPermitModal from "./components/RenewTemporaryPermitModal";
-import EditTemporaryPermitModal from "./components/EditTemporaryPermitModal";
 import Pagination from "../../components/Pagination";
+
+// Lazy load modals for better performance
+const PermitBillModal = lazy(() => import("../../components/PermitBillModal"));
+const SharePermitModal = lazy(() => import("../../components/SharePermitModal"));
+const IssueTemporaryPermitModal = lazy(() => import("./components/IssueTemporaryPermitModal"));
+const RenewTemporaryPermitModal = lazy(() => import("./components/RenewTemporaryPermitModal"));
+const EditTemporaryPermitModal = lazy(() => import("./components/EditTemporaryPermitModal"));
 import AddButton from "../../components/AddButton";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -139,24 +141,13 @@ const TemporaryPermit = () => {
         fatherName: permit.fatherName || "",
         email: permit.email || "",
         mobileNumber: permit.mobileNumber || "N/A",
-        chassisNumber: permit.chassisNumber || "",
-        engineNumber: permit.engineNumber || "",
+        chassisNumber: permit.chassisNumber || "N/A",
+        engineNumber: permit.engineNumber || "N/A",
         ladenWeight: permit.ladenWeight || "",
         unladenWeight: permit.unladenWeight || "",
         notes: permit.notes || "",
         route: permit.route || "N/A",
-        purpose: permit.purpose || "Temporary Use",
-        issuingAuthority: permit.issuingAuthority,
-        vehicleModel: permit.vehicleModel || "N/A",
         isRenewed: permit.isRenewed || false, // IMPORTANT: Include isRenewed field
-        vehicleClass: permit.vehicleClass || "N/A",
-        chassisNumber: permit.chassisNumber || "N/A",
-        engineNumber: permit.engineNumber || "N/A",
-        insuranceDetails: permit.insuranceDetails || {
-          policyNumber: "N/A",
-          company: "N/A",
-          validUpto: "N/A",
-        },
       }));
 
       setPermits(transformedPermits);
@@ -1180,57 +1171,73 @@ Thank you!`;
             )}
           </div>
 
-          {/* Add New Temporary Permit Modal */}
-          <IssueTemporaryPermitModal
-            isOpen={showIssuePermitModal}
-            onClose={() => setShowIssuePermitModal(false)}
-            onSubmit={handleIssuePermit}
-          />
-
-          {/* Renew Temporary Permit Modal */}
-          <RenewTemporaryPermitModal
-            isOpen={showRenewPermitModal}
-            onClose={() => {
-              setShowRenewPermitModal(false);
-              setPermitToRenew(null);
-            }}
-            onSubmit={handleRenewSubmit}
-            oldPermit={permitToRenew}
-          />
-
-          {/* Edit Temporary Permit Modal */}
-          <EditTemporaryPermitModal
-            isOpen={showEditPermitModal}
-            onClose={() => {
-              setShowEditPermitModal(false);
-              setEditingPermit(null); // Clear editing data when closing
-            }}
-            onSubmit={handleEditPermit}
-            permitData={editingPermit} // Pass permit data for editing
-          />
-
-          {/* Bill Modal */}
-          {showBillModal && selectedPermit && (
-            <PermitBillModal
-              permit={selectedPermit}
-              onClose={() => {
-                setShowBillModal(false);
-                setSelectedPermit(null);
-              }}
-              permitType="Temporary"
-            />
+          {/* Add New Temporary Permit Modal - Lazy Loaded */}
+          {showIssuePermitModal && (
+            <Suspense fallback={null}>
+              <IssueTemporaryPermitModal
+                isOpen={showIssuePermitModal}
+                onClose={() => setShowIssuePermitModal(false)}
+                onSubmit={handleIssuePermit}
+              />
+            </Suspense>
           )}
 
-          {/* Share Modal */}
+          {/* Renew Temporary Permit Modal - Lazy Loaded */}
+          {showRenewPermitModal && (
+            <Suspense fallback={null}>
+              <RenewTemporaryPermitModal
+                isOpen={showRenewPermitModal}
+                onClose={() => {
+                  setShowRenewPermitModal(false);
+                  setPermitToRenew(null);
+                }}
+                onSubmit={handleRenewSubmit}
+                oldPermit={permitToRenew}
+              />
+            </Suspense>
+          )}
+
+          {/* Edit Temporary Permit Modal - Lazy Loaded */}
+          {showEditPermitModal && (
+            <Suspense fallback={null}>
+              <EditTemporaryPermitModal
+                isOpen={showEditPermitModal}
+                onClose={() => {
+                  setShowEditPermitModal(false);
+                  setEditingPermit(null); // Clear editing data when closing
+                }}
+                onSubmit={handleEditPermit}
+                permitData={editingPermit} // Pass permit data for editing
+              />
+            </Suspense>
+          )}
+
+          {/* Bill Modal - Lazy Loaded */}
+          {showBillModal && selectedPermit && (
+            <Suspense fallback={null}>
+              <PermitBillModal
+                permit={selectedPermit}
+                onClose={() => {
+                  setShowBillModal(false);
+                  setSelectedPermit(null);
+                }}
+                permitType="Temporary"
+              />
+            </Suspense>
+          )}
+
+          {/* Share Modal - Lazy Loaded */}
           {showShareModal && selectedPermit && (
-            <SharePermitModal
-              permit={selectedPermit}
-              onClose={() => {
-                setShowShareModal(false);
-                setSelectedPermit(null);
-              }}
-              permitType="Temporary"
-            />
+            <Suspense fallback={null}>
+              <SharePermitModal
+                permit={selectedPermit}
+                onClose={() => {
+                  setShowShareModal(false);
+                  setSelectedPermit(null);
+                }}
+                permitType="Temporary"
+              />
+            </Suspense>
           )}
         </div>
       </div>

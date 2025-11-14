@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import AddInsuranceModal from "./components/AddInsuranceModal";
-import RenewInsuranceModal from "./components/RenewInsuranceModal";
 import Pagination from "../../components/Pagination";
+
+// Lazy load modals for better performance
+const AddInsuranceModal = lazy(() => import("./components/AddInsuranceModal"));
+const RenewInsuranceModal = lazy(() => import("./components/RenewInsuranceModal"));
 import AddButton from "../../components/AddButton";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -888,39 +890,51 @@ const Insurance = () => {
             </>
           )}
 
-          {/* Add Insurance Modal */}
-          <AddInsuranceModal
-            isOpen={isAddModalOpen}
-            onClose={() => {
-              setIsAddModalOpen(false);
-              setInitialInsuranceData(null); // Clear initial data when closing
-            }}
-            onSubmit={handleAddInsurance}
-            initialData={initialInsuranceData} // Pass initial data for renewal
-          />
+          {/* Add Insurance Modal - Lazy Loaded */}
+          {isAddModalOpen && (
+            <Suspense fallback={null}>
+              <AddInsuranceModal
+                isOpen={isAddModalOpen}
+                onClose={() => {
+                  setIsAddModalOpen(false);
+                  setInitialInsuranceData(null); // Clear initial data when closing
+                }}
+                onSubmit={handleAddInsurance}
+                initialData={initialInsuranceData} // Pass initial data for renewal
+              />
+            </Suspense>
+          )}
 
-          {/* Edit Insurance Modal */}
-          <AddInsuranceModal
-            isOpen={isEditModalOpen}
-            onClose={() => {
-              setIsEditModalOpen(false);
-              setSelectedInsurance(null); // Clear selected insurance when closing
-            }}
-            onSubmit={handleEditInsurance}
-            initialData={selectedInsurance} // Pass selected insurance data for editing
-            isEditMode={true}
-          />
+          {/* Edit Insurance Modal - Lazy Loaded */}
+          {isEditModalOpen && (
+            <Suspense fallback={null}>
+              <AddInsuranceModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedInsurance(null); // Clear selected insurance when closing
+                }}
+                onSubmit={handleEditInsurance}
+                initialData={selectedInsurance} // Pass selected insurance data for editing
+                isEditMode={true}
+              />
+            </Suspense>
+          )}
 
-          {/* Renew Insurance Modal */}
-          <RenewInsuranceModal
-            isOpen={isRenewModalOpen}
-            onClose={() => {
-              setIsRenewModalOpen(false);
-              setInsuranceToRenew(null);
-            }}
-            onSubmit={handleRenewSubmit}
-            insuranceData={insuranceToRenew}
-          />
+          {/* Renew Insurance Modal - Lazy Loaded */}
+          {isRenewModalOpen && (
+            <Suspense fallback={null}>
+              <RenewInsuranceModal
+                isOpen={isRenewModalOpen}
+                onClose={() => {
+                  setIsRenewModalOpen(false);
+                  setInsuranceToRenew(null);
+                }}
+                onSubmit={handleRenewSubmit}
+                insuranceData={insuranceToRenew}
+              />
+            </Suspense>
+          )}
         </div>
       </div>
     </>

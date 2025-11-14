@@ -1,7 +1,9 @@
-import { useState, useMemo, useEffect } from 'react'
-import AddVehicleTransferModal from './components/AddVehicleTransferModal'
-import VehicleTransferDetailModal from './components/VehicleTransferDetailModal'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import Pagination from '../../components/Pagination'
+
+// Lazy load modals for better performance
+const AddVehicleTransferModal = lazy(() => import('./components/AddVehicleTransferModal'))
+const VehicleTransferDetailModal = lazy(() => import('./components/VehicleTransferDetailModal'))
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -517,26 +519,34 @@ const VehicleTransfer = () => {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      <AddVehicleTransferModal
-        isOpen={showModal}
-        onClose={() => {
-          setShowModal(false)
-          setEditData(null)
-        }}
-        onSuccess={handleSuccess}
-        editData={editData}
-      />
+      {/* Add/Edit Modal - Lazy Loaded */}
+      {showModal && (
+        <Suspense fallback={null}>
+          <AddVehicleTransferModal
+            isOpen={showModal}
+            onClose={() => {
+              setShowModal(false)
+              setEditData(null)
+            }}
+            onSuccess={handleSuccess}
+            editData={editData}
+          />
+        </Suspense>
+      )}
 
-      {/* Detail View Modal */}
-      <VehicleTransferDetailModal
-        isOpen={showDetailModal}
-        onClose={() => {
-          setShowDetailModal(false)
-          setViewData(null)
-        }}
-        transfer={viewData}
-      />
+      {/* Detail View Modal - Lazy Loaded */}
+      {showDetailModal && (
+        <Suspense fallback={null}>
+          <VehicleTransferDetailModal
+            isOpen={showDetailModal}
+            onClose={() => {
+              setShowDetailModal(false)
+              setViewData(null)
+            }}
+            transfer={viewData}
+          />
+        </Suspense>
+      )}
     </>
   )
 }

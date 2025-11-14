@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import PermitBillModal from '../../components/PermitBillModal'
-import SharePermitModal from '../../components/SharePermitModal'
-import IssueCgPermitModal from './components/IssueCgPermitModal'
-import EditCgPermitModal from './components/EditCgPermitModal'
-import RenewCgPermitModal from './components/RenewCgPermitModal'
 import Pagination from '../../components/Pagination'
-import ViewCgPermitModal from './components/ViewCgPermitModal'
+
+// Lazy load modals for better performance
+const PermitBillModal = lazy(() => import('../../components/PermitBillModal'))
+const SharePermitModal = lazy(() => import('../../components/SharePermitModal'))
+const IssueCgPermitModal = lazy(() => import('./components/IssueCgPermitModal'))
+const EditCgPermitModal = lazy(() => import('./components/EditCgPermitModal'))
+const RenewCgPermitModal = lazy(() => import('./components/RenewCgPermitModal'))
+const ViewCgPermitModal = lazy(() => import('./components/ViewCgPermitModal'))
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -1076,68 +1078,89 @@ Thank you!`
         )}
       </div>
 
-      {/* Add New CG Permit Modal */}
-      <IssueCgPermitModal
-        isOpen={showIssuePermitModal}
-        onClose={() => {
-          setShowIssuePermitModal(false)
-          setInitialPermitData(null) // Clear initial data when closing
-        }}
-        onSubmit={handleIssuePermit}
-        initialData={initialPermitData} // Pass initial data for renewal
-      />
+      {/* Add New CG Permit Modal - Lazy Loaded */}
+      {showIssuePermitModal && (
+        <Suspense fallback={null}>
+          <IssueCgPermitModal
+            isOpen={showIssuePermitModal}
+            onClose={() => {
+              setShowIssuePermitModal(false)
+              setInitialPermitData(null) // Clear initial data when closing
+            }}
+            onSubmit={handleIssuePermit}
+            initialData={initialPermitData} // Pass initial data for renewal
+          />
+        </Suspense>
+      )}
 
-      {/* Edit CG Permit Modal */}
-      <EditCgPermitModal
-        isOpen={showEditPermitModal}
-        onClose={() => {
-          setShowEditPermitModal(false)
-          setEditingPermit(null)
-        }}
-        onSubmit={handleUpdatePermit}
-        permit={editingPermit}
-      />
+      {/* Edit CG Permit Modal - Lazy Loaded */}
+      {showEditPermitModal && (
+        <Suspense fallback={null}>
+          <EditCgPermitModal
+            isOpen={showEditPermitModal}
+            onClose={() => {
+              setShowEditPermitModal(false)
+              setEditingPermit(null)
+            }}
+            onSubmit={handleUpdatePermit}
+            permit={editingPermit}
+          />
+        </Suspense>
+      )}
 
-      {/* Renew CG Permit Modal */}
-      <RenewCgPermitModal
-        isOpen={showRenewPermitModal}
-        onClose={() => {
-          setShowRenewPermitModal(false)
-          setPermitToRenew(null)
-        }}
-        onSubmit={handleRenewSubmit}
-        permitData={permitToRenew}
-      />
+      {/* Renew CG Permit Modal - Lazy Loaded */}
+      {showRenewPermitModal && (
+        <Suspense fallback={null}>
+          <RenewCgPermitModal
+            isOpen={showRenewPermitModal}
+            onClose={() => {
+              setShowRenewPermitModal(false)
+              setPermitToRenew(null)
+            }}
+            onSubmit={handleRenewSubmit}
+            permitData={permitToRenew}
+          />
+        </Suspense>
+      )}
 
-      {/* Bill Modal */}
+      {/* Bill Modal - Lazy Loaded */}
       {showBillModal && selectedPermit && (
-        <PermitBillModal
-          permit={selectedPermit}
-          onClose={() => {
-            setShowBillModal(false)
-            setSelectedPermit(null)
-          }}
-          permitType="CG"
-        />
+        <Suspense fallback={null}>
+          <PermitBillModal
+            permit={selectedPermit}
+            onClose={() => {
+              setShowBillModal(false)
+              setSelectedPermit(null)
+            }}
+            permitType="CG"
+          />
+        </Suspense>
       )}
 
-      {/* Share Modal */}
+      {/* Share Modal - Lazy Loaded */}
       {showShareModal && selectedPermit && (
-        <SharePermitModal
-          permit={selectedPermit}
-          onClose={() => {
-            setShowShareModal(false)
-            setSelectedPermit(null)
-          }}
-          permitType="CG"
-        />
+        <Suspense fallback={null}>
+          <SharePermitModal
+            permit={selectedPermit}
+            onClose={() => {
+              setShowShareModal(false)
+              setSelectedPermit(null)
+            }}
+            permitType="CG"
+          />
+        </Suspense>
       )}
 
-      <ViewCgPermitModal
-        isOpen={showDetailsModal}
-        onClose={() => setShowDetailsModal(false)}
-        selectedPermit={selectedPermit}
-      />
+      {/* View Modal - Lazy Loaded */}
+      {showDetailsModal && (
+        <Suspense fallback={null}>
+          <ViewCgPermitModal
+            isOpen={showDetailsModal}
+            onClose={() => setShowDetailsModal(false)}
+            selectedPermit={selectedPermit}
+          />
+        </Suspense>
+      )}
         </div>
       </div>
     </>

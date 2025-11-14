@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, lazy, Suspense } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-import AddFitnessModal from "./components/AddFitnessModal";
-import EditFitnessModal from "./components/EditFitnessModal";
-import RenewFitnessModal from "./components/RenewFitnessModal";
 import AddButton from "../../components/AddButton";
+
+// Lazy load modals for better performance
+const AddFitnessModal = lazy(() => import("./components/AddFitnessModal"));
+const EditFitnessModal = lazy(() => import("./components/EditFitnessModal"));
+const RenewFitnessModal = lazy(() => import("./components/RenewFitnessModal"));
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -891,31 +893,43 @@ const Fitness = () => {
         </div>
       </div>
 
-      {/* Add Fitness Modal */}
-      <AddFitnessModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddFitness}
-      />
+      {/* Add Fitness Modal - Lazy Loaded */}
+      {isAddModalOpen && (
+        <Suspense fallback={null}>
+          <AddFitnessModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSubmit={handleAddFitness}
+          />
+        </Suspense>
+      )}
 
-      {/* Edit Fitness Modal */}
-      <EditFitnessModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        onSubmit={handleEditFitness}
-        fitness={selectedFitness}
-      />
+      {/* Edit Fitness Modal - Lazy Loaded */}
+      {isEditModalOpen && (
+        <Suspense fallback={null}>
+          <EditFitnessModal
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            onSubmit={handleEditFitness}
+            fitness={selectedFitness}
+          />
+        </Suspense>
+      )}
 
-      {/* Renew Fitness Modal */}
-      <RenewFitnessModal
-        isOpen={isRenewModalOpen}
-        onClose={() => {
-          setIsRenewModalOpen(false);
-          setFitnessToRenew(null); // Reset when closing
-        }}
-        onSubmit={handleRenewSubmit}
-        oldFitness={fitnessToRenew}
-      />
+      {/* Renew Fitness Modal - Lazy Loaded */}
+      {isRenewModalOpen && (
+        <Suspense fallback={null}>
+          <RenewFitnessModal
+            isOpen={isRenewModalOpen}
+            onClose={() => {
+              setIsRenewModalOpen(false);
+              setFitnessToRenew(null); // Reset when closing
+            }}
+            onSubmit={handleRenewSubmit}
+            oldFitness={fitnessToRenew}
+          />
+        </Suspense>
+      )}
     </>
   );
 };

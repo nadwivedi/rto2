@@ -1,10 +1,12 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
-import QuickDLApplicationForm from './components/QuickDLApplicationForm'
-import EditDLApplicationForm from './components/EditDLApplicationForm'
-import ApplicationDetailModal from './components/ApplicationDetailModal'
 import Pagination from '../../components/Pagination'
+
+// Lazy load modals for better performance
+const QuickDLApplicationForm = lazy(() => import('./components/QuickDLApplicationForm'))
+const EditDLApplicationForm = lazy(() => import('./components/EditDLApplicationForm'))
+const ApplicationDetailModal = lazy(() => import('./components/ApplicationDetailModal'))
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -497,24 +499,39 @@ const DrivingLicence = () => {
             </div>
           </div>
 
+          {/* Quick DL Application Form - Lazy Loaded */}
+      {isFormOpen && (
+        <Suspense fallback={null}>
           <QuickDLApplicationForm
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleFormSubmit}
-      />
+            isOpen={isFormOpen}
+            onClose={() => setIsFormOpen(false)}
+            onSubmit={handleFormSubmit}
+          />
+        </Suspense>
+      )}
 
-      <EditDLApplicationForm
-        isOpen={isEditFormOpen}
-        onClose={() => setIsEditFormOpen(false)}
-        onSubmit={handleEditSubmit}
-        application={selectedApplication}
-      />
+      {/* Edit DL Application Form - Lazy Loaded */}
+      {isEditFormOpen && (
+        <Suspense fallback={null}>
+          <EditDLApplicationForm
+            isOpen={isEditFormOpen}
+            onClose={() => setIsEditFormOpen(false)}
+            onSubmit={handleEditSubmit}
+            application={selectedApplication}
+          />
+        </Suspense>
+      )}
 
-      <ApplicationDetailModal
-        isOpen={isDetailModalOpen}
-        onClose={() => setIsDetailModalOpen(false)}
-        application={selectedApplication}
-      />
+      {/* Application Detail Modal - Lazy Loaded */}
+      {isDetailModalOpen && (
+        <Suspense fallback={null}>
+          <ApplicationDetailModal
+            isOpen={isDetailModalOpen}
+            onClose={() => setIsDetailModalOpen(false)}
+            application={selectedApplication}
+          />
+        </Suspense>
+      )}
 
       {/* Applications Table */}
       <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
