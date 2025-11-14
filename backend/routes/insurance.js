@@ -4,6 +4,9 @@ const insuranceController = require('../controllers/insuranceController')
 
 // IMPORTANT: Specific routes must come BEFORE parameterized routes
 
+// GET export all insurance records (must be before /:id)
+router.get('/export', insuranceController.exportAllInsurance)
+
 // Get statistics (must be before /:id)
 router.get('/statistics', insuranceController.getStatistics)
 

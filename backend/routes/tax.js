@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const taxController = require('../controllers/taxController')
 
+// GET export all tax records (must be before '/')
+router.get('/export', taxController.exportAllTax)
+
 // Get all tax records
 router.get('/', taxController.getAllTax)
 

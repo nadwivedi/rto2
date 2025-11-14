@@ -41,39 +41,6 @@ export const getOneYearFromNow = (fromDate = new Date()) => {
   return date
 }
 
-/**
- * Check if Part B permit is expiring soon (within 30 days)
- * @param {Date|string} expiryDate - Expiry date to check
- * @returns {boolean} True if expiring within 30 days
- */
-export const isPartBExpiringSoon = (expiryDate) => {
-  if (!expiryDate) return false
-
-  const expiry = new Date(expiryDate)
-  if (isNaN(expiry.getTime())) return false
-
-  const today = new Date()
-  const daysRemaining = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24))
-
-  return daysRemaining >= 0 && daysRemaining <= 30
-}
-
-/**
- * Check if Part A permit is expiring soon (within 60 days)
- * @param {Date|string} expiryDate - Expiry date to check
- * @returns {boolean} True if expiring within 60 days
- */
-export const isPartAExpiringSoon = (expiryDate) => {
-  if (!expiryDate) return false
-
-  const expiry = new Date(expiryDate)
-  if (isNaN(expiry.getTime())) return false
-
-  const today = new Date()
-  const daysRemaining = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24))
-
-  return daysRemaining >= 0 && daysRemaining <= 60
-}
 
 /**
  * Get the number of days remaining until a date
@@ -129,8 +96,6 @@ export default {
   formatDate,
   getFiveYearsFromNow,
   getOneYearFromNow,
-  isPartBExpiringSoon,
-  isPartAExpiringSoon,
   getDaysRemaining,
   parseFormattedDate,
   toInputDate

@@ -200,7 +200,7 @@ const NationalPermitSchema = new mongoose.Schema({
   // Permit Status
   status: {
     type: String,
-    enum: ['Active', 'Pending Renewal', 'Expiring Soon', 'Expired', 'Suspended'],
+    enum: ['Active', 'Pending Renewal', 'Expiring Soon', 'Expired'],
     default: 'Active'
   },
 
@@ -209,7 +209,6 @@ const NationalPermitSchema = new mongoose.Schema({
   totalFee: {
     type: Number,
     required: true,
-    default: 15000
   },
   paid: {
     type: Number,

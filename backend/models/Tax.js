@@ -48,7 +48,7 @@ const taxSchema = new mongoose.Schema({
   // Status
   status: {
     type: String,
-    enum: ['active', 'expired', 'expiring_soon', 'cancelled'],
+    enum: ['active', 'expired', 'expiring_soon'],
     default: 'active'
   },
 

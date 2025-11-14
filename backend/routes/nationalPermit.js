@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const nationalPermitController = require('../controllers/nationalPermitController')
 
+// GET export all permits (must be before '/' to avoid conflicts)
+router.get('/export', nationalPermitController.exportAllPermits)
+
 // GET all national permits
 router.get('/', nationalPermitController.getAllPermits)
 

@@ -51,14 +51,14 @@ const Setting = () => {
 
       // List of all collections to export
       const collections = [
-        { name: 'Vehicle Registration', endpoint: '/api/vehicle-registrations' },
-        { name: 'National Permit', endpoint: '/api/national-permits' },
-        { name: 'Temporary Permit', endpoint: '/api/temporary-permits' },
-        { name: 'CG Permit', endpoint: '/api/cg-permits' },
-        { name: 'Fitness', endpoint: '/api/fitness' },
-        { name: 'Insurance', endpoint: '/api/insurance' },
-        { name: 'Tax', endpoint: '/api/tax' },
-        { name: 'Driving License', endpoint: '/api/driving-licenses' }
+        { name: 'Vehicle Registration', endpoint: '/api/vehicle-registrations/export' },
+        { name: 'National Permit', endpoint: '/api/national-permits/export' },
+        { name: 'Temporary Permit', endpoint: '/api/temporary-permits/export' },
+        { name: 'CG Permit', endpoint: '/api/cg-permits/export' },
+        { name: 'Fitness', endpoint: '/api/fitness/export' },
+        { name: 'Insurance', endpoint: '/api/insurance/export' },
+        { name: 'Tax', endpoint: '/api/tax/export' },
+        { name: 'Driving License', endpoint: '/api/driving-licenses/export' }
       ]
 
       // Fetch data from all collections
@@ -113,14 +113,14 @@ const Setting = () => {
 
       // List of all collections to export
       const collections = [
-        { name: 'Vehicle Registration', endpoint: '/api/vehicle-registrations' },
-        { name: 'National Permit', endpoint: '/api/national-permits' },
-        { name: 'Temporary Permit', endpoint: '/api/temporary-permits' },
-        { name: 'CG Permit', endpoint: '/api/cg-permits' },
-        { name: 'Fitness', endpoint: '/api/fitness' },
-        { name: 'Insurance', endpoint: '/api/insurance' },
-        { name: 'Tax', endpoint: '/api/tax' },
-        { name: 'Driving License', endpoint: '/api/driving-licenses' }
+        { name: 'Vehicle Registration', endpoint: '/api/vehicle-registrations/export' },
+        { name: 'National Permit', endpoint: '/api/national-permits/export' },
+        { name: 'Temporary Permit', endpoint: '/api/temporary-permits/export' },
+        { name: 'CG Permit', endpoint: '/api/cg-permits/export' },
+        { name: 'Fitness', endpoint: '/api/fitness/export' },
+        { name: 'Insurance', endpoint: '/api/insurance/export' },
+        { name: 'Tax', endpoint: '/api/tax/export' },
+        { name: 'Driving License', endpoint: '/api/driving-licenses/export' }
       ]
 
       // Fetch data from all collections

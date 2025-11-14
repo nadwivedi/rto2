@@ -382,6 +382,28 @@ exports.getAllPermits = async (req, res) => {
   }
 }
 
+// Export all temporary permits without pagination
+exports.exportAllPermits = async (req, res) => {
+  try {
+    // Get all permits without pagination
+    const permits = await TemporaryPermit.find({})
+      .populate('bill')
+      .sort({ createdAt: -1 })
+
+    res.status(200).json({
+      success: true,
+      data: permits,
+      total: permits.length
+    })
+  } catch (error) {
+    console.error('Error exporting temporary permits:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export temporary permits'
+    })
+  }
+}
+
 // Get expiring soon temporary permits
 exports.getExpiringSoonPermits = async (req, res) => {
   try {

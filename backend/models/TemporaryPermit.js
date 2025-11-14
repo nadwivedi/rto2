@@ -82,7 +82,6 @@ const TemporaryPermitSchema = new mongoose.Schema({
   paid: {
     type: Number,
     required: true,
-    default: 0
   },
   balance: {
     type: Number,

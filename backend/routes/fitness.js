@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const fitnessController = require('../controllers/fitnessController')
 
+// GET export all fitness records (must be before '/')
+router.get('/export', fitnessController.exportAllFitness)
+
 // Get all fitness records
 router.get('/', fitnessController.getAllFitness)
 

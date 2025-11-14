@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const temporaryPermitController = require('../controllers/temporaryPermitController')
 
+// GET export all permits (must be before '/')
+router.get('/export', temporaryPermitController.exportAllPermits)
+
 // GET all temporary permits
 router.get('/', temporaryPermitController.getAllPermits)
 

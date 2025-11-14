@@ -442,60 +442,67 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
               </div>
             </div>
 
-            {/* Authorization & Route Section */}
+            {/* Authorization & Route Section - READ ONLY */}
             <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
-              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                <span className='text-sm md:text-base'>Type B Authorization (1 Year Validity)</span>
-              </h3>
+              <div className='flex items-center justify-between mb-3 md:mb-4'>
+                <h3 className='text-base md:text-lg font-bold text-gray-800 flex items-center gap-2'>
+                  <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
+                  <span className='text-sm md:text-base'>Type B Authorization (Reference Only)</span>
+                </h3>
+                <span className='bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full'>
+                  Use "Renew Part B" to update
+                </span>
+              </div>
 
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Authorization Number <span className='text-red-500'>*</span>
+                    Authorization Number
                   </label>
                   <input
                     type='text'
                     name='authorizationNumber'
                     value={formData.authorizationNumber}
-                    onChange={handleChange}
-                    placeholder='Enter National Permit Authorization No.'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
-                    required
+                    placeholder='N/A'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 font-mono cursor-not-allowed'
+                    readOnly
+                    disabled
                   />
                 </div>
 
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid From <span className='text-red-500'>*</span>
+                    Valid From
                   </label>
                   <input
                     type='text'
                     name='typeBValidFrom'
                     value={formData.typeBValidFrom}
-                    onChange={handleChange}
-                    placeholder='Type: 240125 or 24012025'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
-                    required
+                    placeholder='N/A'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed'
+                    readOnly
+                    disabled
                   />
                 </div>
 
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid To <span className='text-red-500'>*</span>
-                    <span className='ml-2 text-xs font-normal text-green-600'>(Auto: 1 Year from Valid From)</span>
+                    Valid To
                   </label>
                   <input
                     type='text'
                     name='typeBValidTo'
                     value={formData.typeBValidTo}
-                    onChange={handleChange}
-                    placeholder='Will be calculated automatically'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50'
-                    required
+                    placeholder='N/A'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed'
+                    readOnly
+                    disabled
                   />
                 </div>
               </div>
+              <p className='text-xs text-purple-700 mt-3 font-semibold'>
+                ℹ️ Part B cannot be edited here. Use the "Renew Part B" button to create a new Part B authorization.
+              </p>
             </div>
 
             {/* Fees Section */}

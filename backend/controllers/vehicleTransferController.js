@@ -4,10 +4,141 @@ const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../u
 // Create new vehicle transfer
 exports.createTransfer = async (req, res) => {
   try {
-    const transferData = req.body
+    const {
+      vehicleNumber,
+      transferDate,
+      currentOwnerName,
+      currentOwnerFatherName,
+      currentOwnerMobile,
+      currentOwnerAddress,
+      newOwnerName,
+      newOwnerFatherName,
+      newOwnerMobile,
+      newOwnerAddress,
+      totalFee,
+      paid,
+      balance,
+      byName,
+      byMobile,
+      remarks
+    } = req.body
+
+    // Validate required fields
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required'
+      })
+    }
+
+    if (!transferDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Transfer date is required'
+      })
+    }
+
+    // Validate current owner details
+    if (!currentOwnerName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current owner name is required'
+      })
+    }
+
+    if (!currentOwnerFatherName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current owner father name is required'
+      })
+    }
+
+    if (!currentOwnerMobile) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current owner mobile is required'
+      })
+    }
+
+    if (!currentOwnerAddress) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current owner address is required'
+      })
+    }
+
+    // Validate new owner details
+    if (!newOwnerName) {
+      return res.status(400).json({
+        success: false,
+        message: 'New owner name is required'
+      })
+    }
+
+    if (!newOwnerFatherName) {
+      return res.status(400).json({
+        success: false,
+        message: 'New owner father name is required'
+      })
+    }
+
+    if (!newOwnerMobile) {
+      return res.status(400).json({
+        success: false,
+        message: 'New owner mobile is required'
+      })
+    }
+
+    if (!newOwnerAddress) {
+      return res.status(400).json({
+        success: false,
+        message: 'New owner address is required'
+      })
+    }
+
+    // Validate payment fields
+    if (totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee, paid amount, and balance are required'
+      })
+    }
+
+    // Validate that paid amount can't be greater than total fee
+    if (paid > totalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (balance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
 
     // Create new vehicle transfer
-    const newTransfer = new VehicleTransfer(transferData)
+    const newTransfer = new VehicleTransfer({
+      vehicleNumber,
+      transferDate,
+      currentOwnerName,
+      currentOwnerFatherName,
+      currentOwnerMobile,
+      currentOwnerAddress,
+      newOwnerName,
+      newOwnerFatherName,
+      newOwnerMobile,
+      newOwnerAddress,
+      totalFee,
+      paid,
+      balance,
+      byName,
+      byMobile,
+      remarks
+    })
     await newTransfer.save()
 
     res.status(201).json({
@@ -157,25 +288,79 @@ exports.getTransferById = async (req, res) => {
 // Update vehicle transfer
 exports.updateTransfer = async (req, res) => {
   try {
-    const transferData = req.body
+    const {
+      vehicleNumber,
+      transferDate,
+      currentOwnerName,
+      currentOwnerFatherName,
+      currentOwnerMobile,
+      currentOwnerAddress,
+      newOwnerName,
+      newOwnerFatherName,
+      newOwnerMobile,
+      newOwnerAddress,
+      totalFee,
+      paid,
+      balance,
+      byName,
+      byMobile,
+      remarks
+    } = req.body
 
-    const updatedTransfer = await VehicleTransfer.findByIdAndUpdate(
-      req.params.id,
-      transferData,
-      { new: true, runValidators: true }
-    )
+    const transfer = await VehicleTransfer.findById(req.params.id)
 
-    if (!updatedTransfer) {
+    if (!transfer) {
       return res.status(404).json({
         success: false,
         message: 'Vehicle transfer not found'
       })
     }
 
+    // Prepare updated values for validation
+    const updatedTotalFee = totalFee !== undefined ? totalFee : transfer.totalFee
+    const updatedPaid = paid !== undefined ? paid : transfer.paid
+    const updatedBalance = balance !== undefined ? balance : transfer.balance
+
+    // Validate that paid amount can't be greater than total fee
+    if (updatedPaid > updatedTotalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (updatedBalance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
+
+    // Update fields
+    if (vehicleNumber !== undefined) transfer.vehicleNumber = vehicleNumber
+    if (transferDate !== undefined) transfer.transferDate = transferDate
+    if (currentOwnerName !== undefined) transfer.currentOwnerName = currentOwnerName
+    if (currentOwnerFatherName !== undefined) transfer.currentOwnerFatherName = currentOwnerFatherName
+    if (currentOwnerMobile !== undefined) transfer.currentOwnerMobile = currentOwnerMobile
+    if (currentOwnerAddress !== undefined) transfer.currentOwnerAddress = currentOwnerAddress
+    if (newOwnerName !== undefined) transfer.newOwnerName = newOwnerName
+    if (newOwnerFatherName !== undefined) transfer.newOwnerFatherName = newOwnerFatherName
+    if (newOwnerMobile !== undefined) transfer.newOwnerMobile = newOwnerMobile
+    if (newOwnerAddress !== undefined) transfer.newOwnerAddress = newOwnerAddress
+    if (totalFee !== undefined) transfer.totalFee = totalFee
+    if (paid !== undefined) transfer.paid = paid
+    if (balance !== undefined) transfer.balance = balance
+    if (byName !== undefined) transfer.byName = byName
+    if (byMobile !== undefined) transfer.byMobile = byMobile
+    if (remarks !== undefined) transfer.remarks = remarks
+
+    await transfer.save()
+
     res.json({
       success: true,
       message: 'Vehicle transfer updated successfully',
-      data: updatedTransfer
+      data: transfer
     })
   } catch (error) {
     console.error('Error updating vehicle transfer:', error)

@@ -59,6 +59,31 @@ exports.getAllRegistrations = async (req, res) => {
   }
 }
 
+// Export all vehicle registrations without pagination
+exports.exportAllRegistrations = async (req, res) => {
+  try {
+    // Get all registrations without pagination
+    const registrations = await VehicleRegistration.find({})
+      .sort({ createdAt: -1 })
+
+    res.json({
+      success: true,
+      data: registrations,
+      total: registrations.length
+    })
+  } catch (error) {
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
 // Get single vehicle registration by ID
 exports.getRegistrationById = async (req, res) => {
   try {
@@ -122,7 +147,69 @@ exports.getRegistrationByNumber = async (req, res) => {
 // Create new vehicle registration
 exports.createRegistration = async (req, res) => {
   try {
-    const registration = await VehicleRegistration.create(req.body)
+    const {
+      registrationNumber,
+      dateOfRegistration,
+      chassisNumber,
+      engineNumber,
+      ownerName,
+      sonWifeDaughterOf,
+      address,
+      mobileNumber,
+      email,
+      makerName,
+      makerModel,
+      colour,
+      seatingCapacity,
+      vehicleClass,
+      vehicleType,
+      ladenWeight,
+      unladenWeight,
+      manufactureYear,
+      vehicleCategory,
+      purchaseDeliveryDate,
+      saleAmount
+    } = req.body
+
+    // Validate required fields
+    if (!registrationNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Registration number is required'
+      })
+    }
+
+    if (!chassisNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Chassis number is required'
+      })
+    }
+
+    // Create vehicle registration
+    const registration = await VehicleRegistration.create({
+      registrationNumber,
+      dateOfRegistration,
+      chassisNumber,
+      engineNumber,
+      ownerName,
+      sonWifeDaughterOf,
+      address,
+      mobileNumber,
+      email,
+      makerName,
+      makerModel,
+      colour,
+      seatingCapacity,
+      vehicleClass,
+      vehicleType,
+      ladenWeight,
+      unladenWeight,
+      manufactureYear,
+      vehicleCategory,
+      purchaseDeliveryDate,
+      saleAmount
+    })
 
     res.status(201).json({
       success: true,
@@ -145,11 +232,31 @@ exports.createRegistration = async (req, res) => {
 // Update vehicle registration
 exports.updateRegistration = async (req, res) => {
   try {
-    const registration = await VehicleRegistration.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    )
+    const {
+      registrationNumber,
+      dateOfRegistration,
+      chassisNumber,
+      engineNumber,
+      ownerName,
+      sonWifeDaughterOf,
+      address,
+      mobileNumber,
+      email,
+      makerName,
+      makerModel,
+      colour,
+      seatingCapacity,
+      vehicleClass,
+      vehicleType,
+      ladenWeight,
+      unladenWeight,
+      manufactureYear,
+      vehicleCategory,
+      purchaseDeliveryDate,
+      saleAmount
+    } = req.body
+
+    const registration = await VehicleRegistration.findById(req.params.id)
 
     if (!registration) {
       return res.status(404).json({
@@ -157,6 +264,31 @@ exports.updateRegistration = async (req, res) => {
         message: 'Vehicle registration not found'
       })
     }
+
+    // Update fields
+    if (registrationNumber !== undefined) registration.registrationNumber = registrationNumber
+    if (dateOfRegistration !== undefined) registration.dateOfRegistration = dateOfRegistration
+    if (chassisNumber !== undefined) registration.chassisNumber = chassisNumber
+    if (engineNumber !== undefined) registration.engineNumber = engineNumber
+    if (ownerName !== undefined) registration.ownerName = ownerName
+    if (sonWifeDaughterOf !== undefined) registration.sonWifeDaughterOf = sonWifeDaughterOf
+    if (address !== undefined) registration.address = address
+    if (mobileNumber !== undefined) registration.mobileNumber = mobileNumber
+    if (email !== undefined) registration.email = email
+    if (makerName !== undefined) registration.makerName = makerName
+    if (makerModel !== undefined) registration.makerModel = makerModel
+    if (colour !== undefined) registration.colour = colour
+    if (seatingCapacity !== undefined) registration.seatingCapacity = seatingCapacity
+    if (vehicleClass !== undefined) registration.vehicleClass = vehicleClass
+    if (vehicleType !== undefined) registration.vehicleType = vehicleType
+    if (ladenWeight !== undefined) registration.ladenWeight = ladenWeight
+    if (unladenWeight !== undefined) registration.unladenWeight = unladenWeight
+    if (manufactureYear !== undefined) registration.manufactureYear = manufactureYear
+    if (vehicleCategory !== undefined) registration.vehicleCategory = vehicleCategory
+    if (purchaseDeliveryDate !== undefined) registration.purchaseDeliveryDate = purchaseDeliveryDate
+    if (saleAmount !== undefined) registration.saleAmount = saleAmount
+
+    await registration.save()
 
     res.json({
       success: true,

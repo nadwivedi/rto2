@@ -33,14 +33,84 @@ const getTemporaryPermitOtherStateStatus = (validTo) => {
 // Create new temporary permit (other state)
 exports.createPermit = async (req, res) => {
   try {
-    const permitData = req.body
+    const { permitNumber, permitHolder, vehicleNo, mobileNo, validFrom, validTo, totalFee, paid, balance, notes } = req.body
+
+    // Validate required fields
+    if (!permitNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit number is required'
+      })
+    }
+
+    if (!permitHolder) {
+      return res.status(400).json({
+        success: false,
+        message: 'Permit holder name is required'
+      })
+    }
+
+    if (!vehicleNo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required'
+      })
+    }
+
+    if (!mobileNo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number is required'
+      })
+    }
+
+    if (!validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid from and valid to dates are required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee, paid amount, and balance are required'
+      })
+    }
+
+    // Validate that paid amount can't be greater than total fee
+    if (paid > totalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (balance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
 
     // Calculate status
-    const status = getTemporaryPermitOtherStateStatus(permitData.validTo);
-    permitData.status = status;
+    const status = getTemporaryPermitOtherStateStatus(validTo);
 
     // Create new temporary permit without bill reference first
-    const newPermit = new TemporaryPermitOtherState(permitData)
+    const newPermit = new TemporaryPermitOtherState({
+      permitNumber,
+      permitHolder,
+      vehicleNo,
+      mobileNo,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      status,
+      notes
+    })
     await newPermit.save()
 
     // Create CustomBill document if there's payment
@@ -372,30 +442,60 @@ exports.getPermitById = async (req, res) => {
 exports.updatePermit = async (req, res) => {
   try {
     const { id } = req.params
-    const updateData = req.body
+    const { permitNumber, permitHolder, vehicleNo, mobileNo, validFrom, validTo, totalFee, paid, balance, notes } = req.body
 
-    if (updateData.validTo) {
-        // Recalculate status if validTo is updated
-        updateData.status = getTemporaryPermitOtherStateStatus(updateData.validTo);
-    }
+    const permit = await TemporaryPermitOtherState.findById(id)
 
-    const updatedPermit = await TemporaryPermitOtherState.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    )
-
-    if (!updatedPermit) {
+    if (!permit) {
       return res.status(404).json({
         success: false,
         message: 'Temporary permit (other state) not found'
       })
     }
 
+    // Prepare updated values for validation
+    const updatedTotalFee = totalFee !== undefined ? totalFee : permit.totalFee
+    const updatedPaid = paid !== undefined ? paid : permit.paid
+    const updatedBalance = balance !== undefined ? balance : permit.balance
+
+    // Validate that paid amount can't be greater than total fee
+    if (updatedPaid > updatedTotalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (updatedBalance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
+
+    // Update fields
+    if (permitNumber !== undefined) permit.permitNumber = permitNumber
+    if (permitHolder !== undefined) permit.permitHolder = permitHolder
+    if (vehicleNo !== undefined) permit.vehicleNo = vehicleNo
+    if (mobileNo !== undefined) permit.mobileNo = mobileNo
+    if (validFrom !== undefined) permit.validFrom = validFrom
+    if (validTo !== undefined) {
+      permit.validTo = validTo
+      // Recalculate status if validTo is updated
+      permit.status = getTemporaryPermitOtherStateStatus(validTo)
+    }
+    if (totalFee !== undefined) permit.totalFee = totalFee
+    if (paid !== undefined) permit.paid = paid
+    if (balance !== undefined) permit.balance = balance
+    if (notes !== undefined) permit.notes = notes
+
+    await permit.save()
+
     res.json({
       success: true,
       message: 'Temporary permit (other state) updated successfully',
-      data: updatedPermit
+      data: permit
     })
   } catch (error) {
     console.error('Error updating temporary permit (other state):', error)

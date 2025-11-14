@@ -20,23 +20,20 @@ const fitnessSchema = new mongoose.Schema({
   totalFee: {
     type: Number,
     required: true,
-    default: 0
   },
   paid: {
     type: Number,
     required: true,
-    default: 0
   },
   balance: {
     type: Number,
     required: true,
-    default: 0
   },
 
   // Status
   status: {
     type: String,
-    enum: ['active', 'expired', 'expiring_soon', 'cancelled'],
+    enum: ['active', 'expired', 'expiring_soon'],
     default: 'active'
   },
 

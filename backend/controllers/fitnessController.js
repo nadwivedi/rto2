@@ -76,6 +76,27 @@ exports.getAllFitness = async (req, res) => {
   }
 }
 
+// Export all fitness records without pagination
+exports.exportAllFitness = async (req, res) => {
+  try {
+    const fitnessRecords = await Fitness.find({})
+      .sort({ createdAt: -1 })
+
+    res.json({
+      success: true,
+      data: fitnessRecords,
+      total: fitnessRecords.length
+    })
+  } catch (error) {
+    console.error('Error exporting fitness records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export fitness records',
+      error: error.message
+    })
+  }
+}
+
 // Get expiring soon fitness records
 exports.getExpiringSoonFitness = async (req, res) => {
   try {
@@ -308,11 +329,30 @@ exports.createFitness = async (req, res) => {
     const { vehicleNumber, validFrom, validTo, totalFee, paid, balance } = req.body
 
     // Validate required fields
-    if (!vehicleNumber || !validFrom || !validTo) {
+    if (!vehicleNumber ) {
       return res.status(400).json({
         success: false,
-        message: 'Vehicle number, valid from, and valid to are required'
+        message: 'Vehicle number is required '
       })
+    }
+
+    if(!validFrom || !validTo){
+      return res.status(400).json({success:false , message:'valid from, and valid to are required'})
+
+    }
+
+    if(totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null){
+      return res.status(400).json({success:false , message:'total fee, paid amount, and balance are required'})
+    }
+
+    // Validate that paid amount can't be greater than total amount
+    if(paid > totalFee){
+      return res.status(400).json({success:false , message:'paid amount cannot be greater than total fee'})
+    }
+
+    // Validate that balance amount can't be negative
+    if(balance < 0){
+      return res.status(400).json({success:false , message:'balance amount cannot be negative'})
     }
 
     // Calculate status
@@ -323,9 +363,9 @@ exports.createFitness = async (req, res) => {
       vehicleNumber,
       validFrom,
       validTo,
-      totalFee: totalFee || 0,
-      paid: paid || 0,
-      balance: balance || 0,
+      totalFee,
+      paid,
+      balance,
       status
     })
 
@@ -398,6 +438,27 @@ exports.updateFitness = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Fitness record not found'
+      })
+    }
+
+    // Prepare updated values for validation
+    const updatedTotalFee = totalFee !== undefined ? totalFee : fitness.totalFee
+    const updatedPaid = paid !== undefined ? paid : fitness.paid
+    const updatedBalance = balance !== undefined ? balance : fitness.balance
+
+    // Validate that paid amount can't be greater than total amount
+    if (updatedPaid > updatedTotalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (updatedBalance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
       })
     }
 

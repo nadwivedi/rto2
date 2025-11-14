@@ -10,14 +10,14 @@ const ExportExcelModal = ({ isOpen, onClose }) => {
   const [isExporting, setIsExporting] = useState(false)
 
   const dataTypes = [
-    { id: 'vehicle-registration', name: 'Vehicle Registration', endpoint: '/api/vehicle-registrations', icon: '🚗' },
-    { id: 'national-permit', name: 'National Permit', endpoint: '/api/national-permits', icon: '🛣️' },
-    { id: 'cg-permit', name: 'CG Permit', endpoint: '/api/cg-permits', icon: '📄' },
-    { id: 'temporary-permit', name: 'Temporary Permit', endpoint: '/api/temporary-permits', icon: '⏰' },
-    { id: 'fitness', name: 'Fitness', endpoint: '/api/fitness', icon: '✅' },
-    { id: 'tax', name: 'Tax', endpoint: '/api/tax', icon: '💰' },
-    { id: 'insurance', name: 'Insurance', endpoint: '/api/insurance', icon: '🛡️' },
-    { id: 'driving-license', name: 'Driving License', endpoint: '/api/driving-licenses', icon: '🪪' }
+    { id: 'vehicle-registration', name: 'Vehicle Registration', endpoint: '/api/vehicle-registrations/export', icon: '🚗' },
+    { id: 'national-permit', name: 'National Permit', endpoint: '/api/national-permits/export', icon: '🛣️' },
+    { id: 'cg-permit', name: 'CG Permit', endpoint: '/api/cg-permits/export', icon: '📄' },
+    { id: 'temporary-permit', name: 'Temporary Permit', endpoint: '/api/temporary-permits/export', icon: '⏰' },
+    { id: 'fitness', name: 'Fitness', endpoint: '/api/fitness/export', icon: '✅' },
+    { id: 'tax', name: 'Tax', endpoint: '/api/tax/export', icon: '💰' },
+    { id: 'insurance', name: 'Insurance', endpoint: '/api/insurance/export', icon: '🛡️' },
+    { id: 'driving-license', name: 'Driving License', endpoint: '/api/driving-licenses/export', icon: '🪪' }
   ]
 
   const handleToggle = (id) => {

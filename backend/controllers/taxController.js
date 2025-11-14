@@ -78,6 +78,27 @@ exports.getAllTax = async (req, res) => {
   }
 }
 
+// Export all tax records without pagination
+exports.exportAllTax = async (req, res) => {
+  try {
+    const taxRecords = await Tax.find({})
+      .sort({ createdAt: -1 })
+
+    res.json({
+      success: true,
+      data: taxRecords,
+      total: taxRecords.length
+    })
+  } catch (error) {
+    console.error('Error exporting tax records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export tax records',
+      error: error.message
+    })
+  }
+}
+
 // Get single tax record by ID
 exports.getTaxById = async (req, res) => {
   try {
@@ -117,6 +138,20 @@ exports.createTax = async (req, res) => {
       })
     }
 
+    if(totalAmount === undefined || totalAmount === null || paidAmount === undefined || paidAmount === null || balanceAmount === undefined || balanceAmount === null){
+      return res.status(400).json({success:false , message:'total amount, paid amount, and balance amount are required'})
+    }
+
+    // Validate that paid amount can't be greater than total amount
+    if(paidAmount > totalAmount){
+      return res.status(400).json({success:false , message:'paid amount cannot be greater than total amount'})
+    }
+
+    // Validate that balance amount can't be negative
+    if(balanceAmount < 0){
+      return res.status(400).json({success:false , message:'balance amount cannot be negative'})
+    }
+
     // Calculate status
     const status = getTaxStatus(taxTo);
 
@@ -125,9 +160,9 @@ exports.createTax = async (req, res) => {
       receiptNo,
       vehicleNumber,
       ownerName,
-      totalAmount: totalAmount || 0,
-      paidAmount: paidAmount || 0,
-      balanceAmount: balanceAmount || 0,
+      totalAmount,
+      paidAmount,
+      balanceAmount,
       taxFrom,
       taxTo,
       status
@@ -202,6 +237,27 @@ exports.updateTax = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: 'Tax record not found'
+      })
+    }
+
+    // Prepare updated values for validation
+    const updatedTotalAmount = totalAmount !== undefined ? totalAmount : tax.totalAmount
+    const updatedPaidAmount = paidAmount !== undefined ? paidAmount : tax.paidAmount
+    const updatedBalanceAmount = balanceAmount !== undefined ? balanceAmount : tax.balanceAmount
+
+    // Validate that paid amount can't be greater than total amount
+    if (updatedPaidAmount > updatedTotalAmount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total amount'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (updatedBalanceAmount < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
       })
     }
 

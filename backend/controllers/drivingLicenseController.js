@@ -21,32 +21,135 @@ const convertToDate = (dateString) => {
 // Create new driving license application
 exports.createApplication = async (req, res) => {
   try {
-    const applicationData = { ...req.body }
+    const {
+      name, dateOfBirth, gender, bloodGroup, fatherName, motherName,
+      mobileNumber, email, address, licenseClass,
+      licenseNumber, licenseIssueDate, licenseExpiryDate,
+      learningLicenseNumber, learningLicenseIssueDate, learningLicenseExpiryDate,
+      totalAmount, paidAmount, balanceAmount,
+      qualification, aadharNumber, documents
+    } = req.body
+
+    // Validate required personal fields
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name is required'
+      })
+    }
+
+    if (!dateOfBirth) {
+      return res.status(400).json({
+        success: false,
+        message: 'Date of birth is required'
+      })
+    }
+
+    if (!gender) {
+      return res.status(400).json({
+        success: false,
+        message: 'Gender is required'
+      })
+    }
+
+    if (!fatherName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Father name is required'
+      })
+    }
+
+    if (!mobileNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number is required'
+      })
+    }
+
+    if (!address) {
+      return res.status(400).json({
+        success: false,
+        message: 'Address is required'
+      })
+    }
+
+    if (!licenseClass) {
+      return res.status(400).json({
+        success: false,
+        message: 'License class is required'
+      })
+    }
+
+    // Validate payment fields are mandatory
+    if (totalAmount === undefined || totalAmount === null || paidAmount === undefined || paidAmount === null || balanceAmount === undefined || balanceAmount === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total amount, paid amount, and balance amount are required'
+      })
+    }
+
+    // Validate that paid amount can't be greater than total amount
+    if (paidAmount > totalAmount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total amount'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (balanceAmount < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
+
+    // Prepare application data
+    const applicationData = {
+      name,
+      dateOfBirth,
+      gender,
+      bloodGroup,
+      fatherName,
+      motherName,
+      mobileNumber,
+      email,
+      address,
+      licenseClass,
+      totalAmount,
+      paidAmount,
+      balanceAmount,
+      qualification,
+      aadharNumber,
+      documents
+    }
 
     // Map lowercase field names to uppercase (model field names)
-    if (applicationData.licenseNumber !== undefined) {
-      applicationData.LicenseNumber = applicationData.licenseNumber
-      delete applicationData.licenseNumber
+    if (licenseNumber !== undefined) {
+      applicationData.LicenseNumber = licenseNumber
     }
 
     // Convert date strings to Date objects and map to uppercase field names
-    if (applicationData.licenseIssueDate !== undefined) {
-      applicationData.LicenseIssueDate = convertToDate(applicationData.licenseIssueDate)
-      delete applicationData.licenseIssueDate
+    if (licenseIssueDate !== undefined) {
+      applicationData.LicenseIssueDate = convertToDate(licenseIssueDate)
     }
 
-    if (applicationData.licenseExpiryDate !== undefined) {
-      applicationData.LicenseExpiryDate = convertToDate(applicationData.licenseExpiryDate)
-      delete applicationData.licenseExpiryDate
+    if (licenseExpiryDate !== undefined) {
+      applicationData.LicenseExpiryDate = convertToDate(licenseExpiryDate)
+    }
+
+    // Learning license details
+    if (learningLicenseNumber !== undefined) {
+      applicationData.learningLicenseNumber = learningLicenseNumber
     }
 
     // Convert learning license dates
-    if (applicationData.learningLicenseIssueDate !== undefined) {
-      applicationData.learningLicenseIssueDate = convertToDate(applicationData.learningLicenseIssueDate)
+    if (learningLicenseIssueDate !== undefined) {
+      applicationData.learningLicenseIssueDate = convertToDate(learningLicenseIssueDate)
     }
 
-    if (applicationData.learningLicenseExpiryDate !== undefined) {
-      applicationData.learningLicenseExpiryDate = convertToDate(applicationData.learningLicenseExpiryDate)
+    if (learningLicenseExpiryDate !== undefined) {
+      applicationData.learningLicenseExpiryDate = convertToDate(learningLicenseExpiryDate)
     }
 
     // Create new driving license application
@@ -142,6 +245,27 @@ exports.getAllApplications = async (req, res) => {
   }
 }
 
+// Export all driving license applications without pagination
+exports.exportAllApplications = async (req, res) => {
+  try {
+    const applications = await Driving.find({})
+      .sort({ createdAt: -1 })
+
+    res.status(200).json({
+      success: true,
+      data: applications,
+      total: applications.length
+    })
+  } catch (error) {
+    console.error('Error exporting applications:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export applications',
+      error: error.message
+    })
+  }
+}
+
 // Get single driving license application by ID
 exports.getApplicationById = async (req, res) => {
   try {
@@ -174,51 +298,97 @@ exports.getApplicationById = async (req, res) => {
 exports.updateApplication = async (req, res) => {
   try {
     const { id } = req.params
-    const updateData = { ...req.body }
+    const {
+      name, dateOfBirth, gender, bloodGroup, fatherName, motherName,
+      mobileNumber, email, address, licenseClass,
+      licenseNumber, licenseIssueDate, licenseExpiryDate,
+      learningLicenseNumber, learningLicenseIssueDate, learningLicenseExpiryDate,
+      totalAmount, paidAmount, balanceAmount,
+      qualification, aadharNumber, documents
+    } = req.body
 
-    // Map lowercase field names to uppercase (model field names)
-    if (updateData.licenseNumber !== undefined) {
-      updateData.LicenseNumber = updateData.licenseNumber
-      delete updateData.licenseNumber
-    }
+    const application = await Driving.findById(id)
 
-    // Convert date strings to Date objects and map to uppercase field names
-    if (updateData.licenseIssueDate !== undefined) {
-      updateData.LicenseIssueDate = convertToDate(updateData.licenseIssueDate)
-      delete updateData.licenseIssueDate
-    }
-
-    if (updateData.licenseExpiryDate !== undefined) {
-      updateData.LicenseExpiryDate = convertToDate(updateData.licenseExpiryDate)
-      delete updateData.licenseExpiryDate
-    }
-
-    // Convert learning license dates
-    if (updateData.learningLicenseIssueDate !== undefined) {
-      updateData.learningLicenseIssueDate = convertToDate(updateData.learningLicenseIssueDate)
-    }
-
-    if (updateData.learningLicenseExpiryDate !== undefined) {
-      updateData.learningLicenseExpiryDate = convertToDate(updateData.learningLicenseExpiryDate)
-    }
-
-    const updatedApplication = await Driving.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    )
-
-    if (!updatedApplication) {
+    if (!application) {
       return res.status(404).json({
         success: false,
         message: 'Application not found'
       })
     }
 
+    // Prepare updated values for validation
+    const updatedTotalAmount = totalAmount !== undefined ? totalAmount : application.totalAmount
+    const updatedPaidAmount = paidAmount !== undefined ? paidAmount : application.paidAmount
+    const updatedBalanceAmount = balanceAmount !== undefined ? balanceAmount : application.balanceAmount
+
+    // Validate that paid amount can't be greater than total amount
+    if (updatedPaidAmount > updatedTotalAmount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total amount'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (updatedBalanceAmount < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
+
+    // Update fields
+    if (name !== undefined) application.name = name
+    if (dateOfBirth !== undefined) application.dateOfBirth = dateOfBirth
+    if (gender !== undefined) application.gender = gender
+    if (bloodGroup !== undefined) application.bloodGroup = bloodGroup
+    if (fatherName !== undefined) application.fatherName = fatherName
+    if (motherName !== undefined) application.motherName = motherName
+    if (mobileNumber !== undefined) application.mobileNumber = mobileNumber
+    if (email !== undefined) application.email = email
+    if (address !== undefined) application.address = address
+    if (licenseClass !== undefined) application.licenseClass = licenseClass
+    if (totalAmount !== undefined) application.totalAmount = totalAmount
+    if (paidAmount !== undefined) application.paidAmount = paidAmount
+    if (balanceAmount !== undefined) application.balanceAmount = balanceAmount
+    if (qualification !== undefined) application.qualification = qualification
+    if (aadharNumber !== undefined) application.aadharNumber = aadharNumber
+    if (documents !== undefined) application.documents = documents
+
+    // Map lowercase field names to uppercase (model field names)
+    if (licenseNumber !== undefined) {
+      application.LicenseNumber = licenseNumber
+    }
+
+    // Convert date strings to Date objects and map to uppercase field names
+    if (licenseIssueDate !== undefined) {
+      application.LicenseIssueDate = convertToDate(licenseIssueDate)
+    }
+
+    if (licenseExpiryDate !== undefined) {
+      application.LicenseExpiryDate = convertToDate(licenseExpiryDate)
+    }
+
+    // Learning license details
+    if (learningLicenseNumber !== undefined) {
+      application.learningLicenseNumber = learningLicenseNumber
+    }
+
+    // Convert learning license dates
+    if (learningLicenseIssueDate !== undefined) {
+      application.learningLicenseIssueDate = convertToDate(learningLicenseIssueDate)
+    }
+
+    if (learningLicenseExpiryDate !== undefined) {
+      application.learningLicenseExpiryDate = convertToDate(learningLicenseExpiryDate)
+    }
+
+    await application.save()
+
     res.status(200).json({
       success: true,
       message: 'Application updated successfully',
-      data: updatedApplication
+      data: application
     })
   } catch (error) {
     console.error('Error updating application:', error)

@@ -62,12 +62,14 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
     permitNumber: permit.permitNumber || '',
     validFrom: formatDate(new Date()),
     validTo: formatDate(getFiveYearsFromNow()),
-    fees: '15000',
+    totalFee: '',
+    paid: '',
+    balance: '',
     notes: 'Part A renewal (5 years)',
     // Part B fields
-    authorizationNumber: latestPartB.authorizationNumber,
-    typeBValidFrom: latestPartB.validFrom,
-    typeBValidTo: latestPartB.validTo
+    partBNumber: latestPartB.authorizationNumber,
+    partBValidFrom: latestPartB.validFrom,
+    partBValidTo: latestPartB.validTo
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -80,7 +82,7 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
     const { name, value } = e.target
 
     // Auto-format date fields with smart date input
-    if (name === 'validFrom' || name === 'validTo' || name === 'typeBValidFrom' || name === 'typeBValidTo') {
+    if (name === 'validFrom' || name === 'validTo' || name === 'partBValidFrom' || name === 'partBValidTo') {
       const formatted = handleSmartDateInput(value, formData[name] || '')
       if (formatted !== null) {
         setFormData(prev => ({
@@ -88,6 +90,21 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
           [name]: formatted
         }))
       }
+      setError('')
+      return
+    }
+
+    // Auto-calculate balance when totalFee or paid changes
+    if (name === 'totalFee' || name === 'paid') {
+      const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(formData.totalFee) || 0
+      const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(formData.paid) || 0
+      const balance = Math.max(0, totalFee - paid)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        balance: balance.toString()
+      }))
       setError('')
       return
     }
@@ -103,18 +120,18 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
     e.preventDefault()
 
     // Validation
-    if (!formData.permitNumber || formData.permitNumber.trim() === '') {
-      setError('Permit Number is required')
-      return
-    }
-
     if (!formData.validFrom || !formData.validTo) {
       setError('Valid From and Valid To dates are required')
       return
     }
 
-    if (!formData.fees || parseFloat(formData.fees) <= 0) {
-      setError('Please enter valid fees')
+    if (!formData.totalFee || parseFloat(formData.totalFee) <= 0) {
+      setError('Please enter valid total fee')
+      return
+    }
+
+    if (formData.paid === '' || formData.balance === '') {
+      setError('Please enter paid and balance amounts')
       return
     }
 
@@ -128,17 +145,16 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          permitNumber: formData.permitNumber.trim(),
           validFrom: formData.validFrom,
           validTo: formData.validTo,
-          fees: parseFloat(formData.fees),
+          totalFee: parseFloat(formData.totalFee),
+          paid: parseFloat(formData.paid),
+          balance: parseFloat(formData.balance),
           notes: formData.notes,
-          // Part B data
-          typeBAuthorization: {
-            authorizationNumber: formData.authorizationNumber,
-            validFrom: formData.typeBValidFrom,
-            validTo: formData.typeBValidTo
-          }
+          // Part B data (only if provided)
+          partBNumber: formData.partBNumber || '',
+          partBValidFrom: formData.partBValidFrom || '',
+          partBValidTo: formData.partBValidTo || ''
         })
       })
 
@@ -269,40 +285,74 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
               </div>
             </div>
 
-            {/* Row 2: Renewal Fees, Notes */}
-            <div className='grid grid-cols-2 gap-4'>
-              {/* Fees */}
+            {/* Row 2: Payment Fields */}
+            <div className='grid grid-cols-3 gap-4'>
+              {/* Total Fee */}
               <div>
                 <label className='block text-sm font-bold text-gray-700 mb-2'>
-                  Renewal Fees (₹) <span className='text-red-500'>*</span>
+                  Total Fee (₹) <span className='text-red-500'>*</span>
                 </label>
                 <input
                   type='number'
-                  name='fees'
-                  value={formData.fees}
+                  name='totalFee'
+                  value={formData.totalFee}
                   onChange={handleChange}
-                  placeholder='15000'
+                  placeholder='0'
                   min='0'
                   step='100'
-                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-semibold'
                   required
                 />
               </div>
 
-              {/* Notes */}
+              {/* Paid */}
               <div>
                 <label className='block text-sm font-bold text-gray-700 mb-2'>
-                  Notes (Optional)
+                  Paid (₹) <span className='text-red-500'>*</span>
                 </label>
                 <input
-                  type='text'
-                  name='notes'
-                  value={formData.notes}
+                  type='number'
+                  name='paid'
+                  value={formData.paid}
                   onChange={handleChange}
-                  placeholder='Add any notes about this renewal...'
-                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                  placeholder='0'
+                  min='0'
+                  step='100'
+                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent font-semibold'
+                  required
                 />
               </div>
+
+              {/* Balance */}
+              <div>
+                <label className='block text-sm font-bold text-gray-700 mb-2'>
+                  Balance (₹)
+                </label>
+                <input
+                  type='number'
+                  name='balance'
+                  value={formData.balance}
+                  onChange={handleChange}
+                  placeholder='Auto-calculated'
+                  className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 font-semibold'
+                  readOnly
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Notes */}
+            <div>
+              <label className='block text-sm font-bold text-gray-700 mb-2'>
+                Notes (Optional)
+              </label>
+              <input
+                type='text'
+                name='notes'
+                value={formData.notes}
+                onChange={handleChange}
+                placeholder='Add any notes about this renewal...'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+              />
             </div>
 
             {/* Helper Text */}
@@ -394,8 +444,8 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
                   </label>
                   <input
                     type='text'
-                    name='authorizationNumber'
-                    value={formData.authorizationNumber}
+                    name='partBNumber'
+                    value={formData.partBNumber}
                     onChange={handleChange}
                     placeholder='e.g., AUTH-2025-001'
                     className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono'
@@ -409,8 +459,8 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
                   </label>
                   <input
                     type='text'
-                    name='typeBValidFrom'
-                    value={formData.typeBValidFrom}
+                    name='partBValidFrom'
+                    value={formData.partBValidFrom}
                     onChange={handleChange}
                     placeholder='Type: 271025 or 27102025'
                     className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'
@@ -424,8 +474,8 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
                   </label>
                   <input
                     type='text'
-                    name='typeBValidTo'
-                    value={formData.typeBValidTo}
+                    name='partBValidTo'
+                    value={formData.partBValidTo}
                     onChange={handleChange}
                     placeholder='Auto-calculated'
                     className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'

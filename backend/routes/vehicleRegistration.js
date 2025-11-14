@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const vehicleRegistrationController = require('../controllers/vehicleRegistrationController')
 
+// GET export all registrations (must be before '/')
+router.get('/export', vehicleRegistrationController.exportAllRegistrations)
+
 // GET all vehicle registrations
 router.get('/', vehicleRegistrationController.getAllRegistrations)
 

@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const cgPermitController = require('../controllers/cgPermitController')
 
+// GET export all permits (must be before '/')
+router.get('/export', cgPermitController.exportAllPermits)
+
 // GET all CG permits
 router.get('/', cgPermitController.getAllPermits)
 

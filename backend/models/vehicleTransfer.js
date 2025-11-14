@@ -64,17 +64,14 @@ const VehicleTransferSchema = new mongoose.Schema({
   totalFee: {
     type: Number,
     required: true,
-    default: 0
   },
   paid: {
     type: Number,
     required: true,
-    default: 0
   },
   balance: {
     type: Number,
     required: true,
-    default: 0
   },
 
 

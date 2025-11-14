@@ -311,6 +311,27 @@ exports.getAllPermits = async (req, res) => {
   }
 }
 
+// Export all CG permits without pagination
+exports.exportAllPermits = async (req, res) => {
+  try {
+    const permits = await CgPermit.find({})
+      .populate('bill')
+      .sort({ createdAt: -1 })
+
+    res.json({
+      success: true,
+      data: permits,
+      total: permits.length
+    })
+  } catch (error) {
+    console.error('Error exporting CG permits:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export CG permits'
+    })
+  }
+}
+
 // Get expiring soon CG permits
 exports.getExpiringSoonPermits = async (req, res) => {
   try {

@@ -30,14 +30,69 @@ const getInsuranceStatus = (validTo) => {
 // Create new insurance record
 exports.createInsurance = async (req, res) => {
   try {
-    const insuranceData = req.body
+    const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks } = req.body
+
+    // Validate required fields
+    if (!policyNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Policy number is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required'
+      })
+    }
+
+    if (!validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid from and valid to dates are required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee, paid amount, and balance are required'
+      })
+    }
+
+    // Validate that paid amount can't be greater than total amount
+    if (paid > totalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (balance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
 
     // Calculate status
-    const status = getInsuranceStatus(insuranceData.validTo);
-    insuranceData.status = status;
+    const status = getInsuranceStatus(validTo);
 
     // Create new insurance record
-    const newInsurance = new Insurance(insuranceData)
+    const newInsurance = new Insurance({
+      policyNumber,
+      vehicleNumber,
+      mobileNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      status,
+      remarks
+    })
     await newInsurance.save()
 
     res.status(201).json({
@@ -107,6 +162,27 @@ exports.getAllInsurance = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch insurance records',
+      error: error.message
+    })
+  }
+}
+
+// Export all insurance records without pagination
+exports.exportAllInsurance = async (req, res) => {
+  try {
+    const insuranceRecords = await Insurance.find({})
+      .sort({ createdAt: -1 })
+
+    res.status(200).json({
+      success: true,
+      data: insuranceRecords,
+      total: insuranceRecords.length
+    })
+  } catch (error) {
+    console.error('Error exporting insurance records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export insurance records',
       error: error.message
     })
   }
@@ -344,30 +420,59 @@ exports.getInsuranceByPolicyNumber = async (req, res) => {
 exports.updateInsurance = async (req, res) => {
   try {
     const { id } = req.params
-    const updateData = req.body
+    const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks } = req.body
 
-    if (updateData.validTo) {
-        // Recalculate status if validTo is updated
-        updateData.status = getInsuranceStatus(updateData.validTo);
-    }
+    const insurance = await Insurance.findById(id)
 
-    const updatedInsurance = await Insurance.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    )
-
-    if (!updatedInsurance) {
+    if (!insurance) {
       return res.status(404).json({
         success: false,
         message: 'Insurance record not found'
       })
     }
 
+    // Prepare updated values for validation
+    const updatedTotalFee = totalFee !== undefined ? totalFee : insurance.totalFee
+    const updatedPaid = paid !== undefined ? paid : insurance.paid
+    const updatedBalance = balance !== undefined ? balance : insurance.balance
+
+    // Validate that paid amount can't be greater than total amount
+    if (updatedPaid > updatedTotalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (updatedBalance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
+
+    // Update fields
+    if (policyNumber) insurance.policyNumber = policyNumber
+    if (vehicleNumber) insurance.vehicleNumber = vehicleNumber
+    if (mobileNumber !== undefined) insurance.mobileNumber = mobileNumber
+    if (validFrom) insurance.validFrom = validFrom
+    if (validTo) {
+      insurance.validTo = validTo
+      // Recalculate status if validTo is updated
+      insurance.status = getInsuranceStatus(validTo)
+    }
+    if (totalFee !== undefined) insurance.totalFee = totalFee
+    if (paid !== undefined) insurance.paid = paid
+    if (balance !== undefined) insurance.balance = balance
+    if (remarks !== undefined) insurance.remarks = remarks
+
+    await insurance.save()
+
     res.status(200).json({
       success: true,
       message: 'Insurance record updated successfully',
-      data: updatedInsurance
+      data: insurance
     })
   } catch (error) {
     console.error('Error updating insurance record:', error)

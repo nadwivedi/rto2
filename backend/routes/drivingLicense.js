@@ -2,6 +2,9 @@ const express = require('express')
 const router = express.Router()
 const drivingLicenseController = require('../controllers/drivingLicenseController')
 
+// GET export all applications (must be before '/')
+router.get('/export', drivingLicenseController.exportAllApplications)
+
 // GET all driving license applications
 router.get('/', drivingLicenseController.getAllApplications)
 

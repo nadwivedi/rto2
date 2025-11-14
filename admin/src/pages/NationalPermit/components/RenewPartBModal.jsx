@@ -6,10 +6,12 @@ const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
   const [formData, setFormData] = useState({
-    authorizationNumber: '',
+    partBNumber: '',
     validFrom: formatDate(new Date()),
     validTo: formatDate(getOneYearFromNow()),
-    fees: '5000',
+    totalFee: '',
+    paid: '',
+    balance: '',
     notes: 'Annual Part B renewal'
   })
   const [loading, setLoading] = useState(false)
@@ -31,6 +33,21 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
       return
     }
 
+    // Auto-calculate balance when totalFee or paid changes
+    if (name === 'totalFee' || name === 'paid') {
+      const totalFee = name === 'totalFee' ? parseFloat(value) || 0 : parseFloat(formData.totalFee) || 0
+      const paid = name === 'paid' ? parseFloat(value) || 0 : parseFloat(formData.paid) || 0
+      const balance = Math.max(0, totalFee - paid)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        balance: balance.toString()
+      }))
+      setError('')
+      return
+    }
+
     setFormData(prev => ({
       ...prev,
       [name]: value
@@ -42,7 +59,7 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
     e.preventDefault()
 
     // Validation
-    if (!formData.authorizationNumber || formData.authorizationNumber.trim() === '') {
+    if (!formData.partBNumber || formData.partBNumber.trim() === '') {
       setError('Authorization Number is required')
       return
     }
@@ -52,8 +69,13 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
       return
     }
 
-    if (!formData.fees || parseFloat(formData.fees) <= 0) {
-      setError('Please enter valid fees')
+    if (!formData.totalFee || parseFloat(formData.totalFee) <= 0) {
+      setError('Please enter valid total fee')
+      return
+    }
+
+    if (formData.paid === '' || formData.balance === '') {
+      setError('Please enter paid and balance amounts')
       return
     }
 
@@ -67,10 +89,12 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          authorizationNumber: formData.authorizationNumber.trim(),
+          partBNumber: formData.partBNumber.trim(),
           validFrom: formData.validFrom,
           validTo: formData.validTo,
-          fees: parseFloat(formData.fees),
+          totalFee: parseFloat(formData.totalFee),
+          paid: parseFloat(formData.paid),
+          balance: parseFloat(formData.balance),
           notes: formData.notes
         })
       })
@@ -158,8 +182,8 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
               </label>
               <input
                 type='text'
-                name='authorizationNumber'
-                value={formData.authorizationNumber}
+                name='partBNumber'
+                value={formData.partBNumber}
                 onChange={handleChange}
                 placeholder='e.g., AUTH-2025-0001'
                 className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono'
@@ -205,12 +229,12 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
             {/* Fees */}
             <div>
               <label className='block text-sm font-bold text-gray-700 mb-2'>
-                Renewal Fees (₹) <span className='text-red-500'>*</span>
+                Total Fees (₹) <span className='text-red-500'>*</span>
               </label>
               <input
                 type='number'
-                name='fees'
-                value={formData.fees}
+                name='totalFee'
+                value={formData.totalFee}
                 onChange={handleChange}
                 placeholder='5000'
                 min='0'
@@ -218,6 +242,43 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
                 className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'
                 required
               />
+            </div>
+
+            {/* Paid Amount */}
+            <div>
+              <label className='block text-sm font-bold text-gray-700 mb-2'>
+                Paid Amount (₹) <span className='text-red-500'>*</span>
+              </label>
+              <input
+                type='number'
+                name='paid'
+                value={formData.paid}
+                onChange={handleChange}
+                placeholder='5000'
+                min='0'
+                step='100'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent'
+                required
+              />
+              <p className='text-xs text-gray-500 mt-1'>Enter the amount paid by customer</p>
+            </div>
+
+            {/* Balance (Auto-calculated) */}
+            <div>
+              <label className='block text-sm font-bold text-gray-700 mb-2'>
+                Balance (₹)
+              </label>
+              <input
+                type='number'
+                name='balance'
+                value={formData.balance}
+                onChange={handleChange}
+                placeholder='0'
+                min='0'
+                className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-gray-100 cursor-not-allowed'
+                readOnly
+              />
+              <p className='text-xs text-gray-500 mt-1'>Auto-calculated: Total Fee - Paid Amount</p>
             </div>
 
             {/* Notes */}
