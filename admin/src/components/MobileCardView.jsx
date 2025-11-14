@@ -94,6 +94,7 @@ const MobileCardView = ({
         <button
           key={index}
           onClick={() => action.onClick(record)}
+          onMouseEnter={action.onMouseEnter}
           disabled={isLoading || action.disabled}
           className={`p-2 ${action.bgColor || 'bg-gray-100'} ${action.textColor || 'text-gray-600'} rounded-lg hover:${action.hoverBgColor || 'bg-gray-200'} transition-all cursor-pointer disabled:opacity-50`}
           title={action.title}

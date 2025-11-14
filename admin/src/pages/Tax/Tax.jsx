@@ -7,6 +7,11 @@ import AddButton from "../../components/AddButton";
 const AddTaxModal = lazy(() => import("./components/AddTaxModal"));
 const EditTaxModal = lazy(() => import("./components/EditTaxModal"));
 const RenewTaxModal = lazy(() => import("./components/RenewTaxModal"));
+
+// Preload functions - Start loading component on hover for instant feel
+const preloadAddModal = () => import("./components/AddTaxModal");
+const preloadEditModal = () => import("./components/EditTaxModal");
+const preloadRenewModal = () => import("./components/RenewTaxModal");
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -458,6 +463,7 @@ const Tax = () => {
                 {/* Add Button */}
                 <AddButton
                   onClick={() => setIsAddModalOpen(true)}
+                  onMouseEnter={preloadAddModal}
                   title="Add New Tax Record"
                 />
               </div>
@@ -558,6 +564,7 @@ const Tax = () => {
                   title: 'Renew Tax',
                   condition: shouldShowRenewButton,
                   onClick: handleRenewClick,
+                  onMouseEnter: preloadRenewModal,
                   bgColor: 'bg-blue-100',
                   textColor: 'text-blue-600',
                   hoverBgColor: 'bg-blue-200',
@@ -570,6 +577,7 @@ const Tax = () => {
                 {
                   title: 'Edit',
                   onClick: handleEditClick,
+                  onMouseEnter: preloadEditModal,
                   bgColor: 'bg-green-100',
                   textColor: 'text-green-600',
                   hoverBgColor: 'bg-green-200',
@@ -802,6 +810,7 @@ const Tax = () => {
                             {shouldShowRenewButton(record) ? (
                               <button
                                 onClick={() => handleRenewClick(record)}
+                                onMouseEnter={preloadRenewModal}
                                 className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Renew Tax"
                               >
@@ -825,6 +834,7 @@ const Tax = () => {
                             {/* Edit Button */}
                             <button
                               onClick={() => handleEditClick(record)}
+                              onMouseEnter={preloadEditModal}
                               className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Edit Record"
                             >

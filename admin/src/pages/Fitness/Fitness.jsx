@@ -3,10 +3,15 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import AddButton from "../../components/AddButton";
 
-// Lazy load modals for better performance
+// Lazy load modals for better performance with hover preloading
 const AddFitnessModal = lazy(() => import("./components/AddFitnessModal"));
 const EditFitnessModal = lazy(() => import("./components/EditFitnessModal"));
 const RenewFitnessModal = lazy(() => import("./components/RenewFitnessModal"));
+
+// Preload functions - Start loading component on hover for instant feel
+const preloadAddModal = () => import("./components/AddFitnessModal");
+const preloadEditModal = () => import("./components/EditFitnessModal");
+const preloadRenewModal = () => import("./components/RenewFitnessModal");
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -494,6 +499,7 @@ const Fitness = () => {
                 {/* Add Button */}
                 <AddButton
                   onClick={() => setIsAddModalOpen(true)}
+                  onMouseEnter={preloadAddModal}
                   title="Add New Fitness"
                 />
               </div>
@@ -541,6 +547,7 @@ const Fitness = () => {
                   title: 'Renew Fitness',
                   condition: shouldShowRenewButton,
                   onClick: handleRenewClick,
+                  onMouseEnter: preloadRenewModal,
                   bgColor: 'bg-blue-100',
                   textColor: 'text-blue-600',
                   hoverBgColor: 'bg-blue-200',
@@ -556,6 +563,7 @@ const Fitness = () => {
                     setSelectedFitness(record);
                     setIsEditModalOpen(true);
                   },
+                  onMouseEnter: preloadEditModal,
                   bgColor: 'bg-green-100',
                   textColor: 'text-green-600',
                   hoverBgColor: 'bg-green-200',
@@ -783,6 +791,7 @@ const Fitness = () => {
                             {shouldShowRenewButton(record) ? (
                               <button
                                 onClick={() => handleRenewClick(record)}
+                                onMouseEnter={preloadRenewModal}
                                 className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Renew Fitness"
                               >
@@ -806,6 +815,7 @@ const Fitness = () => {
                             {/* Edit Button */}
                             <button
                               onClick={() => handleEditClick(record)}
+                              onMouseEnter={preloadEditModal}
                               className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Edit Record"
                             >

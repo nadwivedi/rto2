@@ -197,13 +197,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-2 md:p-4 animate-fadeIn'>
+    <div className='fixed inset-0 bg-black/70  flex items-center justify-center z-50 p-2 md:p-4 animate-fadeIn'>
       <div className='bg-white rounded-2xl md:rounded-3xl shadow-2xl w-full max-w-full md:max-w-[90%] max-h-[98vh] md:max-h-[95vh] overflow-hidden animate-slideUp'>
         {/* Header with gradient and icon */}
         <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white px-3 py-2 md:px-6 md:py-3 z-10 shadow-lg'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2 md:gap-3'>
-              <div className='bg-white/20 backdrop-blur-lg p-1.5 md:p-2 rounded-lg'>
+              <div className='bg-white/20 -lg p-1.5 md:p-2 rounded-lg'>
                 <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                 </svg>

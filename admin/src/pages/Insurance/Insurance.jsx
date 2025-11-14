@@ -6,6 +6,10 @@ import Pagination from "../../components/Pagination";
 // Lazy load modals for better performance
 const AddInsuranceModal = lazy(() => import("./components/AddInsuranceModal"));
 const RenewInsuranceModal = lazy(() => import("./components/RenewInsuranceModal"));
+
+// Preload functions - Start loading component on hover for instant feel
+const preloadAddModal = () => import("./components/AddInsuranceModal");
+const preloadRenewModal = () => import("./components/RenewInsuranceModal");
 import AddButton from "../../components/AddButton";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -479,6 +483,7 @@ const Insurance = () => {
                     {/* New Insurance Button */}
                     <AddButton
                       onClick={() => setIsAddModalOpen(true)}
+                      onMouseEnter={preloadAddModal}
                       title="New Insurance Record"
                     />
                   </div>
@@ -541,6 +546,7 @@ const Insurance = () => {
                       title: 'Renew Insurance',
                       condition: shouldShowRenewButton,
                       onClick: handleRenewClick,
+                      onMouseEnter: preloadRenewModal,
                       bgColor: 'bg-blue-100',
                       textColor: 'text-blue-600',
                       hoverBgColor: 'bg-blue-200',
@@ -777,6 +783,7 @@ const Insurance = () => {
                                 {shouldShowRenewButton(insurance) ? (
                                   <button
                                     onClick={() => handleRenewClick(insurance)}
+                                    onMouseEnter={preloadRenewModal}
                                     className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                     title="Renew Insurance"
                                   >

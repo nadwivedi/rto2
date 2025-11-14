@@ -10,6 +10,14 @@ const IssueCgPermitModal = lazy(() => import('./components/IssueCgPermitModal'))
 const EditCgPermitModal = lazy(() => import('./components/EditCgPermitModal'))
 const RenewCgPermitModal = lazy(() => import('./components/RenewCgPermitModal'))
 const ViewCgPermitModal = lazy(() => import('./components/ViewCgPermitModal'))
+
+// Preload functions - Start loading component on hover for instant feel
+const preloadBillModal = () => import('../../components/PermitBillModal')
+const preloadShareModal = () => import('../../components/SharePermitModal')
+const preloadIssueModal = () => import('./components/IssueCgPermitModal')
+const preloadEditModal = () => import('./components/EditCgPermitModal')
+const preloadRenewModal = () => import('./components/RenewCgPermitModal')
+const preloadViewModal = () => import('./components/ViewCgPermitModal')
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -718,7 +726,7 @@ Thank you!`
             />
 
             {/* New Permit Button */}
-            <AddButton onClick={() => setShowIssuePermitModal(true)} title='New CG Permit' />
+            <AddButton onClick={() => setShowIssuePermitModal(true)} onMouseEnter={preloadIssueModal} title='New CG Permit' />
           </div>
         </div>
 
@@ -763,6 +771,7 @@ Thank you!`
               title: 'Renew Permit',
               condition: shouldShowRenewButton,
               onClick: handleRenewClick,
+              onMouseEnter: preloadRenewModal,
               bgColor: 'bg-blue-100',
               textColor: 'text-blue-600',
               hoverBgColor: 'bg-blue-200',
@@ -775,6 +784,7 @@ Thank you!`
             {
               title: 'View Details',
               onClick: handleViewDetails,
+              onMouseEnter: preloadViewModal,
               bgColor: 'bg-indigo-100',
               textColor: 'text-indigo-600',
               hoverBgColor: 'bg-indigo-200',
@@ -788,6 +798,7 @@ Thank you!`
             {
               title: 'Edit',
               onClick: handleEditPermit,
+              onMouseEnter: preloadEditModal,
               bgColor: 'bg-green-100',
               textColor: 'text-green-600',
               hoverBgColor: 'bg-green-200',
@@ -800,6 +811,7 @@ Thank you!`
             {
               title: 'Share via WhatsApp',
               onClick: handleWhatsAppShare,
+              onMouseEnter: preloadShareModal,
               loading: whatsappLoading,
               bgColor: 'bg-green-100',
               textColor: 'text-green-600',
@@ -973,6 +985,7 @@ Thank you!`
                         {shouldShowRenewButton(permit) ? (
                           <button
                             onClick={() => handleRenewClick(permit)}
+                            onMouseEnter={preloadRenewModal}
                             className='p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 cursor-pointer'
                             title='Renew Permit'
                           >
@@ -985,6 +998,7 @@ Thank you!`
                         )}
                         <button
                           onClick={() => handleViewDetails(permit)}
+                          onMouseEnter={preloadViewModal}
                           className='p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='View Details'
                         >
@@ -995,6 +1009,7 @@ Thank you!`
                         </button>
                         <button
                           onClick={() => handleEditPermit(permit)}
+                          onMouseEnter={preloadEditModal}
                           className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Edit Permit'
                         >
@@ -1004,6 +1019,7 @@ Thank you!`
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
+                          onMouseEnter={preloadBillModal}
                           className='p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='View Bill'
                         >
@@ -1013,6 +1029,7 @@ Thank you!`
                         </button>
                         <button
                           onClick={() => handleWhatsAppShare(permit)}
+                          onMouseEnter={preloadShareModal}
                           disabled={whatsappLoading === permit.id}
                           className={`p-2 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0 ${
                             whatsappLoading === permit.id

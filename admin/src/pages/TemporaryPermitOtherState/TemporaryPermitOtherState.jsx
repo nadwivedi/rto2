@@ -7,6 +7,11 @@ import Pagination from '../../components/Pagination'
 const IssueTemporaryPermitOtherStateModal = lazy(() => import('./components/IssueTemporaryPermitOtherStateModal'))
 const RenewTemporaryPermitOtherStateModal = lazy(() => import('./components/RenewTemporaryPermitOtherStateModal'))
 const EditTemporaryPermitOtherStateModal = lazy(() => import('./components/EditTemporaryPermitOtherStateModal'))
+
+// Preload functions - Start loading component on hover for instant feel
+const preloadIssueModal = () => import('./components/IssueTemporaryPermitOtherStateModal')
+const preloadRenewModal = () => import('./components/RenewTemporaryPermitOtherStateModal')
+const preloadEditModal = () => import('./components/EditTemporaryPermitOtherStateModal')
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -282,7 +287,7 @@ const TemporaryPermitOtherState = () => {
                 />
 
                 {/* New Permit Button */}
-                <AddButton onClick={() => setShowIssuePermitModal(true)} title='New Permit (Other State)' />
+                <AddButton onClick={() => setShowIssuePermitModal(true)} onMouseEnter={preloadIssueModal} title='New Permit (Other State)' />
               </div>
             </div>
 
@@ -333,6 +338,7 @@ const TemporaryPermitOtherState = () => {
                   title: 'Renew Permit',
                   condition: shouldShowRenewButton,
                   onClick: handleRenewClick,
+                  onMouseEnter: preloadRenewModal,
                   bgColor: 'bg-blue-100',
                   textColor: 'text-blue-600',
                   hoverBgColor: 'bg-blue-200',
@@ -345,6 +351,7 @@ const TemporaryPermitOtherState = () => {
                 {
                   title: 'Edit Permit',
                   onClick: handleEditPermit,
+                  onMouseEnter: preloadEditModal,
                   bgColor: 'bg-green-100',
                   textColor: 'text-green-600',
                   hoverBgColor: 'bg-green-200',
@@ -512,6 +519,7 @@ const TemporaryPermitOtherState = () => {
                             {shouldShowRenewButton(permit) && (
                               <button
                                 onClick={() => handleRenewClick(permit)}
+                                onMouseEnter={preloadRenewModal}
                                 className='p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                 title='Renew Permit'
                               >
@@ -524,6 +532,7 @@ const TemporaryPermitOtherState = () => {
                             {/* edit button */}
                             <button
                               onClick={() => handleEditPermit(permit)}
+                              onMouseEnter={preloadEditModal}
                               className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                               title='Edit Permit'
                             >

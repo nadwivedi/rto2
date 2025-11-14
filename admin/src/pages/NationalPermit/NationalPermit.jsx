@@ -11,6 +11,14 @@ const PermitBillModal = lazy(() => import('../../components/PermitBillModal'))
 const RenewPartBModal = lazy(() => import('./components/RenewPartBModal'))
 const RenewPartAModal = lazy(() => import('./components/RenewPartAModal'))
 const NationalPermitDetailsModal = lazy(() => import('./components/NationalPermitDetailsModal'))
+
+// Preload functions - Start loading component on hover for instant feel
+const preloadIssueModal = () => import('./components/IssueNewPermitModal')
+const preloadEditModal = () => import('./components/EditNationalPermitModal')
+const preloadBillModal = () => import('../../components/PermitBillModal')
+const preloadRenewPartBModal = () => import('./components/RenewPartBModal')
+const preloadRenewPartAModal = () => import('./components/RenewPartAModal')
+const preloadDetailsModal = () => import('./components/NationalPermitDetailsModal')
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -574,7 +582,7 @@ const NationalPermit = () => {
             </div>
 
             {/* New Permit Button */}
-            <AddButton onClick={() => setShowIssuePermitModal(true)} title='New Permit' />
+            <AddButton onClick={() => setShowIssuePermitModal(true)} onMouseEnter={preloadIssueModal} title='New Permit' />
           </div>
         </div>
 
@@ -619,6 +627,7 @@ const NationalPermit = () => {
             {
               title: 'View Details',
               onClick: handleViewDetails,
+              onMouseEnter: preloadDetailsModal,
               bgColor: 'bg-indigo-100',
               textColor: 'text-indigo-600',
               hoverBgColor: 'bg-indigo-200',
@@ -632,6 +641,7 @@ const NationalPermit = () => {
             {
               title: 'Edit',
               onClick: handleEditPermit,
+              onMouseEnter: preloadEditModal,
               bgColor: 'bg-blue-100',
               textColor: 'text-blue-600',
               hoverBgColor: 'bg-blue-200',
@@ -645,6 +655,7 @@ const NationalPermit = () => {
               title: (record) => `Renew Part A (${getDaysRemaining(record.validTill)} days left)`,
               condition: (record) => record.validTill && record.validTill !== 'N/A' && isPartAExpiringSoon(record.validTill, 90),
               onClick: handleRenewPartA,
+              onMouseEnter: preloadRenewPartAModal,
               bgColor: 'bg-purple-100',
               textColor: 'text-purple-600',
               hoverBgColor: 'bg-purple-200',
@@ -658,6 +669,7 @@ const NationalPermit = () => {
               title: (record) => `Renew Part B (${getDaysRemaining(record.partB?.validTo)} days left)`,
               condition: (record) => record.partB?.validTo && record.partB.validTo !== 'N/A' && isPartBExpiringSoon(record.partB.validTo, 30),
               onClick: handleRenewPartB,
+              onMouseEnter: preloadRenewPartBModal,
               bgColor: 'bg-rose-100',
               textColor: 'text-rose-600',
               hoverBgColor: 'bg-rose-200',
@@ -821,6 +833,7 @@ const NationalPermit = () => {
                       <div className='flex items-center justify-end gap-2'>
                         <button
                           onClick={() => handleViewDetails(permit)}
+                          onMouseEnter={preloadDetailsModal}
                           className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
                           title='View Details'
                         >
@@ -831,6 +844,7 @@ const NationalPermit = () => {
                         </button>
                         <button
                           onClick={() => handleEditPermit(permit)}
+                          onMouseEnter={preloadEditModal}
                           className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
                           title='Edit Permit'
                         >
@@ -849,6 +863,7 @@ const NationalPermit = () => {
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
+                          onMouseEnter={preloadBillModal}
                           className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
                           title='View Bill'
                         >
@@ -860,6 +875,7 @@ const NationalPermit = () => {
                         {permit.partB?.validTo && permit.partB.validTo !== 'N/A' && isPartBExpiringSoon(permit.partB.validTo, 30) && (
                           <button
                             onClick={() => handleRenewPartB(permit)}
+                            onMouseEnter={preloadRenewPartBModal}
                             className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105'
                             title={`Renew Part B (${getDaysRemaining(permit.partB.validTo)} days left)`}
                           >
@@ -875,6 +891,7 @@ const NationalPermit = () => {
                         {permit.validTill && permit.validTill !== 'N/A' && isPartAExpiringSoon(permit.validTill, 90) && (
                           <button
                             onClick={() => handleRenewPartA(permit)}
+                            onMouseEnter={preloadRenewPartAModal}
                             className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105'
                             title={`Renew Part A (${getDaysRemaining(permit.validTill)} days left)`}
                           >
