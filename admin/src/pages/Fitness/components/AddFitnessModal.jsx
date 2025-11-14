@@ -3,7 +3,7 @@ import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../..
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
-const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
+const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     validFrom: '',
@@ -15,15 +15,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
-  // Pre-fill form when initialData is provided (for renewal)
+  // Reset form when modal closes
   useEffect(() => {
-    if (initialData && isOpen) {
-      setFormData(prev => ({
-        ...prev,
-        vehicleNumber: initialData.vehicleNumber || ''
-      }))
-    } else if (!isOpen) {
-      // Reset form when modal closes
+    if (!isOpen) {
       setFormData({
         vehicleNumber: '',
         validFrom: '',
@@ -33,8 +27,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         balance: ''
       })
       setPaidExceedsTotal(false)
+      setVehicleValidation({ isValid: false, message: '' })
     }
-  }, [initialData, isOpen])
+  }, [isOpen])
 
   // Calculate valid to date (1 year from valid from)
   useEffect(() => {
@@ -258,10 +253,10 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           <div className='flex justify-between items-center'>
             <div>
               <h2 className='text-lg md:text-2xl font-bold'>
-                {initialData ? 'Renew Fitness Certificate' : 'Add New Fitness Certificate'}
+                Add New Fitness Certificate
               </h2>
               <p className='text-green-100 text-xs md:text-sm mt-1'>
-                {initialData ? 'Renew vehicle fitness certificate' : 'Add vehicle fitness certificate record'}
+                Add vehicle fitness certificate record
               </p>
             </div>
             <button
@@ -290,9 +285,6 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
-                    {initialData && (
-                      <span className='ml-2 text-xs text-blue-600 font-normal'>(Pre-filled for renewal)</span>
-                    )}
                   </label>
                   <div className='relative'>
                     <input
@@ -303,19 +295,16 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                       placeholder='CG04AA1234'
                       maxLength='10'
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
-                        initialData ? 'bg-blue-50' : ''
-                      } ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
                           : formData.vehicleNumber && vehicleValidation.isValid
                           ? 'border-green-500 focus:ring-green-500'
                           : 'border-gray-300 focus:ring-emerald-500'
                       }`}
-                      readOnly={!!initialData}
                       required
                       autoFocus
                     />
-                    {!initialData && vehicleValidation.isValid && formData.vehicleNumber && (
+                    {vehicleValidation.isValid && formData.vehicleNumber && (
                       <div className='absolute right-3 top-2.5'>
                         <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
@@ -323,12 +312,12 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                       </div>
                     )}
                   </div>
-                  {!initialData && vehicleValidation.message && (
+                  {vehicleValidation.message && (
                     <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
                       {vehicleValidation.message}
                     </p>
                   )}
-                  
+
                 </div>
               </div>
             </div>
@@ -483,21 +472,10 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                 type='submit'
                 className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
               >
-                {initialData ? (
-                  <>
-                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                    </svg>
-                    Renew Fitness
-                  </>
-                ) : (
-                  <>
-                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                    </svg>
-                    Add Fitness
-                  </>
-                )}
+                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                </svg>
+                Add Fitness
               </button>
             </div>
           </div>

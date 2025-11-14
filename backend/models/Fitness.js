@@ -37,6 +37,12 @@ const fitnessSchema = new mongoose.Schema({
     default: 'active'
   },
 
+  // Renewal status - set to true when this fitness has been renewed
+  isRenewed: {
+    type: Boolean,
+    default: false
+  },
+
   bill: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'CustomBill'

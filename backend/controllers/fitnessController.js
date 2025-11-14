@@ -702,3 +702,144 @@ exports.downloadBillPDF = async (req, res) => {
     })
   }
 }
+
+// Renew fitness - creates new fitness record and marks old one as renewed
+exports.renewFitness = async (req, res) => {
+  try {
+    const { oldFitnessId, vehicleNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+
+    // Validate required fields
+    if (!oldFitnessId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Old fitness ID is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required'
+      })
+    }
+
+    if (!validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid from and valid to are required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee, paid amount, and balance are required'
+      })
+    }
+
+    // Validate that paid amount can't be greater than total amount
+    if (paid > totalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (balance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
+
+    // Find and validate old fitness record
+    const oldFitness = await Fitness.findById(oldFitnessId)
+    if (!oldFitness) {
+      return res.status(404).json({
+        success: false,
+        message: 'Old fitness record not found'
+      })
+    }
+
+    // Mark old fitness as renewed
+    oldFitness.isRenewed = true
+    await oldFitness.save()
+
+    // Calculate status for new fitness
+    const status = getFitnessStatus(validTo)
+
+    // Create new fitness record
+    const newFitness = new Fitness({
+      vehicleNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      status,
+      isRenewed: false  // New fitness is not renewed yet
+    })
+
+    await newFitness.save()
+
+    // Create CustomBill document for renewal
+    const billNumber = await generateCustomBillNumber(CustomBill)
+    const customBill = new CustomBill({
+      billNumber,
+      customerName: `Vehicle: ${newFitness.vehicleNumber}`,
+      billDate: new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }),
+      items: [
+        {
+          description: `Fitness Certificate Renewal\nVehicle No: ${newFitness.vehicleNumber}\nValid From: ${newFitness.validFrom}\nValid To: ${newFitness.validTo}`,
+          quantity: 1,
+          rate: newFitness.totalFee,
+          amount: newFitness.totalFee
+        }
+      ],
+      totalAmount: newFitness.totalFee
+    })
+    await customBill.save()
+
+    // Update new fitness with bill reference
+    newFitness.bill = customBill._id
+    await newFitness.save()
+
+    // Fire PDF generation in background (don't wait for it)
+    generateCustomBillPDF(customBill)
+      .then(pdfPath => {
+        customBill.billPdfPath = pdfPath
+        return customBill.save()
+      })
+      .then(() => {
+        console.log('Renewal bill PDF generated successfully for fitness:', newFitness.vehicleNumber)
+      })
+      .catch(pdfError => {
+        console.error('Error generating renewal PDF (non-critical):', pdfError)
+      })
+
+    // Send response immediately without waiting for PDF
+    res.status(201).json({
+      success: true,
+      message: 'Fitness renewed successfully. Bill is being generated in background.',
+      data: {
+        oldFitness: {
+          id: oldFitness._id,
+          isRenewed: oldFitness.isRenewed
+        },
+        newFitness: newFitness
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing fitness:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error renewing fitness',
+      error: error.message
+    })
+  }
+}

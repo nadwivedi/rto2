@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import AddFitnessModal from "./components/AddFitnessModal";
 import EditFitnessModal from "./components/EditFitnessModal";
+import RenewFitnessModal from "./components/RenewFitnessModal";
 import AddButton from "../../components/AddButton";
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
@@ -22,10 +23,11 @@ const Fitness = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [selectedFitness, setSelectedFitness] = useState(null);
+  const [fitnessToRenew, setFitnessToRenew] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'expiring', 'expired', 'pending'
-  const [initialFitnessData, setInitialFitnessData] = useState(null); // For pre-filling renewal data
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -157,9 +159,13 @@ const Fitness = () => {
           position: "top-right",
           autoClose: 3000,
         });
+
         // Refresh the list and statistics from the server
         await fetchFitnessRecords();
         await fetchStatistics();
+
+        // Close modal
+        setIsAddModalOpen(false);
       } else {
         toast.error(`Error: ${response.data.message}`, {
           position: "top-right",
@@ -183,8 +189,11 @@ const Fitness = () => {
   const handleEditFitness = async (formData) => {
     setLoading(true);
     try {
+      // Use _id if available, fallback to id
+      const fitnessId = selectedFitness._id || selectedFitness.id;
+
       const response = await axios.put(
-        `${API_URL}/api/fitness/id/${selectedFitness.id}`,
+        `${API_URL}/api/fitness/id/${fitnessId}`,
         {
           vehicleNumber: formData.vehicleNumber,
           validFrom: formData.validFrom,
@@ -200,9 +209,14 @@ const Fitness = () => {
           position: "top-right",
           autoClose: 3000,
         });
+
         // Refresh the list and statistics from the server
         await fetchFitnessRecords();
         await fetchStatistics();
+
+        // Close modal and reset
+        setIsEditModalOpen(false);
+        setSelectedFitness(null);
       } else {
         toast.error(`Error: ${response.data.message}`, {
           position: "top-right",
@@ -211,7 +225,10 @@ const Fitness = () => {
       }
     } catch (error) {
       console.error("Error updating fitness record:", error);
-      toast.error("Failed to update fitness certificate.", {
+
+      const errorMessage = error.response?.data?.message || "Failed to update fitness certificate.";
+
+      toast.error(errorMessage, {
         position: "top-right",
         autoClose: 3000,
       });
@@ -226,11 +243,54 @@ const Fitness = () => {
   };
 
   const handleRenewClick = (record) => {
-    // Pre-fill vehicle number for renewal
-    setInitialFitnessData({
-      vehicleNumber: record.vehicleNumber,
-    });
-    setIsAddModalOpen(true);
+    setFitnessToRenew(record);
+    setIsRenewModalOpen(true);
+  };
+
+  const handleRenewSubmit = async (formData) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_URL}/api/fitness/renew`, {
+        oldFitnessId: formData.oldFitnessId,
+        vehicleNumber: formData.vehicleNumber,
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        totalFee: parseFloat(formData.totalFee),
+        paid: parseFloat(formData.paid),
+        balance: parseFloat(formData.balance),
+      });
+
+      if (response.data.success) {
+        toast.success("Fitness certificate renewed successfully!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+
+        // Refresh the list and statistics from the server
+        await fetchFitnessRecords();
+        await fetchStatistics();
+
+        // Close modal and reset
+        setIsRenewModalOpen(false);
+        setFitnessToRenew(null);
+      } else {
+        toast.error(`Error: ${response.data.message}`, {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error renewing fitness record:", error);
+      toast.error(
+        "Failed to renew fitness certificate. Please check if the backend server is running.",
+        {
+          position: "top-right",
+          autoClose: 3000,
+        }
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDeleteFitness = async (record) => {
@@ -278,55 +338,9 @@ const Fitness = () => {
   };
 
   // Determine if renew button should be shown for a record
+  // Show renew button ONLY if: NOT renewed AND (expired OR expiring_soon)
   const shouldShowRenewButton = (record) => {
-    const { status } = record;
-
-    // Show for expiring soon
-    if (status === "expiring_soon") {
-      return true;
-    }
-
-    // For expired records, apply smart logic
-    if (status === "expired") {
-      // Check if this vehicle has any active or expiring soon fitness
-      const hasActiveFitness = fitnessRecords.some((r) => {
-        if (r.vehicleNumber === record.vehicleNumber) {
-          return r.status === "active" || r.status === "expiring_soon";
-        }
-        return false;
-      });
-
-      // If vehicle has active fitness, don't show renew button on expired records
-      if (hasActiveFitness) {
-        return false;
-      }
-
-      // Vehicle has no active fitness - show renew button only on latest expired record
-      const expiredRecordsForVehicle = fitnessRecords.filter((r) => {
-        return (
-          r.vehicleNumber === record.vehicleNumber && r.status === "expired"
-        );
-      });
-
-      // Find the latest expired record
-      let latestExpired = null;
-      expiredRecordsForVehicle.forEach((r) => {
-        if (!latestExpired) {
-          latestExpired = r;
-        } else {
-          const currentDate = parseDateString(r.validTo);
-          const latestDate = parseDateString(latestExpired.validTo);
-          if (currentDate > latestDate) {
-            latestExpired = r;
-          }
-        }
-      });
-
-      // Show button only if this is the latest expired record
-      return latestExpired && latestExpired.id === record.id;
-    }
-
-    return false;
+    return !record.isRenewed && (record.status === "expired" || record.status === "expiring_soon");
   };
 
   // Statistics are now fetched from backend, removed useMemo calculation
@@ -808,12 +822,8 @@ const Fitness = () => {
       {/* Add Fitness Modal */}
       <AddFitnessModal
         isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setInitialFitnessData(null); // Reset initial data when closing
-        }}
+        onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleAddFitness}
-        initialData={initialFitnessData}
       />
 
       {/* Edit Fitness Modal */}
@@ -822,6 +832,17 @@ const Fitness = () => {
         onClose={() => setIsEditModalOpen(false)}
         onSubmit={handleEditFitness}
         fitness={selectedFitness}
+      />
+
+      {/* Renew Fitness Modal */}
+      <RenewFitnessModal
+        isOpen={isRenewModalOpen}
+        onClose={() => {
+          setIsRenewModalOpen(false);
+          setFitnessToRenew(null); // Reset when closing
+        }}
+        onSubmit={handleRenewSubmit}
+        oldFitness={fitnessToRenew}
       />
     </>
   );

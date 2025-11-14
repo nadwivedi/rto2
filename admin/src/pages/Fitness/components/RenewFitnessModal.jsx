@@ -1,44 +1,43 @@
 import { useState, useEffect } from 'react'
-import { handleDateBlur as utilHandleDateBlur, handleSmartDateInput } from '../../../utils/dateFormatter'
-import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
+import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
-const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
+const RenewFitnessModal = ({ isOpen, onClose, onSubmit, oldFitness }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     validFrom: '',
     validTo: '',
-    totalFee: '0',
-    paid: '0',
-    balance: '0'
+    totalFee: '',
+    paid: '',
+    balance: ''
   })
-  const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
-  // Populate form when fitness record changes
+  // Pre-fill vehicle number when oldFitness is provided
   useEffect(() => {
-    if (fitness) {
+    if (oldFitness && isOpen) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: oldFitness.vehicleNumber || ''
+      }))
+    } else if (!isOpen) {
+      // Reset form when modal closes
       setFormData({
-        vehicleNumber: fitness.vehicleNumber || '',
-        validFrom: fitness.validFrom || '',
-        validTo: fitness.validTo || '',
-        totalFee: fitness.totalFee?.toString() || '0',
-        paid: fitness.paid?.toString() || '0',
-        balance: fitness.balance?.toString() || '0'
+        vehicleNumber: '',
+        validFrom: '',
+        validTo: '',
+        totalFee: '',
+        paid: '',
+        balance: ''
       })
-
-      // Validate the pre-filled vehicle number
-      if (fitness.vehicleNumber) {
-        const validation = validateVehicleNumberRealtime(fitness.vehicleNumber)
-        setVehicleValidation(validation)
-      }
+      setPaidExceedsTotal(false)
     }
-  }, [fitness])
+  }, [oldFitness, isOpen])
 
   // Calculate valid to date (1 year from valid from)
   useEffect(() => {
     if (formData.validFrom) {
-      // Parse DD-MM-YYYY or DD/MM/YYYY format
+      // Parse DD-MM-YYYY
       const parts = formData.validFrom.split(/[/-]/)  // Splits on both "/" and "-"
       if (parts.length === 3) {
         const day = parseInt(parts[0], 10)
@@ -94,22 +93,6 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Handle vehicle number with format enforcement and validation
-    if (name === 'vehicleNumber') {
-      // Enforce format: only allow correct characters at each position
-      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
-
-      // Validate in real-time
-      const validation = validateVehicleNumberRealtime(enforcedValue)
-      setVehicleValidation(validation)
-
-      setFormData(prev => ({
-        ...prev,
-        [name]: enforcedValue
-      }))
-      return
-    }
-
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
       setFormData(prev => {
@@ -148,18 +131,75 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   }
 
   const handleDateBlur = (e) => {
-    utilHandleDateBlur(e, setFormData)
+    const { name, value } = e.target
+
+    if (!value) return // Skip if empty
+
+    // Remove all non-digit characters
+    let digitsOnly = value.replace(/[^\d]/g, '')
+
+    // Limit to 8 digits (DDMMYYYY)
+    digitsOnly = digitsOnly.slice(0, 8)
+
+    // Parse parts
+    let day = ''
+    let month = ''
+    let year = ''
+
+    if (digitsOnly.length >= 2) {
+      day = digitsOnly.slice(0, 2)
+      let dayNum = parseInt(day, 10)
+
+      // Validate day: 01-31
+      if (dayNum === 0) dayNum = 1
+      if (dayNum > 31) dayNum = 31
+      day = String(dayNum).padStart(2, '0')
+    } else if (digitsOnly.length === 1) {
+      day = '0' + digitsOnly[0]
+    }
+
+    if (digitsOnly.length >= 4) {
+      month = digitsOnly.slice(2, 4)
+      let monthNum = parseInt(month, 10)
+
+      // Validate month: 01-12
+      if (monthNum === 0) monthNum = 1
+      if (monthNum > 12) monthNum = 12
+      month = String(monthNum).padStart(2, '0')
+    } else if (digitsOnly.length === 3) {
+      month = '0' + digitsOnly[2]
+    }
+
+    if (digitsOnly.length >= 5) {
+      year = digitsOnly.slice(4)
+
+      // Auto-expand 2-digit year to 4-digit
+      if (year.length === 2) {
+        const yearNum = parseInt(year, 10)
+        year = String(yearNum <= 50 ? 2000 + yearNum : 1900 + yearNum)
+      } else if (year.length === 4) {
+        // Keep as is
+      } else if (year.length > 4) {
+        year = year.slice(0, 4)
+      }
+    }
+
+    // Format the date only if we have at least day and month
+    if (day && month) {
+      let formatted = `${day}-${month}`
+      if (year) {
+        formatted += `-${year}`
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: formatted
+      }))
+    }
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
-
-    // Validate vehicle number before submitting (skip if unchanged from original)
-    const vehicleNumberChanged = fitness && formData.vehicleNumber !== fitness.vehicleNumber
-    if (vehicleNumberChanged && !vehicleValidation.isValid && formData.vehicleNumber) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
-      return
-    }
 
     // Validate paid amount doesn't exceed total fee
     if (paidExceedsTotal) {
@@ -167,10 +207,25 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
       return
     }
 
-    if (onSubmit) {
-      onSubmit(formData)
-      // Don't close here - let parent handle closing after successful update
+    if (onSubmit && oldFitness) {
+      // Pass formData along with oldFitnessId
+      onSubmit({
+        ...formData,
+        oldFitnessId: oldFitness._id || oldFitness.id
+      })
     }
+
+    // Reset form
+    setFormData({
+      vehicleNumber: '',
+      validFrom: '',
+      validTo: '',
+      totalFee: '',
+      paid: '',
+      balance: ''
+    })
+    setPaidExceedsTotal(false)
+    onClose()
   }
 
   if (!isOpen) return null
@@ -179,11 +234,15 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
     <div className='fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 md:p-4'>
       <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-green-600 to-emerald-600 p-2 md:p-3 text-white flex-shrink-0'>
+        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 p-2 md:p-3 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
             <div>
-              <h2 className='text-lg md:text-2xl font-bold'>Edit Fitness Certificate</h2>
-              <p className='text-green-100 text-xs md:text-sm mt-1'>Update vehicle fitness certificate record</p>
+              <h2 className='text-lg md:text-2xl font-bold'>
+                Renew Fitness Certificate
+              </h2>
+              <p className='text-blue-100 text-xs md:text-sm mt-1'>
+                Renew fitness certificate for {oldFitness?.vehicleNumber}
+              </p>
             </div>
             <button
               onClick={onClose}
@@ -199,67 +258,64 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
         {/* Form Content */}
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+            {/* Old Fitness Info Banner */}
+            {oldFitness && (
+              <div className='bg-amber-50 border-l-4 border-amber-500 p-3 md:p-4 rounded mb-4 md:mb-6'>
+                <div className='flex items-start gap-2'>
+                  <svg className='w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                  <div>
+                    <p className='text-sm md:text-base font-semibold text-amber-800'>Renewing Existing Fitness</p>
+                    <p className='text-xs md:text-sm text-amber-700 mt-1'>
+                      Vehicle: <span className='font-mono font-bold'>{oldFitness.vehicleNumber}</span> |
+                      Previous Validity: {oldFitness.validFrom} to {oldFitness.validTo}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Section 1: Vehicle Details */}
-            <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-emerald-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                <span className='bg-emerald-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
+                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
                 Vehicle Details
               </h3>
 
               <div className='grid grid-cols-1 gap-3 md:gap-4'>
-                {/* Vehicle Number */}
+                {/* Vehicle Number - Read Only */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Vehicle Number <span className='text-red-500'>*</span>
+                    <span className='ml-2 text-xs text-blue-600 font-normal'>(Auto-filled from existing record)</span>
                   </label>
                   <div className='relative'>
                     <input
                       type='text'
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
-                      onChange={handleChange}
-                      placeholder='CG04AA1234'
+                      placeholder='Vehicle Number'
                       maxLength='10'
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
-                        formData.vehicleNumber && !vehicleValidation.isValid
-                          ? 'border-red-500 focus:ring-red-500'
-                          : formData.vehicleNumber && vehicleValidation.isValid
-                          ? 'border-green-500 focus:ring-green-500'
-                          : 'border-gray-300 focus:ring-emerald-500'
-                      }`}
+                      className='w-full px-3 py-2 border border-indigo-300 rounded-lg bg-indigo-50 font-mono font-semibold text-gray-700'
+                      readOnly
                       required
-                      autoFocus
                     />
-                    {vehicleValidation.isValid && formData.vehicleNumber && (
-                      <div className='absolute right-3 top-2.5'>
-                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                        </svg>
-                      </div>
-                    )}
+                    <div className='absolute right-3 top-2.5'>
+                      <svg className='h-5 w-5 text-indigo-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' />
+                      </svg>
+                    </div>
                   </div>
-                  {vehicleValidation.message && (
-                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
-                      {vehicleValidation.message}
-                    </p>
-                  )}
-                  {!vehicleValidation.message && !formData.vehicleNumber && (
-                    <p className='text-xs mt-1 text-gray-500'>
-                      Format: <span className='font-mono font-semibold text-emerald-600'>CG</span>
-                      <span className='font-mono font-semibold text-indigo-600'>04</span>
-                      <span className='font-mono font-semibold text-purple-600'>AA</span>
-                      <span className='font-mono font-semibold text-blue-600'>1234</span> (State + District + Series + Number)
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* Section 2: Validity Period */}
-            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            {/* Section 2: New Validity Period */}
+            <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-emerald-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                Validity Period
+                <span className='bg-emerald-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
+                New Validity Period
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
@@ -275,8 +331,9 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent'
                     required
+                    autoFocus
                   />
                 </div>
 
@@ -292,7 +349,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (auto-calculated)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-emerald-50/50'
                   />
                 </div>
               </div>
@@ -316,7 +373,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
-                    placeholder=''
+                    placeholder='0'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -332,7 +389,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
-                    placeholder=''
+                    placeholder='0'
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
@@ -389,7 +446,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
           {/* Footer Actions */}
           <div className='border-t border-gray-200 p-3 md:p-4 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3 flex-shrink-0'>
             <div className='text-xs md:text-sm text-gray-600'>
-              <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to save quickly
+              <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
             </div>
 
             <div className='flex gap-2 md:gap-3 w-full md:w-auto'>
@@ -403,12 +460,12 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
 
               <button
                 type='submit'
-                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
               >
                 <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
                 </svg>
-                Save Changes
+                Renew Fitness
               </button>
             </div>
           </div>
@@ -418,4 +475,4 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   )
 }
 
-export default EditFitnessModal
+export default RenewFitnessModal
