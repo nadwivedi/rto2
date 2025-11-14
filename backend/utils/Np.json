@@ -1,5 +1,230 @@
 [
   {
+    "_id": "69169fb28cbefff06a10d803",
+    "vehicleNumber": "CG10BF8426",
+    "permitNumber": "58585",
+    "permitHolder": "SANDEEP KUMAR PATEL",
+    "fatherName": "",
+    "address": "JABALPUR",
+    "mobileNumber": "7049300935",
+    "email": "",
+    "validFrom": "12-11-2024",
+    "validTo": "11-11-2029",
+    "typeBAuthorization": {
+      "authorizationNumber": "42875",
+      "validFrom": "12-11-2025",
+      "validTo": "11-11-2026",
+      "renewalHistory": []
+    },
+    "status": "Active",
+    "totalFee": 15000,
+    "paid": 0,
+    "balance": 15000,
+    "bill": {
+      "_id": "69169fb28cbefff06a10d806",
+      "billNumber": "182",
+      "billDate": "14/11/2025",
+      "customerName": "SANDEEP KUMAR PATEL",
+      "items": [
+        {
+          "description": "National Permit (Part A)\nPermit No: 58585\nVehicle No: CG10BF8426\nValid From: 12-11-2024\nValid To: 11-11-2029\nRoute: All India",
+          "quantity": 1,
+          "rate": 15000,
+          "amount": 15000,
+          "_id": "69169fb28cbefff06a10d807"
+        }
+      ],
+      "totalAmount": 15000,
+      "createdAt": "2025-11-14T03:19:14.703Z",
+      "updatedAt": "2025-11-14T03:19:14.703Z",
+      "__v": 0
+    },
+    "partARenewalHistory": [],
+    "createdAt": "2025-11-14T03:19:14.699Z",
+    "updatedAt": "2025-11-14T03:19:14.705Z",
+    "__v": 0
+  },
+  {
+    "_id": "69169ea08cbefff06a10d760",
+    "vehicleNumber": "CG10BF8438",
+    "permitNumber": "15252",
+    "permitHolder": "MOOL CHAND",
+    "fatherName": "",
+    "address": "JABALPUR",
+    "mobileNumber": "7049300935",
+    "email": "",
+    "validFrom": "12-11-2024",
+    "validTo": "11-11-2029",
+    "typeBAuthorization": {
+      "authorizationNumber": "42800",
+      "validFrom": "12-11-2025",
+      "validTo": "11-11-2026",
+      "renewalHistory": []
+    },
+    "status": "Active",
+    "totalFee": 15000,
+    "paid": 0,
+    "balance": 15000,
+    "bill": {
+      "_id": "69169ea08cbefff06a10d763",
+      "billNumber": "181",
+      "billDate": "14/11/2025",
+      "customerName": "MOOL CHAND",
+      "items": [
+        {
+          "description": "National Permit (Part A)\nPermit No: 15252\nVehicle No: CG10BF8438\nValid From: 12-11-2024\nValid To: 11-11-2029\nRoute: All India",
+          "quantity": 1,
+          "rate": 15000,
+          "amount": 15000,
+          "_id": "69169ea08cbefff06a10d764"
+        }
+      ],
+      "totalAmount": 15000,
+      "createdAt": "2025-11-14T03:14:40.720Z",
+      "updatedAt": "2025-11-14T03:14:40.720Z",
+      "__v": 0
+    },
+    "partARenewalHistory": [],
+    "createdAt": "2025-11-14T03:14:40.715Z",
+    "updatedAt": "2025-11-14T03:14:40.721Z",
+    "__v": 0
+  },
+  {
+    "_id": "69169d118cbefff06a10d710",
+    "vehicleNumber": "CG04HY6725",
+    "permitNumber": "45252",
+    "permitHolder": "SIMRAN FARMS",
+    "fatherName": "",
+    "address": "TELIBANDHA RAIPUR",
+    "mobileNumber": "6267094850",
+    "email": "",
+    "validFrom": "22-11-2022",
+    "validTo": "21-11-2027",
+    "typeBAuthorization": {
+      "authorizationNumber": "95117",
+      "validFrom": "22-11-2024",
+      "validTo": "21-11-2025",
+      "renewalHistory": []
+    },
+    "status": "Active",
+    "totalFee": 15000,
+    "paid": 0,
+    "balance": 15000,
+    "bill": {
+      "_id": "69169d118cbefff06a10d713",
+      "billNumber": "180",
+      "billDate": "14/11/2025",
+      "customerName": "SIMRAN FARMS",
+      "items": [
+        {
+          "description": "National Permit (Part A)\nPermit No: 45252\nVehicle No: CG04HY6725\nValid From: 22-11-2022\nValid To: 21-11-2027\nRoute: All India",
+          "quantity": 1,
+          "rate": 15000,
+          "amount": 15000,
+          "_id": "69169d118cbefff06a10d714"
+        }
+      ],
+      "totalAmount": 15000,
+      "createdAt": "2025-11-14T03:08:01.353Z",
+      "updatedAt": "2025-11-14T03:08:01.353Z",
+      "__v": 0
+    },
+    "partARenewalHistory": [],
+    "createdAt": "2025-11-14T03:08:01.348Z",
+    "updatedAt": "2025-11-14T03:08:01.355Z",
+    "__v": 0
+  },
+  {
+    "_id": "691695cc8cbefff06a10d65f",
+    "vehicleNumber": "CG04QN6092",
+    "permitNumber": "CG2225 -NP-9448A",
+    "permitHolder": "RANJEET GUMASTA",
+    "fatherName": "",
+    "address": "JITENDRA PATELA AMHAPARA RAIPUR9589161640",
+    "mobileNumber": "8889658914",
+    "email": "",
+    "validFrom": "07-10-2025",
+    "validTo": "06-10-2030",
+    "typeBAuthorization": {
+      "authorizationNumber": "19936",
+      "validFrom": "06-10-2025",
+      "validTo": "05-10-2026",
+      "renewalHistory": []
+    },
+    "status": "Active",
+    "totalFee": 15000,
+    "paid": 0,
+    "balance": 15000,
+    "bill": {
+      "_id": "691695cc8cbefff06a10d662",
+      "billNumber": "179",
+      "billDate": "14/11/2025",
+      "customerName": "RANJEET GUMASTA",
+      "items": [
+        {
+          "description": "National Permit (Part A)\nPermit No: CG2225 -NP-9448A\nVehicle No: CG04QN6092\nValid From: 07-10-2025\nValid To: 06-10-2030\nRoute: All India",
+          "quantity": 1,
+          "rate": 15000,
+          "amount": 15000,
+          "_id": "691695cc8cbefff06a10d663"
+        }
+      ],
+      "totalAmount": 15000,
+      "createdAt": "2025-11-14T02:37:00.257Z",
+      "updatedAt": "2025-11-14T02:37:00.257Z",
+      "__v": 0
+    },
+    "partARenewalHistory": [],
+    "createdAt": "2025-11-14T02:37:00.242Z",
+    "updatedAt": "2025-11-14T02:37:00.259Z",
+    "__v": 0
+  },
+  {
+    "_id": "69161cf88cbefff06a10d36d",
+    "vehicleNumber": "CG04HY7290",
+    "permitNumber": "15252",
+    "permitHolder": "PAWAN SINGH BAGHEL",
+    "fatherName": "",
+    "address": "LIG126SADANI DARBARBORIYA RAIPUR",
+    "mobileNumber": "9406232222",
+    "email": "",
+    "validFrom": "13-11-2024",
+    "validTo": "12-11-2029",
+    "typeBAuthorization": {
+      "authorizationNumber": "53784",
+      "validFrom": "13-11-2025",
+      "validTo": "12-11-2026",
+      "renewalHistory": []
+    },
+    "status": "Active",
+    "totalFee": 15000,
+    "paid": 0,
+    "balance": 15000,
+    "bill": {
+      "_id": "69161cf88cbefff06a10d370",
+      "billNumber": "172",
+      "billDate": "13/11/2025",
+      "customerName": "PAWAN SINGH BAGHEL",
+      "items": [
+        {
+          "description": "National Permit (Part A)\nPermit No: 15252\nVehicle No: CG04HY7290\nValid From: 13-11-2024\nValid To: 12-11-2029\nRoute: All India",
+          "quantity": 1,
+          "rate": 15000,
+          "amount": 15000,
+          "_id": "69161cf88cbefff06a10d371"
+        }
+      ],
+      "totalAmount": 15000,
+      "createdAt": "2025-11-13T18:01:28.455Z",
+      "updatedAt": "2025-11-13T18:01:28.455Z",
+      "__v": 0
+    },
+    "partARenewalHistory": [],
+    "createdAt": "2025-11-13T18:01:28.450Z",
+    "updatedAt": "2025-11-13T18:01:28.456Z",
+    "__v": 0
+  },
+  {
     "_id": "69137afd8cbefff06a10a5fb",
     "vehicleNumber": "CG04LZ7398",
     "permitNumber": "452222",
@@ -656,6 +881,7 @@
     "updatedAt": "2025-11-07T20:04:40.091Z",
     "__v": 0
   },
+
   {
     "_id": "690e4945ea99baa2af41cac1",
     "vehicleNumber": "CG04NX5530",
@@ -790,17 +1016,59 @@
     "createdAt": "2025-11-07T18:34:53.212Z",
     "updatedAt": "2025-11-07T18:34:53.217Z",
     "__v": 0
+  },
+  {
+    "_id": "690e3acbea99baa2af41c762",
+    "vehicleNumber": "CG04PK3355",
+    "permitNumber": "16",
+    "permitHolder": "SHIV KUMAR AGRAWAL",
+    "fatherName": "",
+    "address": "PAUNSARA MAHASMUND",
+    "mobileNumber": "9617235000",
+    "email": "",
+    "validFrom": "08-11-2023",
+    "validTo": "07-11-2028",
+    "typeBAuthorization": {
+      "authorizationNumber": "27981/2025",
+      "validFrom": "08-11-2025",
+      "validTo": "07-11-2026",
+      "renewalHistory": []
+    },
+    "status": "Active",
+    "totalFee": 15000,
+    "paid": 0,
+    "balance": 15000,
+    "bill": null,
+    "partARenewalHistory": [],
+    "createdAt": "2025-11-07T18:30:35.803Z",
+    "updatedAt": "2025-11-07T18:30:35.810Z",
+    "__v": 0
+  },
+  {
+    "_id": "690e0540d6528a1c999e0665",
+    "vehicleNumber": "CG04NT7606",
+    "permitNumber": "NP 7205",
+    "permitHolder": "ANJU LATA",
+    "fatherName": "",
+    "address": "B 11 PINK CITY GAYATRI NAGA RAIPUR",
+    "mobileNumber": "7869187806",
+    "email": "",
+    "validFrom": "11-7-2022",
+    "validTo": "10-07-2027",
+    "typeBAuthorization": {
+      "authorizationNumber": "NP/CG/4/072025/45528",
+      "validFrom": "11-7-2025",
+      "validTo": "10-07-2026",
+      "renewalHistory": []
+    },
+    "status": "Active",
+    "totalFee": 15000,
+    "paid": 0,
+    "balance": 15000,
+    "bill": null,
+    "partARenewalHistory": [],
+    "createdAt": "2025-11-07T14:42:08.210Z",
+    "updatedAt": "2025-11-07T14:42:08.220Z",
+    "__v": 0
   }
 ]
-
-
-
-
-
-
-
-
-
-
-
-
