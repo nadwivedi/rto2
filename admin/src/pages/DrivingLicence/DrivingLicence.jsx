@@ -8,6 +8,7 @@ import Pagination from '../../components/Pagination'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
+import MobileCardView from '../../components/MobileCardView'
 import { getTheme } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
@@ -610,69 +611,36 @@ const DrivingLicence = () => {
         </div>
 
         {/* Mobile Card View */}
-        <div className='block lg:hidden'>
-          {loading ? (
-            <div className='p-8 text-center'>
-              <div className='inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600'></div>
-              <p className='mt-4 text-gray-600 font-semibold'>Loading applications...</p>
-            </div>
-          ) : currentApplications.length > 0 ? (
-            <div className='p-3 space-y-3'>
-              {currentApplications.map((app) => (
-                <div key={app.id} className='bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow'>
-                  {/* Card Header with Avatar and Actions */}
-                  <div className='bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-3 flex items-start justify-between'>
-                    <div className='flex items-center gap-3'>
-                      <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
-                        {app.name?.charAt(0) || 'A'}
-                      </div>
-                      <div>
-                        <div className='text-sm font-bold text-gray-900'>{app.name}</div>
-                        <div className='text-xs text-gray-600 flex items-center mt-0.5'>
-                          <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
-                          </svg>
-                          {app.mobile}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className='flex items-center gap-1.5'>
-                      <button
-                        onClick={() => handleViewDetails(app)}
-                        className='p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-all cursor-pointer'
-                        title='View Details'
-                      >
-                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleEdit(app)}
-                        className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all cursor-pointer'
-                        title='Edit'
-                      >
-                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => handleDelete(app)}
-                        className='p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all cursor-pointer'
-                        title='Delete'
-                      >
-                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Card Body */}
-                  <div className='p-3 space-y-2.5'>
-                    {/* License Class & Number */}
+        <MobileCardView
+          loading={loading}
+          records={currentApplications}
+          emptyMessage={{
+            title: 'No applications found',
+            description: 'Click "New Application" to add your first application',
+          }}
+          loadingMessage='Loading applications...'
+          headerGradient='from-indigo-50 via-purple-50 to-pink-50'
+          avatarGradient='from-indigo-500 to-purple-500'
+          emptyIconGradient='from-indigo-100 to-purple-100'
+          emptyIconColor='text-indigo-400'
+          cardConfig={{
+            header: {
+              avatar: (record) => record.name?.charAt(0) || 'A',
+              title: (record) => record.name,
+              subtitle: (record) => record.mobile,
+              subtitleIcon: (
+                <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                </svg>
+              ),
+            },
+            body: {
+              showStatus: false,
+              showPayment: false,
+              showValidity: false,
+              customFields: [
+                {
+                  render: (record) => (
                     <div className='flex items-center justify-between pb-2 border-b border-gray-100'>
                       <div>
                         <p className='text-[10px] text-gray-500 font-semibold uppercase'>License Class</p>
@@ -681,21 +649,23 @@ const DrivingLicence = () => {
                             <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
                             <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
                           </svg>
-                          {app.type}
+                          {record.type}
                         </span>
                       </div>
                       <div className='text-right'>
                         <p className='text-[10px] text-gray-500 font-semibold uppercase'>DL Number</p>
                         <div className='text-xs font-mono font-semibold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg border border-gray-200 mt-1'>
-                          {app.licenseNumber}
+                          {record.licenseNumber}
                         </div>
                       </div>
                     </div>
-
-                    {/* Payment Status Badge */}
+                  ),
+                },
+                {
+                  render: (record) => (
                     <div className='flex items-center justify-between'>
                       <span className='text-xs text-gray-500 font-semibold uppercase'>Payment Status</span>
-                      {app.balanceAmount === 0 ? (
+                      {record.balanceAmount === 0 ? (
                         <span className='inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200'>
                           <svg className='w-3 h-3 mr-1' fill='currentColor' viewBox='0 0 20 20'>
                             <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
@@ -711,26 +681,30 @@ const DrivingLicence = () => {
                         </span>
                       )}
                     </div>
-
-                    {/* Payment Details */}
+                  ),
+                },
+                {
+                  render: (record) => (
                     <div className='grid grid-cols-3 gap-2 pt-2 border-t border-gray-100'>
                       <div>
                         <p className='text-[10px] text-gray-500 font-semibold uppercase'>Total Amount</p>
-                        <p className='text-sm font-bold text-gray-800'>₹{app.totalAmount.toLocaleString('en-IN')}</p>
+                        <p className='text-sm font-bold text-gray-800'>₹{record.totalAmount.toLocaleString('en-IN')}</p>
                       </div>
                       <div>
                         <p className='text-[10px] text-gray-500 font-semibold uppercase'>Paid</p>
-                        <p className='text-sm font-bold text-emerald-600'>₹{app.paidAmount.toLocaleString('en-IN')}</p>
+                        <p className='text-sm font-bold text-emerald-600'>₹{record.paidAmount.toLocaleString('en-IN')}</p>
                       </div>
                       <div>
                         <p className='text-[10px] text-gray-500 font-semibold uppercase'>Balance</p>
-                        <p className={`text-sm font-bold ${app.balanceAmount > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
-                          ₹{app.balanceAmount.toLocaleString('en-IN')}
+                        <p className={`text-sm font-bold ${record.balanceAmount > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                          ₹{record.balanceAmount.toLocaleString('en-IN')}
                         </p>
                       </div>
                     </div>
-
-                    {/* License Dates */}
+                  ),
+                },
+                {
+                  render: (record) => (
                     <div className='grid grid-cols-2 gap-2 pt-2 border-t border-gray-100'>
                       <div>
                         <p className='text-[10px] text-gray-500 font-semibold uppercase flex items-center gap-1'>
@@ -739,7 +713,7 @@ const DrivingLicence = () => {
                           </svg>
                           Issue Date
                         </p>
-                        <p className='text-xs font-semibold text-gray-700'>{app.issueDate || '-'}</p>
+                        <p className='text-xs font-semibold text-gray-700'>{record.issueDate || '-'}</p>
                       </div>
                       <div>
                         <p className='text-[10px] text-gray-500 font-semibold uppercase flex items-center gap-1'>
@@ -748,25 +722,54 @@ const DrivingLicence = () => {
                           </svg>
                           Expiry Date
                         </p>
-                        <p className='text-xs font-semibold text-gray-700'>{app.expiryDate || '-'}</p>
+                        <p className='text-xs font-semibold text-gray-700'>{record.expiryDate || '-'}</p>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className='p-8 text-center'>
-              <div className='text-gray-400'>
-                <svg className='mx-auto h-12 w-12 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  ),
+                },
+              ],
+            },
+          }}
+          actions={[
+            {
+              title: 'View Details',
+              onClick: handleViewDetails,
+              bgColor: 'bg-indigo-100',
+              textColor: 'text-indigo-600',
+              hoverBgColor: 'bg-indigo-200',
+              icon: (
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
                 </svg>
-                <p className='text-sm font-semibold text-gray-600'>No applications found</p>
-                <p className='text-xs text-gray-500 mt-1'>Click "New Application" to add your first application</p>
-              </div>
-            </div>
-          )}
-        </div>
+              ),
+            },
+            {
+              title: 'Edit',
+              onClick: handleEdit,
+              bgColor: 'bg-green-100',
+              textColor: 'text-green-600',
+              hoverBgColor: 'bg-green-200',
+              icon: (
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                </svg>
+              ),
+            },
+            {
+              title: 'Delete',
+              onClick: handleDelete,
+              bgColor: 'bg-red-100',
+              textColor: 'text-red-600',
+              hoverBgColor: 'bg-red-200',
+              icon: (
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                </svg>
+              ),
+            },
+          ]}
+        />
 
         {/* Desktop Table View */}
         <div className='hidden lg:block overflow-x-auto'>

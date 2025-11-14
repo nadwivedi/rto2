@@ -3,7 +3,6 @@ const CustomBill = require('../models/CustomBill')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
 const path = require('path')
 const fs = require('fs')
-const { request } = require('http')
 
 // helper function to calculate status
 const getFitnessStatus = (validTo) => {

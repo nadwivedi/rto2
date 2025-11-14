@@ -7,7 +7,7 @@ import Pagination from "../../components/Pagination";
 import AddButton from "../../components/AddButton";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
-import InsuranceMobileCardView from "./components/InsuranceMobileCardView";
+import MobileCardView from "../../components/MobileCardView";
 import { getTheme, getVehicleNumberDesign } from "../../context/ThemeContext";
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
@@ -483,16 +483,119 @@ const Insurance = () => {
                 </div>
 
                 {/* Mobile Card View */}
-                <InsuranceMobileCardView
-                  filteredInsurances={filteredInsurances}
-                  shouldShowRenewButton={shouldShowRenewButton}
-                  handleRenewClick={handleRenewClick}
-                  handleEditClick={handleEditClick}
-                  handleDeleteInsurance={handleDeleteInsurance}
-                  pagination={pagination}
-                  handlePageChange={handlePageChange}
+                <MobileCardView
+                  records={filteredInsurances}
                   loading={loading}
                   searchQuery={searchQuery}
+                  emptyMessage={{
+                    title: 'No Insurance Records Found',
+                    description: 'Get started by adding your first insurance record.',
+                  }}
+                  loadingMessage='Loading insurance records...'
+                  headerGradient='from-indigo-50 via-purple-50 to-pink-50'
+                  avatarGradient='from-indigo-500 to-purple-500'
+                  emptyIconGradient='from-indigo-100 to-purple-100'
+                  emptyIconColor='text-indigo-400'
+                  cardConfig={{
+                    header: {
+                      avatar: () => (
+                        <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
+                        </svg>
+                      ),
+                      title: (record) => record.vehicleNumber,
+                      subtitle: (record) => record.policyNumber,
+                      extraInfo: (record) => (
+                        <>
+                          <div>{record.ownerName || '-'}</div>
+                          <div className='flex items-center mt-1'>
+                            <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                            </svg>
+                            {record.mobileNumber || 'N/A'}
+                          </div>
+                        </>
+                      ),
+                      showVehicleParts: false,
+                    },
+                    body: {
+                      showStatus: false,
+                      showPayment: true,
+                      showValidity: true,
+                      customFields: [
+                        {
+                          render: (record, { renderVehicleBadge }) => (
+                            <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
+                              {renderVehicleBadge(record.vehicleNumber)}
+                              <span className='text-xs font-semibold text-gray-600'>{record.vehicleType}</span>
+                            </div>
+                          ),
+                        },
+                      ],
+                    },
+                  }}
+                  actions={[
+                    {
+                      title: 'Renew Insurance',
+                      condition: shouldShowRenewButton,
+                      onClick: handleRenewClick,
+                      bgColor: 'bg-blue-100',
+                      textColor: 'text-blue-600',
+                      hoverBgColor: 'bg-blue-200',
+                      icon: (
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                        </svg>
+                      ),
+                    },
+                    {
+                      title: 'Edit Insurance',
+                      onClick: handleEditClick,
+                      bgColor: 'bg-amber-100',
+                      textColor: 'text-amber-600',
+                      hoverBgColor: 'bg-amber-200',
+                      icon: (
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                        </svg>
+                      ),
+                    },
+                    {
+                      title: 'Delete Insurance',
+                      onClick: handleDeleteInsurance,
+                      bgColor: 'bg-red-100',
+                      textColor: 'text-red-600',
+                      hoverBgColor: 'bg-red-200',
+                      icon: (
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                        </svg>
+                      ),
+                    },
+                    {
+                      title: '',
+                      onClick: () => {},
+                      bgColor: '',
+                      textColor: '',
+                      hoverBgColor: '',
+                      icon: (record) => (
+                        <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${getStatusColor(record.status)} border-2 ${
+                          getStatusText(record.status) === 'Expired' ? 'border-red-300' :
+                          getStatusText(record.status) === 'Expiring Soon' ? 'border-orange-300' :
+                          'border-green-300'
+                        }`}>
+                          {getStatusText(record.status)}
+                        </span>
+                      ),
+                    },
+                  ]}
+                  pagination={{
+                    currentPage: pagination.currentPage,
+                    totalPages: pagination.totalPages,
+                    onPageChange: handlePageChange,
+                    totalRecords: pagination.totalRecords,
+                    limit: pagination.limit,
+                  }}
                 />
 
                 {/* Desktop Table View */}

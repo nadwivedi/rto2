@@ -8,6 +8,7 @@ import EditTemporaryPermitOtherStateModal from './components/EditTemporaryPermit
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
+import MobileCardView from '../../components/MobileCardView'
 import { getTheme, getVehicleNumberDesign } from '../../context/ThemeContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
@@ -284,156 +285,87 @@ const TemporaryPermitOtherState = () => {
             </div>
 
             {/* Mobile Card View */}
-            <div className='block lg:hidden'>
-              {loading ? (
-                <div className='flex flex-col justify-center items-center py-12'>
-                  <div className='relative'>
-                    <div className='w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
-                    <div className='absolute inset-0 w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-2xl animate-spin'></div>
-                  </div>
-                  <p className='text-gray-600 mt-6'>Loading permits...</p>
-                </div>
-              ) : permits.length > 0 ? (
-                <div className='p-3 space-y-3'>
-                  {permits.map((permit) => (
-                    <div key={permit._id} className='bg-white border-2 border-gray-200 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden'>
-                      {/* Card Header */}
-                      <div className='bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 p-3 flex items-start justify-between'>
-                        <div className='flex items-center gap-3'>
-                          <div className='flex-shrink-0 h-12 w-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold shadow-md'>
-                            {permit.permitHolder?.charAt(0) || 'P'}
-                          </div>
-                          <div>
-                            <div className='text-xs font-mono font-bold text-gray-900'>{permit.permitNumber}</div>
-                            <div className='text-xs text-gray-600 mt-0.5'>{permit.permitHolder || '-'}</div>
-                          </div>
-                        </div>
-                        <div className='flex items-center gap-1.5'>
-                          {shouldShowRenewButton(permit) && (
-                            <button
-                              onClick={() => handleRenewClick(permit)}
-                              className='p-1.5 text-green-600 hover:bg-green-100 rounded-lg transition-all'
-                              title='Renew'
-                            >
-                              <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                              </svg>
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleEditPermit(permit)}
-                            className='p-1.5 text-blue-600 hover:bg-blue-100 rounded-lg transition-all'
-                            title='Edit'
-                          >
-                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDeletePermit(permit._id)}
-                            className='p-1.5 text-red-600 hover:bg-red-100 rounded-lg transition-all'
-                            title='Delete'
-                          >
-                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Card Body */}
-                      <div className='p-3 space-y-2.5'>
-                        {/* Vehicle and Mobile */}
+            <MobileCardView
+              loading={loading}
+              records={permits}
+              emptyMessage={{
+                title: 'No Temporary Permits (Other State) Found',
+                description: 'Get started by adding your first permit.',
+              }}
+              loadingMessage='Loading permits...'
+              headerGradient='from-indigo-50 via-purple-50 to-pink-50'
+              avatarGradient='from-indigo-500 to-purple-500'
+              emptyIconGradient='from-indigo-100 to-purple-100'
+              emptyIconColor='text-indigo-400'
+              cardConfig={{
+                header: {
+                  avatar: () => (
+                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7' />
+                    </svg>
+                  ),
+                  title: (record) => record.permitNumber,
+                  subtitle: (record) => record.permitHolder || '-',
+                  showVehicleParts: false,
+                },
+                body: {
+                  showStatus: true,
+                  showPayment: true,
+                  showValidity: true,
+                  customFields: [
+                    {
+                      render: (record, { renderVehicleBadge, getStatusColor, getStatusText }) => (
                         <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
-                          <div className='flex items-center gap-2'>
-                            {(() => {
-                              const parts = getVehicleNumberParts(permit.vehicleNo)
-                              if (!parts) {
-                                return (
-                                  <span className='inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200'>
-                                    🚗 {permit.vehicleNo}
-                                  </span>
-                                )
-                              }
-                              return (
-                                <div className={vehicleDesign.container}>
-                                  <span className={vehicleDesign.stateCode}>{parts.stateCode}</span>
-                                  <span className={vehicleDesign.districtCode}>{parts.districtCode}</span>
-                                  <span className={vehicleDesign.series}>{parts.series}</span>
-                                  <span className={vehicleDesign.last4Digits}>{parts.last4Digits}</span>
-                                </div>
-                              )
-                            })()}
-                          </div>
-                          <div className='text-xs text-gray-600 font-medium'>
-                            📱 {permit.mobileNo}
-                          </div>
-                        </div>
-
-                        {/* Payment Info */}
-                        <div className='grid grid-cols-3 gap-2'>
-                          <div className='bg-gray-50 rounded-lg p-2 border border-gray-200'>
-                            <div className='text-xs text-gray-500 font-medium mb-0.5'>Total Fee</div>
-                            <div className='text-sm font-bold text-gray-900'>₹{(permit.totalFee || 0).toLocaleString('en-IN')}</div>
-                          </div>
-                          <div className='bg-emerald-50 rounded-lg p-2 border border-emerald-200'>
-                            <div className='text-xs text-emerald-600 font-medium mb-0.5'>Paid</div>
-                            <div className='text-sm font-bold text-emerald-700'>₹{(permit.paid || 0).toLocaleString('en-IN')}</div>
-                          </div>
-                          <div className={`rounded-lg p-2 border ${(permit.balance || 0) > 0 ? 'bg-orange-50 border-orange-200' : 'bg-gray-50 border-gray-200'}`}>
-                            <div className={`text-xs font-medium mb-0.5 ${(permit.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>Balance</div>
-                            <div className={`text-sm font-bold ${(permit.balance || 0) > 0 ? 'text-orange-700' : 'text-gray-900'}`}>₹{(permit.balance || 0).toLocaleString('en-IN')}</div>
-                          </div>
-                        </div>
-
-                        {/* Validity Period */}
-                        <div className='grid grid-cols-2 gap-2 pt-1'>
-                          <div className='bg-green-50 rounded-lg p-2 border border-green-200'>
-                            <div className='text-xs text-green-600 font-medium mb-0.5 flex items-center gap-1'>
-                              <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                              </svg>
-                              Valid From
-                            </div>
-                            <div className='text-sm font-bold text-green-900'>{permit.validFrom}</div>
-                          </div>
-                          <div className='bg-red-50 rounded-lg p-2 border border-red-200'>
-                            <div className='text-xs text-red-600 font-medium mb-0.5 flex items-center gap-1'>
-                              <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                              </svg>
-                              Valid Till
-                            </div>
-                            <div className='text-sm font-bold text-red-900'>{permit.validTo}</div>
-                          </div>
-                        </div>
-
-                        {/* Status Badge */}
-                        <div className='flex justify-end pt-1'>
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(permit.status)}`}>
-                            {getStatusText(permit.status)}
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(record.status)}`}>
+                            {getStatusText(record.status)}
                           </span>
+                          {renderVehicleBadge(record.vehicleNo)}
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className='p-6'>
-                  <div className='flex flex-col items-center justify-center py-12'>
-                    <div className='w-20 h-20 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mb-4 shadow-lg'>
-                      <svg className='w-10 h-10 text-amber-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                      </svg>
-                    </div>
-                    <h3 className='text-lg font-black text-gray-700 mb-2'>No Permits Found</h3>
-                    <p className='text-sm text-gray-500 text-center max-w-xs'>
-                      {searchQuery ? 'No permits match your search criteria.' : 'Get started by adding your first permit.'}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+                      ),
+                    },
+                  ],
+                },
+              }}
+              actions={[
+                {
+                  title: 'Renew Permit',
+                  condition: shouldShowRenewButton,
+                  onClick: handleRenewClick,
+                  bgColor: 'bg-blue-100',
+                  textColor: 'text-blue-600',
+                  hoverBgColor: 'bg-blue-200',
+                  icon: (
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                    </svg>
+                  ),
+                },
+                {
+                  title: 'Edit Permit',
+                  onClick: handleEditPermit,
+                  bgColor: 'bg-green-100',
+                  textColor: 'text-green-600',
+                  hoverBgColor: 'bg-green-200',
+                  icon: (
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                    </svg>
+                  ),
+                },
+                {
+                  title: 'Delete Permit',
+                  onClick: (permit) => handleDeletePermit(permit.id),
+                  bgColor: 'bg-red-100',
+                  textColor: 'text-red-600',
+                  hoverBgColor: 'bg-red-200',
+                  icon: (
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                    </svg>
+                  ),
+                },
+              ]}
+            />
 
             {/* Desktop Table View */}
             <div className='hidden lg:block overflow-x-auto'>
