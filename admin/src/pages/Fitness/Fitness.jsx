@@ -83,6 +83,7 @@ const Fitness = () => {
         // Transform the data to match the display format
         const transformedRecords = response.data.data.map((record) => ({
           id: record._id,
+          _id: record._id, // Keep _id for edit/delete operations
           vehicleNumber: record.vehicleNumber,
           validFrom: record.validFrom,
           validTo: record.validTo,
@@ -90,7 +91,11 @@ const Fitness = () => {
           paid: record.paid || 0,
           balance: record.balance || 0,
           status: record.status,
+          isRenewed: record.isRenewed || false, // Include isRenewed field
         }));
+
+        console.log('📥 Transformed fitness records with isRenewed field');
+
         setFitnessRecords(transformedRecords);
 
         // Update pagination state
@@ -340,7 +345,19 @@ const Fitness = () => {
   // Determine if renew button should be shown for a record
   // Show renew button ONLY if: NOT renewed AND (expired OR expiring_soon)
   const shouldShowRenewButton = (record) => {
-    return !record.isRenewed && (record.status === "expired" || record.status === "expiring_soon");
+    const show = !record.isRenewed && (record.status === "expired" || record.status === "expiring_soon");
+
+    // Debug: Log what we're checking for expired/expiring records
+    if (record.status === "expired" || record.status === "expiring_soon") {
+      console.log(`🔍 ${record.vehicleNumber}:`, {
+        status: record.status,
+        isRenewed: record.isRenewed,
+        isRenewedType: typeof record.isRenewed,
+        shouldShowButton: show
+      });
+    }
+
+    return show;
   };
 
   // Statistics are now fetched from backend, removed useMemo calculation
