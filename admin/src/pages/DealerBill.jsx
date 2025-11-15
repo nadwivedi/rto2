@@ -1,9 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import axios from 'axios'
-import AddDealerBillModal from '../components/AddDealerBillModal'
 import AddButton from '../components/AddButton'
 import SearchBar from '../components/SearchBar'
 import { getTheme } from '../context/ThemeContext'
+
+// Lazy load modal for better performance with hover preloading
+const AddDealerBillModal = lazy(() => import('../components/AddDealerBillModal'))
+
+// Preload function - Start loading component on hover for instant feel
+const preloadAddModal = () => import('../components/AddDealerBillModal')
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 console.log(API_URL);
@@ -124,18 +129,26 @@ const DealerBill = () => {
               <h1 className='text-2xl md:text-3xl font-black text-gray-800'>Dealer Bills</h1>
               <p className='text-sm text-gray-600 mt-1'>Manage dealer bills for Permit, Fitness, and Registration</p>
             </div>
-            <AddButton onClick={() => setIsAddModalOpen(true)} title='Add Dealer Bill' />
+            <AddButton
+              onClick={() => setIsAddModalOpen(true)}
+              onMouseEnter={preloadAddModal}
+              title='Add Dealer Bill'
+            />
           </div>
         </div>
 
-        {/* Add Modal */}
-        <AddDealerBillModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onSuccess={() => {
-            fetchDealerBills()
-          }}
-        />
+        {/* Add Modal - Lazy Loaded */}
+        {isAddModalOpen && (
+          <Suspense fallback={null}>
+            <AddDealerBillModal
+              isOpen={isAddModalOpen}
+              onClose={() => setIsAddModalOpen(false)}
+              onSuccess={() => {
+                fetchDealerBills()
+              }}
+            />
+          </Suspense>
+        )}
 
         {/* Dealer Bills Table */}
         <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
