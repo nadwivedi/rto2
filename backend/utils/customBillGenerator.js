@@ -401,14 +401,28 @@ async function generateCustomBillPDF(customBill) {
 /**
  * Generate unique custom bill number
  * Format: Simple sequential numbers (01, 02, 03, etc.)
+ * Uses latest bill number approach - finds highest existing bill number and increments it
  */
 async function generateCustomBillNumber(CustomBill) {
   try {
-    // Count all custom bills to get the next number
-    const count = await CustomBill.countDocuments()
+    // Find the bill with the highest bill number
+    // Sort by billNumber in descending order to get the latest one
+    const lastBill = await CustomBill.findOne()
+      .sort({ billNumber: -1 })
+      .select('billNumber')
+      .lean()
 
-    // Generate simple sequential bill number starting from 01
-    const billNumber = String(count + 1).padStart(2, '0')
+    // If no bills exist, start from 01
+    if (!lastBill || !lastBill.billNumber) {
+      return '01'
+    }
+
+    // Parse the last bill number and increment it
+    const lastBillNumber = parseInt(lastBill.billNumber, 10)
+    const nextBillNumber = lastBillNumber + 1
+
+    // Generate simple sequential bill number with padding
+    const billNumber = String(nextBillNumber).padStart(2, '0')
 
     return billNumber
   } catch (error) {
