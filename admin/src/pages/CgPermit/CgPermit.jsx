@@ -1,23 +1,13 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
-
-// Lazy load modals for better performance
-const PermitBillModal = lazy(() => import('../../components/PermitBillModal'))
-const SharePermitModal = lazy(() => import('../../components/SharePermitModal'))
-const IssueCgPermitModal = lazy(() => import('./components/IssueCgPermitModal'))
-const EditCgPermitModal = lazy(() => import('./components/EditCgPermitModal'))
-const RenewCgPermitModal = lazy(() => import('./components/RenewCgPermitModal'))
-const ViewCgPermitModal = lazy(() => import('./components/ViewCgPermitModal'))
-
-// Preload functions - Start loading component on hover for instant feel
-const preloadBillModal = () => import('../../components/PermitBillModal')
-const preloadShareModal = () => import('../../components/SharePermitModal')
-const preloadIssueModal = () => import('./components/IssueCgPermitModal')
-const preloadEditModal = () => import('./components/EditCgPermitModal')
-const preloadRenewModal = () => import('./components/RenewCgPermitModal')
-const preloadViewModal = () => import('./components/ViewCgPermitModal')
+import PermitBillModal from '../../components/PermitBillModal'
+import SharePermitModal from '../../components/SharePermitModal'
+import IssueCgPermitModal from './components/IssueCgPermitModal'
+import EditCgPermitModal from './components/EditCgPermitModal'
+import RenewCgPermitModal from './components/RenewCgPermitModal'
+import ViewCgPermitModal from './components/ViewCgPermitModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -726,7 +716,7 @@ Thank you!`
             />
 
             {/* New Permit Button */}
-            <AddButton onClick={() => setShowIssuePermitModal(true)} onMouseEnter={preloadIssueModal} title='New CG Permit' />
+            <AddButton onClick={() => setShowIssuePermitModal(true)} title='New CG Permit' />
           </div>
         </div>
 
@@ -771,7 +761,6 @@ Thank you!`
               title: 'Renew Permit',
               condition: shouldShowRenewButton,
               onClick: handleRenewClick,
-              onMouseEnter: preloadRenewModal,
               bgColor: 'bg-blue-100',
               textColor: 'text-blue-600',
               hoverBgColor: 'bg-blue-200',
@@ -784,7 +773,6 @@ Thank you!`
             {
               title: 'View Details',
               onClick: handleViewDetails,
-              onMouseEnter: preloadViewModal,
               bgColor: 'bg-indigo-100',
               textColor: 'text-indigo-600',
               hoverBgColor: 'bg-indigo-200',
@@ -798,7 +786,6 @@ Thank you!`
             {
               title: 'Edit',
               onClick: handleEditPermit,
-              onMouseEnter: preloadEditModal,
               bgColor: 'bg-green-100',
               textColor: 'text-green-600',
               hoverBgColor: 'bg-green-200',
@@ -811,7 +798,6 @@ Thank you!`
             {
               title: 'Share via WhatsApp',
               onClick: handleWhatsAppShare,
-              onMouseEnter: preloadShareModal,
               loading: whatsappLoading,
               bgColor: 'bg-green-100',
               textColor: 'text-green-600',
@@ -985,7 +971,7 @@ Thank you!`
                         {shouldShowRenewButton(permit) ? (
                           <button
                             onClick={() => handleRenewClick(permit)}
-                            onMouseEnter={preloadRenewModal}
+
                             className='p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 cursor-pointer'
                             title='Renew Permit'
                           >
@@ -998,7 +984,7 @@ Thank you!`
                         )}
                         <button
                           onClick={() => handleViewDetails(permit)}
-                          onMouseEnter={preloadViewModal}
+
                           className='p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='View Details'
                         >
@@ -1009,7 +995,7 @@ Thank you!`
                         </button>
                         <button
                           onClick={() => handleEditPermit(permit)}
-                          onMouseEnter={preloadEditModal}
+
                           className='p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='Edit Permit'
                         >
@@ -1019,7 +1005,7 @@ Thank you!`
                         </button>
                         <button
                           onClick={() => handleViewBill(permit)}
-                          onMouseEnter={preloadBillModal}
+
                           className='p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-200 cursor-pointer'
                           title='View Bill'
                         >
@@ -1029,7 +1015,7 @@ Thank you!`
                         </button>
                         <button
                           onClick={() => handleWhatsAppShare(permit)}
-                          onMouseEnter={preloadShareModal}
+
                           disabled={whatsappLoading === permit.id}
                           className={`p-2 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0 ${
                             whatsappLoading === permit.id
@@ -1097,8 +1083,7 @@ Thank you!`
 
       {/* Add New CG Permit Modal - Lazy Loaded */}
       {showIssuePermitModal && (
-        <Suspense fallback={null}>
-          <IssueCgPermitModal
+                  <IssueCgPermitModal
             isOpen={showIssuePermitModal}
             onClose={() => {
               setShowIssuePermitModal(false)
@@ -1107,13 +1092,11 @@ Thank you!`
             onSubmit={handleIssuePermit}
             initialData={initialPermitData} // Pass initial data for renewal
           />
-        </Suspense>
       )}
 
       {/* Edit CG Permit Modal - Lazy Loaded */}
       {showEditPermitModal && (
-        <Suspense fallback={null}>
-          <EditCgPermitModal
+                  <EditCgPermitModal
             isOpen={showEditPermitModal}
             onClose={() => {
               setShowEditPermitModal(false)
@@ -1122,13 +1105,11 @@ Thank you!`
             onSubmit={handleUpdatePermit}
             permit={editingPermit}
           />
-        </Suspense>
       )}
 
       {/* Renew CG Permit Modal - Lazy Loaded */}
       {showRenewPermitModal && (
-        <Suspense fallback={null}>
-          <RenewCgPermitModal
+                  <RenewCgPermitModal
             isOpen={showRenewPermitModal}
             onClose={() => {
               setShowRenewPermitModal(false)
@@ -1137,13 +1118,11 @@ Thank you!`
             onSubmit={handleRenewSubmit}
             permitData={permitToRenew}
           />
-        </Suspense>
       )}
 
       {/* Bill Modal - Lazy Loaded */}
       {showBillModal && selectedPermit && (
-        <Suspense fallback={null}>
-          <PermitBillModal
+                  <PermitBillModal
             permit={selectedPermit}
             onClose={() => {
               setShowBillModal(false)
@@ -1151,13 +1130,11 @@ Thank you!`
             }}
             permitType="CG"
           />
-        </Suspense>
       )}
 
       {/* Share Modal - Lazy Loaded */}
       {showShareModal && selectedPermit && (
-        <Suspense fallback={null}>
-          <SharePermitModal
+                  <SharePermitModal
             permit={selectedPermit}
             onClose={() => {
               setShowShareModal(false)
@@ -1165,18 +1142,15 @@ Thank you!`
             }}
             permitType="CG"
           />
-        </Suspense>
       )}
 
       {/* View Modal - Lazy Loaded */}
       {showDetailsModal && (
-        <Suspense fallback={null}>
-          <ViewCgPermitModal
+                  <ViewCgPermitModal
             isOpen={showDetailsModal}
             onClose={() => setShowDetailsModal(false)}
             selectedPermit={selectedPermit}
           />
-        </Suspense>
       )}
         </div>
       </div>

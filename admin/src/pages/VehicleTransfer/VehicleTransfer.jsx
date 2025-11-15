@@ -1,13 +1,7 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Pagination from '../../components/Pagination'
-
-// Lazy load modals for better performance
-const AddVehicleTransferModal = lazy(() => import('./components/AddVehicleTransferModal'))
-const VehicleTransferDetailModal = lazy(() => import('./components/VehicleTransferDetailModal'))
-
-// Preload functions - Start loading component on hover for instant feel
-const preloadAddModal = () => import('./components/AddVehicleTransferModal')
-const preloadDetailModal = () => import('./components/VehicleTransferDetailModal')
+import AddVehicleTransferModal from './components/AddVehicleTransferModal'
+import VehicleTransferDetailModal from './components/VehicleTransferDetailModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -196,7 +190,7 @@ const VehicleTransfer = () => {
               
 
                 {/* New Transfer Button */}
-                <AddButton onClick={handleAddNew} onMouseEnter={preloadAddModal} title='New Transfer' />
+                <AddButton onClick={handleAddNew} title='New Transfer' />
               </div>
 
               {/* Results count */}
@@ -277,7 +271,6 @@ const VehicleTransfer = () => {
                 {
                   title: 'View Details',
                   onClick: handleViewDetail,
-                  onMouseEnter: preloadDetailModal,
                   bgColor: 'bg-blue-100',
                   textColor: 'text-blue-600',
                   hoverBgColor: 'bg-blue-200',
@@ -291,7 +284,6 @@ const VehicleTransfer = () => {
                 {
                   title: 'Edit',
                   onClick: handleEdit,
-                  onMouseEnter: preloadAddModal,
                   bgColor: 'bg-green-100',
                   textColor: 'text-green-600',
                   hoverBgColor: 'bg-green-200',
@@ -463,7 +455,6 @@ const VehicleTransfer = () => {
                             <div className='flex items-center justify-end gap-0.5 pr-1'>
                               <button
                                 onClick={() => handleViewDetail(transfer)}
-                                onMouseEnter={preloadDetailModal}
                                 className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                 title='View Details'
                               >
@@ -474,7 +465,6 @@ const VehicleTransfer = () => {
                               </button>
                               <button
                                 onClick={() => handleEdit(transfer)}
-                                onMouseEnter={preloadAddModal}
                                 className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                 title='Edit Transfer'
                               >
@@ -527,33 +517,29 @@ const VehicleTransfer = () => {
         </div>
       </div>
 
-      {/* Add/Edit Modal - Lazy Loaded */}
+      {/* Add/Edit Modal */}
       {showModal && (
-        <Suspense fallback={null}>
-          <AddVehicleTransferModal
-            isOpen={showModal}
-            onClose={() => {
-              setShowModal(false)
-              setEditData(null)
-            }}
-            onSuccess={handleSuccess}
-            editData={editData}
-          />
-        </Suspense>
+        <AddVehicleTransferModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false)
+            setEditData(null)
+          }}
+          onSuccess={handleSuccess}
+          editData={editData}
+        />
       )}
 
-      {/* Detail View Modal - Lazy Loaded */}
+      {/* Detail View Modal */}
       {showDetailModal && (
-        <Suspense fallback={null}>
-          <VehicleTransferDetailModal
-            isOpen={showDetailModal}
-            onClose={() => {
-              setShowDetailModal(false)
-              setViewData(null)
-            }}
-            transfer={viewData}
-          />
-        </Suspense>
+        <VehicleTransferDetailModal
+          isOpen={showDetailModal}
+          onClose={() => {
+            setShowDetailModal(false)
+            setViewData(null)
+          }}
+          transfer={viewData}
+        />
       )}
     </>
   )

@@ -1,15 +1,9 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Pagination from "../../components/Pagination";
-
-// Lazy load modals for better performance
-const AddInsuranceModal = lazy(() => import("./components/AddInsuranceModal"));
-const RenewInsuranceModal = lazy(() => import("./components/RenewInsuranceModal"));
-
-// Preload functions - Start loading component on hover for instant feel
-const preloadAddModal = () => import("./components/AddInsuranceModal");
-const preloadRenewModal = () => import("./components/RenewInsuranceModal");
+import AddInsuranceModal from "./components/AddInsuranceModal";
+import RenewInsuranceModal from "./components/RenewInsuranceModal";
 import AddButton from "../../components/AddButton";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -483,7 +477,7 @@ const Insurance = () => {
                     {/* New Insurance Button */}
                     <AddButton
                       onClick={() => setIsAddModalOpen(true)}
-                      onMouseEnter={preloadAddModal}
+
                       title="New Insurance Record"
                     />
                   </div>
@@ -546,7 +540,6 @@ const Insurance = () => {
                       title: 'Renew Insurance',
                       condition: shouldShowRenewButton,
                       onClick: handleRenewClick,
-                      onMouseEnter: preloadRenewModal,
                       bgColor: 'bg-blue-100',
                       textColor: 'text-blue-600',
                       hoverBgColor: 'bg-blue-200',
@@ -783,7 +776,7 @@ const Insurance = () => {
                                 {shouldShowRenewButton(insurance) ? (
                                   <button
                                     onClick={() => handleRenewClick(insurance)}
-                                    onMouseEnter={preloadRenewModal}
+
                                     className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                     title="Renew Insurance"
                                   >
@@ -899,8 +892,7 @@ const Insurance = () => {
 
           {/* Add Insurance Modal - Lazy Loaded */}
           {isAddModalOpen && (
-            <Suspense fallback={null}>
-              <AddInsuranceModal
+                          <AddInsuranceModal
                 isOpen={isAddModalOpen}
                 onClose={() => {
                   setIsAddModalOpen(false);
@@ -909,13 +901,11 @@ const Insurance = () => {
                 onSubmit={handleAddInsurance}
                 initialData={initialInsuranceData} // Pass initial data for renewal
               />
-            </Suspense>
           )}
 
           {/* Edit Insurance Modal - Lazy Loaded */}
           {isEditModalOpen && (
-            <Suspense fallback={null}>
-              <AddInsuranceModal
+                          <AddInsuranceModal
                 isOpen={isEditModalOpen}
                 onClose={() => {
                   setIsEditModalOpen(false);
@@ -925,13 +915,11 @@ const Insurance = () => {
                 initialData={selectedInsurance} // Pass selected insurance data for editing
                 isEditMode={true}
               />
-            </Suspense>
           )}
 
           {/* Renew Insurance Modal - Lazy Loaded */}
           {isRenewModalOpen && (
-            <Suspense fallback={null}>
-              <RenewInsuranceModal
+                          <RenewInsuranceModal
                 isOpen={isRenewModalOpen}
                 onClose={() => {
                   setIsRenewModalOpen(false);
@@ -940,7 +928,6 @@ const Insurance = () => {
                 onSubmit={handleRenewSubmit}
                 insuranceData={insuranceToRenew}
               />
-            </Suspense>
           )}
         </div>
       </div>

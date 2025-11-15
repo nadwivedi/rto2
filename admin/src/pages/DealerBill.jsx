@@ -1,14 +1,9 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import AddButton from '../components/AddButton'
 import SearchBar from '../components/SearchBar'
 import { getTheme } from '../context/ThemeContext'
-
-// Lazy load modal for better performance with hover preloading
-const AddDealerBillModal = lazy(() => import('../components/AddDealerBillModal'))
-
-// Preload function - Start loading component on hover for instant feel
-const preloadAddModal = () => import('../components/AddDealerBillModal')
+import AddDealerBillModal from '../components/AddDealerBillModal'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 console.log(API_URL);
@@ -131,23 +126,20 @@ const DealerBill = () => {
             </div>
             <AddButton
               onClick={() => setIsAddModalOpen(true)}
-              onMouseEnter={preloadAddModal}
               title='Add Dealer Bill'
             />
           </div>
         </div>
 
-        {/* Add Modal - Lazy Loaded */}
+        {/* Add Modal */}
         {isAddModalOpen && (
-          <Suspense fallback={null}>
-            <AddDealerBillModal
-              isOpen={isAddModalOpen}
-              onClose={() => setIsAddModalOpen(false)}
-              onSuccess={() => {
-                fetchDealerBills()
-              }}
-            />
-          </Suspense>
+          <AddDealerBillModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onSuccess={() => {
+              fetchDealerBills()
+            }}
+          />
         )}
 
         {/* Dealer Bills Table */}

@@ -1,17 +1,10 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
-
-// Lazy load modals for better performance
-const QuickDLApplicationForm = lazy(() => import('./components/QuickDLApplicationForm'))
-const EditDLApplicationForm = lazy(() => import('./components/EditDLApplicationForm'))
-const ApplicationDetailModal = lazy(() => import('./components/ApplicationDetailModal'))
-
-// Preload functions - Start loading component on hover for instant feel
-const preloadQuickForm = () => import('./components/QuickDLApplicationForm')
-const preloadEditForm = () => import('./components/EditDLApplicationForm')
-const preloadDetailModal = () => import('./components/ApplicationDetailModal')
+import QuickDLApplicationForm from './components/QuickDLApplicationForm'
+import EditDLApplicationForm from './components/EditDLApplicationForm'
+import ApplicationDetailModal from './components/ApplicationDetailModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -504,38 +497,32 @@ const DrivingLicence = () => {
             </div>
           </div>
 
-          {/* Quick DL Application Form - Lazy Loaded */}
+          {/* Quick DL Application Form */}
       {isFormOpen && (
-        <Suspense fallback={null}>
-          <QuickDLApplicationForm
-            isOpen={isFormOpen}
-            onClose={() => setIsFormOpen(false)}
-            onSubmit={handleFormSubmit}
-          />
-        </Suspense>
+        <QuickDLApplicationForm
+          isOpen={isFormOpen}
+          onClose={() => setIsFormOpen(false)}
+          onSubmit={handleFormSubmit}
+        />
       )}
 
-      {/* Edit DL Application Form - Lazy Loaded */}
+      {/* Edit DL Application Form */}
       {isEditFormOpen && (
-        <Suspense fallback={null}>
-          <EditDLApplicationForm
-            isOpen={isEditFormOpen}
-            onClose={() => setIsEditFormOpen(false)}
-            onSubmit={handleEditSubmit}
-            application={selectedApplication}
-          />
-        </Suspense>
+        <EditDLApplicationForm
+          isOpen={isEditFormOpen}
+          onClose={() => setIsEditFormOpen(false)}
+          onSubmit={handleEditSubmit}
+          application={selectedApplication}
+        />
       )}
 
-      {/* Application Detail Modal - Lazy Loaded */}
+      {/* Application Detail Modal */}
       {isDetailModalOpen && (
-        <Suspense fallback={null}>
-          <ApplicationDetailModal
-            isOpen={isDetailModalOpen}
-            onClose={() => setIsDetailModalOpen(false)}
-            application={selectedApplication}
-          />
-        </Suspense>
+        <ApplicationDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => setIsDetailModalOpen(false)}
+          application={selectedApplication}
+        />
       )}
 
       {/* Applications Table */}
@@ -628,7 +615,7 @@ const DrivingLicence = () => {
             </div>
 
             {/* New Application Button */}
-            <AddButton onClick={() => setIsFormOpen(true)} onMouseEnter={preloadQuickForm} title='New Application' />
+            <AddButton onClick={() => setIsFormOpen(true)} title='New Application' />
           </div>
         </div>
 
@@ -756,7 +743,6 @@ const DrivingLicence = () => {
             {
               title: 'View Details',
               onClick: handleViewDetails,
-              onMouseEnter: preloadDetailModal,
               bgColor: 'bg-indigo-100',
               textColor: 'text-indigo-600',
               hoverBgColor: 'bg-indigo-200',
@@ -770,7 +756,6 @@ const DrivingLicence = () => {
             {
               title: 'Edit',
               onClick: handleEdit,
-              onMouseEnter: preloadEditForm,
               bgColor: 'bg-green-100',
               textColor: 'text-green-600',
               hoverBgColor: 'bg-green-200',
@@ -913,7 +898,6 @@ const DrivingLicence = () => {
                       <div className='flex items-center justify-center gap-2'>
                         <button
                           onClick={() => handleViewDetails(app)}
-                          onMouseEnter={preloadDetailModal}
                           className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                           title='View Details'
                         >
@@ -924,7 +908,6 @@ const DrivingLicence = () => {
                         </button>
                         <button
                           onClick={() => handleEdit(app)}
-                          onMouseEnter={preloadEditForm}
                           className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                           title='Edit Application'
                         >

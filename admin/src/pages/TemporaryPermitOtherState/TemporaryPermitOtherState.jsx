@@ -1,17 +1,10 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
-
-// Lazy load modals for better performance
-const IssueTemporaryPermitOtherStateModal = lazy(() => import('./components/IssueTemporaryPermitOtherStateModal'))
-const RenewTemporaryPermitOtherStateModal = lazy(() => import('./components/RenewTemporaryPermitOtherStateModal'))
-const EditTemporaryPermitOtherStateModal = lazy(() => import('./components/EditTemporaryPermitOtherStateModal'))
-
-// Preload functions - Start loading component on hover for instant feel
-const preloadIssueModal = () => import('./components/IssueTemporaryPermitOtherStateModal')
-const preloadRenewModal = () => import('./components/RenewTemporaryPermitOtherStateModal')
-const preloadEditModal = () => import('./components/EditTemporaryPermitOtherStateModal')
+import IssueTemporaryPermitOtherStateModal from './components/IssueTemporaryPermitOtherStateModal'
+import RenewTemporaryPermitOtherStateModal from './components/RenewTemporaryPermitOtherStateModal'
+import EditTemporaryPermitOtherStateModal from './components/EditTemporaryPermitOtherStateModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -287,7 +280,7 @@ const TemporaryPermitOtherState = () => {
                 />
 
                 {/* New Permit Button */}
-                <AddButton onClick={() => setShowIssuePermitModal(true)} onMouseEnter={preloadIssueModal} title='New Permit (Other State)' />
+                <AddButton onClick={() => setShowIssuePermitModal(true)} title='New Permit (Other State)' />
               </div>
             </div>
 
@@ -338,7 +331,6 @@ const TemporaryPermitOtherState = () => {
                   title: 'Renew Permit',
                   condition: shouldShowRenewButton,
                   onClick: handleRenewClick,
-                  onMouseEnter: preloadRenewModal,
                   bgColor: 'bg-blue-100',
                   textColor: 'text-blue-600',
                   hoverBgColor: 'bg-blue-200',
@@ -351,7 +343,6 @@ const TemporaryPermitOtherState = () => {
                 {
                   title: 'Edit Permit',
                   onClick: handleEditPermit,
-                  onMouseEnter: preloadEditModal,
                   bgColor: 'bg-green-100',
                   textColor: 'text-green-600',
                   hoverBgColor: 'bg-green-200',
@@ -519,7 +510,7 @@ const TemporaryPermitOtherState = () => {
                             {shouldShowRenewButton(permit) && (
                               <button
                                 onClick={() => handleRenewClick(permit)}
-                                onMouseEnter={preloadRenewModal}
+
                                 className='p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                 title='Renew Permit'
                               >
@@ -532,7 +523,7 @@ const TemporaryPermitOtherState = () => {
                             {/* edit button */}
                             <button
                               onClick={() => handleEditPermit(permit)}
-                              onMouseEnter={preloadEditModal}
+
                               className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                               title='Edit Permit'
                             >
@@ -594,8 +585,7 @@ const TemporaryPermitOtherState = () => {
 
       {/* Modals - Lazy Loaded */}
       {showIssuePermitModal && (
-        <Suspense fallback={null}>
-          <IssueTemporaryPermitOtherStateModal
+                  <IssueTemporaryPermitOtherStateModal
             onClose={() => setShowIssuePermitModal(false)}
             onPermitIssued={() => {
               setShowIssuePermitModal(false)
@@ -603,13 +593,11 @@ const TemporaryPermitOtherState = () => {
               fetchStatistics()
             }}
           />
-        </Suspense>
       )}
 
       {/* Renew Temporary Permit (Other State) Modal - Lazy Loaded */}
       {showRenewPermitModal && (
-        <Suspense fallback={null}>
-          <RenewTemporaryPermitOtherStateModal
+                  <RenewTemporaryPermitOtherStateModal
             isOpen={showRenewPermitModal}
             onClose={() => {
               setShowRenewPermitModal(false)
@@ -618,13 +606,11 @@ const TemporaryPermitOtherState = () => {
             onSubmit={handleRenewSubmit}
             oldPermit={permitToRenew}
           />
-        </Suspense>
       )}
 
       {/* Edit Modal - Lazy Loaded */}
       {showEditPermitModal && editingPermit && (
-        <Suspense fallback={null}>
-          <EditTemporaryPermitOtherStateModal
+                  <EditTemporaryPermitOtherStateModal
             permit={editingPermit}
             onClose={() => {
               setShowEditPermitModal(false)
@@ -637,7 +623,6 @@ const TemporaryPermitOtherState = () => {
               fetchStatistics()
             }}
           />
-        </Suspense>
       )}
     </>
   )

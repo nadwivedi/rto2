@@ -1,17 +1,10 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from "react";
+import { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import AddButton from "../../components/AddButton";
-
-// Lazy load modals for better performance
-const AddTaxModal = lazy(() => import("./components/AddTaxModal"));
-const EditTaxModal = lazy(() => import("./components/EditTaxModal"));
-const RenewTaxModal = lazy(() => import("./components/RenewTaxModal"));
-
-// Preload functions - Start loading component on hover for instant feel
-const preloadAddModal = () => import("./components/AddTaxModal");
-const preloadEditModal = () => import("./components/EditTaxModal");
-const preloadRenewModal = () => import("./components/RenewTaxModal");
+import AddTaxModal from "./components/AddTaxModal";
+import EditTaxModal from "./components/EditTaxModal";
+import RenewTaxModal from "./components/RenewTaxModal";
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -463,7 +456,7 @@ const Tax = () => {
                 {/* Add Button */}
                 <AddButton
                   onClick={() => setIsAddModalOpen(true)}
-                  onMouseEnter={preloadAddModal}
+
                   title="Add New Tax Record"
                 />
               </div>
@@ -564,7 +557,6 @@ const Tax = () => {
                   title: 'Renew Tax',
                   condition: shouldShowRenewButton,
                   onClick: handleRenewClick,
-                  onMouseEnter: preloadRenewModal,
                   bgColor: 'bg-blue-100',
                   textColor: 'text-blue-600',
                   hoverBgColor: 'bg-blue-200',
@@ -577,7 +569,6 @@ const Tax = () => {
                 {
                   title: 'Edit',
                   onClick: handleEditClick,
-                  onMouseEnter: preloadEditModal,
                   bgColor: 'bg-green-100',
                   textColor: 'text-green-600',
                   hoverBgColor: 'bg-green-200',
@@ -810,7 +801,7 @@ const Tax = () => {
                             {shouldShowRenewButton(record) ? (
                               <button
                                 onClick={() => handleRenewClick(record)}
-                                onMouseEnter={preloadRenewModal}
+
                                 className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Renew Tax"
                               >
@@ -834,7 +825,7 @@ const Tax = () => {
                             {/* Edit Button */}
                             <button
                               onClick={() => handleEditClick(record)}
-                              onMouseEnter={preloadEditModal}
+
                               className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Edit Record"
                             >
@@ -924,19 +915,16 @@ const Tax = () => {
 
       {/* Add Tax Modal - Lazy Loaded */}
       {isAddModalOpen && (
-        <Suspense fallback={null}>
-          <AddTaxModal
+                  <AddTaxModal
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
             onSubmit={handleAddTax}
           />
-        </Suspense>
       )}
 
       {/* Renew Tax Modal - Lazy Loaded */}
       {isRenewModalOpen && (
-        <Suspense fallback={null}>
-          <RenewTaxModal
+                  <RenewTaxModal
             isOpen={isRenewModalOpen}
             onClose={() => {
               setIsRenewModalOpen(false);
@@ -945,19 +933,16 @@ const Tax = () => {
             onSubmit={handleRenewSubmit}
             oldTax={taxToRenew}
           />
-        </Suspense>
       )}
 
       {/* Edit Tax Modal - Lazy Loaded */}
       {isEditModalOpen && (
-        <Suspense fallback={null}>
-          <EditTaxModal
+                  <EditTaxModal
             isOpen={isEditModalOpen}
             onClose={() => setIsEditModalOpen(false)}
             onSubmit={handleEditTax}
             tax={selectedTax}
           />
-        </Suspense>
       )}
     </>
   );
