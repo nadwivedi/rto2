@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
@@ -7,14 +7,8 @@ import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
 import { getTheme, getVehicleNumberDesign } from '../../context/ThemeContext'
 import { getVehicleNumberParts } from '../../utils/vehicleNoCheck'
-
-// Lazy load modals for better performance with hover preloading
-const RegisterVehicleModal = lazy(() => import('./components/RegisterVehicleModal'))
-const ViewVehicleRegistrationModal = lazy(() => import('./components/ViewVehicleRegistrationModal'))
-
-// Preload functions - Start loading component on hover for instant feel
-const preloadRegisterModal = () => import('./components/RegisterVehicleModal')
-const preloadViewModal = () => import('./components/ViewVehicleRegistrationModal')
+import RegisterVehicleModal from './components/RegisterVehicleModal'
+import ViewVehicleRegistrationModal from './components/ViewVehicleRegistrationModal'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -227,7 +221,6 @@ const VehicleRegistration = () => {
                     setEditData(null)
                     setShowModal(true)
                   }}
-                  onMouseEnter={preloadRegisterModal}
                   title='Register New Vehicle'
                 />
               </div>
@@ -291,7 +284,6 @@ const VehicleRegistration = () => {
                           <div className='flex items-center gap-1'>
                             <button
                               onClick={() => handleViewDetails(registration)}
-                              onMouseEnter={preloadViewModal}
                               className='p-1.5 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition-all cursor-pointer'
                               title='View'
                             >
@@ -311,7 +303,6 @@ const VehicleRegistration = () => {
                             </button>
                             <button
                               onClick={() => handleEdit(registration)}
-                              onMouseEnter={preloadRegisterModal}
                               className='p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-all cursor-pointer'
                               title='Edit'
                             >
@@ -513,7 +504,6 @@ const VehicleRegistration = () => {
                           <div className='flex items-center justify-end gap-0.5 pr-1'>
                             <button
                               onClick={() => handleViewDetails(registration)}
-                              onMouseEnter={preloadViewModal}
                               className='p-2 text-gray-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 cursor-pointer'
                               title='View Details'
                             >
@@ -533,7 +523,6 @@ const VehicleRegistration = () => {
                             </button>
                             <button
                               onClick={() => handleEdit(registration)}
-                              onMouseEnter={preloadRegisterModal}
                               className='p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer'
                               title='Edit'
                             >
@@ -574,33 +563,29 @@ const VehicleRegistration = () => {
         </div>
       </div>
 
-      {/* Register/Edit Modal - Lazy Loaded */}
+      {/* Register/Edit Modal */}
       {showModal && (
-        <Suspense fallback={null}>
-          <RegisterVehicleModal
-            isOpen={showModal}
-            onClose={() => {
-              setShowModal(false)
-              setEditData(null)
-            }}
-            onSuccess={() => {
-              fetchRegistrations()
-              fetchStatistics()
-            }}
-            editData={editData}
-          />
-        </Suspense>
+        <RegisterVehicleModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false)
+            setEditData(null)
+          }}
+          onSuccess={() => {
+            fetchRegistrations()
+            fetchStatistics()
+          }}
+          editData={editData}
+        />
       )}
 
-      {/* View Details Modal - Lazy Loaded */}
+      {/* View Details Modal */}
       {showDetailsModal && (
-        <Suspense fallback={null}>
-          <ViewVehicleRegistrationModal
-            isOpen={showDetailsModal}
-            onClose={() => setShowDetailsModal(false)}
-            selectedRegistration={selectedRegistration}
-          />
-        </Suspense>
+        <ViewVehicleRegistrationModal
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
+          selectedRegistration={selectedRegistration}
+        />
       )}
     </>
   )
