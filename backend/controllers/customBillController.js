@@ -127,6 +127,71 @@ exports.getCustomBillById = async (req, res) => {
   }
 }
 
+// Update custom bill
+exports.updateCustomBill = async (req, res) => {
+  try {
+    const { customerName, billDate, items, totalAmount, notes } = req.body
+
+    // Validate required fields
+    if (!customerName || !items || items.length === 0 || !totalAmount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Customer name, items, and total amount are required'
+      })
+    }
+
+    // Find existing bill
+    const existingBill = await CustomBill.findById(req.params.id)
+
+    if (!existingBill) {
+      return res.status(404).json({
+        success: false,
+        message: 'Custom bill not found'
+      })
+    }
+
+    // Delete old PDF file if it exists
+    const path = require('path')
+    const fs = require('fs')
+
+    if (existingBill.billPdfPath) {
+      const oldPdfPath = path.join(__dirname, '..', existingBill.billPdfPath)
+
+      if (fs.existsSync(oldPdfPath)) {
+        fs.unlinkSync(oldPdfPath)
+        console.log('Old PDF deleted:', oldPdfPath)
+      }
+    }
+
+    // Update bill data
+    existingBill.customerName = customerName
+    existingBill.billDate = billDate
+    existingBill.items = items
+    existingBill.totalAmount = totalAmount
+    existingBill.notes = notes
+
+    // Regenerate PDF with updated data
+    const newPdfPath = await generateCustomBillPDF(existingBill)
+    existingBill.billPdfPath = newPdfPath
+
+    // Save updated bill
+    await existingBill.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Custom bill updated successfully',
+      data: existingBill
+    })
+  } catch (error) {
+    console.error('Error updating custom bill:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update custom bill',
+      error: error.message
+    })
+  }
+}
+
 // Delete custom bill
 exports.deleteCustomBill = async (req, res) => {
   try {

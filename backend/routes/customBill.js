@@ -14,6 +14,9 @@ router.get('/:id/download', customBillController.downloadCustomBillPDF)
 // GET /api/custom-bills/:id - Get custom bill by ID
 router.get('/:id', customBillController.getCustomBillById)
 
+// PUT /api/custom-bills/:id - Update custom bill
+router.put('/:id', customBillController.updateCustomBill)
+
 // DELETE /api/custom-bills/:id - Delete custom bill
 router.delete('/:id', customBillController.deleteCustomBill)
 

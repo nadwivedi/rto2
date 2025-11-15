@@ -1,13 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
-const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
-  const [billDate, setBillDate] = useState(new Date().toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  }))
+const EditDealerBillModal = ({ isOpen, onClose, onSuccess, billData }) => {
+  const [billDate, setBillDate] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [items, setItems] = useState([
     { description: '', quantity: '', rate: '', amount: '' },
@@ -16,6 +12,29 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
   ])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Populate form with bill data when modal opens
+  useEffect(() => {
+    if (billData && isOpen) {
+      setBillDate(billData.billDate || new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }))
+      setCustomerName(billData.customerName || '')
+
+      // Load items or use default empty rows
+      if (billData.items && billData.items.length > 0) {
+        const loadedItems = billData.items.map(item => ({
+          description: item.description || '',
+          quantity: item.quantity || '',
+          rate: item.rate || '',
+          amount: item.amount || ''
+        }))
+        setItems(loadedItems)
+      }
+    }
+  }, [billData, isOpen])
 
   // Quick add predefined items
   const quickAddItem = (description) => {
@@ -95,8 +114,8 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/custom-bills`, {
-        method: 'POST',
+      const response = await fetch(`${API_BASE_URL}/api/custom-bills/${billData._id}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -116,29 +135,16 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create dealer bill')
+        throw new Error(data.message || 'Failed to update dealer bill')
       }
 
-      alert('Dealer bill created successfully! Bill number: ' + data.data.billNumber)
-
-      // Reset form
-      setBillDate(new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }))
-      setCustomerName('')
-      setItems([
-        { description: '', quantity: '', rate: '', amount: '' },
-        { description: '', quantity: '', rate: '', amount: '' },
-        { description: '', quantity: '', rate: '', amount: '' }
-      ])
+      alert('Dealer bill updated successfully! Bill number: ' + data.data.billNumber)
 
       onSuccess && onSuccess(data.data)
       onClose()
     } catch (err) {
-      console.error('Error submitting dealer bill:', err)
-      setError(err.message || 'Failed to create dealer bill. Please try again.')
+      console.error('Error updating dealer bill:', err)
+      setError(err.message || 'Failed to update dealer bill. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -150,10 +156,11 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
     <div className='fixed inset-0 bg-black/60  flex items-center justify-center z-50 p-4 overflow-y-auto'>
       <div className='bg-white rounded-3xl shadow-2xl max-w-5xl w-full my-8'>
         {/* Header */}
-        <div className='bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-white flex-shrink-0 rounded-t-3xl'>
+        <div className='bg-gradient-to-r from-orange-600 to-red-600 px-6 py-3 text-white flex-shrink-0 rounded-t-3xl'>
           <div className='flex justify-between items-center gap-4'>
             <div>
-              <h2 className='text-lg font-bold'>Dealer Bill Generator</h2>
+              <h2 className='text-lg font-bold'>Edit Dealer Bill - {billData?.billNumber}</h2>
+              <p className='text-sm text-orange-100'>Update bill details and regenerate PDF</p>
             </div>
             {/* Quick Add Buttons */}
             <div className='flex gap-2 flex-1 justify-center'>
@@ -207,7 +214,7 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
             <div className='flex justify-between mb-4 text-sm'>
               <div>
                 <span className='font-bold'>No.</span>
-                <span className='ml-2 text-red-700 font-bold'>PENDING</span>
+                <span className='ml-2 text-red-700 font-bold text-lg'>{billData?.billNumber || 'N/A'}</span>
               </div>
               <div>
                 <span className='font-bold'>Date</span>
@@ -378,7 +385,7 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
             <button
               type='submit'
               disabled={loading || !customerName.trim()}
-              className='flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed'
+              className='flex-1 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed'
             >
               {loading ? (
                 <span className='flex items-center justify-center gap-2'>
@@ -386,10 +393,10 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
                     <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' fill='none'></circle>
                     <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
                   </svg>
-                  Creating...
+                  Updating...
                 </span>
               ) : (
-                'Generate Dealer Bill'
+                'Update Dealer Bill'
               )}
             </button>
           </div>
@@ -399,4 +406,4 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
   )
 }
 
-export default AddDealerBillModal
+export default EditDealerBillModal

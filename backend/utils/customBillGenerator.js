@@ -182,7 +182,7 @@ async function generateCustomBillPDF(customBill) {
 
       const customerNameX = leftMargin + 35
       doc.font('Helvetica')
-        .text(customBill.customerName || '', customerNameX, yPos)
+        .text((customBill.customerName || '').toUpperCase(), customerNameX, yPos)
 
       // Customer underline
       doc.moveTo(customerNameX, yPos + 13)
@@ -293,7 +293,7 @@ async function generateCustomBillPDF(customBill) {
             })
 
             // Description (handle multiline)
-            const description = item.description || ''
+            const description = (item.description || '').toUpperCase()
             doc.text(description, colX.description + 10, itemY, {
               width: 250,
               height: rowHeight - 10,
@@ -357,7 +357,7 @@ async function generateCustomBillPDF(customBill) {
         .fillColor('#000000')
         .text('Rs', leftMargin, yPos)
 
-      const amountInWords = numberToWords(customBill.totalAmount) + ' Rupees Only'
+      const amountInWords = (numberToWords(customBill.totalAmount) + ' Rupees Only').toUpperCase()
       const wordsX = leftMargin + 25
 
       // Draw underline first
