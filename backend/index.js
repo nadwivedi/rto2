@@ -10,8 +10,9 @@ const PORT = process.env.PORT
 
 // CORS configuration
 const allowedOrigins = [
-  'https://rtoapi.winners11.in',
-  'https://rto.winners11.in',
+  'https://adm.rtosarthi.com',
+  'https://rtosarthi.com',
+  'https://www.rtosarthi.com',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175'
