@@ -99,7 +99,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       setVehicleError('')
 
       try {
-        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
+        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`, {
+          credentials: 'include'
+        })
         const data = await response.json()
 
         if (response.ok && data.success) {

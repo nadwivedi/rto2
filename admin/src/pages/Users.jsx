@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
-import api from '../utils/api'
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
+console.log(BACKEND_URL);
+
 
 const Users = () => {
   const [users, setUsers] = useState([])
@@ -21,9 +24,15 @@ const Users = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      const response = await api.get('/api/admin/users')
-      if (response.data.success) {
-        setUsers(response.data.data)
+      const response = await fetch(`${BACKEND_URL}/api/admin/users`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const data = await response.json()
+      if (data.success) {
+        setUsers(data.data)
       }
     } catch (error) {
       console.error('Error fetching users:', error)
@@ -51,15 +60,24 @@ const Users = () => {
     }
 
     try {
-      const response = await api.post('/api/admin/users', formData)
-      if (response.data.success) {
+      const response = await fetch(`${BACKEND_URL}/api/admin/users`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      })
+      const data = await response.json()
+      if (data.success) {
         setSuccess('User created successfully!')
         setShowModal(false)
         setFormData({ name: '', mobile: '', email: '', password: '' })
         fetchUsers()
+      } else {
+        setError(data.message || 'Failed to create user')
       }
     } catch (error) {
-      setError(error.response?.data?.message || 'Failed to create user')
+      setError('Failed to create user')
     }
   }
 
@@ -67,9 +85,19 @@ const Users = () => {
     if (!confirm('Are you sure you want to delete this user?')) return
 
     try {
-      await api.delete(`/api/admin/users/${id}`)
-      setSuccess('User deleted successfully!')
-      fetchUsers()
+      const response = await fetch(`${BACKEND_URL}/api/admin/users/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const data = await response.json()
+      if (data.success || response.ok) {
+        setSuccess('User deleted successfully!')
+        fetchUsers()
+      } else {
+        setError('Failed to delete user')
+      }
     } catch (error) {
       setError('Failed to delete user')
     }
