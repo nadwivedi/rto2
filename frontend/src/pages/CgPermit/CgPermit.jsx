@@ -173,7 +173,7 @@ const CgPermit = () => {
   // Fetch CG permit statistics from API
   const fetchStatistics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/cg-permits/statistics`)
+      const response = await axios.get(`${API_URL}/api/cg-permits/statistics`, { withCredentials: true })
       if (response.data.success) {
         setStatistics({
           total: response.data.data.total,
@@ -227,7 +227,7 @@ const CgPermit = () => {
     }
 
     try {
-      const response = await axios.get(url, { params })
+      const response = await axios.get(url, { params, withCredentials: true })
 
       // Transform backend data to match frontend structure
       const transformedPermits = response.data.data.map(permit => ({
@@ -354,7 +354,7 @@ const CgPermit = () => {
       if (permit.bill?.billPdfPath) {
         pdfUrl = `${API_URL}${permit.bill.billPdfPath}`
       } else {
-        const response = await axios.post(`${API_URL}/api/cg-permits/${permit.id}/generate-bill-pdf`)
+        const response = await axios.post(`${API_URL}/api/cg-permits/${permit.id}/generate-bill-pdf`, {}, { withCredentials: true })
         if (!response.data.success) {
           throw new Error('Failed to generate bill PDF')
         }
@@ -414,7 +414,7 @@ Thank you!`
   const handleRenewSubmit = async (formData) => {
     try {
       // Make POST request to renew endpoint
-      const response = await axios.post(`${API_URL}/api/cg-permits/renew`, formData)
+      const response = await axios.post(`${API_URL}/api/cg-permits/renew`, formData, { withCredentials: true })
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to renew CG permit')
@@ -479,7 +479,7 @@ Thank you!`
 
     try {
       // Make DELETE request to backend
-      const response = await axios.delete(`${API_URL}/api/cg-permits/${permit.id}`)
+      const response = await axios.delete(`${API_URL}/api/cg-permits/${permit.id}`, { withCredentials: true })
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to delete CG permit')
@@ -547,7 +547,7 @@ Thank you!`
       }
 
       // Make POST request to backend
-      const response = await axios.post(`${API_URL}/api/cg-permits`, permitData)
+      const response = await axios.post(`${API_URL}/api/cg-permits`, permitData, { withCredentials: true })
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to create CG permit')
@@ -618,7 +618,7 @@ Thank you!`
       }
 
       // Make PUT request to backend
-      const response = await axios.put(`${API_URL}/api/cg-permits/${editingPermit.id}`, permitData)
+      const response = await axios.put(`${API_URL}/api/cg-permits/${editingPermit.id}`, permitData, { withCredentials: true })
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to update CG permit')

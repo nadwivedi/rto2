@@ -46,7 +46,7 @@ const TemporaryPermitOtherState = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/temporary-permits-other-state/statistics`);
+      const response = await axios.get(`${API_URL}/api/temporary-permits-other-state/statistics`, { withCredentials: true });
       if (response.data.success) {
         setStatistics(response.data.data);
       }
@@ -87,7 +87,7 @@ const TemporaryPermitOtherState = () => {
         url = `${API_URL}/api/temporary-permits-other-state/${filterPath}`
       }
 
-      const response = await axios.get(url, { params })
+      const response = await axios.get(url, { params, withCredentials: true })
 
       if (response.data.success) {
         setPermits(response.data.data || [])
@@ -136,7 +136,7 @@ const TemporaryPermitOtherState = () => {
   const handleDeletePermit = async (id) => {
     if (window.confirm('Are you sure you want to delete this permit?')) {
       try {
-        await axios.delete(`${API_URL}/api/temporary-permits-other-state/${id}`)
+        await axios.delete(`${API_URL}/api/temporary-permits-other-state/${id}`, { withCredentials: true })
         toast.success('Permit deleted successfully')
         fetchPermits(pagination.currentPage)
         fetchStatistics()
@@ -167,7 +167,7 @@ const TemporaryPermitOtherState = () => {
         paid: parseFloat(formData.paid),
         balance: parseFloat(formData.balance),
         notes: formData.notes
-      })
+      }, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('Temporary permit (other state) renewed successfully!', {

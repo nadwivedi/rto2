@@ -36,7 +36,7 @@ const NationalPermitDetailsModal = ({ isOpen, onClose, permit, onViewBill }) => 
 
     setLoadingPartAHistory(true)
     try {
-      const response = await axios.get(`${API_URL}/api/national-permits/${permit.id}/part-a-history`)
+      const response = await axios.get(`${API_URL}/api/national-permits/${permit.id}/part-a-history`, { withCredentials: true })
       if (response.data.success) {
         setPartAHistory(response.data.data)
         setPartAHistoryLoaded(true)
@@ -58,7 +58,7 @@ const NationalPermitDetailsModal = ({ isOpen, onClose, permit, onViewBill }) => 
 
     setLoadingPartBHistory(true)
     try {
-      const response = await axios.get(`${API_URL}/api/national-permits/${permit.id}/part-b-history`)
+      const response = await axios.get(`${API_URL}/api/national-permits/${permit.id}/part-b-history`, { withCredentials: true })
       if (response.data.success) {
         setPartBHistory(response.data.data)
         setPartBHistoryLoaded(true)

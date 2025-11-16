@@ -1,11 +1,16 @@
 const mongoose = require('mongoose')
 
 const InsuranceSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   // Policy Information
   policyNumber: {
     type: String,
     required: true,
-    unique: true,
     trim: true,
     uppercase: true
   },
@@ -17,7 +22,6 @@ const InsuranceSchema = new mongoose.Schema({
     required: true,
     trim: true,
     uppercase: true,
-    index: true
   },
 
   mobileNumber: {

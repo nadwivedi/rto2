@@ -51,7 +51,8 @@ const DrivingLicence = () => {
 
       // Fetch LL expiring count
       const llResponse = await axios.get(`${API_URL}/api/driving-licenses/ll-expiring-soon`, {
-        params: { page: 1, limit: 1 }
+        params: { page: 1, limit: 1 },
+        withCredentials: true
       })
       console.log('LL Response:', llResponse.data)
       const llCount = llResponse.data.pagination?.totalItems || 0
@@ -60,7 +61,8 @@ const DrivingLicence = () => {
 
       // Fetch DL expiring count
       const dlResponse = await axios.get(`${API_URL}/api/driving-licenses/dl-expiring-soon`, {
-        params: { page: 1, limit: 1 }
+        params: { page: 1, limit: 1 },
+        withCredentials: true
       })
       console.log('DL Response:', dlResponse.data)
       const dlCount = dlResponse.data.pagination?.totalItems || 0
@@ -87,7 +89,7 @@ const DrivingLicence = () => {
       if (typeFilter !== 'All') params.licenseClass = typeFilter
       if (paymentStatusFilter !== 'All') params.paymentStatus = paymentStatusFilter
 
-      const response = await axios.get(`${API_URL}/api/driving-licenses`, { params })
+      const response = await axios.get(`${API_URL}/api/driving-licenses`, { params, withCredentials: true })
 
       console.log('API Response:', response.data) // Debug log
 
@@ -293,7 +295,7 @@ const DrivingLicence = () => {
     }
 
     try {
-      const response = await axios.delete(`${API_URL}/api/driving-licenses/${app.id}`)
+      const response = await axios.delete(`${API_URL}/api/driving-licenses/${app.id}`, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('Application deleted successfully!', { autoClose: 700 })
@@ -347,7 +349,7 @@ const DrivingLicence = () => {
         applicationStatus: 'pending'
       }
 
-      const response = await axios.post(`${API_URL}/api/driving-licenses`, applicationData)
+      const response = await axios.post(`${API_URL}/api/driving-licenses`, applicationData, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('Application submitted successfully!', { autoClose: 700 })
@@ -405,7 +407,7 @@ const DrivingLicence = () => {
         notes: formData.notes
       }
 
-      const response = await axios.put(`${API_URL}/api/driving-licenses/${selectedApplication.id}`, applicationData)
+      const response = await axios.put(`${API_URL}/api/driving-licenses/${selectedApplication.id}`, applicationData, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('Application updated successfully!', { autoClose: 700 })

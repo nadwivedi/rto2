@@ -2,9 +2,14 @@ const mongoose = require('mongoose')
 
 const customBillSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
+    },
     billNumber: {
       type: String,
-      unique: true,
       sparse: true
     },
     billPdfPath: {

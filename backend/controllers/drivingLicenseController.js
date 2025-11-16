@@ -153,7 +153,10 @@ exports.createApplication = async (req, res) => {
     }
 
     // Create new driving license application
-    const newApplication = new Driving(applicationData)
+    const newApplication = new Driving({
+      ...applicationData,
+      userId: req.user.id
+    })
     await newApplication.save()
 
     res.status(201).json({
@@ -182,8 +185,8 @@ exports.getAllApplications = async (req, res) => {
       paymentStatus
     } = req.query
 
-    // Build query
-    const query = {}
+    // Build query - filter by logged-in user
+    const query = { userId: req.user.id }
 
     // Search by name, license number, mobile, or email
     if (search) {
@@ -248,7 +251,7 @@ exports.getAllApplications = async (req, res) => {
 // Export all driving license applications without pagination
 exports.exportAllApplications = async (req, res) => {
   try {
-    const applications = await Driving.find({})
+    const applications = await Driving.find({ userId: req.user.id })
       .sort({ createdAt: -1 })
 
     res.status(200).json({
@@ -271,7 +274,7 @@ exports.getApplicationById = async (req, res) => {
   try {
     const { id } = req.params
 
-    const application = await Driving.findById(id)
+    const application = await Driving.findOne({ _id: id, userId: req.user.id })
 
     if (!application) {
       return res.status(404).json({
@@ -307,7 +310,7 @@ exports.updateApplication = async (req, res) => {
       qualification, aadharNumber, documents
     } = req.body
 
-    const application = await Driving.findById(id)
+    const application = await Driving.findOne({ _id: id, userId: req.user.id })
 
     if (!application) {
       return res.status(404).json({
@@ -405,7 +408,7 @@ exports.deleteApplication = async (req, res) => {
   try {
     const { id } = req.params
 
-    const deletedApplication = await Driving.findByIdAndDelete(id)
+    const deletedApplication = await Driving.findOneAndDelete({ _id: id, userId: req.user.id })
 
     if (!deletedApplication) {
       return res.status(404).json({
@@ -435,7 +438,7 @@ exports.addPayment = async (req, res) => {
     const { id } = req.params
     const { amount, paymentMethod, description, receiptNumber } = req.body
 
-    const application = await Driving.findById(id)
+    const application = await Driving.findOne({ _id: id, userId: req.user.id })
 
     if (!application) {
       return res.status(404).json({
@@ -468,7 +471,7 @@ exports.updateApplicationStatus = async (req, res) => {
     const { id } = req.params
     const { applicationStatus, notes } = req.body
 
-    const application = await Driving.findById(id)
+    const application = await Driving.findOne({ _id: id, userId: req.user.id })
 
     if (!application) {
       return res.status(404).json({
@@ -505,7 +508,7 @@ exports.updateLicenseStatus = async (req, res) => {
     const { id } = req.params
     const { licenseStatus, drivingLicenseNumber, drivingLicenseIssueDate, drivingLicenseExpiryDate } = req.body
 
-    const application = await Driving.findById(id)
+    const application = await Driving.findOne({ _id: id, userId: req.user.id })
 
     if (!application) {
       return res.status(404).json({
@@ -543,21 +546,24 @@ exports.updateLicenseStatus = async (req, res) => {
 // Get statistics
 exports.getStatistics = async (req, res) => {
   try {
-    const totalApplications = await Driving.countDocuments()
-    const pendingApplications = await Driving.countDocuments({ applicationStatus: 'pending' })
-    const approvedApplications = await Driving.countDocuments({ applicationStatus: 'approved' })
-    const rejectedApplications = await Driving.countDocuments({ applicationStatus: 'rejected' })
-    const underReviewApplications = await Driving.countDocuments({ applicationStatus: 'under_review' })
+    const userFilter = { userId: req.user.id }
+    const totalApplications = await Driving.countDocuments(userFilter)
+    const pendingApplications = await Driving.countDocuments({ ...userFilter, applicationStatus: 'pending' })
+    const approvedApplications = await Driving.countDocuments({ ...userFilter, applicationStatus: 'approved' })
+    const rejectedApplications = await Driving.countDocuments({ ...userFilter, applicationStatus: 'rejected' })
+    const underReviewApplications = await Driving.countDocuments({ ...userFilter, applicationStatus: 'under_review' })
 
-    const mcwgLicenses = await Driving.countDocuments({ licenseClass: 'MCWG' })
-    const lmvLicenses = await Driving.countDocuments({ licenseClass: 'LMV' })
-    const bothLicenses = await Driving.countDocuments({ licenseClass: 'MCWG+LMV' })
+    const mcwgLicenses = await Driving.countDocuments({ ...userFilter, licenseClass: 'MCWG' })
+    const lmvLicenses = await Driving.countDocuments({ ...userFilter, licenseClass: 'LMV' })
+    const bothLicenses = await Driving.countDocuments({ ...userFilter, licenseClass: 'MCWG+LMV' })
 
     const totalRevenue = await Driving.aggregate([
+      { $match: userFilter },
       { $group: { _id: null, total: { $sum: '$paidAmount' } } }
     ])
 
     const pendingPayments = await Driving.aggregate([
+      { $match: userFilter },
       { $group: { _id: null, total: { $sum: '$balanceAmount' } } }
     ])
 
@@ -602,6 +608,7 @@ exports.getLicenseExpiryReport = async (req, res) => {
 
     // Get all licenses with expiry dates
     const allLicenses = await Driving.find({
+      userId: req.user.id,
       LicenseExpiryDate: { $exists: true, $ne: null }
     }).sort({ LicenseExpiryDate: 1 })
 
@@ -671,6 +678,7 @@ exports.getLearningLicensesExpiringSoon = async (req, res) => {
 
     // Find all applications with learning license expiry dates within next 30 days
     const query = {
+      userId: req.user.id,
       learningLicenseExpiryDate: {
         $exists: true,
         $ne: null,
@@ -723,6 +731,7 @@ exports.getDrivingLicensesExpiringSoon = async (req, res) => {
 
     // Find all applications with driving license expiry dates within next 30 days
     const query = {
+      userId: req.user.id,
       LicenseExpiryDate: {
         $exists: true,
         $ne: null,

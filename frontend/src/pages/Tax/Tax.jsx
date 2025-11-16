@@ -46,7 +46,7 @@ const Tax = () => {
   // Fetch tax statistics from API
   const fetchStatistics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/tax/statistics`);
+      const response = await axios.get(`${API_URL}/api/tax/statistics`, { withCredentials: true });
       console.log(response);
 
       if (response.data.success) {
@@ -85,7 +85,7 @@ const Tax = () => {
     }
 
     try {
-      const response = await axios.get(url, { params });
+      const response = await axios.get(url, { params, withCredentials: true });
 
       if (response.data.success) {
         const transformedRecords = response.data.data.map((record) => ({
@@ -164,7 +164,7 @@ const Tax = () => {
         balanceAmount: parseFloat(formData.balance),
         taxFrom: formData.taxFrom,
         taxTo: formData.taxTo,
-      });
+      }, { withCredentials: true });
 
       if (response.data.success) {
         toast.success("Tax record added successfully!", {
@@ -206,7 +206,7 @@ const Tax = () => {
         balanceAmount: parseFloat(formData.balance),
         taxFrom: formData.taxFrom,
         taxTo: formData.taxTo,
-      });
+      }, { withCredentials: true });
 
       if (response.data.success) {
         toast.success("Tax record updated successfully!", {
@@ -256,7 +256,7 @@ const Tax = () => {
         balanceAmount: parseFloat(formData.balance),
         taxFrom: formData.taxFrom,
         taxTo: formData.taxTo,
-      });
+      }, { withCredentials: true });
 
       if (response.data.success) {
         toast.success("Tax renewed successfully!", {
@@ -300,7 +300,7 @@ const Tax = () => {
     }
 
     try {
-      const response = await axios.delete(`${API_URL}/api/tax/${id}`);
+      const response = await axios.delete(`${API_URL}/api/tax/${id}`, { withCredentials: true });
 
       if (response.data.success) {
         toast.success("Tax record deleted successfully!", {

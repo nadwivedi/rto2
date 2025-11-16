@@ -2,6 +2,7 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const path = require('path')
+const cookieParser = require('cookie-parser')
 const connectDB = require('./utils/mongodb')
 
 const app = express()
@@ -35,6 +36,7 @@ app.use(cors({
 // Middleware
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
 
 // Serve static files (PDFs) from uploads folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
@@ -64,8 +66,13 @@ initTaxStatusCron()
 initInsuranceStatusCron()
 initTemporaryPermitOtherStateStatusCron()
 
+// Import Middleware
+const userAuth = require('./middleware/userAuth')
+
 // Import Routes
 const authRoutes = require('./routes/auth')
+const adminAuthRoutes = require('./routes/adminAuth')
+const adminUsersRoutes = require('./routes/adminUsers')
 const drivingLicenseRoutes = require('./routes/drivingLicense')
 const nationalPermitRoutes = require('./routes/nationalPermit')
 const cgPermitRoutes = require('./routes/cgPermit')
@@ -81,19 +88,25 @@ const vehicleTransferRoutes = require('./routes/vehicleTransfer')
 
 // Use Routes
 
+// Admin routes
+app.use('/api/admin/auth', adminAuthRoutes)
+app.use('/api/admin/users', adminUsersRoutes)
+
+// User routes
 app.use('/api/auth', authRoutes)
-app.use('/api/driving-licenses', drivingLicenseRoutes)
-app.use('/api/national-permits', nationalPermitRoutes)
-app.use('/api/cg-permits', cgPermitRoutes)
-app.use('/api/temporary-permits', temporaryPermitRoutes)
-app.use('/api/temporary-permits-other-state', temporaryPermitOtherStateRoutes)
-app.use('/api/vehicle-registrations', vehicleRegistrationRoutes)
-app.use('/api/fitness', fitnessRoutes)
-app.use('/api/custom-bills', customBillRoutes)
-app.use('/api/tax', taxRoutes)
-app.use('/api/insurance', insuranceRoutes)
-app.use('/api/import', importRoutes)
-app.use('/api/vehicle-transfers', vehicleTransferRoutes)
+// Protect all routes below with userAuth middleware
+app.use('/api/driving-licenses', userAuth, drivingLicenseRoutes)
+app.use('/api/national-permits', userAuth, nationalPermitRoutes)
+app.use('/api/cg-permits', userAuth, cgPermitRoutes)
+app.use('/api/temporary-permits', userAuth, temporaryPermitRoutes)
+app.use('/api/temporary-permits-other-state', userAuth, temporaryPermitOtherStateRoutes)
+app.use('/api/vehicle-registrations', userAuth, vehicleRegistrationRoutes)
+app.use('/api/fitness', userAuth, fitnessRoutes)
+app.use('/api/custom-bills', userAuth, customBillRoutes)
+app.use('/api/tax', userAuth, taxRoutes)
+app.use('/api/insurance', userAuth, insuranceRoutes)
+app.use('/api/import', userAuth, importRoutes)
+app.use('/api/vehicle-transfers', userAuth, vehicleTransferRoutes)
 
 // Root route
 app.get('/', (req, res) => {

@@ -1,6 +1,12 @@
 const mongoose = require('mongoose')
 
 const NationalPermitPartASchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   // Essential Information
   permitNumber: {
     type: String,

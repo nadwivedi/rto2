@@ -131,7 +131,8 @@ exports.createPermit = async (req, res) => {
           amount: totalFee
         }
       ],
-      totalAmount: totalFee
+      totalAmount: totalFee,
+      userId: req.user.id
     })
     await customBill.save()
 
@@ -153,7 +154,8 @@ exports.createPermit = async (req, res) => {
       documents: {
         partAImage: partAImage || ''
       },
-      notes: notes || ''
+      notes: notes || '',
+      userId: req.user.id
     })
     await newPartA.save()
 
@@ -167,7 +169,8 @@ exports.createPermit = async (req, res) => {
       validTo: partBValidTo,
       documents: {
         partBImage: partBImage || ''
-      }
+      },
+      userId: req.user.id
       // No totalFee, paid, balance, bill - created with Part A
     })
     await newPartB.save()
@@ -219,7 +222,7 @@ exports.getAllPermits = async (req, res) => {
     } = req.query
 
     // Build query
-    const query = {}
+    const query = { userId: req.user.id }
 
     // Search by permit number, permit holder, vehicle number
     if (search) {
@@ -279,6 +282,7 @@ exports.getAllPermits = async (req, res) => {
     const permits = await Promise.all(
       partARecords.map(async (partA) => {
         const activePartB = await NationalPermitPartB.findOne({
+          userId: req.user.id,
           vehicleNumber: partA.vehicleNumber,
           permitNumber: partA.permitNumber,
           status: 'active'
@@ -326,7 +330,7 @@ exports.getAllPermits = async (req, res) => {
 exports.exportAllPermits = async (req, res) => {
   try {
     // Execute query to get all Part A records without pagination
-    const partARecords = await NationalPermitPartA.find({})
+    const partARecords = await NationalPermitPartA.find({ userId: req.user.id })
       .populate('bill')
       .sort({ createdAt: -1 })
 
@@ -334,6 +338,7 @@ exports.exportAllPermits = async (req, res) => {
     const permits = await Promise.all(
       partARecords.map(async (partA) => {
         const activePartB = await NationalPermitPartB.findOne({
+          userId: req.user.id,
           vehicleNumber: partA.vehicleNumber,
           permitNumber: partA.permitNumber,
           status: 'active'
@@ -396,7 +401,7 @@ exports.deletePermit = async (req, res) => {
     }
 
     // Find the Part A record to get vehicle number and permit number
-    const partA = await NationalPermitPartA.findById(id)
+    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
 
     if (!partA) {
       return res.status(404).json({
@@ -408,10 +413,10 @@ exports.deletePermit = async (req, res) => {
     const { vehicleNumber, permitNumber } = partA
 
     // Find all Part A records
-    const partARecords = await NationalPermitPartA.find({ vehicleNumber, permitNumber }).populate('bill')
+    const partARecords = await NationalPermitPartA.find({ vehicleNumber, permitNumber, userId: req.user.id }).populate('bill')
 
     // Find all Part B records
-    const partBRecords = await NationalPermitPartB.find({ vehicleNumber, permitNumber }).populate('bill')
+    const partBRecords = await NationalPermitPartB.find({ vehicleNumber, permitNumber, userId: req.user.id }).populate('bill')
 
     // Collect all bill IDs to delete
     const billIdsToDelete = []
@@ -463,10 +468,10 @@ exports.deletePermit = async (req, res) => {
     }
 
     // Delete all Part A records
-    await NationalPermitPartA.deleteMany({ vehicleNumber, permitNumber })
+    await NationalPermitPartA.deleteMany({ vehicleNumber, permitNumber, userId: req.user.id })
 
     // Delete all Part B records
-    await NationalPermitPartB.deleteMany({ vehicleNumber, permitNumber })
+    await NationalPermitPartB.deleteMany({ vehicleNumber, permitNumber, userId: req.user.id })
 
     res.status(200).json({
       success: true,
@@ -521,7 +526,7 @@ exports.renewPartA = async (req, res) => {
     }
 
     // Get the original Part A for reference
-    const originalPartA = await NationalPermitPartA.findById(id)
+    const originalPartA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
 
     if (!originalPartA) {
       return res.status(404).json({
@@ -703,7 +708,7 @@ exports.renewPartB = async (req, res) => {
     }
 
     // Get the original Part A for reference
-    const originalPartA = await NationalPermitPartA.findById(id)
+    const originalPartA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
 
     if (!originalPartA) {
       return res.status(404).json({
@@ -904,7 +909,7 @@ exports.getPartARenewalHistory = async (req, res) => {
     const { id } = req.params
 
     // Get the Part A record to find vehicle number and permit number
-    const partA = await NationalPermitPartA.findById(id)
+    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
 
     if (!partA) {
       return res.status(404).json({
@@ -917,7 +922,8 @@ exports.getPartARenewalHistory = async (req, res) => {
 
     const partAHistory = await NationalPermitPartA.find({
       vehicleNumber,
-      permitNumber
+      permitNumber,
+      userId: req.user.id
     })
     .sort({ createdAt: -1 })
     .populate('bill')
@@ -943,7 +949,7 @@ exports.getPartBRenewalHistory = async (req, res) => {
     const { id } = req.params
 
     // Get the Part A record to find vehicle number and permit number
-    const partA = await NationalPermitPartA.findById(id)
+    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
 
     if (!partA) {
       return res.status(404).json({
@@ -956,7 +962,8 @@ exports.getPartBRenewalHistory = async (req, res) => {
 
     const partBHistory = await NationalPermitPartB.find({
       vehicleNumber,
-      permitNumber
+      permitNumber,
+      userId: req.user.id
     })
     .sort({ createdAt: -1 })
     .populate('bill')
@@ -982,7 +989,7 @@ exports.updatePermit = async (req, res) => {
     const { id } = req.params
     const updateData = req.body
 
-    const partA = await NationalPermitPartA.findById(id)
+    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
     if (!partA) {
       return res.status(404).json({
         success: false,
@@ -1038,7 +1045,7 @@ exports.generateBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const partA = await NationalPermitPartA.findById(id).populate('bill')
+    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id }).populate('bill')
 
     if (!partA) {
       return res.status(404).json({
@@ -1081,7 +1088,7 @@ exports.downloadBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const partA = await NationalPermitPartA.findById(id).populate('bill')
+    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id }).populate('bill')
 
     if (!partA) {
       return res.status(404).json({
@@ -1135,7 +1142,7 @@ exports.downloadPartARenewalPDF = async (req, res) => {
   try {
     const { id, renewalId } = req.params
 
-    const partA = await NationalPermitPartA.findById(renewalId).populate('bill')
+    const partA = await NationalPermitPartA.findOne({ _id: renewalId, userId: req.user.id }).populate('bill')
 
     if (!partA) {
       return res.status(404).json({
@@ -1189,7 +1196,7 @@ exports.downloadPartBRenewalPDF = async (req, res) => {
   try {
     const { id, renewalId } = req.params
 
-    const partB = await NationalPermitPartB.findById(renewalId).populate('bill')
+    const partB = await NationalPermitPartB.findOne({ _id: renewalId, userId: req.user.id }).populate('bill')
 
     if (!partB) {
       return res.status(404).json({

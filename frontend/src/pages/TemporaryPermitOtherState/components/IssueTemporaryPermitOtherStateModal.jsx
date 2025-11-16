@@ -140,7 +140,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
 
     try {
       setLoading(true)
-      const response = await axios.post(`${API_URL}/api/temporary-permits-other-state`, formData)
+      const response = await axios.post(`${API_URL}/api/temporary-permits-other-state`, formData, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('Temporary permit (other state) issued successfully!')

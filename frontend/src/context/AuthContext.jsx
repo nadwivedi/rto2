@@ -1,12 +1,10 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../utils/api'
 
 const AuthContext = createContext(null)
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
-
 export const AuthProvider = ({ children }) => {
-  const [admin, setAdmin] = useState(null)
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
@@ -17,52 +15,61 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('token')
-      const storedAdmin = localStorage.getItem('admin')
-
-      if (!token) {
+      // Skip auth check if on login page
+      if (window.location.pathname === '/login') {
         setLoading(false)
         return
       }
 
-      // Verify token with backend
-      const response = await axios.get(`${API_URL}/api/auth/verify`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+      // Verify cookie by fetching user profile
+      // Cookie with JWT token is automatically sent by browser
+      const response = await api.get('/api/auth/profile')
 
       if (response.data.success) {
-        setAdmin(response.data.data.admin)
+        // Store user data in state only (not localStorage)
+        setUser(response.data.data.user)
         setIsAuthenticated(true)
       } else {
-        // Token is invalid
-        logout()
+        // Clear state if verification fails
+        clearAuthState()
       }
     } catch (error) {
       console.error('Auth check error:', error)
-      logout()
+      // Don't clear state if we're on login page
+      if (window.location.pathname !== '/login') {
+        clearAuthState()
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const login = (token, adminData) => {
-    localStorage.setItem('token', token)
-    localStorage.setItem('admin', JSON.stringify(adminData))
-    setAdmin(adminData)
+  const login = (userData) => {
+    setUser(userData)
     setIsAuthenticated(true)
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('admin')
-    setAdmin(null)
+  const logout = async () => {
+    try {
+      // Call logout endpoint to clear HTTP-only cookie
+      if (isAuthenticated) {
+        await api.post('/api/auth/logout')
+      }
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      // Clear state (cookie is cleared by backend)
+      clearAuthState()
+    }
+  }
+
+  const clearAuthState = () => {
+    setUser(null)
     setIsAuthenticated(false)
   }
 
   const value = {
-    admin,
+    user,
     isAuthenticated,
     loading,
     login,

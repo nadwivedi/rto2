@@ -55,7 +55,8 @@ const TemporaryPermit = () => {
   const fetchStatistics = async () => {
     try {
       const response = await axios.get(
-        `${API_URL}/api/temporary-permits/statistics`
+        `${API_URL}/api/temporary-permits/statistics`,
+        { withCredentials: true }
       );
       if (response.data.success) {
         setStatistics({
@@ -110,7 +111,7 @@ const TemporaryPermit = () => {
     }
 
     try {
-      const response = await axios.get(url, { params });
+      const response = await axios.get(url, { params, withCredentials: true });
 
       // Transform backend data to match frontend structure
       const transformedPermits = response.data.data.map((permit) => ({
@@ -227,7 +228,9 @@ const TemporaryPermit = () => {
         pdfUrl = `${API_URL}${permit.bill.billPdfPath}`;
       } else {
         const response = await axios.post(
-          `${API_URL}/api/temporary-permits/${permit.id}/generate-bill-pdf`
+          `${API_URL}/api/temporary-permits/${permit.id}/generate-bill-pdf`,
+          {},
+          { withCredentials: true }
         );
         if (!response.data.success) {
           throw new Error("Failed to generate bill PDF");
@@ -319,7 +322,8 @@ Thank you!`;
       // Make PUT request to backend to update the permit
       const response = await axios.put(
         `${API_URL}/api/temporary-permits/${editingPermit.id}`,
-        permitData
+        permitData,
+        { withCredentials: true }
       );
       // Show success message
       toast.success("Temporary Permit updated successfully!", {
@@ -381,7 +385,7 @@ Thank you!`;
         ladenWeight: formData.ladenWeight ? Number(formData.ladenWeight) : undefined,
         unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : undefined,
         notes: formData.notes
-      });
+      }, { withCredentials: true });
 
       if (response.data.success) {
         toast.success("Temporary permit renewed successfully!", {
@@ -430,7 +434,8 @@ Thank you!`;
     try {
       // Make DELETE request to backend
       const response = await axios.delete(
-        `${API_URL}/api/temporary-permits/${permit.id}`
+        `${API_URL}/api/temporary-permits/${permit.id}`,
+        { withCredentials: true }
       );
 
       if (!response.data.success) {
@@ -494,7 +499,8 @@ Thank you!`;
       // Make POST request to backend
       const response = await axios.post(
         `${API_URL}/api/temporary-permits`,
-        permitData
+        permitData,
+        { withCredentials: true }
       );
 
       // Show success message

@@ -45,7 +45,8 @@ const VehicleRegistration = () => {
           page,
           limit: pagination.limit,
           search: searchTerm
-        }
+        },
+        withCredentials: true
       })
 
       if (response.data.success) {
@@ -70,7 +71,7 @@ const VehicleRegistration = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/vehicle-registrations/statistics`)
+      const response = await axios.get(`${API_URL}/api/vehicle-registrations/statistics`, { withCredentials: true })
 
       if (response.data.success) {
         setStatistics(response.data.data)
@@ -86,7 +87,7 @@ const VehicleRegistration = () => {
     }
 
     try {
-      const response = await axios.delete(`${API_URL}/api/vehicle-registrations/${id}`)
+      const response = await axios.delete(`${API_URL}/api/vehicle-registrations/${id}`, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('Vehicle registration deleted successfully!', { position: 'top-right', autoClose: 3000 })

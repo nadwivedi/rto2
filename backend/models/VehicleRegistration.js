@@ -1,10 +1,15 @@
 const mongoose = require('mongoose')
 
 const vehicleRegistrationSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   registrationNumber: {
     type: String,
     required: true,
-    unique: true,
     uppercase: true,
     trim: true
   },
@@ -89,6 +94,7 @@ const vehicleRegistrationSchema = new mongoose.Schema({
   timestamps: true
 })
 
-
+// Compound index: Each user can have unique registration numbers
+vehicleRegistrationSchema.index({ userId: 1, registrationNumber: 1 }, { unique: true })
 
 module.exports = mongoose.model('VehicleRegistration', vehicleRegistrationSchema)

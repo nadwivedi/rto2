@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-
-const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+import { useAuth } from '../context/AuthContext'
+import api from '../utils/api'
 
 const Login = () => {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [formData, setFormData] = useState({
-    username: '',
+    identifier: '',
     password: ''
   })
   const [loading, setLoading] = useState(false)
@@ -25,27 +25,25 @@ const Login = () => {
     e.preventDefault()
     setError('')
 
-    if (!formData.username || !formData.password) {
-      setError('Please enter both username and password')
+    if (!formData.identifier || !formData.password) {
+      setError('Please enter email/mobile and password')
       return
     }
 
     setLoading(true)
 
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, {
-        username: formData.username,
+      const response = await api.post('/api/auth/login', {
+        identifier: formData.identifier,
         password: formData.password
       })
 
       if (response.data.success) {
-        // Store token and user data in localStorage
-        localStorage.setItem('token', response.data.data.token)
-        localStorage.setItem('admin', JSON.stringify(response.data.data.admin))
+        // Update auth context
+        login(response.data.data.user)
 
-        // Redirect to dashboard
-        navigate('/dashboard')
-        window.location.reload() // Reload to update auth state
+        // Redirect to home/dashboard
+        navigate('/')
       } else {
         setError(response.data.message || 'Login failed')
       }
@@ -58,19 +56,19 @@ const Login = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4'>
+    <div className='min-h-screen bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500 flex items-center justify-center p-4'>
       <div className='w-full max-w-md'>
         {/* Login Card */}
         <div className='bg-white rounded-2xl shadow-2xl p-8'>
           {/* Logo/Header */}
           <div className='text-center mb-8'>
-            <div className='w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg'>
+            <div className='w-20 h-20 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg'>
               <svg className='w-10 h-10 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' />
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
               </svg>
             </div>
-            <h1 className='text-3xl font-black text-gray-800 mb-2'>RTO Admin</h1>
-            <p className='text-gray-500 text-sm'>Sign in to access your dashboard</p>
+            <h1 className='text-3xl font-black text-gray-800 mb-2'>RTO Login</h1>
+            <p className='text-gray-500 text-sm'>Sign in to access your account</p>
           </div>
 
           {/* Error Message */}
@@ -89,24 +87,25 @@ const Login = () => {
           <form onSubmit={handleSubmit} className='space-y-6'>
             <div>
               <label className='block text-sm font-bold text-gray-700 mb-2'>
-                Username
+                Email or Mobile Number
               </label>
               <div className='relative'>
                 <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                   <svg className='w-5 h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' />
                   </svg>
                 </div>
                 <input
                   type='text'
-                  name='username'
-                  value={formData.username}
+                  name='identifier'
+                  value={formData.identifier}
                   onChange={handleChange}
-                  placeholder='Enter your username'
-                  className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
+                  placeholder='Enter email or mobile number'
+                  className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
                   disabled={loading}
                 />
               </div>
+              <p className='mt-1 text-xs text-gray-500'>Use your registered email or 10-digit mobile number</p>
             </div>
 
             <div>
@@ -125,7 +124,7 @@ const Login = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder='Enter your password'
-                  className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
+                  className='w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm'
                   disabled={loading}
                 />
               </div>
@@ -134,7 +133,7 @@ const Login = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
+              className='w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-bold hover:from-blue-700 hover:to-cyan-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
             >
               {loading ? (
                 <div className='flex items-center justify-center gap-2'>
@@ -153,7 +152,7 @@ const Login = () => {
           {/* Footer */}
           <div className='mt-8 text-center'>
             <p className='text-xs text-gray-400'>
-              RTO Management System v1.0
+              RTO Management System
             </p>
           </div>
         </div>

@@ -36,7 +36,7 @@ exports.getAllTax = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const query = {}
+    const query = { userId: req.user.id }
 
     // Search by vehicle number
     if (search) {
@@ -81,7 +81,7 @@ exports.getAllTax = async (req, res) => {
 // Export all tax records without pagination
 exports.exportAllTax = async (req, res) => {
   try {
-    const taxRecords = await Tax.find({})
+    const taxRecords = await Tax.find({ userId: req.user.id })
       .sort({ createdAt: -1 })
 
     res.json({
@@ -102,7 +102,7 @@ exports.exportAllTax = async (req, res) => {
 // Get single tax record by ID
 exports.getTaxById = async (req, res) => {
   try {
-    const tax = await Tax.findById(req.params.id)
+    const tax = await Tax.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!tax) {
       return res.status(404).json({
@@ -165,7 +165,8 @@ exports.createTax = async (req, res) => {
       balanceAmount,
       taxFrom,
       taxTo,
-      status
+      status,
+      userId: req.user.id
     })
 
     await tax.save()
@@ -188,7 +189,8 @@ exports.createTax = async (req, res) => {
           amount: tax.totalAmount
         }
       ],
-      totalAmount: tax.totalAmount
+      totalAmount: tax.totalAmount,
+      userId: req.user.id
     })
     await customBill.save()
 
@@ -231,7 +233,7 @@ exports.updateTax = async (req, res) => {
   try {
     const { receiptNo, vehicleNumber, ownerName, totalAmount, paidAmount, balanceAmount, taxFrom, taxTo } = req.body
 
-    const tax = await Tax.findById(req.params.id)
+    const tax = await Tax.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!tax) {
       return res.status(404).json({
@@ -295,7 +297,7 @@ exports.updateTax = async (req, res) => {
 // Delete tax record
 exports.deleteTax = async (req, res) => {
   try {
-    const tax = await Tax.findById(req.params.id)
+    const tax = await Tax.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!tax) {
       return res.status(404).json({
@@ -324,27 +326,29 @@ exports.deleteTax = async (req, res) => {
 exports.getTaxStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
-    const activeTax = await Tax.countDocuments({ status: 'active' })
+    const activeTax = await Tax.countDocuments({ status: 'active', userId: req.user.id })
 
     // For expiring soon and expired, exclude vehicles that also have active tax (renewed vehicles)
-    const vehiclesWithActiveTax = await Tax.find({ status: 'active' })
+    const vehiclesWithActiveTax = await Tax.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const expiringSoonTax = await Tax.countDocuments({
       status: 'expiring_soon',
-      vehicleNumber: { $nin: vehiclesWithActiveTax }
+      vehicleNumber: { $nin: vehiclesWithActiveTax },
+      userId: req.user.id
     })
 
     const expiredTax = await Tax.countDocuments({
       status: 'expired',
-      vehicleNumber: { $nin: vehiclesWithActiveTax }
+      vehicleNumber: { $nin: vehiclesWithActiveTax },
+      userId: req.user.id
     })
 
-    const total = await Tax.countDocuments()
+    const total = await Tax.countDocuments({ userId: req.user.id })
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { balanceAmount: { $gt: 0 } } },
+      { $match: { balanceAmount: { $gt: 0 }, userId: req.user.id } },
       {
         $group: {
           _id: null,
@@ -384,7 +388,7 @@ exports.generateBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const tax = await Tax.findById(id).populate('bill')
+    const tax = await Tax.findOne({ _id: id, userId: req.user.id }).populate('bill')
     if (!tax) {
       return res.status(404).json({
         success: false,
@@ -413,7 +417,8 @@ exports.generateBillPDF = async (req, res) => {
             amount: tax.totalAmount || 0
           }
         ],
-        totalAmount: tax.totalAmount || 0
+        totalAmount: tax.totalAmount || 0,
+        userId: req.user.id
       })
       await customBill.save()
 
@@ -450,7 +455,7 @@ exports.downloadBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const tax = await Tax.findById(id).populate('bill')
+    const tax = await Tax.findOne({ _id: id, userId: req.user.id }).populate('bill')
     if (!tax) {
       return res.status(404).json({
         success: false,
@@ -510,12 +515,13 @@ exports.getExpiringSoonTaxes = async (req, res) => {
 
     // Find all vehicle numbers that have active tax
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActiveTax = await Tax.find({ status: 'active' })
+    const vehiclesWithActiveTax = await Tax.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const query = {
       status: 'expiring_soon',
-      vehicleNumber: { $nin: vehiclesWithActiveTax }
+      vehicleNumber: { $nin: vehiclesWithActiveTax },
+      userId: req.user.id
     }
 
     if (search) {
@@ -566,12 +572,13 @@ exports.getExpiredTaxes = async (req, res) => {
 
     // Find all vehicle numbers that have active tax
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActiveTax = await Tax.find({ status: 'active' })
+    const vehiclesWithActiveTax = await Tax.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const query = {
       status: 'expired',
-      vehicleNumber: { $nin: vehiclesWithActiveTax }
+      vehicleNumber: { $nin: vehiclesWithActiveTax },
+      userId: req.user.id
     }
 
     if (search) {
@@ -620,7 +627,7 @@ exports.getPendingPaymentTaxes = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const query = { balanceAmount: { $gt: 0 } }
+    const query = { balanceAmount: { $gt: 0 }, userId: req.user.id }
 
     if (search) {
       query.vehicleNumber = { $regex: search, $options: 'i' }
@@ -703,7 +710,7 @@ exports.renewTax = async (req, res) => {
     }
 
     // Find the old tax record
-    const oldTax = await Tax.findById(oldTaxId)
+    const oldTax = await Tax.findOne({ _id: oldTaxId, userId: req.user.id })
     if (!oldTax) {
       return res.status(404).json({
         success: false,
@@ -729,7 +736,8 @@ exports.renewTax = async (req, res) => {
       taxFrom,
       taxTo,
       status,
-      isRenewed: false  // New tax is not renewed yet
+      isRenewed: false,  // New tax is not renewed yet
+      userId: req.user.id
     })
 
     await newTax.save()
@@ -752,7 +760,8 @@ exports.renewTax = async (req, res) => {
           amount: newTax.totalAmount
         }
       ],
-      totalAmount: newTax.totalAmount
+      totalAmount: newTax.totalAmount,
+      userId: req.user.id
     })
     await customBill.save()
 

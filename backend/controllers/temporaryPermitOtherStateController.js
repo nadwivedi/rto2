@@ -109,7 +109,8 @@ exports.createPermit = async (req, res) => {
       paid,
       balance,
       status,
-      notes
+      notes,
+      userId: req.user.id
     })
     await newPermit.save()
 
@@ -132,7 +133,8 @@ exports.createPermit = async (req, res) => {
             amount: newPermit.totalFee
           }
         ],
-        totalAmount: newPermit.totalFee
+        totalAmount: newPermit.totalFee,
+        userId: req.user.id
       })
       await customBill.save()
 
@@ -185,7 +187,7 @@ exports.getAllPermits = async (req, res) => {
       sortOrder = 'desc'
     } = req.query
 
-    let query = {}
+    let query = { userId: req.user.id }
 
     // Search filter
     if (search) {
@@ -239,16 +241,18 @@ exports.getExpiringSoonPermits = async (req, res) => {
 
     // Find all vehicle numbers that have active permits
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active' })
+    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNo')
 
     const query = {
+      userId: req.user.id,
       status: 'expiring_soon',
       vehicleNo: { $nin: vehiclesWithActivePermits }
     }
 
     if (search) {
       query.$and = [
+        { userId: req.user.id },
         { vehicleNo: { $nin: vehiclesWithActivePermits } },
         {
           $or: [
@@ -260,6 +264,7 @@ exports.getExpiringSoonPermits = async (req, res) => {
         }
       ]
       delete query.vehicleNo
+      delete query.userId
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -305,16 +310,18 @@ exports.getExpiredPermits = async (req, res) => {
 
     // Find all vehicle numbers that have active permits
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active' })
+    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNo')
 
     const query = {
+      userId: req.user.id,
       status: 'expired',
       vehicleNo: { $nin: vehiclesWithActivePermits }
     }
 
     if (search) {
       query.$and = [
+        { userId: req.user.id },
         { vehicleNo: { $nin: vehiclesWithActivePermits } },
         {
           $or: [
@@ -326,6 +333,7 @@ exports.getExpiredPermits = async (req, res) => {
         }
       ]
       delete query.vehicleNo
+      delete query.userId
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
@@ -369,7 +377,7 @@ exports.getPendingPermits = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const query = { balance: { $gt: 0 } }
+    const query = { userId: req.user.id, balance: { $gt: 0 } }
 
     if (search) {
       query.$or = [
@@ -419,7 +427,7 @@ exports.getPendingPermits = async (req, res) => {
 // Get single permit by ID
 exports.getPermitById = async (req, res) => {
   try {
-    const permit = await TemporaryPermitOtherState.findById(req.params.id).populate('bill')
+    const permit = await TemporaryPermitOtherState.findOne({ _id: req.params.id, userId: req.user.id }).populate('bill')
     if (!permit) {
       return res.status(404).json({
         success: false,
@@ -444,7 +452,7 @@ exports.updatePermit = async (req, res) => {
     const { id } = req.params
     const { permitNumber, permitHolder, vehicleNo, mobileNo, validFrom, validTo, totalFee, paid, balance, notes } = req.body
 
-    const permit = await TemporaryPermitOtherState.findById(id)
+    const permit = await TemporaryPermitOtherState.findOne({ _id: id, userId: req.user.id })
 
     if (!permit) {
       return res.status(404).json({
@@ -514,7 +522,7 @@ exports.updatePermit = async (req, res) => {
 // Delete permit
 exports.deletePermit = async (req, res) => {
   try {
-    const deletedPermit = await TemporaryPermitOtherState.findByIdAndDelete(req.params.id)
+    const deletedPermit = await TemporaryPermitOtherState.findOneAndDelete({ _id: req.params.id, userId: req.user.id })
 
     if (!deletedPermit) {
       return res.status(404).json({
@@ -541,7 +549,7 @@ exports.deletePermit = async (req, res) => {
 // Get expiring soon count
 exports.getExpiringSoonCount = async (req, res) => {
   try {
-    const count = await TemporaryPermitOtherState.countDocuments({ status: 'expiring_soon' });
+    const count = await TemporaryPermitOtherState.countDocuments({ status: 'expiring_soon', userId: req.user.id });
     res.json({ success: true, count });
   } catch (error) {
     console.error('Error getting expiring soon count:', error);
@@ -558,27 +566,29 @@ exports.getExpiringSoonCount = async (req, res) => {
 exports.getStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
-    const activePermits = await TemporaryPermitOtherState.countDocuments({ status: 'active' });
+    const activePermits = await TemporaryPermitOtherState.countDocuments({ status: 'active', userId: req.user.id });
 
     // For expiring soon and expired, exclude vehicles that also have active permits (renewed vehicles)
-    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active' })
+    const vehiclesWithActivePermits = await TemporaryPermitOtherState.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNo')
 
     const expiringPermits = await TemporaryPermitOtherState.countDocuments({
+      userId: req.user.id,
       status: 'expiring_soon',
       vehicleNo: { $nin: vehiclesWithActivePermits }
     });
 
     const expiredPermits = await TemporaryPermitOtherState.countDocuments({
+      userId: req.user.id,
       status: 'expired',
       vehicleNo: { $nin: vehiclesWithActivePermits }
     });
 
-    const total = await TemporaryPermitOtherState.countDocuments();
+    const total = await TemporaryPermitOtherState.countDocuments({ userId: req.user.id });
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { balance: { $gt: 0 } } },
+      { $match: { userId: req.user.id, balance: { $gt: 0 } } },
       {
         $group: {
           _id: null,
@@ -657,7 +667,7 @@ exports.renewPermit = async (req, res) => {
     }
 
     // Find the old permit
-    const oldPermit = await TemporaryPermitOtherState.findById(oldPermitId)
+    const oldPermit = await TemporaryPermitOtherState.findOne({ _id: oldPermitId, userId: req.user.id })
     if (!oldPermit) {
       return res.status(404).json({
         success: false,
@@ -685,7 +695,8 @@ exports.renewPermit = async (req, res) => {
       balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0),
       status,
       isRenewed: false,  // New permit is not renewed yet
-      notes: notes || ''
+      notes: notes || '',
+      userId: req.user.id
     })
 
     await newPermit.save()
@@ -708,7 +719,8 @@ exports.renewPermit = async (req, res) => {
           amount: newPermit.totalFee
         }
       ],
-      totalAmount: newPermit.totalFee
+      totalAmount: newPermit.totalFee,
+      userId: req.user.id
     })
     await customBill.save()
 

@@ -41,7 +41,7 @@ const DealerBill = () => {
         sortOrder: 'desc'
       }
 
-      const response = await axios.get(`${API_URL}/api/custom-bills`, { params })
+      const response = await axios.get(`${API_URL}/api/custom-bills`, { params, withCredentials: true })
 
       setDealerBills(response.data.data || [])
       setTotalPages(response.data.pagination?.totalPages || 0)
@@ -71,7 +71,8 @@ const DealerBill = () => {
   const handleDownloadBill = async (billId, billNumber) => {
     try {
       const response = await axios.get(`${API_URL}/api/custom-bills/${billId}/download`, {
-        responseType: 'blob'
+        responseType: 'blob',
+        withCredentials: true
       })
 
       const url = window.URL.createObjectURL(new Blob([response.data]))
@@ -94,7 +95,7 @@ const DealerBill = () => {
     }
 
     try {
-      const response = await axios.delete(`${API_URL}/api/custom-bills/${billId}`)
+      const response = await axios.delete(`${API_URL}/api/custom-bills/${billId}`, { withCredentials: true })
 
       if (response.data.success) {
         alert('Bill deleted successfully')

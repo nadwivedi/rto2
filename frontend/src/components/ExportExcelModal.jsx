@@ -58,7 +58,7 @@ const ExportExcelModal = ({ isOpen, onClose }) => {
       for (const typeId of selectedTypes) {
         const type = dataTypes.find(t => t.id === typeId)
         try {
-          const response = await axios.get(`${API_URL}${type.endpoint}`)
+          const response = await axios.get(`${API_URL}${type.endpoint}`, { withCredentials: true })
           const data = response.data.data || response.data || []
 
           if (data.length === 0) {

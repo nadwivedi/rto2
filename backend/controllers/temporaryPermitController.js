@@ -230,7 +230,8 @@ exports.createPermit = async (req, res) => {
       totalFee: Number(totalFee),
       paid: paid !== undefined ? Number(paid) : 0,
       balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0),
-      status
+      status,
+      userId: req.user.id
     }
 
     // Add optional fields if provided
@@ -267,7 +268,8 @@ exports.createPermit = async (req, res) => {
           amount: newPermit.totalFee
         }
       ],
-      totalAmount: newPermit.totalFee
+      totalAmount: newPermit.totalFee,
+      userId: req.user.id
     })
     await customBill.save()
 
@@ -336,7 +338,7 @@ exports.getAllPermits = async (req, res) => {
     } = req.query
 
     // Build query
-    const query = {}
+    const query = { userId: req.user.id }
 
     // Search by vehicle number only
     if (search) {
@@ -386,7 +388,7 @@ exports.getAllPermits = async (req, res) => {
 exports.exportAllPermits = async (req, res) => {
   try {
     // Get all permits without pagination
-    const permits = await TemporaryPermit.find({})
+    const permits = await TemporaryPermit.find({ userId: req.user.id })
       .populate('bill')
       .sort({ createdAt: -1 })
 
@@ -411,10 +413,11 @@ exports.getExpiringSoonPermits = async (req, res) => {
 
     // Find all vehicle numbers that have active permits
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActivePermits = await TemporaryPermit.find({ status: 'active' })
+    const vehiclesWithActivePermits = await TemporaryPermit.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const query = {
+      userId: req.user.id,
       status: 'expiring_soon',
       vehicleNumber: { $nin: vehiclesWithActivePermits }
     }
@@ -466,10 +469,11 @@ exports.getExpiredPermits = async (req, res) => {
 
     // Find all vehicle numbers that have active permits
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActivePermits = await TemporaryPermit.find({ status: 'active' })
+    const vehiclesWithActivePermits = await TemporaryPermit.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const query = {
+      userId: req.user.id,
       status: 'expired',
       vehicleNumber: { $nin: vehiclesWithActivePermits }
     }
@@ -519,7 +523,7 @@ exports.getPendingPermits = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const query = { balance: { $gt: 0 } }
+    const query = { userId: req.user.id, balance: { $gt: 0 } }
 
     if (search) {
       query.vehicleNumber = { $regex: search, $options: 'i' }
@@ -562,7 +566,7 @@ exports.getPermitById = async (req, res) => {
   try {
     const { id } = req.params
 
-    const permit = await TemporaryPermit.findById(id)
+    const permit = await TemporaryPermit.findOne({ _id: id, userId: req.user.id })
 
     if (!permit) {
       return res.status(404).json({
@@ -589,7 +593,7 @@ exports.getPermitByNumber = async (req, res) => {
   try {
     const { permitNumber } = req.params
 
-    const permit = await TemporaryPermit.findOne({ permitNumber })
+    const permit = await TemporaryPermit.findOne({ permitNumber, userId: req.user.id })
 
     if (!permit) {
       return res.status(404).json({
@@ -809,8 +813,8 @@ exports.updatePermit = async (req, res) => {
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
     // Note: status is managed by cron job and should not be manually updated
 
-    const updatedPermit = await TemporaryPermit.findByIdAndUpdate(
-      id,
+    const updatedPermit = await TemporaryPermit.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
       updateData,
       { new: true, runValidators: true }
     )
@@ -860,7 +864,7 @@ exports.deletePermit = async (req, res) => {
   try {
     const { id } = req.params
 
-    const deletedPermit = await TemporaryPermit.findByIdAndDelete(id)
+    const deletedPermit = await TemporaryPermit.findOneAndDelete({ _id: id, userId: req.user.id })
 
     if (!deletedPermit) {
       return res.status(404).json({
@@ -892,27 +896,29 @@ exports.deletePermit = async (req, res) => {
 exports.getStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
-    const activePermits = await TemporaryPermit.countDocuments({ status: 'active' })
+    const activePermits = await TemporaryPermit.countDocuments({ status: 'active', userId: req.user.id })
 
     // For expiring soon and expired, exclude vehicles that also have active permits (renewed vehicles)
-    const vehiclesWithActivePermits = await TemporaryPermit.find({ status: 'active' })
+    const vehiclesWithActivePermits = await TemporaryPermit.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const expiringPermits = await TemporaryPermit.countDocuments({
+      userId: req.user.id,
       status: 'expiring_soon',
       vehicleNumber: { $nin: vehiclesWithActivePermits }
     })
 
     const expiredPermits = await TemporaryPermit.countDocuments({
+      userId: req.user.id,
       status: 'expired',
       vehicleNumber: { $nin: vehiclesWithActivePermits }
     })
 
-    const totalPermits = await TemporaryPermit.countDocuments()
+    const totalPermits = await TemporaryPermit.countDocuments({ userId: req.user.id })
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { balance: { $gt: 0 } } },
+      { $match: { userId: req.user.id, balance: { $gt: 0 } } },
       {
         $group: {
           _id: null,
@@ -927,8 +933,8 @@ exports.getStatistics = async (req, res) => {
     const pendingPaymentAmount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].totalAmount : 0
 
     // Count by vehicle type
-    const cvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'CV' })
-    const pvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'PV' })
+    const cvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'CV', userId: req.user.id })
+    const pvPermits = await TemporaryPermit.countDocuments({ vehicleType: 'PV', userId: req.user.id })
 
 
 
@@ -976,7 +982,7 @@ exports.sharePermit = async (req, res) => {
     }
 
     // Get permit details
-    const permit = await TemporaryPermit.findById(id)
+    const permit = await TemporaryPermit.findOne({ _id: id, userId: req.user.id })
 
     if (!permit) {
       return res.status(404).json({
@@ -1057,7 +1063,7 @@ exports.generateBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const permit = await TemporaryPermit.findById(id).populate('bill')
+    const permit = await TemporaryPermit.findOne({ _id: id, userId: req.user.id }).populate('bill')
     if (!permit) {
       return res.status(404).json({
         success: false,
@@ -1087,7 +1093,8 @@ exports.generateBillPDF = async (req, res) => {
             amount: permit.totalFee
           }
         ],
-        totalAmount: permit.totalFee
+        totalAmount: permit.totalFee,
+        userId: req.user.id
       })
       await customBill.save()
 
@@ -1128,7 +1135,7 @@ exports.downloadBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const permit = await TemporaryPermit.findById(id).populate('bill')
+    const permit = await TemporaryPermit.findOne({ _id: id, userId: req.user.id }).populate('bill')
     if (!permit) {
       return res.status(404).json({
         success: false,
@@ -1234,7 +1241,7 @@ exports.renewPermit = async (req, res) => {
     }
 
     // Find the old permit
-    const oldPermit = await TemporaryPermit.findById(oldPermitId)
+    const oldPermit = await TemporaryPermit.findOne({ _id: oldPermitId, userId: req.user.id })
     if (!oldPermit) {
       return res.status(404).json({
         success: false,
@@ -1261,7 +1268,8 @@ exports.renewPermit = async (req, res) => {
       paid: paid !== undefined ? Number(paid) : 0,
       balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0),
       status,
-      isRenewed: false  // New permit is not renewed yet
+      isRenewed: false,  // New permit is not renewed yet
+      userId: req.user.id
     }
 
     // Add optional fields if provided
@@ -1298,7 +1306,8 @@ exports.renewPermit = async (req, res) => {
           amount: newPermit.totalFee
         }
       ],
-      totalAmount: newPermit.totalFee
+      totalAmount: newPermit.totalFee,
+      userId: req.user.id
     })
     await customBill.save()
 

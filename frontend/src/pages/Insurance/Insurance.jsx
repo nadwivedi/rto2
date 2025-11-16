@@ -47,7 +47,7 @@ const Insurance = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/insurance/statistics`);
+      const response = await axios.get(`${API_URL}/api/insurance/statistics`, { withCredentials: true });
       if (response.data.success) {
         const { insurance, pendingPayments } = response.data.data;
         setStats({
@@ -81,7 +81,7 @@ const Insurance = () => {
         url = `${API_URL}/api/insurance/${filterPath}`;
       }
 
-      const response = await axios.get(url, { params });
+      const response = await axios.get(url, { params, withCredentials: true });
 
       if (response.data.success) {
         setInsurances(response.data.data);
@@ -140,7 +140,7 @@ const Insurance = () => {
   const handleAddInsurance = async (formData) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/api/insurance`, formData);
+      const response = await axios.post(`${API_URL}/api/insurance`, formData, { withCredentials: true });
 
       if (response.data.success) {
         toast.success("Insurance record added successfully!", {
@@ -177,7 +177,7 @@ const Insurance = () => {
   const handleRenewSubmit = async (formData) => {
     try {
       // Make POST request to renew endpoint
-      const response = await axios.post(`${API_URL}/api/insurance/renew`, formData);
+      const response = await axios.post(`${API_URL}/api/insurance/renew`, formData, { withCredentials: true });
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to renew insurance');
@@ -215,7 +215,8 @@ const Insurance = () => {
     try {
       const response = await axios.put(
         `${API_URL}/api/insurance/${selectedInsurance._id}`,
-        formData
+        formData,
+        { withCredentials: true }
       );
 
       if (response.data.success) {
@@ -259,7 +260,8 @@ const Insurance = () => {
 
     try {
       const response = await axios.delete(
-        `${API_URL}/api/insurance/${insurance._id}`
+        `${API_URL}/api/insurance/${insurance._id}`,
+        { withCredentials: true }
       );
 
       if (response.data.success) {

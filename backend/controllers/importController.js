@@ -3,7 +3,6 @@ const Insurance = require('../models/Insurance')
 const Tax = require('../models/Tax')
 const Fitness = require('../models/Fitness')
 const CgPermit = require('../models/CgPermit')
-const NationalPermit = require('../models/NationalPermit')
 const TemporaryPermit = require('../models/TemporaryPermit')
 const VehicleRegistration = require('../models/VehicleRegistration')
 
@@ -14,7 +13,6 @@ const MODEL_MAP = {
   'tax': Tax,
   'fitness': Fitness,
   'cg-permit': CgPermit,
-  'national-permit': NationalPermit,
   'temporary-permit': TemporaryPermit,
   'vehicle-registration': VehicleRegistration
 }

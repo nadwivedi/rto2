@@ -20,7 +20,8 @@ exports.createCustomBill = async (req, res) => {
       billDate,
       items,
       totalAmount,
-      notes
+      notes,
+      userId: req.user.id
     })
 
     // Generate bill number
@@ -58,9 +59,10 @@ exports.getAllCustomBills = async (req, res) => {
     const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1
 
     // Build search query
-    let query = {}
+    let query = { userId: req.user.id }
     if (search) {
       query = {
+        userId: req.user.id,
         $or: [
           { billNumber: { $regex: search, $options: 'i' } },
           { customerName: { $regex: search, $options: 'i' } }
@@ -104,7 +106,7 @@ exports.getAllCustomBills = async (req, res) => {
 // Get custom bill by ID
 exports.getCustomBillById = async (req, res) => {
   try {
-    const customBill = await CustomBill.findById(req.params.id)
+    const customBill = await CustomBill.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!customBill) {
       return res.status(404).json({
@@ -141,7 +143,7 @@ exports.updateCustomBill = async (req, res) => {
     }
 
     // Find existing bill
-    const existingBill = await CustomBill.findById(req.params.id)
+    const existingBill = await CustomBill.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!existingBill) {
       return res.status(404).json({
@@ -195,7 +197,7 @@ exports.updateCustomBill = async (req, res) => {
 // Delete custom bill
 exports.deleteCustomBill = async (req, res) => {
   try {
-    const customBill = await CustomBill.findByIdAndDelete(req.params.id)
+    const customBill = await CustomBill.findOneAndDelete({ _id: req.params.id, userId: req.user.id })
 
     if (!customBill) {
       return res.status(404).json({
@@ -221,7 +223,7 @@ exports.deleteCustomBill = async (req, res) => {
 // Download custom bill PDF
 exports.downloadCustomBillPDF = async (req, res) => {
   try {
-    const customBill = await CustomBill.findById(req.params.id)
+    const customBill = await CustomBill.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!customBill) {
       return res.status(404).json({

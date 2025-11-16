@@ -1,11 +1,16 @@
 const mongoose = require('mongoose')
 
 const TemporaryPermitSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   // Essential Information (Required)
   permitNumber: {
     type: String,
     required: true,
-    unique: true,
     trim: true
   },
   permitHolder: {

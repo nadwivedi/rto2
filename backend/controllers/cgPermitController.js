@@ -180,7 +180,8 @@ exports.createPermit = async (req, res) => {
       mobileNumber: mobileNumber ? mobileNumber.trim() : undefined,
       email: email ? email.trim() : undefined,
       notes: notes ? notes.trim() : undefined,
-      status
+      status,
+      userId: req.user.id
     }
 
     // Create new CG permit without bill reference first
@@ -190,6 +191,7 @@ exports.createPermit = async (req, res) => {
     // Create CustomBill document
     const billNumber = await generateCustomBillNumber(CustomBill)
     const customBill = new CustomBill({
+      userId: req.user.id,
       billNumber,
       customerName: newPermit.permitHolder,
       billDate: new Date().toLocaleDateString('en-IN', {
@@ -264,7 +266,7 @@ exports.getAllPermits = async (req, res) => {
     } = req.query
 
     // Build query
-    const query = {}
+    const query = { userId: req.user.id }
 
     // Search by vehicle number only
     if (search) {
@@ -314,7 +316,7 @@ exports.getAllPermits = async (req, res) => {
 // Export all CG permits without pagination
 exports.exportAllPermits = async (req, res) => {
   try {
-    const permits = await CgPermit.find({})
+    const permits = await CgPermit.find({ userId: req.user.id })
       .populate('bill')
       .sort({ createdAt: -1 })
 
@@ -339,10 +341,11 @@ exports.getExpiringSoonPermits = async (req, res) => {
 
     // Find all vehicle numbers that have active permits
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active' })
+    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber');
 
     const query = {
+      userId: req.user.id,
       status: 'expiring_soon',
       vehicleNumber: { $nin: vehiclesWithActivePermits }
     };
@@ -382,10 +385,11 @@ exports.getExpiredPermits = async (req, res) => {
 
     // Find all vehicle numbers that have active permits
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active' })
+    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber');
 
     const query = {
+      userId: req.user.id,
       status: 'expired',
       vehicleNumber: { $nin: vehiclesWithActivePermits }
     };
@@ -422,7 +426,7 @@ exports.getExpiredPermits = async (req, res) => {
 exports.getPendingPermits = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
-    const query = { balance: { $gt: 0 } };
+    const query = { userId: req.user.id, balance: { $gt: 0 } };
     if (search) {
       query.vehicleNumber = { $regex: search, $options: 'i' };
     }
@@ -450,7 +454,7 @@ exports.getPermitById = async (req, res) => {
   try {
     const { id } = req.params
 
-    const permit = await CgPermit.findById(id)
+    const permit = await CgPermit.findOne({ _id: id, userId: req.user.id })
 
     if (!permit) {
       return res.status(404).json({
@@ -487,7 +491,7 @@ exports.getPermitByNumber = async (req, res) => {
   try {
     const { permitNumber } = req.params
 
-    const permit = await CgPermit.findOne({ permitNumber })
+    const permit = await CgPermit.findOne({ permitNumber, userId: req.user.id })
 
     if (!permit) {
       return res.status(404).json({
@@ -642,8 +646,8 @@ exports.updatePermit = async (req, res) => {
     if (email !== undefined) updateData.email = email ? email.trim() : ''
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
 
-    const updatedPermit = await CgPermit.findByIdAndUpdate(
-      id,
+    const updatedPermit = await CgPermit.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
       updateData,
       { new: true, runValidators: true }
     )
@@ -684,7 +688,7 @@ exports.deletePermit = async (req, res) => {
   try {
     const { id } = req.params
 
-    const deletedPermit = await CgPermit.findByIdAndDelete(id)
+    const deletedPermit = await CgPermit.findOneAndDelete({ _id: id, userId: req.user.id })
 
     if (!deletedPermit) {
       return res.status(404).json({
@@ -721,27 +725,29 @@ exports.deletePermit = async (req, res) => {
 exports.getStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
-    const activePermits = await CgPermit.countDocuments({ status: 'active' })
+    const activePermits = await CgPermit.countDocuments({ status: 'active', userId: req.user.id })
 
     // For expiring soon and expired, exclude vehicles that also have active permits (renewed vehicles)
-    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active' })
+    const vehiclesWithActivePermits = await CgPermit.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const expiringPermits = await CgPermit.countDocuments({
+      userId: req.user.id,
       status: 'expiring_soon',
       vehicleNumber: { $nin: vehiclesWithActivePermits }
     })
 
     const expiredPermits = await CgPermit.countDocuments({
+      userId: req.user.id,
       status: 'expired',
       vehicleNumber: { $nin: vehiclesWithActivePermits }
     })
 
-    const total = await CgPermit.countDocuments()
+    const total = await CgPermit.countDocuments({ userId: req.user.id })
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { balance: { $gt: 0 } } },
+      { $match: { userId: req.user.id, balance: { $gt: 0 } } },
       {
         $group: {
           _id: null,
@@ -797,7 +803,7 @@ exports.sharePermit = async (req, res) => {
     }
 
     // Get permit details
-    const permit = await CgPermit.findById(id)
+    const permit = await CgPermit.findOne({ _id: id, userId: req.user.id })
 
     if (!permit) {
       return res.status(404).json({
@@ -875,7 +881,7 @@ exports.generateBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const permit = await CgPermit.findById(id).populate('bill')
+    const permit = await CgPermit.findOne({ _id: id, userId: req.user.id }).populate('bill')
     if (!permit) {
       return res.status(404).json({
         success: false,
@@ -950,7 +956,7 @@ exports.downloadBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const permit = await CgPermit.findById(id).populate('bill')
+    const permit = await CgPermit.findOne({ _id: id, userId: req.user.id }).populate('bill')
     if (!permit) {
       return res.status(404).json({
         success: false,
@@ -1055,7 +1061,7 @@ exports.renewPermit = async (req, res) => {
     }
 
     // Find the old permit
-    const oldPermit = await CgPermit.findById(oldPermitId)
+    const oldPermit = await CgPermit.findOne({ _id: oldPermitId, userId: req.user.id })
     if (!oldPermit) {
       return res.status(404).json({
         success: false,
@@ -1085,7 +1091,8 @@ exports.renewPermit = async (req, res) => {
       email: email ? email.trim() : undefined,
       notes: notes ? notes.trim() : undefined,
       status,
-      isRenewed: false  // New permit is not renewed yet
+      isRenewed: false,  // New permit is not renewed yet
+      userId: req.user.id
     }
 
     // Create new CG permit without bill reference first
@@ -1095,6 +1102,7 @@ exports.renewPermit = async (req, res) => {
     // Generate bill number and create CustomBill
     const billNumber = await generateCustomBillNumber(CustomBill)
     const customBill = new CustomBill({
+      userId: req.user.id,
       billNumber,
       customerName: newPermit.permitHolder,
       billDate: new Date().toLocaleDateString('en-IN', {

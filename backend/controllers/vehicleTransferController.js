@@ -137,7 +137,8 @@ exports.createTransfer = async (req, res) => {
       balance,
       byName,
       byMobile,
-      remarks
+      remarks,
+      userId: req.user.id
     })
     await newTransfer.save()
 
@@ -177,7 +178,7 @@ exports.getAllTransfers = async (req, res) => {
     } = req.query
 
     // Build query
-    let query = {}
+    let query = { userId: req.user.id }
 
     // Search filter
     if (search) {
@@ -229,10 +230,10 @@ exports.getAllTransfers = async (req, res) => {
 // Get statistics
 exports.getStatistics = async (req, res) => {
   try {
-    const total = await VehicleTransfer.countDocuments()
+    const total = await VehicleTransfer.countDocuments({ userId: req.user.id })
 
     // Payment statistics - count transfers with balance (pending payment)
-    const pendingPayments = await VehicleTransfer.countDocuments({ balance: { $gt: 0 } })
+    const pendingPayments = await VehicleTransfer.countDocuments({ userId: req.user.id, balance: { $gt: 0 } })
 
     res.json({
       success: true,
@@ -258,7 +259,7 @@ exports.getStatistics = async (req, res) => {
 // Get single vehicle transfer by ID
 exports.getTransferById = async (req, res) => {
   try {
-    const transfer = await VehicleTransfer.findById(req.params.id)
+    const transfer = await VehicleTransfer.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!transfer) {
       return res.status(404).json({
@@ -307,7 +308,7 @@ exports.updateTransfer = async (req, res) => {
       remarks
     } = req.body
 
-    const transfer = await VehicleTransfer.findById(req.params.id)
+    const transfer = await VehicleTransfer.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!transfer) {
       return res.status(404).json({
@@ -384,7 +385,7 @@ exports.updateTransfer = async (req, res) => {
 // Delete vehicle transfer
 exports.deleteTransfer = async (req, res) => {
   try {
-    const deletedTransfer = await VehicleTransfer.findByIdAndDelete(req.params.id)
+    const deletedTransfer = await VehicleTransfer.findOneAndDelete({ _id: req.params.id, userId: req.user.id })
 
     if (!deletedTransfer) {
       return res.status(404).json({
@@ -417,6 +418,7 @@ exports.getTransfersByVehicle = async (req, res) => {
     const { vehicleNumber } = req.params
 
     const transfers = await VehicleTransfer.find({
+      userId: req.user.id,
       vehicleNumber: vehicleNumber.toUpperCase()
     }).sort({ createdAt: -1 })
 

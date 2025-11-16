@@ -92,7 +92,8 @@ const NationalPermit = () => {
 
       // Fetch Part A expiring count
       const partAResponse = await axios.get(`${API_URL}/api/national-permits/part-a-expiring-soon`, {
-        params: { page: 1, limit: 1 }
+        params: { page: 1, limit: 1 },
+        withCredentials: true
       })
       console.log('Part A Response:', partAResponse.data)
       const partACount = partAResponse.data.pagination?.totalItems || 0
@@ -101,7 +102,8 @@ const NationalPermit = () => {
 
       // Fetch Part B expiring count
       const partBResponse = await axios.get(`${API_URL}/api/national-permits/part-b-expiring-soon`, {
-        params: { page: 1, limit: 1 }
+        params: { page: 1, limit: 1 },
+        withCredentials: true
       })
       console.log('Part B Response:', partBResponse.data)
       const partBCount = partBResponse.data.pagination?.totalItems || 0
@@ -131,7 +133,8 @@ const NationalPermit = () => {
       }
 
       const response = await axios.get(`${API_URL}/api/national-permits`, {
-        params: Object.fromEntries(params)
+        params: Object.fromEntries(params),
+        withCredentials: true
       })
 
       // Update pagination info
@@ -329,7 +332,7 @@ const NationalPermit = () => {
     }
 
     try {
-      const response = await axios.delete(`${API_URL}/api/national-permits/${id}`)
+      const response = await axios.delete(`${API_URL}/api/national-permits/${id}`, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('National permit deleted successfully!', { position: 'top-right', autoClose: 3000 })
@@ -396,7 +399,7 @@ const NationalPermit = () => {
       }
 
       // Make POST request to backend
-      const response = await axios.post(`${API_URL}/api/national-permits`, permitData)
+      const response = await axios.post(`${API_URL}/api/national-permits`, permitData, { withCredentials: true })
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to create permit')
@@ -434,7 +437,7 @@ const NationalPermit = () => {
       }
 
       // Make PUT request to backend (updates Part A)
-      const response = await axios.put(`${API_URL}/api/national-permits/${editingPermit.id}`, permitData)
+      const response = await axios.put(`${API_URL}/api/national-permits/${editingPermit.id}`, permitData, { withCredentials: true })
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Failed to update permit')

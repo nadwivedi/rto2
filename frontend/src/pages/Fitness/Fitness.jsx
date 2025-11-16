@@ -45,7 +45,7 @@ const Fitness = () => {
   // Fetch fitness statistics from API
   const fetchStatistics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/fitness/statistics`);
+      const response = await axios.get(`${API_URL}/api/fitness/statistics`, { withCredentials: true });
       if (response.data.success) {
         setStatistics({
           total: response.data.data.total,
@@ -77,7 +77,7 @@ const Fitness = () => {
     }
 
     try {
-      const response = await axios.get(url, { params });
+      const response = await axios.get(url, { params, withCredentials: true });
 
       if (response.data.success) {
         // Transform the data to match the display format
@@ -157,7 +157,7 @@ const Fitness = () => {
         totalFee: parseFloat(formData.totalFee),
         paid: parseFloat(formData.paid),
         balance: parseFloat(formData.balance),
-      });
+      }, { withCredentials: true });
 
       if (response.data.success) {
         toast.success("Fitness certificate added successfully!", {
@@ -206,7 +206,8 @@ const Fitness = () => {
           totalFee: parseFloat(formData.totalFee),
           paid: parseFloat(formData.paid),
           balance: parseFloat(formData.balance),
-        }
+        },
+        { withCredentials: true }
       );
 
       if (response.data.success) {
@@ -263,7 +264,7 @@ const Fitness = () => {
         totalFee: parseFloat(formData.totalFee),
         paid: parseFloat(formData.paid),
         balance: parseFloat(formData.balance),
-      });
+      }, { withCredentials: true });
 
       if (response.data.success) {
         toast.success("Fitness certificate renewed successfully!", {
@@ -315,7 +316,8 @@ const Fitness = () => {
     setLoading(true);
     try {
       const response = await axios.delete(
-        `${API_URL}/api/fitness/id/${record.id}`
+        `${API_URL}/api/fitness/id/${record.id}`,
+        { withCredentials: true }
       );
 
       if (response.data.success) {

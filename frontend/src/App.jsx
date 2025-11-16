@@ -33,7 +33,7 @@ function App() {
           <Route
             path='/*'
             element={
-              // <ProtectedRoute>
+              <ProtectedRoute>
                 <div className='min-h-screen bg-gray-50'>
                   {/* Unified Navbar - handles both desktop and mobile navigation */}
                   <Navbar />
@@ -60,7 +60,7 @@ function App() {
                     </main>
                   </div>
                 </div>
-              // </ProtectedRoute>
+              </ProtectedRoute>
             }
           />
         </Routes>

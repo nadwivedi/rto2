@@ -91,7 +91,8 @@ exports.createInsurance = async (req, res) => {
       paid,
       balance,
       status,
-      remarks
+      remarks,
+      userId: req.user.id
     })
     await newInsurance.save()
 
@@ -122,7 +123,7 @@ exports.getAllInsurance = async (req, res) => {
     } = req.query
 
     // Build query
-    const query = {}
+    const query = { userId: req.user.id }
 
     // Search by policy number, vehicle number, owner name
     if (search) {
@@ -170,7 +171,7 @@ exports.getAllInsurance = async (req, res) => {
 // Export all insurance records without pagination
 exports.exportAllInsurance = async (req, res) => {
   try {
-    const insuranceRecords = await Insurance.find({})
+    const insuranceRecords = await Insurance.find({ userId: req.user.id })
       .sort({ createdAt: -1 })
 
     res.status(200).json({
@@ -195,12 +196,13 @@ exports.getExpiringSoonInsurance = async (req, res) => {
 
     // Find all vehicle numbers that have active insurance
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active' })
+    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const query = {
       status: 'expiring_soon',
-      vehicleNumber: { $nin: vehiclesWithActiveInsurance }
+      vehicleNumber: { $nin: vehiclesWithActiveInsurance },
+      userId: req.user.id
     }
 
     if (search) {
@@ -257,12 +259,13 @@ exports.getExpiredInsurance = async (req, res) => {
 
     // Find all vehicle numbers that have active insurance
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active' })
+    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const query = {
       status: 'expired',
-      vehicleNumber: { $nin: vehiclesWithActiveInsurance }
+      vehicleNumber: { $nin: vehiclesWithActiveInsurance },
+      userId: req.user.id
     }
 
     if (search) {
@@ -317,7 +320,7 @@ exports.getPendingInsurance = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const query = { balance: { $gt: 0 } }
+    const query = { balance: { $gt: 0 }, userId: req.user.id }
 
     if (search) {
       query.$or = [
@@ -365,7 +368,7 @@ exports.getInsuranceById = async (req, res) => {
   try {
     const { id } = req.params
 
-    const insurance = await Insurance.findById(id)
+    const insurance = await Insurance.findOne({ _id: id, userId: req.user.id })
 
     if (!insurance) {
       return res.status(404).json({
@@ -393,7 +396,7 @@ exports.getInsuranceByPolicyNumber = async (req, res) => {
   try {
     const { policyNumber } = req.params
 
-    const insurance = await Insurance.findOne({ policyNumber })
+    const insurance = await Insurance.findOne({ policyNumber, userId: req.user.id })
 
     if (!insurance) {
       return res.status(404).json({
@@ -422,7 +425,7 @@ exports.updateInsurance = async (req, res) => {
     const { id } = req.params
     const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks } = req.body
 
-    const insurance = await Insurance.findById(id)
+    const insurance = await Insurance.findOne({ _id: id, userId: req.user.id })
 
     if (!insurance) {
       return res.status(404).json({
@@ -489,7 +492,7 @@ exports.deleteInsurance = async (req, res) => {
   try {
     const { id } = req.params
 
-    const deletedInsurance = await Insurance.findByIdAndDelete(id)
+    const deletedInsurance = await Insurance.findOneAndDelete({ _id: id, userId: req.user.id })
 
     if (!deletedInsurance) {
       return res.status(404).json({
@@ -543,7 +546,7 @@ exports.getExpiringInsurance = async (req, res) => {
     today.setHours(0, 0, 0, 0)
 
     // Get all insurance records
-    const allInsurance = await Insurance.find()
+    const allInsurance = await Insurance.find({ userId: req.user.id })
 
     // Filter insurance records where policy is expiring in next N days
     const expiringInsurance = allInsurance.filter(insurance => {
@@ -592,33 +595,36 @@ exports.getExpiringInsurance = async (req, res) => {
 // Get statistics
 exports.getStatistics = async (req, res) => {
   try {
-    const totalInsurance = await Insurance.countDocuments()
-    const activeInsurance = await Insurance.countDocuments({ status: 'active' })
+    const totalInsurance = await Insurance.countDocuments({ userId: req.user.id })
+    const activeInsurance = await Insurance.countDocuments({ status: 'active', userId: req.user.id })
 
     // For expiring soon and expired, exclude vehicles that also have active insurance (renewed vehicles)
-    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active' })
+    const vehiclesWithActiveInsurance = await Insurance.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const expiringSoonInsurance = await Insurance.countDocuments({
       status: 'expiring_soon',
-      vehicleNumber: { $nin: vehiclesWithActiveInsurance }
+      vehicleNumber: { $nin: vehiclesWithActiveInsurance },
+      userId: req.user.id
     })
 
     const expiredInsurance = await Insurance.countDocuments({
       status: 'expired',
-      vehicleNumber: { $nin: vehiclesWithActiveInsurance }
+      vehicleNumber: { $nin: vehiclesWithActiveInsurance },
+      userId: req.user.id
     })
 
-    const cancelledInsurance = await Insurance.countDocuments({ status: 'cancelled' })
+    const cancelledInsurance = await Insurance.countDocuments({ status: 'cancelled', userId: req.user.id })
 
     // Total fees collected
     const totalRevenue = await Insurance.aggregate([
+      { $match: { userId: req.user.id } },
       { $group: { _id: null, total: { $sum: '$totalFee' } } }
     ])
 
     // Pending payment count and amount
     const pendingPayments = await Insurance.aggregate([
-      { $match: { balance: { $gt: 0 } } },
+      { $match: { balance: { $gt: 0 }, userId: req.user.id } },
       { $group: { _id: null, count: { $sum: 1 }, total: { $sum: '$balance' } } }
     ])
 
@@ -704,7 +710,7 @@ exports.renewInsurance = async (req, res) => {
     }
 
     // Find the old insurance
-    const oldInsurance = await Insurance.findById(oldInsuranceId)
+    const oldInsurance = await Insurance.findOne({ _id: oldInsuranceId, userId: req.user.id })
 
     if (!oldInsurance) {
       return res.status(404).json({

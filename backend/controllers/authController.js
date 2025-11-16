@@ -1,137 +1,18 @@
-const Admin = require('../models/Admin')
 const User = require('../models/User')
 const jwt = require('jsonwebtoken')
 
-// Login admin
-exports.login = async (req, res) => {
-  try {
-    const { username, password } = req.body
-
-    // Validate input
-    if (!username || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide username and password'
-      })
-    }
-
-    // Find admin by username
-    const admin = await Admin.findOne({ username: username.toLowerCase() })
-
-    if (!admin) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      })
-    }
-
-    // Check if admin is active
-    if (!admin.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: 'Your account has been deactivated. Please contact support.'
-      })
-    }
-
-    // Verify password
-    const isPasswordValid = await admin.comparePassword(password)
-
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      })
-    }
-
-    // Update last login
-    admin.lastLogin = new Date()
-    await admin.save()
-
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: admin._id,
-        username: admin.username,
-        email: admin.email,
-        role: admin.role
-      },
-      process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
-      { expiresIn: '7d' }
-    )
-
-    res.json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        token,
-        admin: {
-          id: admin._id,
-          username: admin.username,
-          email: admin.email,
-          name: admin.name,
-          role: admin.role
-        }
-      }
-    })
-  } catch (error) {
-    console.error('Login error:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Server error during login'
-    })
-  }
+// Helper function to validate mobile number
+const isValidMobile = (mobile) => {
+  return /^[0-9]{10}$/.test(mobile)
 }
 
-// Verify token and get current admin
-exports.verifyToken = async (req, res) => {
-  try {
-    const admin = await Admin.findById(req.admin.id).select('-password')
-
-    if (!admin) {
-      return res.status(404).json({
-        success: false,
-        message: 'Admin not found'
-      })
-    }
-
-    if (!admin.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: 'Your account has been deactivated'
-      })
-    }
-
-    res.json({
-      success: true,
-      data: {
-        admin: {
-          id: admin._id,
-          username: admin.username,
-          email: admin.email,
-          name: admin.name,
-          role: admin.role
-        }
-      }
-    })
-  } catch (error) {
-    console.error('Verify token error:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Server error'
-    })
-  }
-}
-
-// Logout (client-side handles token removal, but we can track it server-side if needed)
-exports.logout = async (req, res) => {
-  res.json({
-    success: true,
-    message: 'Logged out successfully'
-  })
+// Helper function to validate email
+const isValidEmail = (email) => {
+  return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email)
 }
 
 // Login user (using email or mobile + password)
-exports.userLogin = async (req, res) => {
+exports.login = async (req, res) => {
   try {
     const { identifier, password } = req.body
 
@@ -139,18 +20,41 @@ exports.userLogin = async (req, res) => {
     if (!identifier || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email/mobile and password'
+        message: 'Please provide email or mobile number and password'
+      })
+    }
+
+    // Validate password length
+    if (password.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid credentials'
       })
     }
 
     // Find user by email or mobile
     let user
+    const trimmedIdentifier = identifier.trim()
 
-    // Check if identifier is an email (contains @) or mobile number
-    if (identifier.includes('@')) {
-      user = await User.findOne({ email: identifier.toLowerCase() })
+    // Check if identifier is an email or mobile number
+    if (trimmedIdentifier.includes('@')) {
+      // Validate email format
+      if (!isValidEmail(trimmedIdentifier)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide a valid email address'
+        })
+      }
+      user = await User.findOne({ email: trimmedIdentifier.toLowerCase() })
     } else {
-      user = await User.findOne({ mobile: identifier })
+      // Validate mobile format
+      if (!isValidMobile(trimmedIdentifier)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please provide a valid 10-digit mobile number'
+        })
+      }
+      user = await User.findOne({ mobile: trimmedIdentifier })
     }
 
     if (!user) {
@@ -162,7 +66,7 @@ exports.userLogin = async (req, res) => {
 
     // Check if user is active
     if (!user.isActive) {
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
         message: 'Your account has been deactivated. Please contact support.'
       })
@@ -188,36 +92,45 @@ exports.userLogin = async (req, res) => {
         id: user._id,
         mobile: user.mobile,
         email: user.email,
+        name: user.name,
         type: 'user'
       },
       process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
       { expiresIn: '30d' }
     )
 
+    // Set HTTP-only cookie
+    res.cookie('authToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // Use secure in production
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    })
+
     res.json({
       success: true,
       message: 'Login successful',
       data: {
-        token,
         user: {
           id: user._id,
           name: user.name,
           mobile: user.mobile,
-          email: user.email
+          email: user.email,
+          lastLogin: user.lastLogin
         }
       }
     })
   } catch (error) {
-    console.error('User login error:', error)
+    console.error('Login error:', error)
     res.status(500).json({
       success: false,
-      message: 'Server error during login'
+      message: 'An error occurred during login. Please try again.'
     })
   }
 }
 
-// Verify user token and get current user
-exports.verifyUserToken = async (req, res) => {
+// Get current user profile
+exports.getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password')
 
@@ -229,7 +142,7 @@ exports.verifyUserToken = async (req, res) => {
     }
 
     if (!user.isActive) {
-      return res.status(401).json({
+      return res.status(403).json({
         success: false,
         message: 'Your account has been deactivated'
       })
@@ -242,15 +155,32 @@ exports.verifyUserToken = async (req, res) => {
           id: user._id,
           name: user.name,
           mobile: user.mobile,
-          email: user.email
+          email: user.email,
+          lastLogin: user.lastLogin,
+          createdAt: user.createdAt
         }
       }
     })
   } catch (error) {
-    console.error('Verify user token error:', error)
+    console.error('Get profile error:', error)
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'An error occurred while fetching profile'
     })
   }
+}
+
+// Logout user
+exports.logout = async (req, res) => {
+  // Clear the authentication cookie
+  res.clearCookie('authToken', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax'
+  })
+
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
+  })
 }

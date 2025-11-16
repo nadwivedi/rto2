@@ -1,13 +1,18 @@
 const mongoose = require('mongoose')
 
 const fitnessSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   vehicleNumber: {
     type: String,
     ref: 'VehicleRegistration',
     required: true,
     uppercase: true,
     trim: true,
-    index: true
   },
   validFrom: {
     type: String,

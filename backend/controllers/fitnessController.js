@@ -37,7 +37,7 @@ exports.getAllFitness = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const query = {}
+    const query = { userId: req.user.id }
 
     if (search) {
       query.vehicleNumber = { $regex: search, $options: 'i' }
@@ -78,7 +78,7 @@ exports.getAllFitness = async (req, res) => {
 // Export all fitness records without pagination
 exports.exportAllFitness = async (req, res) => {
   try {
-    const fitnessRecords = await Fitness.find({})
+    const fitnessRecords = await Fitness.find({ userId: req.user.id })
       .sort({ createdAt: -1 })
 
     res.json({
@@ -104,12 +104,13 @@ exports.getExpiringSoonFitness = async (req, res) => {
 
     // Find all vehicle numbers that have both expiring_soon and active fitness
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active' })
+    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const query = {
       status: 'expiring_soon',
-      vehicleNumber: { $nin: vehiclesWithActiveFitness }
+      vehicleNumber: { $nin: vehiclesWithActiveFitness },
+      userId: req.user.id
     }
 
     if (search) {
@@ -160,12 +161,13 @@ exports.getExpiredFitness = async (req, res) => {
 
     // Find all vehicle numbers that have active fitness
     // These vehicles have been renewed and should be excluded
-    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active' })
+    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const query = {
       status: 'expired',
-      vehicleNumber: { $nin: vehiclesWithActiveFitness }
+      vehicleNumber: { $nin: vehiclesWithActiveFitness },
+      userId: req.user.id
     }
 
     if (search) {
@@ -214,7 +216,7 @@ exports.getActiveFitness = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
 
-    const query = { status: 'active' }
+    const query = { status: 'active', userId: req.user.id }
 
     if (search) {
       query.vehicleNumber = { $regex: search, $options: 'i' }
@@ -257,7 +259,7 @@ exports.getPendingFitness = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    const query = { balance: { $gt: 0 } }
+    const query = { balance: { $gt: 0 }, userId: req.user.id }
 
     if (search) {
       query.vehicleNumber = { $regex: search, $options: 'i' }
@@ -299,7 +301,7 @@ exports.getPendingFitness = async (req, res) => {
 // Get single fitness record by ID
 exports.getFitnessById = async (req, res) => {
   try {
-    const fitness = await Fitness.findById(req.params.id)
+    const fitness = await Fitness.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!fitness) {
       return res.status(404).json({
@@ -365,7 +367,8 @@ exports.createFitness = async (req, res) => {
       totalFee,
       paid,
       balance,
-      status
+      status,
+      userId: req.user.id
     })
 
     await fitness.save()
@@ -388,7 +391,8 @@ exports.createFitness = async (req, res) => {
           amount: fitness.totalFee
         }
       ],
-      totalAmount: fitness.totalFee
+      totalAmount: fitness.totalFee,
+      userId: req.user.id
     })
     await customBill.save()
 
@@ -431,7 +435,7 @@ exports.updateFitness = async (req, res) => {
   try {
     const { vehicleNumber, validFrom, validTo, totalFee, paid, balance } = req.body
 
-    const fitness = await Fitness.findById(req.params.id)
+    const fitness = await Fitness.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!fitness) {
       return res.status(404).json({
@@ -493,7 +497,7 @@ exports.updateFitness = async (req, res) => {
 // Delete fitness record
 exports.deleteFitness = async (req, res) => {
   try {
-    const fitness = await Fitness.findById(req.params.id)
+    const fitness = await Fitness.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!fitness) {
       return res.status(404).json({
@@ -522,27 +526,29 @@ exports.deleteFitness = async (req, res) => {
 exports.getFitnessStatistics = async (req, res) => {
   try {
     // Count permits by status (now using the indexed status field)
-    const activeFitness = await Fitness.countDocuments({ status: 'active' })
+    const activeFitness = await Fitness.countDocuments({ status: 'active', userId: req.user.id })
 
     // For expiring soon and expired, exclude vehicles that also have active fitness (renewed vehicles)
-    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active' })
+    const vehiclesWithActiveFitness = await Fitness.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
 
     const expiringSoonFitness = await Fitness.countDocuments({
       status: 'expiring_soon',
-      vehicleNumber: { $nin: vehiclesWithActiveFitness }
+      vehicleNumber: { $nin: vehiclesWithActiveFitness },
+      userId: req.user.id
     })
 
     const expiredFitness = await Fitness.countDocuments({
       status: 'expired',
-      vehicleNumber: { $nin: vehiclesWithActiveFitness }
+      vehicleNumber: { $nin: vehiclesWithActiveFitness },
+      userId: req.user.id
     })
 
-    const total = await Fitness.countDocuments()
+    const total = await Fitness.countDocuments({ userId: req.user.id })
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { balance: { $gt: 0 } } },
+      { $match: { balance: { $gt: 0 }, userId: req.user.id } },
       {
         $group: {
           _id: null,
@@ -582,7 +588,7 @@ exports.generateBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const fitness = await Fitness.findById(id).populate('bill')
+    const fitness = await Fitness.findOne({ _id: id, userId: req.user.id }).populate('bill')
     if (!fitness) {
       return res.status(404).json({
         success: false,
@@ -611,7 +617,8 @@ exports.generateBillPDF = async (req, res) => {
             amount: fitness.totalFee
           }
         ],
-        totalAmount: fitness.totalFee
+        totalAmount: fitness.totalFee,
+        userId: req.user.id
       })
       await customBill.save()
 
@@ -648,7 +655,7 @@ exports.downloadBillPDF = async (req, res) => {
   try {
     const { id } = req.params
 
-    const fitness = await Fitness.findById(id).populate('bill')
+    const fitness = await Fitness.findOne({ _id: id, userId: req.user.id }).populate('bill')
     if (!fitness) {
       return res.status(404).json({
         success: false,
@@ -753,7 +760,7 @@ exports.renewFitness = async (req, res) => {
     }
 
     // Find and validate old fitness record
-    const oldFitness = await Fitness.findById(oldFitnessId)
+    const oldFitness = await Fitness.findOne({ _id: oldFitnessId, userId: req.user.id })
     if (!oldFitness) {
       return res.status(404).json({
         success: false,
@@ -777,7 +784,8 @@ exports.renewFitness = async (req, res) => {
       paid,
       balance,
       status,
-      isRenewed: false  // New fitness is not renewed yet
+      isRenewed: false,  // New fitness is not renewed yet
+      userId: req.user.id
     })
 
     await newFitness.save()
@@ -800,7 +808,8 @@ exports.renewFitness = async (req, res) => {
           amount: newFitness.totalFee
         }
       ],
-      totalAmount: newFitness.totalFee
+      totalAmount: newFitness.totalFee,
+      userId: req.user.id
     })
     await customBill.save()
 

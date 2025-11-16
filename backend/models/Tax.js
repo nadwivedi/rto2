@@ -1,10 +1,15 @@
 const mongoose = require('mongoose')
 
 const taxSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
   receiptNo: {
     type: String,
     required: true,
-    unique: true,
     trim: true,
     uppercase: true
   },

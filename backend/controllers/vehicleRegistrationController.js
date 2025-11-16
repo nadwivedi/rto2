@@ -5,7 +5,8 @@ const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 exports.getAllRegistrations = async (req, res) => {
   try {
     const { search, status, page = 1, limit = 20 } = req.query
-    let query = {}
+    // Filter by logged-in user
+    let query = { userId: req.user.id }
 
     if (search) {
       query.$or = [
@@ -62,8 +63,8 @@ exports.getAllRegistrations = async (req, res) => {
 // Export all vehicle registrations without pagination
 exports.exportAllRegistrations = async (req, res) => {
   try {
-    // Get all registrations without pagination
-    const registrations = await VehicleRegistration.find({})
+    // Get all registrations without pagination (only user's own data)
+    const registrations = await VehicleRegistration.find({ userId: req.user.id })
       .sort({ createdAt: -1 })
 
     res.json({
@@ -87,7 +88,10 @@ exports.exportAllRegistrations = async (req, res) => {
 // Get single vehicle registration by ID
 exports.getRegistrationById = async (req, res) => {
   try {
-    const registration = await VehicleRegistration.findById(req.params.id)
+    const registration = await VehicleRegistration.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    })
 
     if (!registration) {
       return res.status(404).json({
@@ -117,7 +121,8 @@ exports.getRegistrationById = async (req, res) => {
 exports.getRegistrationByNumber = async (req, res) => {
   try {
     const registration = await VehicleRegistration.findOne({
-      registrationNumber: req.params.registrationNumber.toUpperCase()
+      registrationNumber: req.params.registrationNumber.toUpperCase(),
+      userId: req.user.id
     })
 
     if (!registration) {
@@ -186,8 +191,9 @@ exports.createRegistration = async (req, res) => {
       })
     }
 
-    // Create vehicle registration
+    // Create vehicle registration with userId
     const registration = await VehicleRegistration.create({
+      userId: req.user.id,
       registrationNumber,
       dateOfRegistration,
       chassisNumber,
@@ -256,7 +262,10 @@ exports.updateRegistration = async (req, res) => {
       saleAmount
     } = req.body
 
-    const registration = await VehicleRegistration.findById(req.params.id)
+    const registration = await VehicleRegistration.findOne({
+      _id: req.params.id,
+      userId: req.user.id
+    })
 
     if (!registration) {
       return res.status(404).json({
@@ -311,7 +320,10 @@ exports.updateRegistration = async (req, res) => {
 // Delete vehicle registration
 exports.deleteRegistration = async (req, res) => {
   try {
-    const registration = await VehicleRegistration.findByIdAndDelete(req.params.id)
+    const registration = await VehicleRegistration.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.id
+    })
 
     if (!registration) {
       return res.status(404).json({
@@ -342,8 +354,8 @@ exports.updateRegistrationStatus = async (req, res) => {
   try {
     const { status } = req.body
 
-    const registration = await VehicleRegistration.findByIdAndUpdate(
-      req.params.id,
+    const registration = await VehicleRegistration.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
       { status },
       { new: true, runValidators: true }
     )
@@ -406,7 +418,7 @@ exports.getStatistics = async (req, res) => {
 // Share registration via WhatsApp
 exports.shareRegistration = async (req, res) => {
   try {
-    const registration = await VehicleRegistration.findById(req.params.id)
+    const registration = await VehicleRegistration.findOne({ _id: req.params.id, userId: req.user.id })
 
     if (!registration) {
       return res.status(404).json({

@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken')
 const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 
-const authMiddleware = (req, res, next) => {
+const adminAuthMiddleware = (req, res, next) => {
   try {
-    // Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '')
+    // Get token from cookie
+    const token = req.cookies.adminAuthToken
 
     if (!token) {
       return res.status(401).json({
@@ -21,6 +21,17 @@ const authMiddleware = (req, res, next) => {
       token,
       process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
     )
+
+    // Check if token is for an admin (not regular user)
+    if (decoded.type !== 'admin') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token type',
+        errors: ['Invalid token type'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
 
     // Add admin info to request
     req.admin = decoded
@@ -59,4 +70,4 @@ const authMiddleware = (req, res, next) => {
   }
 }
 
-module.exports = authMiddleware
+module.exports = adminAuthMiddleware

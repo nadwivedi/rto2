@@ -167,9 +167,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
       let response
       if (editData) {
-        response = await axios.put(`${API_URL}/api/vehicle-registrations/${editData._id}`, submitData)
+        response = await axios.put(`${API_URL}/api/vehicle-registrations/${editData._id}`, submitData, { withCredentials: true })
       } else {
-        response = await axios.post(`${API_URL}/api/vehicle-registrations`, submitData)
+        response = await axios.post(`${API_URL}/api/vehicle-registrations`, submitData, { withCredentials: true })
       }
 
       if (response.data.success) {

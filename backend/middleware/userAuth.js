@@ -3,8 +3,8 @@ const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../u
 
 const userAuthMiddleware = (req, res, next) => {
   try {
-    // Get token from header
-    const token = req.header('Authorization')?.replace('Bearer ', '')
+    // Get token from cookie
+    const token = req.cookies.authToken
 
     if (!token) {
       return res.status(401).json({

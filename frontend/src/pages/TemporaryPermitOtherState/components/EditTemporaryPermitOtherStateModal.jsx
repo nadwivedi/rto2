@@ -196,7 +196,7 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
         validTo: formatDateForBackend(formData.validTo)
       }
 
-      const response = await axios.put(`${API_URL}/api/temporary-permits-other-state/${permit._id}`, dataToSend)
+      const response = await axios.put(`${API_URL}/api/temporary-permits-other-state/${permit._id}`, dataToSend, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('Temporary permit (other state) updated successfully!')

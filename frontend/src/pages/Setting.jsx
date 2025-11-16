@@ -64,7 +64,7 @@ const Setting = () => {
       // Fetch data from all collections
       for (const collection of collections) {
         try {
-          const response = await axios.get(`${API_URL}${collection.endpoint}`)
+          const response = await axios.get(`${API_URL}${collection.endpoint}`, { withCredentials: true })
           const data = response.data.data || response.data || []
 
           if (data.length === 0) {
@@ -126,7 +126,7 @@ const Setting = () => {
       // Fetch data from all collections
       for (const collection of collections) {
         try {
-          const response = await axios.get(`${API_URL}${collection.endpoint}`)
+          const response = await axios.get(`${API_URL}${collection.endpoint}`, { withCredentials: true })
           const data = response.data.data || response.data || []
 
           if (data.length === 0) {
