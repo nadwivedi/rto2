@@ -388,10 +388,11 @@ exports.updateRegistrationStatus = async (req, res) => {
 // Get statistics
 exports.getStatistics = async (req, res) => {
   try {
-    const total = await VehicleRegistration.countDocuments()
-    const active = await VehicleRegistration.countDocuments({ status: 'Active' })
-    const transferred = await VehicleRegistration.countDocuments({ status: 'Transferred' })
-    const cancelled = await VehicleRegistration.countDocuments({ status: 'Cancelled' })
+    // Filter by logged-in user
+    const total = await VehicleRegistration.countDocuments({ userId: req.user.id })
+    const active = await VehicleRegistration.countDocuments({ status: 'Active', userId: req.user.id })
+    const transferred = await VehicleRegistration.countDocuments({ status: 'Transferred', userId: req.user.id })
+    const cancelled = await VehicleRegistration.countDocuments({ status: 'Cancelled', userId: req.user.id })
 
     res.json({
       success: true,
@@ -403,14 +404,9 @@ exports.getStatistics = async (req, res) => {
       }
     })
   } catch (error) {
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
+      message: error.message,
     })
   }
 }

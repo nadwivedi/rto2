@@ -803,8 +803,8 @@ exports.getPartAExpiringSoon = async (req, res) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // Get all active Part A records
-    const allPartA = await NationalPermitPartA.find({ status: 'active' })
+    // Get all active Part A records for the logged-in user
+    const allPartA = await NationalPermitPartA.find({ status: 'active', userId: req.user.id })
 
     // Filter Part A expiring in next 30 days
     const expiringPartA = allPartA.filter(partA => {
@@ -857,8 +857,8 @@ exports.getPartBExpiringSoon = async (req, res) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    // Get all active Part B records
-    const allPartB = await NationalPermitPartB.find({ status: 'active' })
+    // Get all active Part B records for the logged-in user
+    const allPartB = await NationalPermitPartB.find({ status: 'active', userId: req.user.id })
 
     // Filter Part B expiring in next 30 days
     const expiringPartB = allPartB.filter(partB => {
