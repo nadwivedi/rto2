@@ -8,6 +8,8 @@ const Users = () => {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editingUserId, setEditingUserId] = useState(null)
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
@@ -54,31 +56,72 @@ const Users = () => {
     setError('')
     setSuccess('')
 
-    if (!formData.name || !formData.mobile || !formData.password) {
-      setError('Name, mobile, and password are required')
+    // Validation
+    if (!formData.name || !formData.mobile) {
+      setError('Name and mobile are required')
+      return
+    }
+
+    if (!isEditMode && !formData.password) {
+      setError('Password is required for new users')
       return
     }
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/admin/users`, {
-        method: 'POST',
+      const url = isEditMode
+        ? `${BACKEND_URL}/api/admin/users/${editingUserId}`
+        : `${BACKEND_URL}/api/admin/users`
+
+      const method = isEditMode ? 'PUT' : 'POST'
+
+      // Only include password if it's provided
+      const bodyData = { ...formData }
+      if (isEditMode && !formData.password) {
+        delete bodyData.password
+      }
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(bodyData)
       })
       const data = await response.json()
       if (data.success) {
-        setSuccess('User created successfully!')
+        setSuccess(isEditMode ? 'User updated successfully!' : 'User created successfully!')
         setShowModal(false)
+        setIsEditMode(false)
+        setEditingUserId(null)
         setFormData({ name: '', mobile: '', email: '', password: '' })
         fetchUsers()
       } else {
-        setError(data.message || 'Failed to create user')
+        setError(data.message || `Failed to ${isEditMode ? 'update' : 'create'} user`)
       }
     } catch (error) {
-      setError('Failed to create user')
+      setError(`Failed to ${isEditMode ? 'update' : 'create'} user`)
     }
+  }
+
+  const handleEdit = (user) => {
+    setIsEditMode(true)
+    setEditingUserId(user._id)
+    setFormData({
+      name: user.name,
+      mobile: user.mobile,
+      email: user.email || '',
+      password: '' // Don't populate password for security
+    })
+    setShowModal(true)
+    setError('')
+  }
+
+  const handleCloseModal = () => {
+    setShowModal(false)
+    setIsEditMode(false)
+    setEditingUserId(null)
+    setError('')
+    setFormData({ name: '', mobile: '', email: '', password: '' })
   }
 
   const handleDelete = async (id) => {
@@ -106,19 +149,20 @@ const Users = () => {
   return (
     <div>
       {/* Header */}
-      <div className='flex justify-between items-center mb-6'>
+      <div className='flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6'>
         <div>
-          <h1 className='text-3xl font-bold text-gray-800'>Manage Users</h1>
-          <p className='text-gray-600 mt-1'>Create and manage user accounts</p>
+          <h1 className='text-2xl sm:text-3xl font-bold text-gray-800'>Manage Users</h1>
+          <p className='text-sm sm:text-base text-gray-600 mt-1'>Create and manage user accounts</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className='px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold flex items-center gap-2'
+          className='px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap'
         >
           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
           </svg>
-          Create New User
+          <span className='hidden xs:inline'>Create New User</span>
+          <span className='xs:hidden'>New User</span>
         </button>
       </div>
 
@@ -134,7 +178,7 @@ const Users = () => {
         </div>
       )}
 
-      {/* Users Table */}
+      {/* Users Table/Cards */}
       <div className='bg-white rounded-lg shadow'>
         {loading ? (
           <div className='p-8 text-center'>
@@ -146,77 +190,129 @@ const Users = () => {
             No users found. Create your first user!
           </div>
         ) : (
-          <table className='w-full'>
-            <thead className='bg-gray-50 border-b'>
-              <tr>
-                <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Name</th>
-                <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Mobile</th>
-                <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Email</th>
-                <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Status</th>
-                <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Created</th>
-                <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Actions</th>
-              </tr>
-            </thead>
-            <tbody className='divide-y divide-gray-200'>
+          <>
+            {/* Desktop Table View */}
+            <div className='hidden md:block overflow-x-auto'>
+              <table className='w-full'>
+                <thead className='bg-gray-50 border-b'>
+                  <tr>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Name</th>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Mobile</th>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Email</th>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Status</th>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Created</th>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className='divide-y divide-gray-200'>
+                  {users.map((user) => (
+                    <tr key={user._id} className='hover:bg-gray-50'>
+                      <td className='px-6 py-4 text-sm font-medium text-gray-900'>{user.name}</td>
+                      <td className='px-6 py-4 text-sm text-gray-700'>{user.mobile}</td>
+                      <td className='px-6 py-4 text-sm text-gray-700'>{user.email || '-'}</td>
+                      <td className='px-6 py-4 text-sm'>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {user.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                      </td>
+                      <td className='px-6 py-4 text-sm text-gray-700'>
+                        {new Date(user.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className='px-6 py-4 text-sm'>
+                        <div className='flex gap-3'>
+                          <button
+                            onClick={() => handleEdit(user)}
+                            className='text-indigo-600 hover:text-indigo-800 font-semibold'
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(user._id)}
+                            className='text-red-600 hover:text-red-800 font-semibold'
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className='md:hidden divide-y divide-gray-200'>
               {users.map((user) => (
-                <tr key={user._id} className='hover:bg-gray-50'>
-                  <td className='px-6 py-4 text-sm font-medium text-gray-900'>{user.name}</td>
-                  <td className='px-6 py-4 text-sm text-gray-700'>{user.mobile}</td>
-                  <td className='px-6 py-4 text-sm text-gray-700'>{user.email || '-'}</td>
-                  <td className='px-6 py-4 text-sm'>
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                <div key={user._id} className='p-4 hover:bg-gray-50'>
+                  <div className='flex justify-between items-start mb-3'>
+                    <div className='flex-1'>
+                      <h3 className='font-semibold text-gray-900 text-base'>{user.name}</h3>
+                      <p className='text-sm text-gray-600 mt-1'>{user.mobile}</p>
+                      {user.email && (
+                        <p className='text-sm text-gray-600 mt-0.5'>{user.email}</p>
+                      )}
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                       user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {user.isActive ? 'Active' : 'Inactive'}
                     </span>
-                  </td>
-                  <td className='px-6 py-4 text-sm text-gray-700'>
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className='px-6 py-4 text-sm'>
-                    <button
-                      onClick={() => handleDelete(user._id)}
-                      className='text-red-600 hover:text-red-800 font-semibold'
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
+                  </div>
+                  <div className='flex justify-between items-center pt-2 border-t border-gray-100'>
+                    <span className='text-xs text-gray-500'>
+                      Created: {new Date(user.createdAt).toLocaleDateString()}
+                    </span>
+                    <div className='flex gap-2'>
+                      <button
+                        onClick={() => handleEdit(user)}
+                        className='text-indigo-600 hover:text-indigo-800 font-semibold text-sm px-3 py-1.5 rounded hover:bg-indigo-50 transition-colors'
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(user._id)}
+                        className='text-red-600 hover:text-red-800 font-semibold text-sm px-3 py-1.5 rounded hover:bg-red-50 transition-colors'
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </>
         )}
       </div>
 
       {/* Create User Modal */}
       {showModal && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50'>
-          <div className='bg-white rounded-lg shadow-xl max-w-md w-full p-6'>
-            <div className='flex justify-between items-center mb-4'>
-              <h2 className='text-xl font-bold text-gray-800'>Create New User</h2>
+        <div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto'>
+          <div className='bg-white rounded-lg shadow-xl max-w-md w-full p-4 sm:p-6 my-8'>
+            <div className='flex justify-between items-center mb-3 sm:mb-4'>
+              <h2 className='text-lg sm:text-xl font-bold text-gray-800'>
+                {isEditMode ? 'Edit User' : 'Create New User'}
+              </h2>
               <button
-                onClick={() => {
-                  setShowModal(false)
-                  setError('')
-                  setFormData({ name: '', mobile: '', email: '', password: '' })
-                }}
-                className='text-gray-500 hover:text-gray-700'
+                onClick={handleCloseModal}
+                className='text-gray-500 hover:text-gray-700 p-1'
               >
-                <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <svg className='w-5 h-5 sm:w-6 sm:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                 </svg>
               </button>
             </div>
 
             {error && (
-              <div className='mb-4 p-3 bg-red-50 border border-red-200 rounded text-sm text-red-800'>
+              <div className='mb-3 sm:mb-4 p-2.5 sm:p-3 bg-red-50 border border-red-200 rounded text-xs sm:text-sm text-red-800'>
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className='space-y-4'>
+            <form onSubmit={handleSubmit} className='space-y-3 sm:space-y-4'>
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
                   Name <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -225,13 +321,13 @@ const Users = () => {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder='Enter full name'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   required
                 />
               </div>
 
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
                   Mobile Number <span className='text-red-500'>*</span>
                 </label>
                 <input
@@ -241,13 +337,13 @@ const Users = () => {
                   onChange={handleChange}
                   placeholder='10-digit mobile number'
                   maxLength={10}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   required
                 />
               </div>
 
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
                   Email <span className='text-gray-400'>(Optional)</span>
                 </label>
                 <input
@@ -256,43 +352,39 @@ const Users = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder='email@example.com'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                 />
               </div>
 
               <div>
-                <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                  Password <span className='text-red-500'>*</span>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
+                  Password {isEditMode ? <span className='text-gray-400'>(Leave blank to keep unchanged)</span> : <span className='text-red-500'>*</span>}
                 </label>
                 <input
                   type='password'
                   name='password'
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder='Minimum 4 characters'
-                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                  required
+                  placeholder={isEditMode ? 'Leave blank to keep current password' : 'Minimum 4 characters'}
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                  required={!isEditMode}
                   minLength={4}
                 />
               </div>
 
-              <div className='flex gap-3 mt-6'>
+              <div className='flex gap-2 sm:gap-3 mt-4 sm:mt-6'>
                 <button
                   type='button'
-                  onClick={() => {
-                    setShowModal(false)
-                    setError('')
-                    setFormData({ name: '', mobile: '', email: '', password: '' })
-                  }}
-                  className='flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50'
+                  onClick={handleCloseModal}
+                  className='flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50'
                 >
                   Cancel
                 </button>
                 <button
                   type='submit'
-                  className='flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold'
+                  className='flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold'
                 >
-                  Create User
+                  {isEditMode ? 'Update User' : 'Create User'}
                 </button>
               </div>
             </form>

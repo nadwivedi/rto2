@@ -14,6 +14,9 @@ exports.createCustomBill = async (req, res) => {
       })
     }
 
+    // Generate bill number first (to ensure uniqueness per user)
+    const billNumber = await generateCustomBillNumber(CustomBill, req.user.id)
+
     // Create custom bill object
     const customBill = new CustomBill({
       customerName,
@@ -21,11 +24,9 @@ exports.createCustomBill = async (req, res) => {
       items,
       totalAmount,
       notes,
+      billNumber,
       userId: req.user.id
     })
-
-    // Generate bill number
-    customBill.billNumber = await generateCustomBillNumber(CustomBill)
 
     // Generate PDF
     const pdfPath = await generateCustomBillPDF(customBill)
@@ -253,7 +254,7 @@ exports.downloadCustomBillPDF = async (req, res) => {
     }
 
     // Send file
-    res.download(filePath, `${customBill.billNumber}.pdf`, (err) => {
+    res.download(filePath, `BILL-${String(customBill.billNumber).padStart(2, '0')}.pdf`, (err) => {
       if (err) {
         console.error('Error downloading file:', err)
         res.status(500).json({

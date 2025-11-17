@@ -44,7 +44,7 @@ async function generateCustomBillPDF(customBill) {
       fs.mkdirSync(uploadsDir, { recursive: true })
     }
 
-    const filename = `${customBill.billNumber || 'CUSTOM-BILL-' + Date.now()}.pdf`
+    const filename = `BILL-${String(customBill.billNumber).padStart(2, '0')}-${Date.now()}.pdf`
     const filepath = path.join(uploadsDir, filename)
 
     return new Promise((resolve, reject) => {
@@ -155,7 +155,7 @@ async function generateCustomBillPDF(customBill) {
 
       doc.fontSize(18)
         .fillColor('#c0392b')
-        .text(customBill.billNumber || 'PENDING', leftMargin + 30, yPos - 2)
+        .text(String(customBill.billNumber).padStart(2, '0'), leftMargin + 30, yPos - 2)
 
       doc.fontSize(11)
         .fillColor('#000000')
@@ -399,32 +399,28 @@ async function generateCustomBillPDF(customBill) {
 }
 
 /**
- * Generate unique custom bill number
- * Format: Simple sequential numbers (01, 02, 03, etc.)
- * Uses latest bill number approach - finds highest existing bill number and increments it
+ * Generate unique custom bill number per user
+ * Format: Simple sequential numbers (1, 2, 3, etc.)
+ * Each user has their own sequence starting from 1
  */
-async function generateCustomBillNumber(CustomBill) {
+async function generateCustomBillNumber(CustomBill, userId) {
   try {
-    // Find the bill with the highest bill number
+    // Find the bill with the highest bill number for this specific user
     // Sort by billNumber in descending order to get the latest one
-    const lastBill = await CustomBill.findOne()
+    const lastBill = await CustomBill.findOne({ userId })
       .sort({ billNumber: -1 })
       .select('billNumber')
       .lean()
 
-    // If no bills exist, start from 01
+    // If no bills exist for this user, start from 1
     if (!lastBill || !lastBill.billNumber) {
-      return '01'
+      return 1
     }
 
-    // Parse the last bill number and increment it
-    const lastBillNumber = parseInt(lastBill.billNumber, 10)
-    const nextBillNumber = lastBillNumber + 1
+    // Increment the last bill number for this user
+    const nextBillNumber = lastBill.billNumber + 1
 
-    // Generate simple sequential bill number with padding
-    const billNumber = String(nextBillNumber).padStart(2, '0')
-
-    return billNumber
+    return nextBillNumber
   } catch (error) {
     console.error('Error generating custom bill number:', error)
     throw error

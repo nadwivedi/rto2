@@ -9,8 +9,8 @@ const customBillSchema = new mongoose.Schema(
       index: true
     },
     billNumber: {
-      type: String,
-      sparse: true
+      type: Number,
+      required: true
     },
     billPdfPath: {
       type: String
@@ -56,7 +56,8 @@ const customBillSchema = new mongoose.Schema(
   }
 )
 
-customBillSchema.index({ billNumber: 1 })
+// Compound unique index to ensure billNumber is unique per user
+customBillSchema.index({ userId: 1, billNumber: 1 }, { unique: true })
 customBillSchema.index({ customerName: 1 })
 customBillSchema.index({ createdAt: -1 })
 

@@ -159,6 +159,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       })
 

@@ -42,7 +42,9 @@ const VehicleTransfer = () => {
   const fetchTransfers = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
-      const response = await fetch(`${API_URL}/api/vehicle-transfers?page=${page}&limit=${pagination.limit}&search=${searchTerm}`)
+      const response = await fetch(`${API_URL}/api/vehicle-transfers?page=${page}&limit=${pagination.limit}&search=${searchTerm}`, {
+        credentials: 'include'
+      })
       const data = await response.json()
 
       if (data.success) {
@@ -65,12 +67,16 @@ const VehicleTransfer = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/vehicle-transfers/statistics`)
+      const response = await fetch(`${API_URL}/api/vehicle-transfers/statistics`, {
+        credentials: 'include'
+      })
       const data = await response.json()
 
       if (data.success) {
         // Calculate pending payment amount
-        const transfersResponse = await fetch(`${API_URL}/api/vehicle-transfers`)
+        const transfersResponse = await fetch(`${API_URL}/api/vehicle-transfers`, {
+          credentials: 'include'
+        })
         const transfersData = await transfersResponse.json()
 
         let pendingAmount = 0
@@ -127,7 +133,8 @@ const VehicleTransfer = () => {
 
     try {
       const response = await fetch(`${API_URL}/api/vehicle-transfers/${id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include'
       })
 
       const data = await response.json()
