@@ -100,6 +100,7 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           billDate,
           customerName: customerName.trim(),

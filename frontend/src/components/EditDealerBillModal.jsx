@@ -119,6 +119,7 @@ const EditDealerBillModal = ({ isOpen, onClose, onSuccess, billData }) => {
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           billDate,
           customerName: customerName.trim(),
