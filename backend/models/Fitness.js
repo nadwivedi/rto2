@@ -46,11 +46,6 @@ const fitnessSchema = new mongoose.Schema({
   isRenewed: {
     type: Boolean,
     default: false
-  },
-
-  bill: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'CustomBill'
   }
 }, {
   timestamps: true

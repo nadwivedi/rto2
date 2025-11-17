@@ -20,8 +20,6 @@ router.get('/expired', temporaryPermitController.getExpiredPermits)
 // GET pending payment permits
 router.get('/pending', temporaryPermitController.getPendingPermits)
 
-// POST share permit via WhatsApp (must be before /:id route)
-router.post('/:id/share', temporaryPermitController.sharePermit)
 
 // GET single temporary permit by ID
 router.get('/:id', temporaryPermitController.getPermitById)
@@ -41,10 +39,5 @@ router.put('/:id', temporaryPermitController.updatePermit)
 // DELETE temporary permit
 router.delete('/:id', temporaryPermitController.deletePermit)
 
-// POST generate bill PDF
-router.post('/:id/generate-bill-pdf', temporaryPermitController.generateBillPDF)
-
-// GET download bill PDF
-router.get('/:id/download-bill-pdf', temporaryPermitController.downloadBillPDF)
 
 module.exports = router

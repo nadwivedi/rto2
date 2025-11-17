@@ -93,12 +93,6 @@ const TemporaryPermitSchema = new mongoose.Schema({
     required: true,
   },
 
-  // Bill Reference
-  bill: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'CustomBill'
-  },
-
   // Status (managed by cron job)
   status: {
     type: String,

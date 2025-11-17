@@ -1,9 +1,5 @@
 const NationalPermitPartA = require('../models/NationalPermitPartA')
 const NationalPermitPartB = require('../models/NationalPermitPartB')
-const CustomBill = require('../models/CustomBill')
-const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
-const path = require('path')
-const fs = require('fs')
 
 // Helper function to parse date from string (DD-MM-YYYY or DD/MM/YYYY format)
 function parsePermitDate(dateString) {
@@ -113,30 +109,7 @@ exports.createPermit = async (req, res) => {
       })
     }
 
-    // Create CustomBill document (one combined bill for Part A + Part B)
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: permitHolder,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `National Permit (Part A + Part B)\nPermit No: ${permitNumber}\nPart B No: ${partBNumber}\nVehicle No: ${vehicleNumber}\nPart A Valid: ${partAValidFrom} to ${partAValidTo}\nPart B Valid: ${partBValidFrom} to ${partBValidTo}`,
-          quantity: 1,
-          rate: totalFee,
-          amount: totalFee
-        }
-      ],
-      totalAmount: totalFee,
-      userId: req.user.id
-    })
-    await customBill.save()
-
-    // Create Part A with bill reference
+    // Create Part A
     const newPartA = new NationalPermitPartA({
       vehicleNumber,
       permitNumber,
@@ -150,7 +123,6 @@ exports.createPermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      bill: customBill._id,
       documents: {
         partAImage: partAImage || ''
       },
@@ -159,7 +131,7 @@ exports.createPermit = async (req, res) => {
     })
     await newPartA.save()
 
-    // Create Part B WITHOUT bill reference (created with Part A)
+    // Create Part B
     const newPartB = new NationalPermitPartB({
       vehicleNumber,
       permitNumber,
@@ -171,31 +143,15 @@ exports.createPermit = async (req, res) => {
         partBImage: partBImage || ''
       },
       userId: req.user.id
-      // No totalFee, paid, balance, bill - created with Part A
     })
     await newPartB.save()
 
-    // Fire PDF generation in background (don't wait for it)
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Bill PDF generated successfully for permit:', permitNumber)
-      })
-      .catch(pdfError => {
-        console.error('Error generating PDF (non-critical):', pdfError)
-      })
-
-    // Send response immediately without waiting for PDF
     res.status(201).json({
       success: true,
-      message: 'National permit created successfully. Bill is being generated in background.',
+      message: 'National permit created successfully',
       data: {
         partA: newPartA,
-        partB: newPartB,
-        bill: customBill
+        partB: newPartB
       }
     })
   } catch (error) {
@@ -250,7 +206,6 @@ exports.getAllPermits = async (req, res) => {
 
     // Execute query to get all Part A records
     let partARecords = await NationalPermitPartA.find(query)
-      .populate('bill')
       .sort(sortOptions)
 
     // Apply date filtering if specified
@@ -288,7 +243,6 @@ exports.getAllPermits = async (req, res) => {
           status: 'active'
         })
         .sort({ createdAt: -1 })
-        .populate('bill')
 
         return {
           _id: partA._id,
@@ -344,7 +298,6 @@ exports.exportAllPermits = async (req, res) => {
           status: 'active'
         })
         .sort({ createdAt: -1 })
-        .populate('bill')
 
         return {
           _id: partA._id,
@@ -550,18 +503,11 @@ exports.renewPartA = async (req, res) => {
       status: 'active'
     }).sort({ createdAt: -1 })
 
-    let customBill
-    let actualTotalFee = totalFee
-    let billDescription = ''
     let newPartB = null
 
-    if (activePartB) {
-      // Scenario 1: Active Part B exists - Only renew Part A with its own bill
-      console.log('Active Part B exists, creating Part A only with bill')
-      billDescription = `Part A Renewal (5 Years)\nPermit No: ${permitNumber}\nVehicle No: ${vehicleNumber}\nValid From: ${validFrom}\nValid To: ${validTo}`
-    } else {
-      // Scenario 2: No active Part B - Create Part A + Part B with combined bill (stored in Part A only)
-      console.log('No active Part B, creating Part A + Part B with combined bill')
+    if (!activePartB) {
+      // Scenario 2: No active Part B - Create Part A + Part B together
+      console.log('No active Part B, creating Part A + Part B')
 
       if (!partBNumber || !partBValidFrom || !partBValidTo) {
         return res.status(400).json({
@@ -569,33 +515,9 @@ exports.renewPartA = async (req, res) => {
           message: 'Part B details (partBNumber, partBValidFrom, partBValidTo) are required when no active Part B exists'
         })
       }
-
-      billDescription = `National Permit Renewal (Part A + Part B)\nPermit No: ${permitNumber}\nPart B No: ${partBNumber}\nVehicle No: ${vehicleNumber}\nPart A Valid: ${validFrom} to ${validTo}\nPart B Valid: ${partBValidFrom} to ${partBValidTo}`
     }
 
-    // Create CustomBill (always for Part A, and includes Part B if created together)
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    customBill = new CustomBill({
-      billNumber,
-      customerName: originalPartA.permitHolder,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: billDescription,
-          quantity: 1,
-          rate: actualTotalFee,
-          amount: actualTotalFee
-        }
-      ],
-      totalAmount: actualTotalFee
-    })
-    await customBill.save()
-
-    // Create new Part A (always has bill reference)
+    // Create new Part A
     const newPartA = new NationalPermitPartA({
       vehicleNumber,
       permitNumber,
@@ -606,10 +528,9 @@ exports.renewPartA = async (req, res) => {
       email: originalPartA.email,
       validFrom,
       validTo,
-      totalFee: actualTotalFee,
+      totalFee,
       paid,
       balance,
-      bill: customBill._id,
       status: 'active',
       notes: notes || 'Part A renewal'
     })
@@ -631,33 +552,18 @@ exports.renewPartA = async (req, res) => {
         validFrom: partBValidFrom,
         validTo: partBValidTo,
         status: 'active'
-        // No totalFee, paid, balance, bill - created with Part A, bill is in Part A only
       })
       await newPartB.save()
     }
-
-    // Generate PDF in background
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Part A renewal PDF generated successfully')
-      })
-      .catch(pdfError => {
-        console.error('Error generating Part A renewal PDF (non-critical):', pdfError)
-      })
 
     res.status(200).json({
       success: true,
       message: activePartB
         ? 'Part A renewed successfully. Active Part B continues.'
-        : 'Part A renewed successfully with new Part B. Bill is being generated in background.',
+        : 'Part A renewed successfully with new Part B',
       data: {
         partA: newPartA,
         partB: newPartB || activePartB,
-        bill: customBill,
         usedExistingPartB: !!activePartB
       }
     })
@@ -725,29 +631,7 @@ exports.renewPartB = async (req, res) => {
       { status: 'expired' }
     )
 
-    // Create CustomBill for Part B renewal
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: originalPartA.permitHolder,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `Part B Renewal\nPermit No: ${permitNumber}\nPart B No: ${partBNumber}\nVehicle No: ${vehicleNumber}\nValid From: ${validFrom}\nValid To: ${validTo}`,
-          quantity: 1,
-          rate: totalFee,
-          amount: totalFee
-        }
-      ],
-      totalAmount: totalFee
-    })
-    await customBill.save()
-
-    // Create new Part B with bill
+    // Create new Part B
     const newPartB = new NationalPermitPartB({
       vehicleNumber,
       permitNumber,
@@ -758,31 +642,16 @@ exports.renewPartB = async (req, res) => {
       totalFee,
       paid,
       balance,
-      bill: customBill._id,
       status: 'active',
       notes: notes || 'Part B renewal'
     })
     await newPartB.save()
 
-    // Generate PDF in background
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Part B renewal PDF generated successfully')
-      })
-      .catch(pdfError => {
-        console.error('Error generating Part B renewal PDF (non-critical):', pdfError)
-      })
-
     res.status(200).json({
       success: true,
-      message: 'Part B renewed successfully. Bill is being generated in background.',
+      message: 'Part B renewed successfully',
       data: {
-        partB: newPartB,
-        bill: customBill
+        partB: newPartB
       }
     })
   } catch (error) {
@@ -1035,211 +904,6 @@ exports.updatePermit = async (req, res) => {
     res.status(400).json({
       success: false,
       message: 'Failed to update permit',
-      error: error.message
-    })
-  }
-}
-
-// Generate bill PDF
-exports.generateBillPDF = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id }).populate('bill')
-
-    if (!partA) {
-      return res.status(404).json({
-        success: false,
-        message: 'Permit not found'
-      })
-    }
-
-    if (!partA.bill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill not found for this permit'
-      })
-    }
-
-    // Generate PDF
-    const pdfPath = await generateCustomBillPDF(partA.bill)
-    partA.bill.billPdfPath = pdfPath
-    await partA.bill.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Bill PDF generated successfully',
-      data: {
-        billPdfPath: pdfPath
-      }
-    })
-  } catch (error) {
-    console.error('Error generating bill PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate bill PDF',
-      error: error.message
-    })
-  }
-}
-
-// Download bill PDF
-exports.downloadBillPDF = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id }).populate('bill')
-
-    if (!partA) {
-      return res.status(404).json({
-        success: false,
-        message: 'Permit not found'
-      })
-    }
-
-    if (!partA.bill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill not found'
-      })
-    }
-
-    if (!partA.bill.billPdfPath) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF not found. Please generate it first.'
-      })
-    }
-
-    const pdfPath = path.join(__dirname, '..', partA.bill.billPdfPath)
-
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF file not found on server'
-      })
-    }
-
-    const fileName = `${partA.bill.billNumber}_${partA.permitNumber}.pdf`
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
-
-    res.sendFile(pdfPath)
-  } catch (error) {
-    console.error('Error downloading bill PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to download bill PDF',
-      error: error.message
-    })
-  }
-}
-
-// Download Part A renewal bill PDF
-exports.downloadPartARenewalPDF = async (req, res) => {
-  try {
-    const { id, renewalId } = req.params
-
-    const partA = await NationalPermitPartA.findOne({ _id: renewalId, userId: req.user.id }).populate('bill')
-
-    if (!partA) {
-      return res.status(404).json({
-        success: false,
-        message: 'Renewal record not found'
-      })
-    }
-
-    if (!partA.bill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill not found'
-      })
-    }
-
-    if (!partA.bill.billPdfPath) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF not found. Please generate it first.'
-      })
-    }
-
-    const pdfPath = path.join(__dirname, '..', partA.bill.billPdfPath)
-
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF file not found on server'
-      })
-    }
-
-    const fileName = `${partA.bill.billNumber}_PartA_Renewal.pdf`
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
-
-    res.sendFile(pdfPath)
-  } catch (error) {
-    console.error('Error downloading Part A renewal PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to download Part A renewal PDF',
-      error: error.message
-    })
-  }
-}
-
-// Download Part B renewal bill PDF
-exports.downloadPartBRenewalPDF = async (req, res) => {
-  try {
-    const { id, renewalId } = req.params
-
-    const partB = await NationalPermitPartB.findOne({ _id: renewalId, userId: req.user.id }).populate('bill')
-
-    if (!partB) {
-      return res.status(404).json({
-        success: false,
-        message: 'Renewal record not found'
-      })
-    }
-
-    if (!partB.bill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill not found'
-      })
-    }
-
-    if (!partB.bill.billPdfPath) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF not found. Please generate it first.'
-      })
-    }
-
-    const pdfPath = path.join(__dirname, '..', partB.bill.billPdfPath)
-
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF file not found on server'
-      })
-    }
-
-    const fileName = `${partB.bill.billNumber}_PartB_Renewal.pdf`
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
-
-    res.sendFile(pdfPath)
-  } catch (error) {
-    console.error('Error downloading Part B renewal PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to download Part B renewal PDF',
       error: error.message
     })
   }

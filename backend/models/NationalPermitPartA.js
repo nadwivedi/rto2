@@ -69,12 +69,6 @@ const NationalPermitPartASchema = new mongoose.Schema({
     required: true
   },
 
-  // Bill Reference (Optional for now)
-  bill: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'CustomBill'
-  },
-
   // Status (managed by cron job)
   status: {
     type: String,

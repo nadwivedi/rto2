@@ -20,8 +20,6 @@ router.get('/expired', cgPermitController.getExpiredPermits)
 // GET pending payment permits
 router.get('/pending', cgPermitController.getPendingPermits)
 
-// POST share permit via WhatsApp (must be before /:id route)
-router.post('/:id/share', cgPermitController.sharePermit)
 
 // GET single CG permit by ID
 router.get('/:id', cgPermitController.getPermitById)
@@ -41,10 +39,5 @@ router.put('/:id', cgPermitController.updatePermit)
 // DELETE CG permit
 router.delete('/:id', cgPermitController.deletePermit)
 
-// POST generate bill PDF
-router.post('/:id/generate-bill-pdf', cgPermitController.generateBillPDF)
-
-// GET download bill PDF
-router.get('/:id/download-bill-pdf', cgPermitController.downloadBillPDF)
 
 module.exports = router

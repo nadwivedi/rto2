@@ -1,8 +1,4 @@
 const Tax = require('../models/Tax')
-const CustomBill = require('../models/CustomBill')
-const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
-const path = require('path')
-const fs = require('fs')
 
 // helper function to calculate status
 const getTaxStatus = (taxTo) => {
@@ -155,7 +151,7 @@ exports.createTax = async (req, res) => {
     // Calculate status
     const status = getTaxStatus(taxTo);
 
-    // Create new tax record without bill reference first
+    // Create new tax record
     const tax = new Tax({
       receiptNo,
       vehicleNumber,
@@ -171,51 +167,9 @@ exports.createTax = async (req, res) => {
 
     await tax.save()
 
-    // Create CustomBill document
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: `Vehicle: ${tax.vehicleNumber}`,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `Tax Payment\nReceipt No: ${tax.receiptNo}\nVehicle No: ${tax.vehicleNumber}\nTax Period: ${tax.taxFrom} to ${tax.taxTo}`,
-          quantity: 1,
-          rate: tax.totalAmount,
-          amount: tax.totalAmount
-        }
-      ],
-      totalAmount: tax.totalAmount,
-      userId: req.user.id
-    })
-    await customBill.save()
-
-    // Update tax with bill reference
-    tax.bill = customBill._id
-    await tax.save()
-
-    // Fire PDF generation in background (don't wait for it)
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Bill PDF generated successfully for tax:', tax.receiptNo)
-      })
-      .catch(pdfError => {
-        console.error('Error generating PDF (non-critical):', pdfError)
-        // Don't fail the tax creation if PDF generation fails
-      })
-
-    // Send response immediately without waiting for PDF
     res.status(201).json({
       success: true,
-      message: 'Tax record created successfully. Bill is being generated in background.',
+      message: 'Tax record created successfully',
       data: tax
     })
   } catch (error) {
@@ -383,131 +337,6 @@ exports.getTaxStatistics = async (req, res) => {
   }
 }
 
-// Generate or regenerate bill PDF for a tax record
-exports.generateBillPDF = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const tax = await Tax.findOne({ _id: id, userId: req.user.id }).populate('bill')
-    if (!tax) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tax record not found'
-      })
-    }
-
-    let customBill = tax.bill
-
-    // If bill doesn't exist, create it
-    if (!customBill) {
-      const billNumber = await generateCustomBillNumber(CustomBill)
-      customBill = new CustomBill({
-        billNumber,
-        customerName: `Vehicle: ${tax.vehicleNumber}`,
-        billDate: new Date().toLocaleDateString('en-IN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }),
-        items: [
-          {
-            description: `Tax Payment\nReceipt No: ${tax.receiptNo}\nVehicle No: ${tax.vehicleNumber}\nTax Period: ${tax.taxFrom} to ${tax.taxTo}`,
-            quantity: 1,
-            rate: tax.totalAmount || 0,
-            amount: tax.totalAmount || 0
-          }
-        ],
-        totalAmount: tax.totalAmount || 0,
-        userId: req.user.id
-      })
-      await customBill.save()
-
-      tax.bill = customBill._id
-      await tax.save()
-    }
-
-    // Generate or regenerate PDF
-    const pdfPath = await generateCustomBillPDF(customBill)
-    customBill.billPdfPath = pdfPath
-    await customBill.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Bill PDF generated successfully',
-      data: {
-        billNumber: customBill.billNumber,
-        pdfPath: pdfPath,
-        pdfUrl: `${req.protocol}://${req.get('host')}${pdfPath}`
-      }
-    })
-  } catch (error) {
-    console.error('Error generating bill PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate bill PDF',
-      error: error.message
-    })
-  }
-}
-
-// Download bill PDF
-exports.downloadBillPDF = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const tax = await Tax.findOne({ _id: id, userId: req.user.id }).populate('bill')
-    if (!tax) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tax record not found'
-      })
-    }
-
-    // Check if bill exists
-    if (!tax.bill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill not found. Please generate it first.'
-      })
-    }
-
-    // Check if PDF exists
-    if (!tax.bill.billPdfPath) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF not found. Please generate it first.'
-      })
-    }
-
-    // Get absolute path to PDF
-    const pdfPath = path.join(__dirname, '..', tax.bill.billPdfPath)
-
-    // Check if file exists
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF file not found on server'
-      })
-    }
-
-    // Set headers for download
-    const fileName = `${tax.bill.billNumber}_${tax.vehicleNumber}.pdf`
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
-
-    // Send file
-    res.sendFile(pdfPath)
-  } catch (error) {
-    console.error('Error downloading bill PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to download bill PDF',
-      error: error.message
-    })
-  }
-}
 // Get expiring soon tax records
 exports.getExpiringSoonTaxes = async (req, res) => {
   try {
@@ -742,50 +571,10 @@ exports.renewTax = async (req, res) => {
 
     await newTax.save()
 
-    // Create CustomBill for new tax
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: `Vehicle: ${newTax.vehicleNumber}`,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `Tax Payment (Renewal)\nReceipt No: ${newTax.receiptNo}\nVehicle No: ${newTax.vehicleNumber}\nTax Period: ${newTax.taxFrom} to ${newTax.taxTo}`,
-          quantity: 1,
-          rate: newTax.totalAmount,
-          amount: newTax.totalAmount
-        }
-      ],
-      totalAmount: newTax.totalAmount,
-      userId: req.user.id
-    })
-    await customBill.save()
-
-    // Update new tax with bill reference
-    newTax.bill = customBill._id
-    await newTax.save()
-
-    // Fire PDF generation in background
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Bill PDF generated successfully for renewed tax:', newTax.receiptNo)
-      })
-      .catch(pdfError => {
-        console.error('Error generating PDF (non-critical):', pdfError)
-      })
-
     // Return success with both old and new tax records
     res.status(201).json({
       success: true,
-      message: 'Tax renewed successfully. Bill is being generated in background.',
+      message: 'Tax renewed successfully',
       data: {
         oldTax,
         newTax

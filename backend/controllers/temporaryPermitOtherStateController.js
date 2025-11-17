@@ -1,6 +1,4 @@
 const TemporaryPermitOtherState = require('../models/TemporaryPermitOtherState')
-const CustomBill = require('../models/CustomBill')
-const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
 const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 
 // helper function to calculate status
@@ -97,7 +95,7 @@ exports.createPermit = async (req, res) => {
     // Calculate status
     const status = getTemporaryPermitOtherStateStatus(validTo);
 
-    // Create new temporary permit without bill reference first
+    // Create new temporary permit
     const newPermit = new TemporaryPermitOtherState({
       permitNumber,
       permitHolder,
@@ -114,52 +112,9 @@ exports.createPermit = async (req, res) => {
     })
     await newPermit.save()
 
-    // Create CustomBill document if there's payment
-    if (newPermit.totalFee > 0) {
-      const billNumber = await generateCustomBillNumber(CustomBill)
-      const customBill = new CustomBill({
-        billNumber,
-        customerName: newPermit.permitHolder,
-        billDate: new Date().toLocaleDateString('en-IN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }),
-        items: [
-          {
-            description: `Temporary Permit (Other State)\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNo}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}`,
-            quantity: 1,
-            rate: newPermit.totalFee,
-            amount: newPermit.totalFee
-          }
-        ],
-        totalAmount: newPermit.totalFee,
-        userId: req.user.id
-      })
-      await customBill.save()
-
-      // Update permit with bill reference
-      newPermit.bill = customBill._id
-      await newPermit.save()
-
-      // Fire PDF generation in background (don't wait for it)
-      generateCustomBillPDF(customBill)
-        .then(pdfPath => {
-          customBill.billPdfPath = pdfPath
-          return customBill.save()
-        })
-        .then(() => {
-          console.log('Bill PDF generated successfully for temporary permit (other state):', newPermit.permitNumber)
-        })
-        .catch(pdfError => {
-          console.error('Error generating PDF (non-critical):', pdfError)
-        })
-    }
-
-    // Send response immediately without waiting for PDF
     res.status(201).json({
       success: true,
-      message: 'Temporary permit (other state) created successfully.',
+      message: 'Temporary permit (other state) created successfully',
       data: newPermit
     })
   } catch (error) {
@@ -210,7 +165,6 @@ exports.getAllPermits = async (req, res) => {
       .sort({ [sortField]: sortDirection })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit))
-      .populate('bill')
 
     res.json({
       success: true,
@@ -276,7 +230,6 @@ exports.getExpiringSoonPermits = async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('bill')
 
     const total = await TemporaryPermitOtherState.countDocuments(query)
 
@@ -345,7 +298,6 @@ exports.getExpiredPermits = async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('bill')
 
     const total = await TemporaryPermitOtherState.countDocuments(query)
 
@@ -397,7 +349,6 @@ exports.getPendingPermits = async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
-      .populate('bill')
 
     const total = await TemporaryPermitOtherState.countDocuments(query)
 
@@ -701,50 +652,10 @@ exports.renewPermit = async (req, res) => {
 
     await newPermit.save()
 
-    // Create CustomBill for new permit
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: newPermit.permitHolder,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `Temporary Permit - Other State (Renewal)\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNo}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}`,
-          quantity: 1,
-          rate: newPermit.totalFee,
-          amount: newPermit.totalFee
-        }
-      ],
-      totalAmount: newPermit.totalFee,
-      userId: req.user.id
-    })
-    await customBill.save()
-
-    // Update new permit with bill reference
-    newPermit.bill = customBill._id
-    await newPermit.save()
-
-    // Fire PDF generation in background
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Bill PDF generated successfully for renewed permit (other state):', newPermit.permitNumber)
-      })
-      .catch(pdfError => {
-        console.error('Error generating PDF (non-critical):', pdfError)
-      })
-
     // Return success with both old and new permits
     res.status(201).json({
       success: true,
-      message: 'Temporary permit (other state) renewed successfully. Bill is being generated in background.',
+      message: 'Temporary permit (other state) renewed successfully',
       data: {
         oldPermit,
         newPermit

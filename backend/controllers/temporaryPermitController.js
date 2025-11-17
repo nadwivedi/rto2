@@ -1,8 +1,4 @@
 const TemporaryPermit = require('../models/TemporaryPermit')
-const CustomBill = require('../models/CustomBill')
-const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
-const path = require('path')
-const fs = require('fs')
 
 // helper function to calculate status
 const getTemporaryPermitStatus = (validTo) => {
@@ -245,56 +241,13 @@ exports.createPermit = async (req, res) => {
     if (unladenWeight !== undefined && unladenWeight !== null) permitData.unladenWeight = Number(unladenWeight)
     if (notes && notes.trim() !== '') permitData.notes = notes.trim()
 
-    // Create new temporary permit without bill reference first
+    // Create new temporary permit
     const newPermit = new TemporaryPermit(permitData)
     await newPermit.save()
 
-    // Create CustomBill document
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const vehicleTypeFull = newPermit.vehicleType === 'CV' ? 'Commercial Vehicle' : 'Passenger Vehicle'
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: newPermit.permitHolder,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `Temporary Permit (${vehicleTypeFull})\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNumber}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}`,
-          quantity: 1,
-          rate: newPermit.totalFee,
-          amount: newPermit.totalFee
-        }
-      ],
-      totalAmount: newPermit.totalFee,
-      userId: req.user.id
-    })
-    await customBill.save()
-
-    // Update permit with bill reference
-    newPermit.bill = customBill._id
-    await newPermit.save()
-
-    // Fire PDF generation in background (don't wait for it)
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Bill PDF generated successfully for temporary permit:', newPermit.permitNumber)
-      })
-      .catch(pdfError => {
-        console.error('Error generating PDF (non-critical):', pdfError)
-        // Don't fail the permit creation if PDF generation fails
-      })
-
-    // Send response immediately without waiting for PDF
     res.status(201).json({
       success: true,
-      message: 'Temporary permit created successfully. Bill is being generated in background.',
+      message: 'Temporary permit created successfully',
       data: newPermit
     })
   } catch (error) {
@@ -358,7 +311,6 @@ exports.getAllPermits = async (req, res) => {
 
     // Execute query
     const permits = await TemporaryPermit.find(query)
-      .populate('bill')
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
@@ -389,7 +341,6 @@ exports.exportAllPermits = async (req, res) => {
   try {
     // Get all permits without pagination
     const permits = await TemporaryPermit.find({ userId: req.user.id })
-      .populate('bill')
       .sort({ createdAt: -1 })
 
     res.status(200).json({
@@ -965,234 +916,6 @@ exports.getStatistics = async (req, res) => {
   }
 }
 
-// Share permit via WhatsApp
-exports.sharePermit = async (req, res) => {
-  try {
-    const { id } = req.params
-    const { phoneNumber } = req.body
-
-    // Validate phone number
-    if (!phoneNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Phone number is required',
-        errors: ['Phone number is required'],
-        errorCount: 1
-      })
-    }
-
-    // Get permit details
-    const permit = await TemporaryPermit.findOne({ _id: id, userId: req.user.id })
-
-    if (!permit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Temporary permit not found'
-      })
-    }
-
-    // Generate WhatsApp message
-    const message = generatePermitMessage(permit)
-
-    // Format phone number for WhatsApp (add country code if not present)
-    const formattedPhone = phoneNumber.startsWith('91') ? phoneNumber : `91${phoneNumber}`
-
-    // Create WhatsApp URL
-    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`
-
-    res.status(200).json({
-      success: true,
-      message: 'WhatsApp share link generated successfully',
-      data: {
-        whatsappUrl,
-        phoneNumber: formattedPhone,
-        permitNumber: permit.permitNumber
-      }
-    })
-  } catch (error) {
-    console.error('Error sharing temporary permit:', error)
-    
-    
-    res.status(500).json({
-      success: false,
-      message: 'Operation failed'
-      
-      
-      
-    })
-  }
-}
-
-// Helper function to generate permit message
-function generatePermitMessage(permit) {
-  const vehicleTypeFull = permit.vehicleType === 'CV' ? 'Commercial Vehicle' : 'Passenger Vehicle'
-
-  return `
-*TEMPORARY PERMIT BILL*
-
-
-*Permit Details:*
-=� Permit Number: ${permit.permitNumber}
-=d Permit Holder: ${permit.permitHolder}
-=� Vehicle Number: ${permit.vehicleNumber}
-
-*Vehicle Type:*
-=� ${vehicleTypeFull} (${permit.vehicleType})
-
-*Validity:*
-=� Valid From: ${permit.validFrom}
-=� Valid To: ${permit.validTo}
-
-*Purpose:*
-=� ${permit.purpose || 'Temporary Use'}
-
-*Fees:*
-� Total Fee: ₹${permit.totalFee}
-� Paid: ₹${permit.paid}
-� Balance: ₹${permit.balance}
-
-
-*Status:* ${permit.status}
-
-Thank you for using our services!
-`.trim()
-}
-
-// Generate or regenerate bill PDF for a permit
-exports.generateBillPDF = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const permit = await TemporaryPermit.findOne({ _id: id, userId: req.user.id }).populate('bill')
-    if (!permit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Temporary permit not found'
-      })
-    }
-
-    let customBill = permit.bill
-
-    // If bill doesn't exist, create it
-    if (!customBill) {
-      const billNumber = await generateCustomBillNumber(CustomBill)
-      const vehicleTypeFull = permit.vehicleType === 'CV' ? 'Commercial Vehicle' : 'Passenger Vehicle'
-      customBill = new CustomBill({
-        billNumber,
-        customerName: permit.permitHolder,
-        billDate: new Date().toLocaleDateString('en-IN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }),
-        items: [
-          {
-            description: `Temporary Permit (${vehicleTypeFull})\nPermit No: ${permit.permitNumber}\nVehicle No: ${permit.vehicleNumber}\nValid From: ${permit.validFrom}\nValid To: ${permit.validTo}`,
-            quantity: 1,
-            rate: permit.totalFee,
-            amount: permit.totalFee
-          }
-        ],
-        totalAmount: permit.totalFee,
-        userId: req.user.id
-      })
-      await customBill.save()
-
-      permit.bill = customBill._id
-      await permit.save()
-    }
-
-    // Generate or regenerate PDF
-    const pdfPath = await generateCustomBillPDF(customBill)
-    customBill.billPdfPath = pdfPath
-    await customBill.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Bill PDF generated successfully',
-      data: {
-        billNumber: customBill.billNumber,
-        pdfPath: pdfPath,
-        pdfUrl: `${req.protocol}://${req.get('host')}${pdfPath}`
-      }
-    })
-  } catch (error) {
-    console.error('Error generating bill PDF:', error)
-    
-    
-    res.status(500).json({
-      success: false,
-      message: 'Operation failed'
-      
-      
-      
-    })
-  }
-}
-
-// Download bill PDF
-exports.downloadBillPDF = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const permit = await TemporaryPermit.findOne({ _id: id, userId: req.user.id }).populate('bill')
-    if (!permit) {
-      return res.status(404).json({
-        success: false,
-        message: 'Temporary permit not found'
-      })
-    }
-
-    // Check if bill exists
-    if (!permit.bill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill not found. Please generate it first.'
-      })
-    }
-
-    // Check if PDF exists
-    if (!permit.bill.billPdfPath) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF not found. Please generate it first.'
-      })
-    }
-
-    // Get absolute path to PDF
-    const pdfPath = path.join(__dirname, '..', permit.bill.billPdfPath)
-
-    // Check if file exists
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF file not found on server'
-      })
-    }
-
-    // Set headers for download
-    const fileName = `${permit.bill.billNumber}_${permit.permitNumber}.pdf`
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
-
-    // Send file
-    res.sendFile(pdfPath)
-  } catch (error) {
-    console.error('Error downloading bill PDF:', error)
-
-
-    res.status(500).json({
-      success: false,
-      message: 'Operation failed'
-
-
-
-    })
-  }
-}
-
 // Renew temporary permit
 exports.renewPermit = async (req, res) => {
   try {
@@ -1287,51 +1010,10 @@ exports.renewPermit = async (req, res) => {
     const newPermit = new TemporaryPermit(newPermitData)
     await newPermit.save()
 
-    // Create CustomBill for new permit
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const vehicleTypeFull = newPermit.vehicleType === 'CV' ? 'Commercial Vehicle' : 'Passenger Vehicle'
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: newPermit.permitHolder,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `Temporary Permit (Renewal - ${vehicleTypeFull})\nPermit No: ${newPermit.permitNumber}\nVehicle No: ${newPermit.vehicleNumber}\nValid From: ${newPermit.validFrom}\nValid To: ${newPermit.validTo}`,
-          quantity: 1,
-          rate: newPermit.totalFee,
-          amount: newPermit.totalFee
-        }
-      ],
-      totalAmount: newPermit.totalFee,
-      userId: req.user.id
-    })
-    await customBill.save()
-
-    // Update new permit with bill reference
-    newPermit.bill = customBill._id
-    await newPermit.save()
-
-    // Fire PDF generation in background
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Bill PDF generated successfully for renewed permit:', newPermit.permitNumber)
-      })
-      .catch(pdfError => {
-        console.error('Error generating PDF (non-critical):', pdfError)
-      })
-
     // Return success with both old and new permits
     res.status(201).json({
       success: true,
-      message: 'Temporary permit renewed successfully. Bill is being generated in background.',
+      message: 'Temporary permit renewed successfully',
       data: {
         oldPermit,
         newPermit

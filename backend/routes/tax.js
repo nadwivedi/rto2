@@ -35,10 +35,5 @@ router.put('/:id', taxController.updateTax)
 // Delete tax record
 router.delete('/:id', taxController.deleteTax)
 
-// POST generate bill PDF
-router.post('/:id/generate-bill-pdf', taxController.generateBillPDF)
-
-// GET download bill PDF
-router.get('/:id/download-bill-pdf', taxController.downloadBillPDF)
 
 module.exports = router

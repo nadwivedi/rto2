@@ -70,12 +70,6 @@ const TemporaryPermitOtherStateSchema = new mongoose.Schema({
     default: false
   },
 
-  // Bill Reference
-  bill: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'CustomBill'
-  },
-
   // Admin Notes
   notes: {
     type: String,

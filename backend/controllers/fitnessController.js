@@ -1,8 +1,4 @@
 const Fitness = require('../models/Fitness')
-const CustomBill = require('../models/CustomBill')
-const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
-const path = require('path')
-const fs = require('fs')
 
 // helper function to calculate status
 const getFitnessStatus = (validTo) => {
@@ -359,7 +355,7 @@ exports.createFitness = async (req, res) => {
     // Calculate status
     const status = getFitnessStatus(validTo);
 
-    // Create new fitness record without bill reference first
+    // Create new fitness record
     const fitness = new Fitness({
       vehicleNumber,
       validFrom,
@@ -373,51 +369,9 @@ exports.createFitness = async (req, res) => {
 
     await fitness.save()
 
-    // Create CustomBill document
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: `Vehicle: ${fitness.vehicleNumber}`,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `Fitness Certificate\nVehicle No: ${fitness.vehicleNumber}\nValid From: ${fitness.validFrom}\nValid To: ${fitness.validTo}`,
-          quantity: 1,
-          rate: fitness.totalFee,
-          amount: fitness.totalFee
-        }
-      ],
-      totalAmount: fitness.totalFee,
-      userId: req.user.id
-    })
-    await customBill.save()
-
-    // Update fitness with bill reference
-    fitness.bill = customBill._id
-    await fitness.save()
-
-    // Fire PDF generation in background (don't wait for it)
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Bill PDF generated successfully for fitness:', fitness.vehicleNumber)
-      })
-      .catch(pdfError => {
-        console.error('Error generating PDF (non-critical):', pdfError)
-        // Don't fail the fitness creation if PDF generation fails
-      })
-
-    // Send response immediately without waiting for PDF
     res.status(201).json({
       success: true,
-      message: 'Fitness record created successfully. Bill is being generated in background.',
+      message: 'Fitness record created successfully',
       data: fitness
     })
   } catch (error) {
@@ -583,131 +537,6 @@ exports.getFitnessStatistics = async (req, res) => {
   }
 }
 
-// Generate or regenerate bill PDF for a fitness record
-exports.generateBillPDF = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const fitness = await Fitness.findOne({ _id: id, userId: req.user.id }).populate('bill')
-    if (!fitness) {
-      return res.status(404).json({
-        success: false,
-        message: 'Fitness record not found'
-      })
-    }
-
-    let customBill = fitness.bill
-
-    // If bill doesn't exist, create it
-    if (!customBill) {
-      const billNumber = await generateCustomBillNumber(CustomBill)
-      customBill = new CustomBill({
-        billNumber,
-        customerName: `Vehicle: ${fitness.vehicleNumber}`,
-        billDate: new Date().toLocaleDateString('en-IN', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        }),
-        items: [
-          {
-            description: `Fitness Certificate\nVehicle No: ${fitness.vehicleNumber}\nValid From: ${fitness.validFrom}\nValid To: ${fitness.validTo}`,
-            quantity: 1,
-            rate: fitness.totalFee,
-            amount: fitness.totalFee
-          }
-        ],
-        totalAmount: fitness.totalFee,
-        userId: req.user.id
-      })
-      await customBill.save()
-
-      fitness.bill = customBill._id
-      await fitness.save()
-    }
-
-    // Generate or regenerate PDF
-    const pdfPath = await generateCustomBillPDF(customBill)
-    customBill.billPdfPath = pdfPath
-    await customBill.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Bill PDF generated successfully',
-      data: {
-        billNumber: customBill.billNumber,
-        pdfPath: pdfPath,
-        pdfUrl: `${req.protocol}://${req.get('host')}${pdfPath}`
-      }
-    })
-  } catch (error) {
-    console.error('Error generating bill PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate bill PDF',
-      error: error.message
-    })
-  }
-}
-
-// Download bill PDF
-exports.downloadBillPDF = async (req, res) => {
-  try {
-    const { id } = req.params
-
-    const fitness = await Fitness.findOne({ _id: id, userId: req.user.id }).populate('bill')
-    if (!fitness) {
-      return res.status(404).json({
-        success: false,
-        message: 'Fitness record not found'
-      })
-    }
-
-    // Check if bill exists
-    if (!fitness.bill) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill not found. Please generate it first.'
-      })
-    }
-
-    // Check if PDF exists
-    if (!fitness.bill.billPdfPath) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF not found. Please generate it first.'
-      })
-    }
-
-    // Get absolute path to PDF
-    const pdfPath = path.join(__dirname, '..', fitness.bill.billPdfPath)
-
-    // Check if file exists
-    if (!fs.existsSync(pdfPath)) {
-      return res.status(404).json({
-        success: false,
-        message: 'Bill PDF file not found on server'
-      })
-    }
-
-    // Set headers for download
-    const fileName = `${fitness.bill.billNumber}_${fitness.vehicleNumber}.pdf`
-    res.setHeader('Content-Type', 'application/pdf')
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition')
-
-    // Send file
-    res.sendFile(pdfPath)
-  } catch (error) {
-    console.error('Error downloading bill PDF:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to download bill PDF',
-      error: error.message
-    })
-  }
-}
 
 // Renew fitness - creates new fitness record and marks old one as renewed
 exports.renewFitness = async (req, res) => {
@@ -790,50 +619,9 @@ exports.renewFitness = async (req, res) => {
 
     await newFitness.save()
 
-    // Create CustomBill document for renewal
-    const billNumber = await generateCustomBillNumber(CustomBill)
-    const customBill = new CustomBill({
-      billNumber,
-      customerName: `Vehicle: ${newFitness.vehicleNumber}`,
-      billDate: new Date().toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      }),
-      items: [
-        {
-          description: `Fitness Certificate Renewal\nVehicle No: ${newFitness.vehicleNumber}\nValid From: ${newFitness.validFrom}\nValid To: ${newFitness.validTo}`,
-          quantity: 1,
-          rate: newFitness.totalFee,
-          amount: newFitness.totalFee
-        }
-      ],
-      totalAmount: newFitness.totalFee,
-      userId: req.user.id
-    })
-    await customBill.save()
-
-    // Update new fitness with bill reference
-    newFitness.bill = customBill._id
-    await newFitness.save()
-
-    // Fire PDF generation in background (don't wait for it)
-    generateCustomBillPDF(customBill)
-      .then(pdfPath => {
-        customBill.billPdfPath = pdfPath
-        return customBill.save()
-      })
-      .then(() => {
-        console.log('Renewal bill PDF generated successfully for fitness:', newFitness.vehicleNumber)
-      })
-      .catch(pdfError => {
-        console.error('Error generating renewal PDF (non-critical):', pdfError)
-      })
-
-    // Send response immediately without waiting for PDF
     res.status(201).json({
       success: true,
-      message: 'Fitness renewed successfully. Bill is being generated in background.',
+      message: 'Fitness renewed successfully',
       data: {
         oldFitness: {
           id: oldFitness._id,
