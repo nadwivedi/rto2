@@ -1,4 +1,5 @@
 const Insurance = require('../models/Insurance')
+const mongoose = require('mongoose')
 
 // helper function to calculate status
 const getInsuranceStatus = (validTo) => {
@@ -618,13 +619,13 @@ exports.getStatistics = async (req, res) => {
 
     // Total fees collected
     const totalRevenue = await Insurance.aggregate([
-      { $match: { userId: req.user.id } },
+      { $match: { userId: new mongoose.Types.ObjectId(req.user.id) } },
       { $group: { _id: null, total: { $sum: '$totalFee' } } }
     ])
 
     // Pending payment count and amount
     const pendingPayments = await Insurance.aggregate([
-      { $match: { balance: { $gt: 0 }, userId: req.user.id } },
+      { $match: { balance: { $gt: 0 }, userId: new mongoose.Types.ObjectId(req.user.id) } },
       { $group: { _id: null, count: { $sum: 1 }, total: { $sum: '$balance' } } }
     ])
 

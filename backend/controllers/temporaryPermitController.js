@@ -1,4 +1,5 @@
 const TemporaryPermit = require('../models/TemporaryPermit')
+const mongoose = require('mongoose')
 
 // helper function to calculate status
 const getTemporaryPermitStatus = (validTo) => {
@@ -869,7 +870,7 @@ exports.getStatistics = async (req, res) => {
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { userId: req.user.id, balance: { $gt: 0 } } },
+      { $match: { userId: new mongoose.Types.ObjectId(req.user.id), balance: { $gt: 0 } } },
       {
         $group: {
           _id: null,

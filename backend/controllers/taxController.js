@@ -1,4 +1,5 @@
 const Tax = require('../models/Tax')
+const mongoose = require('mongoose')
 
 // helper function to calculate status
 const getTaxStatus = (taxTo) => {
@@ -302,7 +303,7 @@ exports.getTaxStatistics = async (req, res) => {
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { balanceAmount: { $gt: 0 }, userId: req.user.id } },
+      { $match: { balanceAmount: { $gt: 0 }, userId: new mongoose.Types.ObjectId(req.user.id) } },
       {
         $group: {
           _id: null,

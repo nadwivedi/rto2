@@ -1,4 +1,5 @@
 const Driving = require('../models/Driving')
+const mongoose = require('mongoose')
 
 // Helper function to convert DD-MM-YYYY to Date object
 const convertToDate = (dateString) => {
@@ -558,12 +559,12 @@ exports.getStatistics = async (req, res) => {
     const bothLicenses = await Driving.countDocuments({ ...userFilter, licenseClass: 'MCWG+LMV' })
 
     const totalRevenue = await Driving.aggregate([
-      { $match: userFilter },
+      { $match: { userId: new mongoose.Types.ObjectId(req.user.id) } },
       { $group: { _id: null, total: { $sum: '$paidAmount' } } }
     ])
 
     const pendingPayments = await Driving.aggregate([
-      { $match: userFilter },
+      { $match: { userId: new mongoose.Types.ObjectId(req.user.id) } },
       { $group: { _id: null, total: { $sum: '$balanceAmount' } } }
     ])
 

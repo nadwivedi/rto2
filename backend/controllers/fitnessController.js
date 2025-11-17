@@ -1,4 +1,5 @@
 const Fitness = require('../models/Fitness')
+const mongoose = require('mongoose')
 
 // helper function to calculate status
 const getFitnessStatus = (validTo) => {
@@ -502,7 +503,7 @@ exports.getFitnessStatistics = async (req, res) => {
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { balance: { $gt: 0 }, userId: req.user.id } },
+      { $match: { balance: { $gt: 0 }, userId: new mongoose.Types.ObjectId(req.user.id) } },
       {
         $group: {
           _id: null,

@@ -1,4 +1,5 @@
 const CgPermit = require('../models/CgPermit')
+const mongoose = require('mongoose')
 const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 
 // helper function to calculate status
@@ -699,7 +700,7 @@ exports.getStatistics = async (req, res) => {
 
     // Pending payment aggregation
     const pendingPaymentPipeline = [
-      { $match: { userId: req.user.id, balance: { $gt: 0 } } },
+      { $match: { userId: new mongoose.Types.ObjectId(req.user.id), balance: { $gt: 0 } } },
       {
         $group: {
           _id: null,
