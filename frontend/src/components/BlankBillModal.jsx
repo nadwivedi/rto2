@@ -85,9 +85,9 @@ const BlankBillModal = ({ isOpen, onClose, onSuccess }) => {
           customerName: customerName.trim(),
           items: filledItems.map(item => ({
             description: item.description.trim(),
-            quantity: parseFloat(item.quantity) || 1,
-            rate: parseFloat(item.rate) || 0,
-            amount: parseFloat(item.amount) || 0
+            quantity: item.quantity ? parseFloat(item.quantity) : '',
+            rate: item.rate ? parseFloat(item.rate) : '',
+            amount: item.amount ? parseFloat(item.amount) : ''
           })),
           totalAmount: calculateTotal()
         })

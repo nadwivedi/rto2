@@ -115,8 +115,10 @@ exports.login = async (req, res) => {
         user: {
           id: user._id,
           name: user.name,
-          mobile: user.mobile,
+          mobile1: user.mobile1,
+          mobile2: user.mobile2,
           email: user.email,
+          address: user.address,
           lastLogin: user.lastLogin
         }
       }
@@ -155,10 +157,11 @@ exports.getProfile = async (req, res) => {
         user: {
           id: user._id,
           name: user.name,
-          mobile: user.mobile,
+          mobile1: user.mobile1,
+          mobile2: user.mobile2,
           email: user.email,
+          address: user.address,
           lastLogin: user.lastLogin,
-          createdAt: user.createdAt
         }
       }
     })

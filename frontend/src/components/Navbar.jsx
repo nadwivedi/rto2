@@ -129,7 +129,7 @@ const Navbar = () => {
             <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md">
               <span className="text-lg font-black text-white">R</span>
             </div>
-            <h1 className="text-sm font-bold text-white">RTO Admin</h1>
+            <h1 className="text-sm font-bold text-white">RTO Sarthi</h1>
           </div>
 
           {/* Placeholder for alignment */}
@@ -151,9 +151,9 @@ const Navbar = () => {
                 <span className="text-xl font-black text-white">R</span>
               </div>
               <div>
-                <h1 className="text-base font-bold text-white">RTO</h1>
+                <h1 className="text-base font-bold text-white">RTO Sarthi</h1>
                 <p className="text-xs text-purple-300 font-medium">
-                  Admin Panel
+                  Your RTO Companion
                 </p>
               </div>
             </div>

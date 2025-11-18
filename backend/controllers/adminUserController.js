@@ -93,7 +93,7 @@ exports.getUserById = async (req, res) => {
 // Create new user
 exports.createUser = async (req, res) => {
   try {
-    const { name, mobile, email, password } = req.body
+    const { name, mobile1, mobile2, email, address, password } = req.body
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -106,22 +106,33 @@ exports.createUser = async (req, res) => {
       })
     }
 
-    if (!mobile || !mobile.trim()) {
+    if (!mobile1 || !mobile1.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Mobile number is required',
-        errors: ['Mobile number is required'],
+        message: 'Mobile 1 is required',
+        errors: ['Mobile 1 is required'],
         errorCount: 1,
         timestamp: getSimplifiedTimestamp()
       })
     }
 
-    // Validate mobile format (10 digits)
-    if (!/^[0-9]{10}$/.test(mobile.trim())) {
+    // Validate mobile1 format (10 digits)
+    if (!/^[0-9]{10}$/.test(mobile1.trim())) {
       return res.status(400).json({
         success: false,
-        message: 'Mobile number must be 10 digits',
-        errors: ['Mobile number must be 10 digits'],
+        message: 'Mobile 1 must be 10 digits',
+        errors: ['Mobile 1 must be 10 digits'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    // Validate mobile2 format if provided (10 digits)
+    if (mobile2 && mobile2.trim() && !/^[0-9]{10}$/.test(mobile2.trim())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile 2 must be 10 digits',
+        errors: ['Mobile 2 must be 10 digits'],
         errorCount: 1,
         timestamp: getSimplifiedTimestamp()
       })
@@ -150,13 +161,13 @@ exports.createUser = async (req, res) => {
       }
     }
 
-    // Check if mobile already exists
-    const existingUserByMobile = await User.findOne({ mobile: mobile.trim() })
+    // Check if mobile1 already exists
+    const existingUserByMobile = await User.findOne({ mobile1: mobile1.trim() })
     if (existingUserByMobile) {
       return res.status(400).json({
         success: false,
-        message: 'Mobile number already exists',
-        errors: ['Mobile number already exists'],
+        message: 'Mobile 1 already exists',
+        errors: ['Mobile 1 already exists'],
         errorCount: 1,
         timestamp: getSimplifiedTimestamp()
       })
@@ -179,8 +190,10 @@ exports.createUser = async (req, res) => {
     // Create new user
     const newUser = new User({
       name: name.trim(),
-      mobile: mobile.trim(),
+      mobile1: mobile1.trim(),
+      mobile2: mobile2 && mobile2.trim() ? mobile2.trim() : undefined,
       email: email && email.trim() ? email.trim().toLowerCase() : undefined,
+      address: address && address.trim() ? address.trim() : undefined,
       password: password,
       isActive: true
     })
@@ -191,8 +204,10 @@ exports.createUser = async (req, res) => {
     const userResponse = {
       id: newUser._id,
       name: newUser.name,
-      mobile: newUser.mobile,
+      mobile1: newUser.mobile1,
+      mobile2: newUser.mobile2,
       email: newUser.email,
+      address: newUser.address,
       isActive: newUser.isActive,
       createdAt: newUser.createdAt
     }
@@ -218,7 +233,7 @@ exports.createUser = async (req, res) => {
 // Update user
 exports.updateUser = async (req, res) => {
   try {
-    const { name, mobile, email, isActive, password } = req.body
+    const { name, mobile1, mobile2, email, address, isActive, password } = req.body
 
     const user = await User.findById(req.params.id)
 
@@ -231,15 +246,29 @@ exports.updateUser = async (req, res) => {
 
     // Update fields if provided
     if (name !== undefined) user.name = name.trim()
-    if (mobile !== undefined) {
-      // Validate mobile format
-      if (!/^[0-9]{10}$/.test(mobile.trim())) {
+    if (mobile1 !== undefined) {
+      // Validate mobile1 format
+      if (!/^[0-9]{10}$/.test(mobile1.trim())) {
         return res.status(400).json({
           success: false,
-          message: 'Mobile number must be 10 digits'
+          message: 'Mobile 1 must be 10 digits'
         })
       }
-      user.mobile = mobile.trim()
+      user.mobile1 = mobile1.trim()
+    }
+    if (mobile2 !== undefined) {
+      if (mobile2.trim()) {
+        // Validate mobile2 format
+        if (!/^[0-9]{10}$/.test(mobile2.trim())) {
+          return res.status(400).json({
+            success: false,
+            message: 'Mobile 2 must be 10 digits'
+          })
+        }
+        user.mobile2 = mobile2.trim()
+      } else {
+        user.mobile2 = undefined
+      }
     }
     if (email !== undefined) {
       if (email.trim()) {
@@ -254,6 +283,9 @@ exports.updateUser = async (req, res) => {
       } else {
         user.email = undefined
       }
+    }
+    if (address !== undefined) {
+      user.address = address.trim() ? address.trim() : undefined
     }
     if (isActive !== undefined) user.isActive = isActive
     if (password !== undefined && password.trim()) {
@@ -274,8 +306,10 @@ exports.updateUser = async (req, res) => {
       data: {
         id: user._id,
         name: user.name,
-        mobile: user.mobile,
+        mobile1: user.mobile1,
+        mobile2: user.mobile2,
         email: user.email,
+        address: user.address,
         isActive: user.isActive
       }
     })

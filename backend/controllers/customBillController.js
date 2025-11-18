@@ -1,4 +1,5 @@
 const CustomBill = require('../models/CustomBill')
+const User = require('../models/User')
 const { generateCustomBillPDF, generateCustomBillNumber } = require('../utils/customBillGenerator')
 
 // Create new custom bill
@@ -17,6 +18,9 @@ exports.createCustomBill = async (req, res) => {
     // Generate bill number first (to ensure uniqueness per user)
     const billNumber = await generateCustomBillNumber(CustomBill, req.user.id)
 
+    // Fetch user information
+    const user = await User.findById(req.user.id).select('name email mobile1 mobile2 address')
+
     // Create custom bill object
     const customBill = new CustomBill({
       customerName,
@@ -28,8 +32,8 @@ exports.createCustomBill = async (req, res) => {
       userId: req.user.id
     })
 
-    // Generate PDF
-    const pdfPath = await generateCustomBillPDF(customBill)
+    // Generate PDF with user info
+    const pdfPath = await generateCustomBillPDF(customBill, user)
     customBill.billPdfPath = pdfPath
 
     // Save to database
@@ -166,6 +170,9 @@ exports.updateCustomBill = async (req, res) => {
       }
     }
 
+    // Fetch user information
+    const user = await User.findById(req.user.id).select('name email mobile1 mobile2 address')
+
     // Update bill data
     existingBill.customerName = customerName
     existingBill.billDate = billDate
@@ -173,8 +180,8 @@ exports.updateCustomBill = async (req, res) => {
     existingBill.totalAmount = totalAmount
     existingBill.notes = notes
 
-    // Regenerate PDF with updated data
-    const newPdfPath = await generateCustomBillPDF(existingBill)
+    // Regenerate PDF with updated data and user info
+    const newPdfPath = await generateCustomBillPDF(existingBill, user)
     existingBill.billPdfPath = newPdfPath
 
     // Save updated bill

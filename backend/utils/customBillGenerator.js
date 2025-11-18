@@ -37,7 +37,7 @@ function numberToWords(num) {
 /**
  * Generate PDF from custom bill data using PDFKit
  */
-async function generateCustomBillPDF(customBill) {
+async function generateCustomBillPDF(customBill, userInfo) {
   try {
     const uploadsDir = path.join(__dirname, '..', 'uploads', 'bills')
     if (!fs.existsSync(uploadsDir)) {
@@ -99,14 +99,19 @@ async function generateCustomBillPDF(customBill) {
       doc.fontSize(8)
         .fillColor('#000000')
         .font('Helvetica-Bold')
-        .text('Mob.: 99934-48850', rightMargin - 100, yPos, {
+
+      if (userInfo && userInfo.mobile1) {
+        doc.text(`Mob.: ${userInfo.mobile1}`, rightMargin - 100, yPos, {
           width: 100,
           align: 'right'
         })
-        .text('        98271-46175', rightMargin - 100, yPos + 12, {
-          width: 100,
-          align: 'right'
-        })
+        if (userInfo.mobile2) {
+          doc.text(`        ${userInfo.mobile2}`, rightMargin - 100, yPos + 12, {
+            width: 100,
+            align: 'right'
+          })
+        }
+      }
 
       yPos += 40
 
@@ -114,7 +119,7 @@ async function generateCustomBillPDF(customBill) {
       doc.fontSize(36)
         .fillColor('#000000')
         .font('Helvetica-BoldOblique')
-        .text('ASHOK KUMAR', 0, yPos, {
+        .text((userInfo && userInfo.name ? userInfo.name.toUpperCase() : 'ASHOK KUMAR'), 0, yPos, {
           width: pageWidth,
           align: 'center'
         })
@@ -134,17 +139,22 @@ async function generateCustomBillPDF(customBill) {
       // Address
       doc.fontSize(11)
         .font('Helvetica')
-        .text('GF-17, Ground Floor, Shyam Plaza, Opp. Bus Stand, Pandri, RAIPUR', 0, yPos, {
+
+      if (userInfo && userInfo.address) {
+        doc.text(userInfo.address, 0, yPos, {
           width: pageWidth,
           align: 'center'
         })
+        yPos += 15
+      }
 
-      yPos += 15
-
-      doc.text('Email : ashok123kumarbhatt@gmail.com', 0, yPos, {
-        width: pageWidth,
-        align: 'center'
-      })
+      // Email
+      if (userInfo && userInfo.email) {
+        doc.text(`Email : ${userInfo.email}`, 0, yPos, {
+          width: pageWidth,
+          align: 'center'
+        })
+      }
 
       yPos += 35
 
@@ -301,10 +311,12 @@ async function generateCustomBillPDF(customBill) {
             })
 
             // Quantity
-            doc.text((item.quantity || 1).toString(), colX.qty + 5, itemY, {
-              width: 50,
-              align: 'center'
-            })
+            if (item.quantity) {
+              doc.text(item.quantity.toString(), colX.qty + 5, itemY, {
+                width: 50,
+                align: 'center'
+              })
+            }
 
             // Rate - leave empty (don't display any value)
 
@@ -376,7 +388,7 @@ async function generateCustomBillPDF(customBill) {
 
       doc.fontSize(12)
         .font('Helvetica-Bold')
-        .text('For, ASHOK KUMAR', rightMargin - 150, yPos, {
+        .text(`For, ${(userInfo && userInfo.name ? userInfo.name.toUpperCase() : 'ASHOK KUMAR')}`, rightMargin - 150, yPos, {
           width: 150,
           align: 'right'
         })

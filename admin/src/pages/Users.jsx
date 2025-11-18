@@ -12,8 +12,10 @@ const Users = () => {
   const [editingUserId, setEditingUserId] = useState(null)
   const [formData, setFormData] = useState({
     name: '',
-    mobile: '',
+    mobile1: '',
+    mobile2: '',
     email: '',
+    address: '',
     password: ''
   })
   const [error, setError] = useState('')
@@ -57,8 +59,8 @@ const Users = () => {
     setSuccess('')
 
     // Validation
-    if (!formData.name || !formData.mobile) {
-      setError('Name and mobile are required')
+    if (!formData.name || !formData.mobile1) {
+      setError('Name and Mobile are required')
       return
     }
 
@@ -93,7 +95,7 @@ const Users = () => {
         setShowModal(false)
         setIsEditMode(false)
         setEditingUserId(null)
-        setFormData({ name: '', mobile: '', email: '', password: '' })
+        setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', password: '' })
         fetchUsers()
       } else {
         setError(data.message || `Failed to ${isEditMode ? 'update' : 'create'} user`)
@@ -108,8 +110,10 @@ const Users = () => {
     setEditingUserId(user._id)
     setFormData({
       name: user.name,
-      mobile: user.mobile,
+      mobile1: user.mobile1 || '',
+      mobile2: user.mobile2 || '',
       email: user.email || '',
+      address: user.address || '',
       password: '' // Don't populate password for security
     })
     setShowModal(true)
@@ -121,7 +125,7 @@ const Users = () => {
     setIsEditMode(false)
     setEditingUserId(null)
     setError('')
-    setFormData({ name: '', mobile: '', email: '', password: '' })
+    setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', password: '' })
   }
 
   const handleDelete = async (id) => {
@@ -156,7 +160,7 @@ const Users = () => {
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className='px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap'
+          className='px-4 sm:px-6 py-2.5 sm:py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap cursor-pointer'
         >
           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
@@ -208,7 +212,7 @@ const Users = () => {
                   {users.map((user) => (
                     <tr key={user._id} className='hover:bg-gray-50'>
                       <td className='px-6 py-4 text-sm font-medium text-gray-900'>{user.name}</td>
-                      <td className='px-6 py-4 text-sm text-gray-700'>{user.mobile}</td>
+                      <td className='px-6 py-4 text-sm text-gray-700'>{user.mobile1}</td>
                       <td className='px-6 py-4 text-sm text-gray-700'>{user.email || '-'}</td>
                       <td className='px-6 py-4 text-sm'>
                         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -224,13 +228,13 @@ const Users = () => {
                         <div className='flex gap-3'>
                           <button
                             onClick={() => handleEdit(user)}
-                            className='text-indigo-600 hover:text-indigo-800 font-semibold'
+                            className='text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer'
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(user._id)}
-                            className='text-red-600 hover:text-red-800 font-semibold'
+                            className='text-red-600 hover:text-red-800 font-semibold cursor-pointer'
                           >
                             Delete
                           </button>
@@ -249,7 +253,7 @@ const Users = () => {
                   <div className='flex justify-between items-start mb-3'>
                     <div className='flex-1'>
                       <h3 className='font-semibold text-gray-900 text-base'>{user.name}</h3>
-                      <p className='text-sm text-gray-600 mt-1'>{user.mobile}</p>
+                      <p className='text-sm text-gray-600 mt-1'>{user.mobile1}</p>
                       {user.email && (
                         <p className='text-sm text-gray-600 mt-0.5'>{user.email}</p>
                       )}
@@ -267,13 +271,13 @@ const Users = () => {
                     <div className='flex gap-2'>
                       <button
                         onClick={() => handleEdit(user)}
-                        className='text-indigo-600 hover:text-indigo-800 font-semibold text-sm px-3 py-1.5 rounded hover:bg-indigo-50 transition-colors'
+                        className='text-indigo-600 hover:text-indigo-800 font-semibold text-sm px-3 py-1.5 rounded hover:bg-indigo-50 transition-colors cursor-pointer'
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(user._id)}
-                        className='text-red-600 hover:text-red-800 font-semibold text-sm px-3 py-1.5 rounded hover:bg-red-50 transition-colors'
+                        className='text-red-600 hover:text-red-800 font-semibold text-sm px-3 py-1.5 rounded hover:bg-red-50 transition-colors cursor-pointer'
                       >
                         Delete
                       </button>
@@ -296,7 +300,7 @@ const Users = () => {
               </h2>
               <button
                 onClick={handleCloseModal}
-                className='text-gray-500 hover:text-gray-700 p-1'
+                className='text-gray-500 hover:text-gray-700 p-1 cursor-pointer'
               >
                 <svg className='w-5 h-5 sm:w-6 sm:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
@@ -328,17 +332,32 @@ const Users = () => {
 
               <div>
                 <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
-                  Mobile Number <span className='text-red-500'>*</span>
+                  Mobile <span className='text-red-500'>*</span>
                 </label>
                 <input
                   type='text'
-                  name='mobile'
-                  value={formData.mobile}
+                  name='mobile1'
+                  value={formData.mobile1}
                   onChange={handleChange}
                   placeholder='10-digit mobile number'
                   maxLength={10}
                   className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   required
+                />
+              </div>
+
+              <div>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
+                  Mobile 2 <span className='text-gray-400'>(Optional)</span>
+                </label>
+                <input
+                  type='text'
+                  name='mobile2'
+                  value={formData.mobile2}
+                  onChange={handleChange}
+                  placeholder='10-digit mobile number'
+                  maxLength={10}
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                 />
               </div>
 
@@ -353,6 +372,20 @@ const Users = () => {
                   onChange={handleChange}
                   placeholder='email@example.com'
                   className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                />
+              </div>
+
+              <div>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
+                  Address <span className='text-gray-400'>(Optional)</span>
+                </label>
+                <textarea
+                  name='address'
+                  value={formData.address}
+                  onChange={handleChange}
+                  placeholder='Enter full address'
+                  rows={3}
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none'
                 />
               </div>
 
@@ -376,13 +409,13 @@ const Users = () => {
                 <button
                   type='button'
                   onClick={handleCloseModal}
-                  className='flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50'
+                  className='flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 cursor-pointer'
                 >
                   Cancel
                 </button>
                 <button
                   type='submit'
-                  className='flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold'
+                  className='flex-1 px-3 sm:px-4 py-2 text-sm sm:text-base bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-semibold cursor-pointer'
                 >
                   {isEditMode ? 'Update User' : 'Create User'}
                 </button>

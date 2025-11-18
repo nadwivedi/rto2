@@ -84,7 +84,6 @@ const fitnessRoutes = require('./routes/fitness')
 const customBillRoutes = require('./routes/customBill')
 const taxRoutes = require('./routes/tax')
 const insuranceRoutes = require('./routes/insurance')
-const importRoutes = require('./routes/import')
 const vehicleTransferRoutes = require('./routes/vehicleTransfer')
 
 // Use Routes
@@ -106,7 +105,6 @@ app.use('/api/fitness', userAuth, fitnessRoutes)
 app.use('/api/custom-bills', userAuth, customBillRoutes)
 app.use('/api/tax', userAuth, taxRoutes)
 app.use('/api/insurance', userAuth, insuranceRoutes)
-app.use('/api/import', userAuth, importRoutes)
 app.use('/api/vehicle-transfers', userAuth, vehicleTransferRoutes)
 
 // Root route
@@ -114,20 +112,6 @@ app.get('/', (req, res) => {
   res.json({
     message: 'RTO Management System API',
     version: '1.0.0',
-    endpoints: {
-      drivingLicenses: '/api/driving-licenses',
-      nationalPermits: '/api/national-permits',
-      cgPermits: '/api/cg-permits',
-      temporaryPermits: '/api/temporary-permits',
-      temporaryPermitsOtherState: '/api/temporary-permits-other-state',
-      vehicleRegistrations: '/api/vehicle-registrations',
-      fitness: '/api/fitness',
-      customBills: '/api/custom-bills',
-      tax: '/api/tax',
-      insurance: '/api/insurance',
-      import: '/api/import',
-      vehicleTransfers: '/api/vehicle-transfers'
-    }
   })
 })
 

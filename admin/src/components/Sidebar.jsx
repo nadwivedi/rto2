@@ -33,8 +33,8 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Logo */}
         <div className='p-6 border-b border-indigo-700 flex justify-between items-center'>
           <div>
-            <h1 className='text-2xl font-bold'>RTO Admin</h1>
-            <p className='text-xs text-indigo-300 mt-1'>Management Panel</p>
+            <h1 className='text-2xl font-bold'>RTO Sarthi</h1>
+            <p className='text-xs text-indigo-300 mt-1'>Admin Panel</p>
           </div>
           {/* Close button for mobile */}
           <button
