@@ -1,7 +1,9 @@
 /**
  * Vehicle Number Validation Utility
  * Validates Indian vehicle registration numbers
- * Format: CG01AB1234 (State Code + District Code + Series + Number)
+ * Supports both formats:
+ * - 10 characters: CG01AB1234 (State + District + 2-letter Series + Number)
+ * - 9 characters: CG04G1234 (State + District + 1-letter Series + Number)
  */
 
 /**
@@ -25,27 +27,34 @@ export const validateVehicleNumber = (vehicleNumber) => {
   if (vehicleNumber.includes(' ')) {
     return {
       isValid: false,
-      message: 'Vehicle number should not contain spaces (e.g., CG04AA1234)'
+      message: 'Vehicle number should not contain spaces (e.g., CG04AA1234 or CG04G1234)'
     }
   }
 
-  // Check if vehicle number is exactly 10 characters
-  if (cleanVehicleNumber.length !== 10) {
+  // Check if vehicle number is 9 or 10 characters
+  if (cleanVehicleNumber.length !== 9 && cleanVehicleNumber.length !== 10) {
     return {
       isValid: false,
-      message: `Vehicle number must be exactly 10 characters (current: ${cleanVehicleNumber.length})`
+      message: `Vehicle number must be 9 or 10 characters (current: ${cleanVehicleNumber.length})`
     }
   }
 
-  // Validate vehicle number pattern
-  // Format: 2 letters (state) + 2 digits (district) + 2 letters (series) + 4 digits
+  // Validate vehicle number patterns
+  // Format 1 (10 chars): 2 letters (state) + 2 digits (district) + 2 letters (series) + 4 digits
   // Example: CG04AA1234
-  const vehicleNumberPattern = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/
+  const vehicleNumberPattern10 = /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/
 
-  if (!vehicleNumberPattern.test(cleanVehicleNumber)) {
+  // Format 2 (9 chars): 2 letters (state) + 2 digits (district) + 1 letter (series) + 4 digits
+  // Example: CG04G1234
+  const vehicleNumberPattern9 = /^[A-Z]{2}[0-9]{2}[A-Z]{1}[0-9]{4}$/
+
+  const isValid10 = vehicleNumberPattern10.test(cleanVehicleNumber)
+  const isValid9 = vehicleNumberPattern9.test(cleanVehicleNumber)
+
+  if (!isValid10 && !isValid9) {
     return {
       isValid: false,
-      message: 'Invalid format. Use: 2 letters + 2 digits + 2 letters + 4 digits (e.g., CG04AA1234)'
+      message: 'Invalid format. Use: CG04AA1234 (10 chars) or CG04G1234 (9 chars)'
     }
   }
 
@@ -58,7 +67,7 @@ export const validateVehicleNumber = (vehicleNumber) => {
 /**
  * Formats vehicle number with proper spacing
  * @param {string} vehicleNumber - Vehicle number to format
- * @returns {string} - Formatted vehicle number (e.g., CG 04 AA 1234)
+ * @returns {string} - Formatted vehicle number (e.g., CG 04 AA 1234 or CG 04 G 1234)
  */
 export const formatVehicleNumber = (vehicleNumber) => {
   if (!vehicleNumber) return ''
@@ -66,16 +75,26 @@ export const formatVehicleNumber = (vehicleNumber) => {
   // Remove all spaces and convert to uppercase
   const clean = vehicleNumber.trim().replace(/\s+/g, '').toUpperCase()
 
-  // If length is not 10, return as is
-  if (clean.length !== 10) return clean
+  // Handle 10-character format: XX 00 XX 0000
+  if (clean.length === 10) {
+    const stateCode = clean.substring(0, 2)
+    const districtCode = clean.substring(2, 4)
+    const series = clean.substring(4, 6)
+    const number = clean.substring(6, 10)
+    return `${stateCode} ${districtCode} ${series} ${number}`
+  }
 
-  // Format: XX 00 XX 0000 (always 2 letters for series)
-  const stateCode = clean.substring(0, 2)
-  const districtCode = clean.substring(2, 4)
-  const series = clean.substring(4, 6)
-  const number = clean.substring(6, 10)
+  // Handle 9-character format: XX 00 X 0000
+  if (clean.length === 9) {
+    const stateCode = clean.substring(0, 2)
+    const districtCode = clean.substring(2, 4)
+    const series = clean.substring(4, 5)
+    const number = clean.substring(5, 9)
+    return `${stateCode} ${districtCode} ${series} ${number}`
+  }
 
-  return `${stateCode} ${districtCode} ${series} ${number}`
+  // If length is neither 9 nor 10, return as is
+  return clean
 }
 
 /**
@@ -90,7 +109,9 @@ export const cleanVehicleNumber = (vehicleNumber) => {
 
 /**
  * Enforces vehicle number format as user types
- * Format: LL-DD-LL-DDDD (L=Letter, D=Digit)
+ * Supports both formats:
+ * - 10 chars: LL-DD-LL-DDDD (L=Letter, D=Digit)
+ * - 9 chars: LL-DD-L-DDDD
  * @param {string} currentValue - Current input value
  * @param {string} newValue - New value being typed
  * @returns {string} - Formatted and validated value
@@ -103,8 +124,10 @@ export const enforceVehicleNumberFormat = (currentValue, newValue) => {
 
   // Build the valid string character by character based on position
   let result = ''
+  let is9CharFormat = false
+  let is10CharFormat = false
 
-  for (let i = 0; i < cleaned.length && i < 10; i++) {
+  for (let i = 0; i < cleaned.length; i++) {
     const char = cleaned[i]
 
     if (i < 2) {
@@ -112,7 +135,6 @@ export const enforceVehicleNumberFormat = (currentValue, newValue) => {
       if (/[A-Z]/.test(char)) {
         result += char
       } else {
-        // Skip invalid characters at this position
         continue
       }
     } else if (i >= 2 && i < 4) {
@@ -120,23 +142,43 @@ export const enforceVehicleNumberFormat = (currentValue, newValue) => {
       if (/[0-9]/.test(char)) {
         result += char
       } else {
-        // Skip invalid characters at this position
         continue
       }
-    } else if (i >= 4 && i < 6) {
-      // Position 4-5: Only letters (Series)
+    } else if (i === 4) {
+      // Position 4: Always letter (first letter of series)
       if (/[A-Z]/.test(char)) {
         result += char
       } else {
-        // Skip invalid characters at this position
         continue
       }
-    } else if (i >= 6 && i < 10) {
-      // Position 6-9: Only digits (Vehicle Number)
+    } else if (i === 5) {
+      // Position 5: Can be letter (2nd series letter) or digit (start of number for 9-char format)
+      if (/[A-Z]/.test(char)) {
+        // If it's a letter, this is 10-character format
+        is10CharFormat = true
+        result += char
+      } else if (/[0-9]/.test(char)) {
+        // If it's a digit, this is 9-character format, add the digit
+        is9CharFormat = true
+        result += char
+      } else {
+        continue
+      }
+    } else if (i >= 6) {
+      // Check if we should stop based on format
+      if (is9CharFormat && i >= 9) {
+        // 9-char format: stop at position 8 (9 total chars)
+        break
+      }
+      if (is10CharFormat && i >= 10) {
+        // 10-char format: stop at position 9 (10 total chars)
+        break
+      }
+
+      // Position 6+: Only digits (Vehicle Number)
       if (/[0-9]/.test(char)) {
         result += char
       } else {
-        // Skip invalid characters at this position
         continue
       }
     }
@@ -170,11 +212,11 @@ export const validateVehicleNumberRealtime = (vehicleNumber) => {
     }
   }
 
-  // If still typing (less than 10 characters), show progress
-  if (cleaned.length < 10) {
+  // If still typing (less than 9 characters), show progress
+  if (cleaned.length < 9) {
     return {
       isValid: false,
-      message: `Enter ${10 - cleaned.length} more character${10 - cleaned.length > 1 ? 's' : ''}`,
+      message: `Enter ${9 - cleaned.length} more character${9 - cleaned.length > 1 ? 's' : ''}`,
       cleaned: cleaned
     }
   }
@@ -183,12 +225,12 @@ export const validateVehicleNumberRealtime = (vehicleNumber) => {
   if (cleaned.length > 10) {
     return {
       isValid: false,
-      message: 'Vehicle number should be exactly 10 characters',
+      message: 'Vehicle number should be 9 or 10 characters',
       cleaned: cleaned
     }
   }
 
-  // If 10 characters, validate fully
+  // If 9 or 10 characters, validate fully
   const validation = validateVehicleNumber(cleaned)
 
   return {
@@ -261,7 +303,8 @@ export const getStateName = (stateCode) => {
 export const parseVehicleNumber = (vehicleNumber) => {
   const cleaned = cleanVehicleNumber(vehicleNumber)
 
-  if (cleaned.length !== 10) {
+  // Must be 9 or 10 characters
+  if (cleaned.length !== 9 && cleaned.length !== 10) {
     return null
   }
 
@@ -272,8 +315,19 @@ export const parseVehicleNumber = (vehicleNumber) => {
 
   const stateCode = cleaned.substring(0, 2)
   const districtCode = cleaned.substring(2, 4)
-  const series = cleaned.substring(4, 6)
-  const number = cleaned.substring(6, 10)
+
+  let series, number
+
+  // Parse based on length
+  if (cleaned.length === 10) {
+    // 10-char format: CG04AA1234
+    series = cleaned.substring(4, 6)
+    number = cleaned.substring(6, 10)
+  } else {
+    // 9-char format: CG04G1234
+    series = cleaned.substring(4, 5)
+    number = cleaned.substring(5, 9)
+  }
 
   return {
     stateCode,

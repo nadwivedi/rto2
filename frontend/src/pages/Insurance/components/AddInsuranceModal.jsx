@@ -29,8 +29,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   // Pre-fill form when initialData is provided (for edit/renewal) or reset on open
   useEffect(() => {
     if (initialData && isOpen) {
+      const vehicleNum = initialData.vehicleNumber || ''
       setFormData({
-        vehicleNumber: initialData.vehicleNumber || '',
+        vehicleNumber: vehicleNum,
         policyNumber: initialData.policyNumber || '',
         validFrom: initialData.validFrom || '',
         validTo: initialData.validTo || '',
@@ -45,6 +46,12 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
         agentName: initialData.agentName || '',
         agentContact: initialData.agentContact || ''
       })
+
+      // Validate pre-filled vehicle number
+      if (vehicleNum) {
+        const validation = validateVehicleNumberRealtime(vehicleNum)
+        setVehicleValidation(validation)
+      }
     } else if (!isOpen) {
       // Reset form when modal closes
       setFormData({
@@ -57,6 +64,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
               balance: ''
             })
       setFetchingVehicle(false)
+      setVehicleValidation({ isValid: false, message: '' })
     }
   }, [initialData, isOpen])
 
@@ -65,8 +73,8 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     const fetchVehicleDetails = async () => {
       const registrationNum = formData.vehicleNumber.trim()
 
-      // Only fetch if registration number has at least 10 characters
-      if (registrationNum.length < 10) {
+      // Only fetch if registration number has at least 9 characters
+      if (registrationNum.length < 9) {
         setVehicleError('')
         return
       }
@@ -239,7 +247,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
 
     // Validate vehicle number before submitting
     if (!vehicleValidation.isValid && formData.vehicleNumber) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars), no spaces')
       return
     }
 
@@ -322,7 +330,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='CG04AA1234'
+                      placeholder='CG04G1234 or CG04AA1234'
                       maxLength='10'
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNumber && !vehicleValidation.isValid
@@ -365,9 +373,10 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     <span className='text-gray-500'>Format: </span>
                     <span className={formData.vehicleNumber.length >= 2 ? 'text-green-600' : 'text-gray-400'}>XX</span>
                     <span className={formData.vehicleNumber.length >= 4 ? 'text-green-600' : 'text-gray-400'}>00</span>
-                    <span className={formData.vehicleNumber.length >= 6 ? 'text-green-600' : 'text-gray-400'}>XX</span>
-                    <span className={formData.vehicleNumber.length >= 10 ? 'text-green-600' : 'text-gray-400'}>0000</span>
-                    <span className='text-gray-500'> (e.g., CG04AA1234)</span>
+                    <span className={formData.vehicleNumber.length >= 5 ? 'text-green-600' : 'text-gray-400'}>X</span>
+                    <span className={formData.vehicleNumber.length >= 6 ? 'text-green-600' : 'text-gray-400'}>(X)</span>
+                    <span className={formData.vehicleNumber.length >= 9 ? 'text-green-600' : 'text-gray-400'}>0000</span>
+                    <span className='text-gray-500'> (e.g., CG04G1234 or CG04AA1234)</span>
                   </p>
                 </div>
 
