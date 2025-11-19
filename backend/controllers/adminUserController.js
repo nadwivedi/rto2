@@ -93,7 +93,7 @@ exports.getUserById = async (req, res) => {
 // Create new user
 exports.createUser = async (req, res) => {
   try {
-    const { name, mobile1, mobile2, email, address, password } = req.body
+    const { name, mobile1, mobile2, email, address, billName, billDescription, password } = req.body
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -194,6 +194,8 @@ exports.createUser = async (req, res) => {
       mobile2: mobile2 && mobile2.trim() ? mobile2.trim() : undefined,
       email: email && email.trim() ? email.trim().toLowerCase() : undefined,
       address: address && address.trim() ? address.trim() : undefined,
+      billName: billName && billName.trim() ? billName.trim() : undefined,
+      billDescription: billDescription && billDescription.trim() ? billDescription.trim() : undefined,
       password: password,
       isActive: true
     })
@@ -208,6 +210,8 @@ exports.createUser = async (req, res) => {
       mobile2: newUser.mobile2,
       email: newUser.email,
       address: newUser.address,
+      billName: newUser.billName,
+      billDescription: newUser.billDescription,
       isActive: newUser.isActive,
       createdAt: newUser.createdAt
     }
@@ -233,7 +237,7 @@ exports.createUser = async (req, res) => {
 // Update user
 exports.updateUser = async (req, res) => {
   try {
-    const { name, mobile1, mobile2, email, address, isActive, password } = req.body
+    const { name, mobile1, mobile2, email, address, billName, billDescription, isActive, password } = req.body
 
     const user = await User.findById(req.params.id)
 
@@ -287,6 +291,12 @@ exports.updateUser = async (req, res) => {
     if (address !== undefined) {
       user.address = address.trim() ? address.trim() : undefined
     }
+    if (billName !== undefined) {
+      user.billName = billName.trim() ? billName.trim() : undefined
+    }
+    if (billDescription !== undefined) {
+      user.billDescription = billDescription.trim() ? billDescription.trim() : undefined
+    }
     if (isActive !== undefined) user.isActive = isActive
     if (password !== undefined && password.trim()) {
       if (password.length < 4) {
@@ -310,6 +320,8 @@ exports.updateUser = async (req, res) => {
         mobile2: user.mobile2,
         email: user.email,
         address: user.address,
+        billName: user.billName,
+        billDescription: user.billDescription,
         isActive: user.isActive
       }
     })

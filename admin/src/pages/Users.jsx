@@ -16,6 +16,8 @@ const Users = () => {
     mobile2: '',
     email: '',
     address: '',
+    billName: '',
+    billDescription: '',
     password: ''
   })
   const [error, setError] = useState('')
@@ -95,7 +97,7 @@ const Users = () => {
         setShowModal(false)
         setIsEditMode(false)
         setEditingUserId(null)
-        setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', password: '' })
+        setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', billName: '', billDescription: '', password: '' })
         fetchUsers()
       } else {
         setError(data.message || `Failed to ${isEditMode ? 'update' : 'create'} user`)
@@ -114,6 +116,8 @@ const Users = () => {
       mobile2: user.mobile2 || '',
       email: user.email || '',
       address: user.address || '',
+      billName: user.billName || '',
+      billDescription: user.billDescription || '',
       password: '' // Don't populate password for security
     })
     setShowModal(true)
@@ -125,7 +129,7 @@ const Users = () => {
     setIsEditMode(false)
     setEditingUserId(null)
     setError('')
-    setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', password: '' })
+    setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', billName: '', billDescription: '', password: '' })
   }
 
   const handleDelete = async (id) => {
@@ -386,6 +390,34 @@ const Users = () => {
                   placeholder='Enter full address'
                   rows={3}
                   className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none'
+                />
+              </div>
+
+              <div>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
+                  Bill Name <span className='text-gray-400'>(Optional - Displayed on bills)</span>
+                </label>
+                <input
+                  type='text'
+                  name='billName'
+                  value={formData.billName}
+                  onChange={handleChange}
+                  placeholder='Name to display on bills'
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                />
+              </div>
+
+              <div>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
+                  Bill Description <span className='text-gray-400'>(Optional - e.g., Transport Consultant)</span>
+                </label>
+                <input
+                  type='text'
+                  name='billDescription'
+                  value={formData.billDescription}
+                  onChange={handleChange}
+                  placeholder='Description to display on bills'
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                 />
               </div>
 

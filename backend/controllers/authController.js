@@ -161,7 +161,8 @@ exports.getProfile = async (req, res) => {
           mobile2: user.mobile2,
           email: user.email,
           address: user.address,
-          lastLogin: user.lastLogin,
+          billName: user.billName,
+          billDescription: user.billDescription,
         }
       }
     })

@@ -47,6 +47,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  billName: {
+    type: String,
+    trim: true
+  },
+  billDescription: {
+    type: String,
+    trim: true
+  },
   password: {
     type: String,
     required: true

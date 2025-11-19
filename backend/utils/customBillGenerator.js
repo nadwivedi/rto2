@@ -115,21 +115,21 @@ async function generateCustomBillPDF(customBill, userInfo) {
 
       yPos += 40
 
-      // Company name
+      // Company name (use billName if available, otherwise fall back to name)
       doc.fontSize(36)
         .fillColor('#000000')
         .font('Helvetica-BoldOblique')
-        .text((userInfo && userInfo.name ? userInfo.name.toUpperCase() : 'ASHOK KUMAR'), 0, yPos, {
+        .text((userInfo && userInfo.billName ? userInfo.billName.toUpperCase() : (userInfo && userInfo.name ? userInfo.name.toUpperCase() : 'ASHOK KUMAR')), 0, yPos, {
           width: pageWidth,
           align: 'center'
         })
 
       yPos += 42
 
-      // Subtitle
+      // Subtitle (use billDescription if available, otherwise fall back to 'Transport Consultant')
       doc.fontSize(13)
         .font('Helvetica-Oblique')
-        .text('(Transport Consultant)', 0, yPos, {
+        .text((userInfo && userInfo.billDescription ? `(${userInfo.billDescription})` : '(Transport Consultant)'), 0, yPos, {
           width: pageWidth,
           align: 'center'
         })
