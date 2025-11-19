@@ -25,6 +25,40 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
     notes: ''
   })
 
+  // Handle Enter key to move to next field in order
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault() // Prevent default form submission
+
+      // Define complete navigation order - all fields from top to bottom
+      const navigationOrder = [
+        'vehicleNo',
+        'permitNumber',
+        'permitHolder',
+        'mobileNo',
+        'validFrom',
+        'validTo',
+        'totalFee',
+        'paid'
+      ]
+
+      const currentFieldName = e.target.name
+      const currentIndex = navigationOrder.indexOf(currentFieldName)
+
+      // Move to next field in the order
+      if (currentIndex > -1 && currentIndex < navigationOrder.length - 1) {
+        const nextFieldName = navigationOrder[currentIndex + 1]
+        const nextField = e.target.form.elements[nextFieldName]
+        if (nextField) {
+          nextField.focus()
+        }
+      } else if (currentIndex === navigationOrder.length - 1) {
+        // Last field (paid) - submit the form
+        e.target.form.requestSubmit()
+      }
+    }
+  }
+
   useEffect(() => {
     if (formData.validFrom) {
       const parts = formData.validFrom.split('-')
@@ -191,7 +225,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
+        <form id='temp-permit-other-state-form' onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
             {/* Section 1: Permit & Vehicle Details */}
             <div className='bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
@@ -212,6 +246,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                       name='vehicleNo'
                       value={formData.vehicleNo}
                       onChange={handleChange}
+                      onKeyDown={handleKeyDown}
                       placeholder='CG04AA1234'
                       maxLength='10'
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
@@ -249,6 +284,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     name='permitNumber'
                     value={formData.permitNumber}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono'
                     placeholder='TP-OS-001'
                     required
@@ -265,6 +301,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     name='permitHolder'
                     value={formData.permitHolder}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                     placeholder='Enter holder name'
                     required
@@ -281,6 +318,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     name='mobileNo'
                     value={formData.mobileNo}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                     placeholder='9876543210'
                     required
@@ -307,6 +345,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     placeholder='DD-MM-YYYY'
                     required
@@ -324,6 +363,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     placeholder='Auto-calculated (28 days)'
                     required
@@ -351,6 +391,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     placeholder=''
                     min='0'
@@ -367,6 +408,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
+                    onKeyDown={handleKeyDown}
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
