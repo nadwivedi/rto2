@@ -225,14 +225,14 @@ const Navbar = () => {
 
       {/* Desktop Navbar - Only visible on desktop */}
       <nav className={`hidden lg:block fixed top-0 left-0 right-0 ${theme.navbar} text-white shadow-2xl z-50`}>
-        <div className="px-4 py-3">
-          {/* Menu Items - Horizontal */}
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="px-3 2xl:px-4 py-2 2xl:py-3">
+          {/* Menu Items - Horizontal with responsive sizing */}
+          <div className="flex items-center gap-1.5 2xl:gap-2 overflow-x-auto scrollbar-hide">
             {menuItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg transition-all duration-200 group flex-shrink-0 ${
+                className={`flex items-center gap-1.5 2xl:gap-2 px-1.5 2xl:px-2.5 py-1.5 2xl:py-2 rounded-lg transition-all duration-200 group flex-shrink-0 ${
                   isActive(item.path)
                     ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg"
                     : "hover:bg-white/10 hover:border border-transparent hover:border-purple-400/20"
@@ -240,7 +240,7 @@ const Navbar = () => {
                 title={item.description}
               >
                 <span
-                  className={`text-lg ${
+                  className={`text-base 2xl:text-lg ${
                     isActive(item.path)
                       ? "text-orange-300"
                       : "text-purple-200 group-hover:text-orange-300"
@@ -249,16 +249,21 @@ const Navbar = () => {
                   {item.icon}
                 </span>
                 <span
-                  className={`text-sm font-semibold whitespace-nowrap ${
+                  className={`text-xs 2xl:text-sm font-semibold whitespace-nowrap ${
                     isActive(item.path)
                       ? "text-purple-100"
                       : "text-purple-100 group-hover:text-white"
                   }`}
                 >
-                  {item.name}
+                  <span className="hidden 2xl:inline">{item.name}</span>
+                  <span className="2xl:hidden">
+                    {item.name === "Vehicle Registration" ? "Vehicle Reg." :
+                     item.name === "Driving Licence" ? "DL" :
+                     item.name}
+                  </span>
                 </span>
                 {isActive(item.path) && (
-                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></div>
+                  <div className="w-1 2xl:w-1.5 h-1 2xl:h-1.5 bg-orange-400 rounded-full animate-pulse"></div>
                 )}
               </Link>
             ))}
