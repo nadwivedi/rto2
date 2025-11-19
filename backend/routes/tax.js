@@ -32,6 +32,9 @@ router.post('/renew', taxController.renewTax)
 // Update tax record
 router.put('/:id', taxController.updateTax)
 
+// PATCH mark tax as paid
+router.patch('/:id/mark-as-paid', taxController.markAsPaid)
+
 // Delete tax record
 router.delete('/:id', taxController.deleteTax)
 

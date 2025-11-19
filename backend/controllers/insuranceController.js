@@ -762,3 +762,44 @@ exports.renewInsurance = async (req, res) => {
   }
 }
 
+// Mark insurance as paid
+exports.markAsPaid = async (req, res) => {
+  try {
+    const insurance = await Insurance.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!insurance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Insurance record not found'
+      })
+    }
+
+    // Check if there's a balance to pay
+    if (!insurance.balance || insurance.balance === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending payment for this insurance record'
+      })
+    }
+
+    // Update payment details
+    insurance.paid = insurance.totalFee || 0
+    insurance.balance = 0
+
+    await insurance.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment marked as paid successfully',
+      data: insurance
+    })
+  } catch (error) {
+    console.error('Error marking payment as paid:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error marking payment as paid',
+      error: error.message
+    })
+  }
+}
+

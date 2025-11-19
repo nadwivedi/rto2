@@ -288,6 +288,31 @@ const Insurance = () => {
     }
   };
 
+  // Mark insurance as paid
+  const handleMarkAsPaid = async (insurance) => {
+    const confirmPaid = window.confirm(
+      `Are you sure you want to mark this payment as PAID?\n\n` +
+      `Vehicle Number: ${insurance.vehicleNumber}\n` +
+      `Policy Number: ${insurance.policyNumber}\n` +
+      `Total Fee: ₹${(insurance.totalFee || 0).toLocaleString('en-IN')}\n` +
+      `Current Balance: ₹${(insurance.balance || 0).toLocaleString('en-IN')}\n\n` +
+      `This will set Paid = ₹${(insurance.totalFee || 0).toLocaleString('en-IN')} and Balance = ₹0`
+    );
+
+    if (!confirmPaid) return;
+
+    try {
+      const response = await axios.patch(`${API_URL}/api/insurance/${insurance._id}/mark-as-paid`, {}, { withCredentials: true });
+      if (!response.data.success) throw new Error(response.data.message || 'Failed to mark payment as paid');
+
+      toast.success('Payment marked as paid successfully!', { position: 'top-right', autoClose: 3000 });
+      await fetchInsurances();
+    } catch (error) {
+      console.error('Error marking payment as paid:', error);
+      toast.error(`Failed to mark payment as paid: ${error.message}`, { position: 'top-right', autoClose: 3000 });
+    }
+  };
+
   // Determine if renew button should be shown for an insurance
   const shouldShowRenewButton = (insurance) => {
     // Show renew button only if insurance is not already renewed and status is expiring_soon or expired
@@ -539,6 +564,19 @@ const Insurance = () => {
                   }}
                   actions={[
                     {
+                      title: 'Mark as Paid',
+                      condition: (insurance) => (insurance.balance || 0) > 0,
+                      onClick: handleMarkAsPaid,
+                      bgColor: 'bg-green-100',
+                      textColor: 'text-green-600',
+                      hoverBgColor: 'bg-green-200',
+                      icon: (
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                      ),
+                    },
+                    {
                       title: 'Renew Insurance',
                       condition: shouldShowRenewButton,
                       onClick: handleRenewClick,
@@ -775,11 +813,22 @@ const Insurance = () => {
                             </td>
                             <td className="px-6 py-5">
                               <div className="flex items-center justify-end gap-0.5 pr-1">
-                                {shouldShowRenewButton(insurance) ? (
+                                {/* Mark as Paid Button */}
+                                {(insurance.balance || 0) > 0 && (
+                                  <button
+                                    onClick={() => handleMarkAsPaid(insurance)}
+                                    className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                    title="Mark as Paid"
+                                  >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </button>
+                                )}
+                                {shouldShowRenewButton(insurance) && (
                                   <button
                                     onClick={() => handleRenewClick(insurance)}
-
-                                    className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                    className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                     title="Renew Insurance"
                                   >
                                     <svg
@@ -796,8 +845,6 @@ const Insurance = () => {
                                       />
                                     </svg>
                                   </button>
-                                ) : (
-                                  <div className="w-9"></div>
                                 )}
                                 <button
                                   onClick={() => handleEditClick(insurance)}

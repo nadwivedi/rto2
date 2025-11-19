@@ -38,6 +38,9 @@ router.delete('/:id', drivingLicenseController.deleteApplication)
 // PATCH add payment to application
 router.patch('/:id/payment', drivingLicenseController.addPayment)
 
+// PATCH mark driving license as paid
+router.patch('/:id/mark-as-paid', drivingLicenseController.markAsPaid)
+
 // PATCH update application status
 router.patch('/:id/status', drivingLicenseController.updateApplicationStatus)
 

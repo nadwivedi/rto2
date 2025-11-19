@@ -36,6 +36,9 @@ router.post('/renew', cgPermitController.renewPermit)
 // PUT update CG permit
 router.put('/:id', cgPermitController.updatePermit)
 
+// PATCH mark CG permit as paid
+router.patch('/:id/mark-as-paid', cgPermitController.markAsPaid)
+
 // DELETE CG permit
 router.delete('/:id', cgPermitController.deletePermit)
 

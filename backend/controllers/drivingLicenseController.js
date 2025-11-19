@@ -772,6 +772,47 @@ exports.getDrivingLicensesExpiringSoon = async (req, res) => {
   }
 }
 
+// Mark driving license as paid
+exports.markAsPaid = async (req, res) => {
+  try {
+    const drivingLicense = await Driving.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!drivingLicense) {
+      return res.status(404).json({
+        success: false,
+        message: 'Driving license record not found'
+      })
+    }
+
+    // Check if there's a balance to pay
+    if (!drivingLicense.balanceAmount || drivingLicense.balanceAmount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending payment for this driving license'
+      })
+    }
+
+    // Update payment details
+    drivingLicense.paidAmount = drivingLicense.totalAmount || 0
+    drivingLicense.balanceAmount = 0
+
+    await drivingLicense.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment marked as paid successfully',
+      data: drivingLicense
+    })
+  } catch (error) {
+    console.error('Error marking payment as paid:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error marking payment as paid',
+      error: error.message
+    })
+  }
+}
+
 // Add demo data (15 driving licenses)
 exports.addDemoData = async (req, res) => {
   try {

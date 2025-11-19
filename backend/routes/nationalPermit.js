@@ -21,6 +21,9 @@ router.post('/', nationalPermitController.createPermit)
 // PUT update national permit
 router.put('/:id', nationalPermitController.updatePermit)
 
+// PATCH mark national permit as paid
+router.patch('/:id/mark-as-paid', nationalPermitController.markAsPaid)
+
 // DELETE national permit
 router.delete('/:id', nationalPermitController.deletePermit)
 

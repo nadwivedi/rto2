@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
@@ -146,6 +146,32 @@ const TemporaryPermitOtherState = () => {
       }
     }
   }
+
+  // Mark temporary permit (other state) as paid
+  const handleMarkAsPaid = async (permit) => {
+    const confirmPaid = window.confirm(
+      `Are you sure you want to mark this payment as PAID?\n\n` +
+      `Permit Number: ${permit.permitNumber}\n` +
+      `Vehicle Number: ${permit.vehicleNo}\n` +
+      `Total Fee: ₹${(permit.totalFee || 0).toLocaleString('en-IN')}\n` +
+      `Current Balance: ₹${(permit.balance || 0).toLocaleString('en-IN')}\n\n` +
+      `This will set Paid = ₹${(permit.totalFee || 0).toLocaleString('en-IN')} and Balance = ₹0`
+    );
+
+    if (!confirmPaid) return;
+
+    try {
+      const response = await axios.patch(`${API_URL}/api/temporary-permits-other-state/${permit.id}/mark-as-paid`, {}, { withCredentials: true });
+      if (!response.data.success) throw new Error(response.data.message || 'Failed to mark payment as paid');
+
+      toast.success('Payment marked as paid successfully!', { position: 'top-right', autoClose: 3000 });
+      await fetchPermits();
+      await fetchStatistics();
+    } catch (error) {
+      console.error('Error marking payment as paid:', error);
+      toast.error(`Failed to mark payment as paid: ${error.message}`, { position: 'top-right', autoClose: 3000 });
+    }
+  };
 
   const handleRenewClick = (permit) => {
     setPermitToRenew(permit)
@@ -328,6 +354,19 @@ const TemporaryPermitOtherState = () => {
               }}
               actions={[
                 {
+                  title: 'Mark as Paid',
+                  condition: (permit) => (permit.balance || 0) > 0,
+                  onClick: handleMarkAsPaid,
+                  bgColor: 'bg-green-100',
+                  textColor: 'text-green-600',
+                  hoverBgColor: 'bg-green-200',
+                  icon: (
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  ),
+                },
+                {
                   title: 'Renew Permit',
                   condition: shouldShowRenewButton,
                   onClick: handleRenewClick,
@@ -506,12 +545,24 @@ const TemporaryPermitOtherState = () => {
                         <td className='px-1 py-5'>
                           <div className='flex items-center justify-center gap-2'>
 
+                            {/* mark as paid button */}
+                            {(permit.balance || 0) > 0 && (
+                              <button
+                                onClick={() => handleMarkAsPaid(permit)}
+                                className='p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                                title='Mark as Paid'
+                              >
+                                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                                </svg>
+                              </button>
+                            )}
+
                             {/* renew button */}
                             {shouldShowRenewButton(permit) && (
                               <button
                                 onClick={() => handleRenewClick(permit)}
-
-                                className='p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                                className='p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                 title='Renew Permit'
                               >
                                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

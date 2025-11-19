@@ -36,6 +36,9 @@ router.post('/renew', temporaryPermitController.renewPermit)
 // PUT update temporary permit
 router.put('/:id', temporaryPermitController.updatePermit)
 
+// PATCH mark temporary permit as paid
+router.patch('/:id/mark-as-paid', temporaryPermitController.markAsPaid)
+
 // DELETE temporary permit
 router.delete('/:id', temporaryPermitController.deletePermit)
 

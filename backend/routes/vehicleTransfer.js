@@ -20,6 +20,9 @@ router.post('/', vehicleTransferController.createTransfer)
 // PUT update vehicle transfer
 router.put('/:id', vehicleTransferController.updateTransfer)
 
+// PATCH mark vehicle transfer as paid
+router.patch('/:id/mark-as-paid', vehicleTransferController.markAsPaid)
+
 // DELETE vehicle transfer
 router.delete('/:id', vehicleTransferController.deleteTransfer)
 

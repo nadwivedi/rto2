@@ -35,6 +35,9 @@ router.post('/renew', fitnessController.renewFitness)
 // Update fitness record
 router.put('/id/:id', fitnessController.updateFitness)
 
+// PATCH mark fitness as paid
+router.patch('/id/:id/mark-as-paid', fitnessController.markAsPaid)
+
 // Delete fitness record
 router.delete('/id/:id', fitnessController.deleteFitness)
 

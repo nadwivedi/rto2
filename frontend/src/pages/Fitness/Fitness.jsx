@@ -344,6 +344,50 @@ const Fitness = () => {
     }
   };
 
+  // Mark fitness as paid
+  const handleMarkAsPaid = async (record) => {
+    // Show confirmation dialog
+    const confirmPaid = window.confirm(
+      `Are you sure you want to mark this payment as PAID?\n\n` +
+      `Vehicle Number: ${record.vehicleNumber}\n` +
+      `Total Fee: ₹${(record.totalFee || 0).toLocaleString('en-IN')}\n` +
+      `Current Balance: ₹${(record.balance || 0).toLocaleString('en-IN')}\n\n` +
+      `This will set Paid = ₹${(record.totalFee || 0).toLocaleString('en-IN')} and Balance = ₹0`
+    );
+
+    if (!confirmPaid) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Make PATCH request to backend
+      const response = await axios.patch(`${API_URL}/api/fitness/id/${record.id}/mark-as-paid`, {}, { withCredentials: true });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to mark payment as paid');
+      }
+
+      // Show success message
+      toast.success('Payment marked as paid successfully!', {
+        position: 'top-right',
+        autoClose: 3000
+      });
+
+      // Refresh the fitness records list and statistics
+      await fetchFitnessRecords();
+      await fetchStatistics();
+    } catch (error) {
+      console.error('Error marking payment as paid:', error);
+      toast.error(`Failed to mark payment as paid: ${error.message}`, {
+        position: 'top-right',
+        autoClose: 3000
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Determine if renew button should be shown for a record
   // Show renew button ONLY if: NOT renewed AND (expired OR expiring_soon)
   const shouldShowRenewButton = (record) => {
@@ -539,6 +583,19 @@ const Fitness = () => {
               }}
               actions={[
                 {
+                  title: 'Mark as Paid',
+                  condition: (record) => (record.balance || 0) > 0,
+                  onClick: handleMarkAsPaid,
+                  bgColor: 'bg-green-100',
+                  textColor: 'text-green-600',
+                  hoverBgColor: 'bg-green-200',
+                  icon: (
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  ),
+                },
+                {
                   title: 'Renew Fitness',
                   condition: shouldShowRenewButton,
                   onClick: handleRenewClick,
@@ -557,9 +614,9 @@ const Fitness = () => {
                     setSelectedFitness(record);
                     setIsEditModalOpen(true);
                   },
-                  bgColor: 'bg-green-100',
-                  textColor: 'text-green-600',
-                  hoverBgColor: 'bg-green-200',
+                  bgColor: 'bg-amber-100',
+                  textColor: 'text-amber-600',
+                  hoverBgColor: 'bg-amber-200',
                   icon: (
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
@@ -780,12 +837,23 @@ const Fitness = () => {
                         {/* Actions */}
                         <td className="px-1 py-4">
                           <div className="flex items-center justify-end gap-0.5 pr-1">
+                            {/* Mark as Paid Button */}
+                            {(record.balance || 0) > 0 && (
+                              <button
+                                onClick={() => handleMarkAsPaid(record)}
+                                className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                title="Mark as Paid"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </button>
+                            )}
                             {/* Renew Button - Smart logic based on vehicle fitness status */}
-                            {shouldShowRenewButton(record) ? (
+                            {shouldShowRenewButton(record) && (
                               <button
                                 onClick={() => handleRenewClick(record)}
-
-                                className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Renew Fitness"
                               >
                                 <svg
@@ -802,8 +870,6 @@ const Fitness = () => {
                                   />
                                 </svg>
                               </button>
-                            ) : (
-                              <div className="w-9"></div>
                             )}
                             {/* Edit Button */}
                             <button

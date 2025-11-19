@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Pagination from "../../components/Pagination";
-import PermitBillModal from "../../components/PermitBillModal";
-import SharePermitModal from "../../components/SharePermitModal";
 import IssueTemporaryPermitModal from "./components/IssueTemporaryPermitModal";
 import RenewTemporaryPermitModal from "./components/RenewTemporaryPermitModal";
 import EditTemporaryPermitModal from "./components/EditTemporaryPermitModal";
@@ -27,14 +25,11 @@ const TemporaryPermit = () => {
   const [selectedPermit, setSelectedPermit] = useState(null);
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false);
   const [showRenewPermitModal, setShowRenewPermitModal] = useState(false);
-  const [showBillModal, setShowBillModal] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
   const [showEditPermitModal, setShowEditPermitModal] = useState(false);
   const [editingPermit, setEditingPermit] = useState(null);
   const [permitToRenew, setPermitToRenew] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [whatsappLoading, setWhatsappLoading] = useState(null); // Track which permit is loading
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'active', 'expiring_soon', 'expired', 'pending'
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -195,98 +190,6 @@ const TemporaryPermit = () => {
     }
 
     return null;
-  };
-
-  const handleViewBill = (permit) => {
-    setSelectedPermit(permit);
-    setShowBillModal(true);
-  };
-
-  const handleShare = (permit) => {
-    setSelectedPermit(permit);
-    setShowShareModal(true);
-  };
-
-  const handleWhatsAppShare = async (permit) => {
-    // Set loading state
-    setWhatsappLoading(permit.id);
-
-    try {
-      // Get phone number first (validate before API call)
-      const phoneNumber = permit.mobileNumber?.replace(/\D/g, "") || "";
-
-      if (!phoneNumber || phoneNumber.length < 10) {
-        alert("No valid mobile number found for this permit holder");
-        setWhatsappLoading(null);
-        return;
-      }
-
-      // Generate bill PDF if needed
-      let pdfUrl = null;
-
-      if (permit.bill?.billPdfPath) {
-        pdfUrl = `${API_URL}${permit.bill.billPdfPath}`;
-      } else {
-        const response = await axios.post(
-          `${API_URL}/api/temporary-permits/${permit.id}/generate-bill-pdf`,
-          {},
-          { withCredentials: true }
-        );
-        if (!response.data.success) {
-          throw new Error("Failed to generate bill PDF");
-        }
-
-        pdfUrl =
-          response.data.data.pdfUrl ||
-          `${API_URL}${response.data.data.pdfPath}`;
-      }
-
-      // Create WhatsApp message
-      const message = `Hello ${permit.permitHolder || "Sir/Madam"},
-
-Your Temporary Permit Bill is ready!
-
-*Bill Number:* ${permit.bill?.billNumber || "N/A"}
-*Permit Number:* ${permit.permitNumber}
-*Vehicle Number:* ${permit.vehicleNo}
-*Vehicle Type:* ${permit.vehicleTypeFull || permit.vehicleType}
-*Total Fee:* ₹${permit.totalFee || permit.fees || 0}
-*Valid From:* ${permit.validFrom}
-*Valid Till:* ${permit.validTill}
-
-You can view and download your bill from the link below:
-${pdfUrl}
-
-Thank you!`;
-
-      const encodedMessage = encodeURIComponent(message);
-
-      // Clear loading state
-      setWhatsappLoading(null);
-
-      // Format phone number with country code
-      const formattedPhone = phoneNumber.startsWith("91")
-        ? phoneNumber
-        : `91${phoneNumber}`;
-
-      // Use WhatsApp Web for reliable message pre-fill (works for saved and unsaved contacts)
-      const whatsappWebUrl = `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodedMessage}`;
-
-      // Open in same tab named 'whatsapp_share' - reuses tab if already open
-      const whatsappWindow = window.open(whatsappWebUrl, "whatsapp_share");
-      if (whatsappWindow) {
-        whatsappWindow.focus();
-      } else {
-        // If popup blocked, show message
-        alert(
-          "Please allow popups for this site to share via WhatsApp, or copy the link manually."
-        );
-      }
-    } catch (error) {
-      console.error("Error sharing via WhatsApp:", error);
-      setWhatsappLoading(null);
-      alert("Failed to prepare WhatsApp message. Please try again.");
-    }
   };
 
   const handleEditClick = (permit) => {
@@ -457,6 +360,47 @@ Thank you!`;
       toast.error(`Failed to delete temporary permit: ${error.message}`, {
         position: "top-right",
         autoClose: 3000,
+      });
+    }
+  };
+
+  // Mark temporary permit as paid
+  const handleMarkAsPaid = async (permit) => {
+    // Show confirmation dialog
+    const confirmPaid = window.confirm(
+      `Are you sure you want to mark this payment as PAID?\n\n` +
+      `Permit Number: ${permit.permitNumber}\n` +
+      `Vehicle Number: ${permit.vehicleNo}\n` +
+      `Total Fee: ₹${(permit.totalFee || 0).toLocaleString('en-IN')}\n` +
+      `Current Balance: ₹${(permit.balance || 0).toLocaleString('en-IN')}\n\n` +
+      `This will set Paid = ₹${(permit.totalFee || 0).toLocaleString('en-IN')} and Balance = ₹0`
+    );
+
+    if (!confirmPaid) {
+      return;
+    }
+
+    try {
+      // Make PATCH request to backend
+      const response = await axios.patch(`${API_URL}/api/temporary-permits/${permit.id}/mark-as-paid`, {}, { withCredentials: true });
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to mark payment as paid');
+      }
+
+      // Show success message
+      toast.success('Payment marked as paid successfully!', {
+        position: 'top-right',
+        autoClose: 3000
+      });
+
+      // Refresh the permits list
+      await fetchPermits();
+    } catch (error) {
+      console.error('Error marking payment as paid:', error);
+      toast.error(`Failed to mark payment as paid: ${error.message}`, {
+        position: 'top-right',
+        autoClose: 3000
       });
     }
   };
@@ -712,6 +656,19 @@ Thank you!`;
               }}
               actions={[
                 {
+                  title: 'Mark as Paid',
+                  condition: (permit) => (permit.balance || 0) > 0,
+                  onClick: handleMarkAsPaid,
+                  bgColor: 'bg-green-100',
+                  textColor: 'text-green-600',
+                  hoverBgColor: 'bg-green-200',
+                  icon: (
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  ),
+                },
+                {
                   title: 'Renew Permit',
                   condition: shouldShowRenewButton,
                   onClick: handleRenewClick,
@@ -733,31 +690,6 @@ Thank you!`;
                   icon: (
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
-                    </svg>
-                  ),
-                },
-                {
-                  title: 'View Bill',
-                  onClick: handleViewBill,
-                  bgColor: 'bg-emerald-100',
-                  textColor: 'text-emerald-600',
-                  hoverBgColor: 'bg-emerald-200',
-                  icon: (
-                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
-                    </svg>
-                  ),
-                },
-                {
-                  title: 'Share via WhatsApp',
-                  onClick: handleWhatsAppShare,
-                  loading: whatsappLoading,
-                  bgColor: 'bg-green-100',
-                  textColor: 'text-green-600',
-                  hoverBgColor: 'bg-green-200',
-                  icon: (
-                    <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
-                      <path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z' />
                     </svg>
                   ),
                 },
@@ -1001,10 +933,21 @@ Thank you!`;
                         </td>
                         <td className="px-6 py-5">
                           <div className="flex items-center justify-end gap-1">
-                            {shouldShowRenewButton(permit) ? (
+                            {/* Mark as Paid Button */}
+                            {(permit.balance || 0) > 0 && (
+                              <button
+                                onClick={() => handleMarkAsPaid(permit)}
+                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 cursor-pointer"
+                                title="Mark as Paid"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </button>
+                            )}
+                            {shouldShowRenewButton(permit) && (
                               <button
                                 onClick={() => handleRenewClick(permit)}
-
                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer"
                                 title="Renew Permit"
                               >
@@ -1022,8 +965,6 @@ Thank you!`;
                                   />
                                 </svg>
                               </button>
-                            ) : (
-                              <div className="w-9"></div>
                             )}
                             <button
                               onClick={() => handleEditClick(permit)}
@@ -1044,71 +985,6 @@ Thank you!`;
                                   d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                                 />
                               </svg>
-                            </button>
-                            <button
-                              onClick={() => handleViewBill(permit)}
-
-                              className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-200 cursor-pointer"
-                              title="View Bill"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleWhatsAppShare(permit)}
-
-                              disabled={whatsappLoading === permit.id}
-                              className={`p-2 rounded-lg transition-all group-hover:scale-110 duration-200 relative flex-shrink-0 ${
-                                whatsappLoading === permit.id
-                                  ? "text-gray-400 bg-gray-100 cursor-wait"
-                                  : "text-green-600 hover:bg-green-100 cursor-pointer"
-                              }`}
-                              title={
-                                whatsappLoading === permit.id
-                                  ? "Loading..."
-                                  : "Share via WhatsApp"
-                              }
-                            >
-                              {whatsappLoading === permit.id ? (
-                                <svg
-                                  className="w-5 h-5 animate-spin"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                              ) : (
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                                </svg>
-                              )}
                             </button>
                             <button
                               onClick={() => handleDeletePermit(permit)}
@@ -1212,30 +1088,6 @@ Thank you!`;
                 }}
                 onSubmit={handleEditPermit}
                 permitData={editingPermit} // Pass permit data for editing
-              />
-          )}
-
-          {/* Bill Modal - Lazy Loaded */}
-          {showBillModal && selectedPermit && (
-                          <PermitBillModal
-                permit={selectedPermit}
-                onClose={() => {
-                  setShowBillModal(false);
-                  setSelectedPermit(null);
-                }}
-                permitType="Temporary"
-              />
-          )}
-
-          {/* Share Modal - Lazy Loaded */}
-          {showShareModal && selectedPermit && (
-                          <SharePermitModal
-                permit={selectedPermit}
-                onClose={() => {
-                  setShowShareModal(false);
-                  setSelectedPermit(null);
-                }}
-                permitType="Temporary"
               />
           )}
         </div>

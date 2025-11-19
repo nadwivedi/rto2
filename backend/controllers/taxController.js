@@ -590,3 +590,44 @@ exports.renewTax = async (req, res) => {
     })
   }
 };
+
+// Mark tax as paid
+exports.markAsPaid = async (req, res) => {
+  try {
+    const tax = await Tax.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!tax) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tax record not found'
+      })
+    }
+
+    // Check if there's a balance to pay
+    if (!tax.balanceAmount || tax.balanceAmount === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending payment for this tax record'
+      })
+    }
+
+    // Update payment details
+    tax.paidAmount = tax.totalAmount || 0
+    tax.balanceAmount = 0
+
+    await tax.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment marked as paid successfully',
+      data: tax
+    })
+  } catch (error) {
+    console.error('Error marking payment as paid:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error marking payment as paid',
+      error: error.message
+    })
+  }
+};

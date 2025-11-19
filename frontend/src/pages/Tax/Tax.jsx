@@ -324,6 +324,32 @@ const Tax = () => {
     }
   };
 
+  // Mark tax as paid
+  const handleMarkAsPaid = async (record) => {
+    const confirmPaid = window.confirm(
+      `Are you sure you want to mark this payment as PAID?\n\n` +
+      `Receipt No: ${record.receiptNo}\n` +
+      `Vehicle Number: ${record.vehicleNumber}\n` +
+      `Total Amount: ₹${(record.totalAmount || 0).toLocaleString('en-IN')}\n` +
+      `Current Balance: ₹${(record.balanceAmount || 0).toLocaleString('en-IN')}\n\n` +
+      `This will set Paid = ₹${(record.totalAmount || 0).toLocaleString('en-IN')} and Balance = ₹0`
+    );
+
+    if (!confirmPaid) return;
+
+    try {
+      const response = await axios.patch(`${API_URL}/api/tax/${record.id}/mark-as-paid`, {}, { withCredentials: true });
+      if (!response.data.success) throw new Error(response.data.message || 'Failed to mark payment as paid');
+
+      toast.success('Payment marked as paid successfully!', { position: 'top-right', autoClose: 3000 });
+      await fetchTaxRecords();
+      await fetchStatistics();
+    } catch (error) {
+      console.error('Error marking payment as paid:', error);
+      toast.error(`Failed to mark payment as paid: ${error.message}`, { position: 'top-right', autoClose: 3000 });
+    }
+  };
+
   // Statistics are now fetched from backend, removed useMemo calculation
 
   return (
@@ -553,6 +579,19 @@ const Tax = () => {
                 },
               }}
               actions={[
+                {
+                  title: 'Mark as Paid',
+                  condition: (record) => (record.balanceAmount || 0) > 0,
+                  onClick: handleMarkAsPaid,
+                  bgColor: 'bg-green-100',
+                  textColor: 'text-green-600',
+                  hoverBgColor: 'bg-green-200',
+                  icon: (
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    </svg>
+                  ),
+                },
                 {
                   title: 'Renew Tax',
                   condition: shouldShowRenewButton,
@@ -797,12 +836,23 @@ const Tax = () => {
                         {/* Actions */}
                         <td className="px-4 py-4">
                           <div className="flex items-center justify-end gap-0.5 pr-1">
+                            {/* Mark as Paid Button */}
+                            {(record.balanceAmount || 0) > 0 && (
+                              <button
+                                onClick={() => handleMarkAsPaid(record)}
+                                className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                title="Mark as Paid"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </button>
+                            )}
                             {/* Renew Button - Smart logic based on vehicle tax status */}
-                            {shouldShowRenewButton(record) ? (
+                            {shouldShowRenewButton(record) && (
                               <button
                                 onClick={() => handleRenewClick(record)}
-
-                                className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Renew Tax"
                               >
                                 <svg
@@ -819,8 +869,6 @@ const Tax = () => {
                                   />
                                 </svg>
                               </button>
-                            ) : (
-                              <div className="w-9"></div>
                             )}
                             {/* Edit Button */}
                             <button

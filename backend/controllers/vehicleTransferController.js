@@ -440,3 +440,45 @@ exports.getTransfersByVehicle = async (req, res) => {
     })
   }
 }
+
+// Mark vehicle transfer as paid
+exports.markAsPaid = async (req, res) => {
+  try {
+    const transfer = await VehicleTransfer.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!transfer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle transfer record not found'
+      })
+    }
+
+    // Check if there's a balance to pay
+    if (!transfer.balance || transfer.balance === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending payment for this vehicle transfer'
+      })
+    }
+
+    // Update payment details
+    transfer.paid = transfer.totalFee || 0
+    transfer.balance = 0
+
+    await transfer.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment marked as paid successfully',
+      data: transfer
+    })
+  } catch (error) {
+    console.error('Error marking payment as paid:', error)
+    logError(error, req)
+    res.status(500).json({
+      success: false,
+      message: 'Error marking payment as paid',
+      error: error.message
+    })
+  }
+}

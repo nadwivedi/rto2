@@ -40,6 +40,9 @@ router.get('/:id', insuranceController.getInsuranceById)
 // Update insurance record
 router.put('/:id', insuranceController.updateInsurance)
 
+// PATCH mark insurance as paid
+router.patch('/:id/mark-as-paid', insuranceController.markAsPaid)
+
 // Delete insurance record
 router.delete('/:id', insuranceController.deleteInsurance)
 

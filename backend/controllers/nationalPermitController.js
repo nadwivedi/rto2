@@ -908,3 +908,44 @@ exports.updatePermit = async (req, res) => {
     })
   }
 }
+
+// Mark national permit as paid
+exports.markAsPaid = async (req, res) => {
+  try {
+    const permit = await NationalPermitPartA.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'National permit not found'
+      })
+    }
+
+    // Check if there's a balance to pay
+    if (!permit.balance || permit.balance === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending payment for this national permit'
+      })
+    }
+
+    // Update payment details
+    permit.paid = permit.totalFee || 0
+    permit.balance = 0
+
+    await permit.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment marked as paid successfully',
+      data: permit
+    })
+  } catch (error) {
+    console.error('Error marking payment as paid:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error marking payment as paid',
+      error: error.message
+    })
+  }
+}

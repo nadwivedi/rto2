@@ -5,7 +5,6 @@ import { getDaysRemaining, parseFormattedDate } from '../../utils/dateHelpers'
 import Pagination from '../../components/Pagination'
 import IssueNewPermitModal from './components/IssueNewPermitModal'
 import EditNationalPermitModal from './components/EditNationalPermitModal'
-import PermitBillModal from '../../components/PermitBillModal'
 import RenewPartBModal from './components/RenewPartBModal'
 import RenewPartAModal from './components/RenewPartAModal'
 import NationalPermitDetailsModal from './components/NationalPermitDetailsModal'
@@ -29,7 +28,6 @@ const NationalPermit = () => {
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
-  const [showBillModal, setShowBillModal] = useState(false)
   const [showRenewPartBModal, setShowRenewPartBModal] = useState(false)
   const [showRenewPartAModal, setShowRenewPartAModal] = useState(false)
   const [renewingPermit, setRenewingPermit] = useState(null)
@@ -315,11 +313,6 @@ const NationalPermit = () => {
     setShowDetailsModal(true)
   }
 
-  const handleViewBill = (permit) => {
-    setSelectedPermit(permit)
-    setShowBillModal(true)
-  }
-
   const handleEditPermit = (permit) => {
     setEditingPermit(permit)
     setShowEditPermitModal(true)
@@ -346,6 +339,32 @@ const NationalPermit = () => {
       console.error('Error:', error)
     }
   }
+
+  // Mark national permit as paid
+  const handleMarkAsPaid = async (permit) => {
+    const confirmPaid = window.confirm(
+      `Are you sure you want to mark this payment as PAID?\n\n` +
+      `Permit Number: ${permit.permitNumber}\n` +
+      `Vehicle Number: ${permit.vehicleNo}\n` +
+      `Total Fee: ₹${(permit.totalFee || 0).toLocaleString('en-IN')}\n` +
+      `Current Balance: ₹${(permit.balance || 0).toLocaleString('en-IN')}\n\n` +
+      `This will set Paid = ₹${(permit.totalFee || 0).toLocaleString('en-IN')} and Balance = ₹0`
+    );
+
+    if (!confirmPaid) return;
+
+    try {
+      const response = await axios.patch(`${API_URL}/api/national-permits/${permit.id}/mark-as-paid`, {}, { withCredentials: true });
+      if (!response.data.success) throw new Error(response.data.message || 'Failed to mark payment as paid');
+
+      toast.success('Payment marked as paid successfully!', { position: 'top-right', autoClose: 3000 });
+      fetchPermits();
+      fetchExpiringCounts();
+    } catch (error) {
+      console.error('Error marking payment as paid:', error);
+      toast.error(`Failed to mark payment as paid: ${error.message}`, { position: 'top-right', autoClose: 3000 });
+    }
+  };
 
   const handleRenewPartB = (permit) => {
     setRenewingPermit(permit)
@@ -618,6 +637,19 @@ const NationalPermit = () => {
           }}
           actions={[
             {
+              title: 'Mark as Paid',
+              condition: (permit) => (permit.balance || 0) > 0,
+              onClick: handleMarkAsPaid,
+              bgColor: 'bg-green-100',
+              textColor: 'text-green-600',
+              hoverBgColor: 'bg-green-200',
+              icon: (
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                </svg>
+              ),
+            },
+            {
               title: 'View Details',
               onClick: handleViewDetails,
               bgColor: 'bg-indigo-100',
@@ -820,6 +852,18 @@ const NationalPermit = () => {
                     </td>
                     <td className='px-5 py-4'>
                       <div className='flex items-center justify-end gap-2'>
+                        {/* Mark as Paid Button */}
+                        {(permit.balance || 0) > 0 && (
+                          <button
+                            onClick={() => handleMarkAsPaid(permit)}
+                            className='p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
+                            title='Mark as Paid'
+                          >
+                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                            </svg>
+                          </button>
+                        )}
                         <button
                           onClick={() => handleViewDetails(permit)}
 
@@ -848,16 +892,6 @@ const NationalPermit = () => {
                         >
                           <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => handleViewBill(permit)}
-
-                          className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all hover:shadow-md duration-200 flex-shrink-0 hover:scale-105'
-                          title='View Bill'
-                        >
-                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
                           </svg>
                         </button>
                         {/* Renew Part B Button - Show only when expiring within 30 days or expired */}
@@ -951,7 +985,6 @@ const NationalPermit = () => {
               setSelectedPermit(null)
             }}
             permit={selectedPermit}
-            onViewBill={handleViewBill}
           />
       )}
 
@@ -974,17 +1007,6 @@ const NationalPermit = () => {
             }}
             onSubmit={handleUpdatePermit}
             permit={editingPermit}
-          />
-      )}
-
-      {/* Bill Modal - Lazy Loaded */}
-      {showBillModal && selectedPermit && (
-                  <PermitBillModal
-            permit={selectedPermit}
-            onClose={() => {
-              setShowBillModal(false)
-              setSelectedPermit(null)
-            }}
           />
       )}
 

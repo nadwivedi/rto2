@@ -640,3 +640,44 @@ exports.renewFitness = async (req, res) => {
     })
   }
 }
+
+// Mark fitness as paid
+exports.markAsPaid = async (req, res) => {
+  try {
+    const fitness = await Fitness.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!fitness) {
+      return res.status(404).json({
+        success: false,
+        message: 'Fitness record not found'
+      })
+    }
+
+    // Check if there's a balance to pay
+    if (!fitness.balance || fitness.balance === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending payment for this fitness record'
+      })
+    }
+
+    // Update payment details
+    fitness.paid = fitness.totalFee || 0
+    fitness.balance = 0
+
+    await fitness.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment marked as paid successfully',
+      data: fitness
+    })
+  } catch (error) {
+    console.error('Error marking payment as paid:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error marking payment as paid',
+      error: error.message
+    })
+  }
+}
