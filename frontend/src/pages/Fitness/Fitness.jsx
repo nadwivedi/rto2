@@ -644,31 +644,31 @@ const Fitness = () => {
               <table className="w-full">
                 <thead className={theme.tableHeader}>
                   <tr>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Vehicle Number
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Valid From
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Valid To
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Total Fee (₹)
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Paid (₹)
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Balance (₹)
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Payment Status
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Status
                     </th>
-                    <th className="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Actions
                     </th>
                   </tr>
@@ -681,15 +681,15 @@ const Fitness = () => {
                         className="hover:bg-gradient-to-r hover:from-blue-50/50 hover:via-indigo-50/50 hover:to-purple-50/50 transition-all duration-200 group"
                       >
                         {/* Vehicle Number */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="flex items-center gap-2 2xl:gap-3">
                             {(() => {
                               const parts = getVehicleNumberParts(
                                 record.vehicleNumber
                               );
                               if (!parts) {
                                 return (
-                                  <div className="text-sm font-inter font-bold text-gray-900">
+                                  <div className="text-[11px] 2xl:text-sm font-inter font-bold text-gray-900">
                                     {record.vehicleNumber}
                                   </div>
                                 );
@@ -697,7 +697,7 @@ const Fitness = () => {
                               return (
                                 <div className={vehicleDesign.container}>
                                   <svg
-                                    className="w-4 h-6 mr-0.5   text-blue-800 flex-shrink-0"
+                                    className="w-3.5 h-5 2xl:w-4 2xl:h-6 mr-0.5 text-blue-800 flex-shrink-0"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
@@ -724,10 +724,10 @@ const Fitness = () => {
                         </td>
 
                         {/* Valid From */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center text-sm text-green-600 font-semibold">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="flex items-center text-[11px] 2xl:text-sm text-green-600 font-semibold">
                             <svg
-                              className="w-4 h-4 mr-2 text-green-500"
+                              className="w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2 text-green-500"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -744,10 +744,10 @@ const Fitness = () => {
                         </td>
 
                         {/* Valid To */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center text-sm text-red-600 font-semibold">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="flex items-center text-[11px] 2xl:text-sm text-red-600 font-semibold">
                             <svg
-                              className="w-4 h-4 mr-2 text-red-500"
+                              className="w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2 text-red-500"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -764,32 +764,32 @@ const Fitness = () => {
                         </td>
 
                         {/* Total Fee */}
-                        <td className="px-4 py-4">
-                          <span className="text-sm font-bold text-gray-800">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <span className="text-[11px] 2xl:text-sm font-bold text-gray-800">
                             ₹{(record.totalFee || 0).toLocaleString("en-IN")}
                           </span>
                         </td>
 
                         {/* Paid */}
-                        <td className="px-4 py-4">
-                          <span className="text-sm font-bold text-green-600">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <span className="text-[11px] 2xl:text-sm font-bold text-green-600">
                             ₹{(record.paid || 0).toLocaleString("en-IN")}
                           </span>
                         </td>
 
                         {/* Balance */}
-                        <td className="px-4 py-4">
-                          <span className="text-sm font-bold text-orange-600">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <span className="text-[11px] 2xl:text-sm font-bold text-orange-600">
                             ₹{(record.balance || 0).toLocaleString("en-IN")}
                           </span>
                         </td>
 
                         {/* Payment Status */}
-                        <td className="px-4 py-4">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
                           {(record.balance || 0) > 0 ? (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
                               <svg
-                                className="w-3 h-3 mr-1"
+                                className="w-2.5 h-2.5 2xl:w-3 2xl:h-3 mr-0.5 2xl:mr-1"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -804,9 +804,9 @@ const Fitness = () => {
                               Pending
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
                               <svg
-                                className="w-3 h-3 mr-1"
+                                className="w-2.5 h-2.5 2xl:w-3 2xl:h-3 mr-0.5 2xl:mr-1"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -824,9 +824,9 @@ const Fitness = () => {
                         </td>
 
                         {/* Status */}
-                        <td className="px-4 py-4">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
                           <span
-                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(
+                            className={`inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold ${getStatusColor(
                               record.status
                             )}`}
                           >
@@ -835,16 +835,16 @@ const Fitness = () => {
                         </td>
 
                         {/* Actions */}
-                        <td className="px-1 py-4">
-                          <div className="flex items-center justify-end gap-0.5 pr-1">
+                        <td className="px-1 2xl:px-2 py-3 2xl:py-4">
+                          <div className="flex items-center justify-end gap-0.5 2xl:gap-0.5 pr-1">
                             {/* Mark as Paid Button */}
                             {(record.balance || 0) > 0 && (
                               <button
                                 onClick={() => handleMarkAsPaid(record)}
-                                className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                className="p-1.5 2xl:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Mark as Paid"
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 2xl:w-5 2xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                               </button>
@@ -853,11 +853,11 @@ const Fitness = () => {
                             {shouldShowRenewButton(record) && (
                               <button
                                 onClick={() => handleRenewClick(record)}
-                                className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                className="p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Renew Fitness"
                               >
                                 <svg
-                                  className="w-5 h-5"
+                                  className="w-4 h-4 2xl:w-5 2xl:h-5"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -875,11 +875,11 @@ const Fitness = () => {
                             <button
                               onClick={() => handleEditClick(record)}
 
-                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                              className="p-1.5 2xl:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Edit Record"
                             >
                               <svg
-                                className="w-5 h-5"
+                                className="w-4 h-4 2xl:w-5 2xl:h-5"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -895,11 +895,11 @@ const Fitness = () => {
                             {/* Delete Button */}
                             <button
                               onClick={() => handleDeleteFitness(record)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                              className="p-1.5 2xl:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Delete Record"
                             >
                               <svg
-                                className="w-5 h-5"
+                                className="w-4 h-4 2xl:w-5 2xl:h-5"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"

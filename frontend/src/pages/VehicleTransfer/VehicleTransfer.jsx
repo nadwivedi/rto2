@@ -365,15 +365,15 @@ const VehicleTransfer = () => {
                 <table className='w-full'>
                   <thead className={theme.tableHeader}>
                     <tr>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle No</th>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Old Owner</th>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>New Owner</th>
-                      <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Transfer Date</th>
-                      <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Total Fee</th>
-                      <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Paid</th>
-                      <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Balance</th>
-                      <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Payment Status</th>
-                      <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Vehicle No</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Old Owner</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>New Owner</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Transfer Date</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Total Fee</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Paid</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Balance</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Payment Status</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                     </tr>
                   </thead>
                   <tbody className='divide-y divide-gray-200'>
@@ -381,14 +381,14 @@ const VehicleTransfer = () => {
                       filteredTransfers.map((transfer) => (
                         <tr key={transfer._id} className='hover:bg-gradient-to-r hover:from-teal-50/50 hover:via-cyan-50/50 hover:to-blue-50/50 transition-all duration-200 group'>
                           {/* Vehicle Number */}
-                          <td className='px-4 py-4'>
+                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
                             <div className='flex items-center gap-3'>
                               <div>
                                 {(() => {
                                   const parts = getVehicleNumberParts(transfer.vehicleNumber);
                                   if (!parts) {
                                     return (
-                                      <div className='text-sm font-inter font-bold text-gray-900'>
+                                      <div className='text-[11px] 2xl:text-sm font-inter font-bold text-gray-900'>
                                         {transfer.vehicleNumber}
                                       </div>
                                     );
@@ -424,19 +424,19 @@ const VehicleTransfer = () => {
                           </td>
 
                           {/* Old Owner */}
-                          <td className='px-4 py-4'>
+                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
                             <div>
-                              <div className='text-sm font-semibold text-gray-900'>{transfer.currentOwnerName}</div>
-                              <div className='text-xs text-gray-500 mt-0.5'>Previous Owner</div>
+                              <div className='text-[11px] 2xl:text-sm font-semibold text-gray-900'>{transfer.currentOwnerName}</div>
+                              <div className='text-[10px] 2xl:text-xs text-gray-500 mt-0.5'>Previous Owner</div>
                             </div>
                           </td>
 
                           {/* New Owner */}
-                          <td className='px-4 py-4'>
+                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
                             <div>
-                              <div className='text-sm font-semibold text-teal-700'>{transfer.newOwnerName}</div>
-                              <div className='text-xs text-teal-600 mt-0.5 flex items-center gap-1'>
-                                <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <div className='text-[11px] 2xl:text-sm font-semibold text-teal-700'>{transfer.newOwnerName}</div>
+                              <div className='text-[10px] 2xl:text-xs text-teal-600 mt-0.5 flex items-center gap-1'>
+                                <svg className='w-2.5 h-2.5 2xl:w-3 2xl:h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 7l5 5m0 0l-5 5m5-5H6' />
                                 </svg>
                                 Current Owner
@@ -445,9 +445,9 @@ const VehicleTransfer = () => {
                           </td>
 
                           {/* Transfer Date */}
-                          <td className='px-4 py-4'>
-                            <div className='flex items-center text-sm text-gray-700 font-semibold'>
-                              <svg className='w-4 h-4 mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
+                            <div className='flex items-center text-[11px] 2xl:text-sm text-gray-700 font-semibold'>
+                              <svg className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
                               </svg>
                               {transfer.transferDate}
@@ -457,26 +457,26 @@ const VehicleTransfer = () => {
                           {/* Total Fee */}
                           <td className='px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30'>
                             <div className='text-right'>
-                              <div className='text-sm font-bold text-gray-900'>₹{(transfer.totalFee || 0).toLocaleString('en-IN')}</div>
-                              <div className='text-xs text-gray-500 mt-0.5'>Total Amount</div>
+                              <div className='text-[11px] 2xl:text-sm font-bold text-gray-900'>₹{(transfer.totalFee || 0).toLocaleString('en-IN')}</div>
+                              <div className='text-[10px] 2xl:text-xs text-gray-500 mt-0.5'>Total Amount</div>
                             </div>
                           </td>
 
                           {/* Paid */}
                           <td className='px-4 py-4 bg-gray-50/50 group-hover:bg-emerald-50/30'>
                             <div className='text-right'>
-                              <div className='text-sm font-bold text-emerald-600'>₹{(transfer.paid || 0).toLocaleString('en-IN')}</div>
-                              <div className='text-xs text-emerald-600 mt-0.5'>Paid Amount</div>
+                              <div className='text-[11px] 2xl:text-sm font-bold text-emerald-600'>₹{(transfer.paid || 0).toLocaleString('en-IN')}</div>
+                              <div className='text-[10px] 2xl:text-xs text-emerald-600 mt-0.5'>Paid Amount</div>
                             </div>
                           </td>
 
                           {/* Balance */}
                           <td className={`px-4 py-4 bg-gray-50/50 ${transfer.balance > 0 ? 'group-hover:bg-amber-50/30' : 'group-hover:bg-gray-50'}`}>
                             <div className='text-right'>
-                              <div className={`text-sm font-bold ${transfer.balance > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                              <div className={`text-[11px] 2xl:text-sm font-bold ${transfer.balance > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
                                 ₹{(transfer.balance || 0).toLocaleString('en-IN')}
                               </div>
-                              <div className={`text-xs mt-0.5 ${transfer.balance > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                              <div className={`text-[10px] 2xl:text-xs mt-0.5 ${transfer.balance > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
                                 {transfer.balance > 0 ? 'Pending' : 'Cleared'}
                               </div>
                             </div>
@@ -485,15 +485,15 @@ const VehicleTransfer = () => {
                           {/* Payment Status Badge */}
                           <td className='px-4 py-4 text-center'>
                             {transfer.balance > 0 ? (
-                              <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200'>
-                                <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200'>
+                                <svg className='w-2.5 h-2.5 2xl:w-3 2xl:h-3 mr-0.5 2xl:mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
                                 </svg>
                                 Pending
                               </span>
                             ) : (
-                              <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
-                                <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
+                                <svg className='w-2.5 h-2.5 2xl:w-3 2xl:h-3 mr-0.5 2xl:mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                                 </svg>
                                 Paid
@@ -502,45 +502,45 @@ const VehicleTransfer = () => {
                           </td>
 
                           {/* Actions */}
-                          <td className='px-4 py-4'>
+                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
                             <div className='flex items-center justify-end gap-0.5 pr-1'>
                               {/* Mark as Paid Button */}
                               {(transfer.balance || 0) > 0 && (
                                 <button
                                   onClick={() => handleMarkAsPaid(transfer)}
-                                  className='p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                                  className='p-1.5 2xl:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                   title='Mark as Paid'
                                 >
-                                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <svg className='w-4 h-4 2xl:w-5 2xl:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                                   </svg>
                                 </button>
                               )}
                               <button
                                 onClick={() => handleViewDetail(transfer)}
-                                className='p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                                className='p-1.5 2xl:p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                 title='View Details'
                               >
-                                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <svg className='w-4 h-4 2xl:w-5 2xl:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
                                 </svg>
                               </button>
                               <button
                                 onClick={() => handleEdit(transfer)}
-                                className='p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                                className='p-1.5 2xl:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                 title='Edit Transfer'
                               >
-                                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <svg className='w-4 h-4 2xl:w-5 2xl:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
                                 </svg>
                               </button>
                               <button
                                 onClick={() => handleDelete(transfer._id)}
-                                className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
+                                className='p-1.5 2xl:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200'
                                 title='Delete Transfer'
                               >
-                                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <svg className='w-4 h-4 2xl:w-5 2xl:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                                 </svg>
                               </button>

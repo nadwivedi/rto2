@@ -644,31 +644,31 @@ const Insurance = () => {
                   <table className="w-full">
                     <thead className={theme.tableHeader}>
                       <tr>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Vehicle No.
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Policy Number
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Valid From
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Valid To
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Total Fee (₹)
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Paid (₹)
                         </th>
-                        <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Balance (₹)
                         </th>
-                        <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Actions
                         </th>
                       </tr>
@@ -680,16 +680,16 @@ const Insurance = () => {
                             key={insurance.id}
                             className="hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 transition-all duration-300 group"
                           >
-                            <td className="px-6 py-5">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
                               {(() => {
                                 const parts = getVehicleNumberParts(
                                   insurance.vehicleNumber
                                 );
                                 if (!parts) {
                                   return (
-                                    <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200">
+                                    <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200">
                                       <svg
-                                        className="w-3 h-3 mr-1"
+                                        className="w-2.5 h-2.5 2xl:w-3 2xl:h-3 mr-0.5 2xl:mr-1"
                                         fill="currentColor"
                                         viewBox="0 0 20 20"
                                       >
@@ -703,7 +703,7 @@ const Insurance = () => {
                                 return (
                                   <div className={vehicleDesign.container}>
                                     <svg
-                                      className="w-4 h-6 mr-0.5   text-blue-800 flex-shrink-0"
+                                      className="w-3.5 h-5 2xl:w-4 2xl:h-6 mr-0.5 text-blue-800 flex-shrink-0"
                                       fill="currentColor"
                                       viewBox="0 0 20 20"
                                     >
@@ -728,16 +728,16 @@ const Insurance = () => {
                                 );
                               })()}
                             </td>
-                            <td className="px-6 py-5">
-                              <div className="text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                              <div className="text-[11px] 2xl:text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg inline-block border border-gray-200">
                                 {insurance.policyNumber}
                               </div>
                             </td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center text-sm">
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                              <div className="flex items-center text-[11px] 2xl:text-sm">
+                                <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200">
                                   <svg
-                                    className="w-4 h-4 mr-2"
+                                    className="w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -753,11 +753,11 @@ const Insurance = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center text-sm">
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                              <div className="flex items-center text-[11px] 2xl:text-sm">
+                                <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200">
                                   <svg
-                                    className="w-4 h-4 mr-2"
+                                    className="w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -773,37 +773,37 @@ const Insurance = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-5">
-                              <span className="text-sm font-bold text-gray-800">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                              <span className="text-[11px] 2xl:text-sm font-bold text-gray-800">
                                 ₹
                                 {(insurance.totalFee || 0).toLocaleString(
                                   "en-IN"
                                 )}
                               </span>
                             </td>
-                            <td className="px-6 py-5">
-                              <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                              <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
                                 ₹{(insurance.paid || 0).toLocaleString("en-IN")}
                               </span>
                             </td>
-                            <td className="px-6 py-5">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
                               {(insurance.balance || 0) > 0 ? (
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                                <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
                                   ₹
                                   {(insurance.balance || 0).toLocaleString(
                                     "en-IN"
                                   )}
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                                <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
                                   ₹0
                                 </span>
                               )}
                             </td>
-                            <td className="px-6 py-5">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
                               <div className="flex items-center justify-center">
                                 <span
-                                  className={`px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(
+                                  className={`px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold ${getStatusColor(
                                     insurance.status
                                   )}`}
                                 >
@@ -811,16 +811,16 @@ const Insurance = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-6 py-5">
-                              <div className="flex items-center justify-end gap-0.5 pr-1">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                              <div className="flex items-center justify-end gap-0.5 2xl:gap-0.5 pr-1">
                                 {/* Mark as Paid Button */}
                                 {(insurance.balance || 0) > 0 && (
                                   <button
                                     onClick={() => handleMarkAsPaid(insurance)}
-                                    className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                    className="p-1.5 2xl:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                     title="Mark as Paid"
                                   >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 2xl:w-5 2xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                   </button>
@@ -828,11 +828,11 @@ const Insurance = () => {
                                 {shouldShowRenewButton(insurance) && (
                                   <button
                                     onClick={() => handleRenewClick(insurance)}
-                                    className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                    className="p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                     title="Renew Insurance"
                                   >
                                     <svg
-                                      className="w-5 h-5"
+                                      className="w-4 h-4 2xl:w-5 2xl:h-5"
                                       fill="none"
                                       stroke="currentColor"
                                       viewBox="0 0 24 24"
@@ -848,11 +848,11 @@ const Insurance = () => {
                                 )}
                                 <button
                                   onClick={() => handleEditClick(insurance)}
-                                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                  className="p-1.5 2xl:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                   title="Edit Insurance"
                                 >
                                   <svg
-                                    className="w-5 h-5"
+                                    className="w-4 h-4 2xl:w-5 2xl:h-5"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -869,11 +869,11 @@ const Insurance = () => {
                                   onClick={() =>
                                     handleDeleteInsurance(insurance)
                                   }
-                                  className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                  className="p-1.5 2xl:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                   title="Delete Insurance"
                                 >
                                   <svg
-                                    className="w-5 h-5"
+                                    className="w-4 h-4 2xl:w-5 2xl:h-5"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"

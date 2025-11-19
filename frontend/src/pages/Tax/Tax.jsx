@@ -653,34 +653,34 @@ const Tax = () => {
               <table className="w-full">
                 <thead className={theme.tableHeader}>
                   <tr>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Vehicle Number
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Receipt No
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Owner Name
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Total Amount (₹)
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Paid (₹)
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Balance (₹)
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Tax From
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Tax To
                     </th>
-                    <th className="px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Status
                     </th>
-                    <th className="px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Actions
                     </th>
                   </tr>
@@ -693,8 +693,8 @@ const Tax = () => {
                         className="hover:bg-gradient-to-r hover:from-indigo-50/50 hover:via-purple-50/50 hover:to-pink-50/50 transition-all duration-200 group"
                       >
                         {/* Vehicle Number */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="flex items-center gap-2 2xl:gap-3">
                             {(() => {
                               const parts = getVehicleNumberParts(
                                 record.vehicleNumber
@@ -702,11 +702,11 @@ const Tax = () => {
                               if (!parts) {
                                 return (
                                   <>
-                                    <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md">
+                                    <div className="flex-shrink-0 h-8 w-8 2xl:h-10 2xl:w-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xs 2xl:text-sm shadow-md">
                                       {record.vehicleNumber?.substring(0, 2) ||
                                         "V"}
                                     </div>
-                                    <div className="text-[14px] font-semibold text-gray-900">
+                                    <div className="text-[11px] 2xl:text-[14px] font-semibold text-gray-900">
                                       {record.vehicleNumber}
                                     </div>
                                   </>
@@ -715,14 +715,14 @@ const Tax = () => {
                               return (
                                 <div className={vehicleDesign.container}>
                                   <svg
-                                    className="w-4 h-6 mr-0.5   text-blue-800 flex-shrink-0"
+                                    className="w-3.5 h-5 2xl:w-4 2xl:h-6 mr-0.5 text-blue-800 flex-shrink-0"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                   >
                                     <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                                     <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
                                   </svg>
-                                  
+
                                   <span className={vehicleDesign.stateCode}>
                                     {parts.stateCode}
                                   </span>
@@ -742,51 +742,51 @@ const Tax = () => {
                         </td>
 
                         {/* Receipt No */}
-                        <td className="px-4 py-4">
-                          <div className="text-sm font-mono font-bold text-gray-900">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="text-[11px] 2xl:text-sm font-mono font-bold text-gray-900">
                             {record.receiptNo}
                           </div>
                         </td>
 
                         {/* Owner Name */}
-                        <td className="px-4 py-4">
-                          <div className="text-sm font-semibold text-gray-900">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="text-[11px] 2xl:text-sm font-semibold text-gray-900">
                             {record.ownerName || "-"}
                           </div>
                         </td>
 
                         {/* Total Amount */}
-                        <td className="px-4 py-4">
-                          <span className="text-sm font-bold text-gray-800">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <span className="text-[11px] 2xl:text-sm font-bold text-gray-800">
                             ₹{(record.totalAmount || 0).toLocaleString("en-IN")}
                           </span>
                         </td>
 
                         {/* Paid Amount */}
-                        <td className="px-4 py-4">
-                          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
                             ₹{(record.paidAmount || 0).toLocaleString("en-IN")}
                           </span>
                         </td>
 
                         {/* Balance Amount */}
-                        <td className="px-4 py-4">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
                           {record.balanceAmount > 0 ? (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
                               ₹{record.balanceAmount.toLocaleString("en-IN")}
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
                               ₹0
                             </span>
                           )}
                         </td>
 
                         {/* Tax From */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center text-sm text-green-600 font-semibold">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="flex items-center text-[11px] 2xl:text-sm text-green-600 font-semibold">
                             <svg
-                              className="w-4 h-4 mr-2 text-green-500"
+                              className="w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2 text-green-500"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -803,10 +803,10 @@ const Tax = () => {
                         </td>
 
                         {/* Tax To */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center text-sm text-red-600 font-semibold">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="flex items-center text-[11px] 2xl:text-sm text-red-600 font-semibold">
                             <svg
-                              className="w-4 h-4 mr-2 text-red-500"
+                              className="w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2 text-red-500"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -823,9 +823,9 @@ const Tax = () => {
                         </td>
 
                         {/* Status */}
-                        <td className="px-4 py-4">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
                           <span
-                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${getStatusColor(
+                            className={`inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold ${getStatusColor(
                               record.status
                             )}`}
                           >
@@ -834,16 +834,16 @@ const Tax = () => {
                         </td>
 
                         {/* Actions */}
-                        <td className="px-4 py-4">
-                          <div className="flex items-center justify-end gap-0.5 pr-1">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="flex items-center justify-end gap-0.5 2xl:gap-0.5 pr-1">
                             {/* Mark as Paid Button */}
                             {(record.balanceAmount || 0) > 0 && (
                               <button
                                 onClick={() => handleMarkAsPaid(record)}
-                                className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                className="p-1.5 2xl:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Mark as Paid"
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 2xl:w-5 2xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                               </button>
@@ -852,11 +852,11 @@ const Tax = () => {
                             {shouldShowRenewButton(record) && (
                               <button
                                 onClick={() => handleRenewClick(record)}
-                                className="p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                className="p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Renew Tax"
                               >
                                 <svg
-                                  className="w-5 h-5"
+                                  className="w-4 h-4 2xl:w-5 2xl:h-5"
                                   fill="none"
                                   stroke="currentColor"
                                   viewBox="0 0 24 24"
@@ -874,11 +874,11 @@ const Tax = () => {
                             <button
                               onClick={() => handleEditClick(record)}
 
-                              className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                              className="p-1.5 2xl:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Edit Record"
                             >
                               <svg
-                                className="w-5 h-5"
+                                className="w-4 h-4 2xl:w-5 2xl:h-5"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -894,11 +894,11 @@ const Tax = () => {
                             {/* Delete Button */}
                             <button
                               onClick={() => handleDeleteTax(record.id)}
-                              className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                              className="p-1.5 2xl:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Delete Record"
                             >
                               <svg
-                                className="w-5 h-5"
+                                className="w-4 h-4 2xl:w-5 2xl:h-5"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
