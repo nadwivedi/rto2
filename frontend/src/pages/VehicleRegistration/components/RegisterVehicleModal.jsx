@@ -34,31 +34,48 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  // Handle Enter key to move to next field
+  // Handle Enter key to move to next field in order
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault() // Prevent default form submission
 
-      // Get all form inputs, textareas, and selects
-      const form = e.target.form
-      const formElements = Array.from(form.elements).filter(
-        element =>
-          (element.tagName === 'INPUT' ||
-           element.tagName === 'TEXTAREA' ||
-           element.tagName === 'SELECT') &&
-          !element.disabled &&
-          element.type !== 'submit'
-      )
+      // Define complete navigation order - all fields from top to bottom
+      const navigationOrder = [
+        'registrationNumber',
+        'dateOfRegistration',
+        'chassisNumber',
+        'engineNumber',
+        'makerName',
+        'makerModel',
+        'colour',
+        'seatingCapacity',
+        'vehicleType',
+        'vehicleCategory',
+        'ladenWeight',
+        'unladenWeight',
+        'manufactureYear',
+        'purchaseDeliveryDate',
+        'saleAmount',
+        'ownerName',
+        'sonWifeDaughterOf',
+        'address',
+        'mobileNumber',
+        'email'
+      ]
 
-      // Find current element index
-      const currentIndex = formElements.indexOf(e.target)
+      const currentFieldName = e.target.name
+      const currentIndex = navigationOrder.indexOf(currentFieldName)
 
-      // Move to next element or submit if on last field
-      if (currentIndex > -1 && currentIndex < formElements.length - 1) {
-        formElements[currentIndex + 1].focus()
-      } else if (currentIndex === formElements.length - 1) {
-        // Last field - submit the form
-        form.requestSubmit()
+      // Move to next field in the order
+      if (currentIndex > -1 && currentIndex < navigationOrder.length - 1) {
+        const nextFieldName = navigationOrder[currentIndex + 1]
+        const nextField = e.target.form.elements[nextFieldName]
+        if (nextField) {
+          nextField.focus()
+        }
+      } else if (currentIndex === navigationOrder.length - 1) {
+        // Last field (email) - submit the form
+        e.target.form.requestSubmit()
       }
     }
   }
@@ -316,6 +333,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='dateOfRegistration'
                         value={formData.dateOfRegistration}
                         onChange={handleDateChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='22-12-2023'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />
@@ -645,6 +663,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         name='purchaseDeliveryDate'
                         value={formData.purchaseDeliveryDate}
                         onChange={handleDateChange}
+                        onKeyDown={handleKeyDown}
                         placeholder='22-12-2023'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
                       />

@@ -549,16 +549,16 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                 </div>
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Balance (₹) <span className='text-red-500'>*</span>
+                    Balance (₹) <span className='text-xs text-gray-500'>(Auto)</span>
                   </label>
                   <input
                     type='number'
                     name='balance'
                     value={formData.balance}
-                    onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
-                    required
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 font-semibold cursor-not-allowed'
+                    disabled
+                    readOnly
                   />
                 </div>
               </div>
