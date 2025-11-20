@@ -37,8 +37,7 @@ const customBillSchema = new mongoose.Schema(
           default: 0
         },
         amount: {
-          type: Number,
-          required: true
+          type: Number
         }
       }
     ],

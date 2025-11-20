@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -18,10 +18,24 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
   const [error, setError] = useState('')
   const [userInfo, setUserInfo] = useState(null)
 
+  // Refs for navigation
+  const customerNameRef = useRef(null)
+  const descriptionRefs = useRef([])
+  const amountRefs = useRef([])
+
   // Fetch user profile when modal opens
   useEffect(() => {
     if (isOpen) {
       fetchUserProfile()
+    }
+  }, [isOpen])
+
+  // Autofocus on customer name when modal opens
+  useEffect(() => {
+    if (isOpen && customerNameRef.current) {
+      setTimeout(() => {
+        customerNameRef.current?.focus()
+      }, 100)
     }
   }, [isOpen])
 
@@ -82,6 +96,33 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
 
     setItems(newItems)
     setError('')
+  }
+
+  // Handle Enter key navigation
+  const handleKeyDown = (e, type, index) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      if (type === 'customerName') {
+        // Move to first description
+        descriptionRefs.current[0]?.focus()
+      } else if (type === 'description') {
+        // Move to next description or first amount
+        if (index < 2) {
+          descriptionRefs.current[index + 1]?.focus()
+        } else {
+          amountRefs.current[0]?.focus()
+        }
+      } else if (type === 'amount') {
+        // Move to next amount or submit
+        if (index < 2) {
+          amountRefs.current[index + 1]?.focus()
+        } else {
+          // Submit the form
+          handleSubmit(e)
+        }
+      }
+    }
   }
 
   // Add new custom item row
@@ -275,10 +316,12 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
             <div className='mb-1 pb-1.5 2xl:pb-2 border-b border-black flex items-baseline gap-2'>
               <label className='text-[9.5px] 2xl:text-sm font-bold whitespace-nowrap'>M/s.</label>
               <input
+                ref={customerNameRef}
                 type='text'
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value.toUpperCase())}
-                className='flex-1 border-b border-black px-1.5 2xl:px-2 py-0.5 text-[9.5px] 2xl:text-sm uppercase'
+                onKeyDown={(e) => handleKeyDown(e, 'customerName')}
+                className='flex-1 border-none outline-none px-1.5 2xl:px-2 py-0.5 text-[9.5px] 2xl:text-sm uppercase'
                 placeholder='Customer Name'
                 required
               />
@@ -313,8 +356,10 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
                     </td>
                     <td className='border border-black px-1.5 2xl:px-2 align-top pt-1.5 2xl:pt-2'>
                       <textarea
+                        ref={(el) => (descriptionRefs.current[index] = el)}
                         value={item.description}
                         onChange={(e) => handleItemChange(index, 'description', e.target.value.toUpperCase())}
+                        onKeyDown={(e) => handleKeyDown(e, 'description', index)}
                         className='w-full text-[10.5px] 2xl:text-sm px-1 py-0.5 focus:outline-none focus:bg-yellow-50 resize-none overflow-hidden uppercase'
                         rows={1}
                         style={{
@@ -351,9 +396,11 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
                     </td>
                     <td className='border border-black px-1.5 2xl:px-2 text-right align-top pt-1.5 2xl:pt-2'>
                       <input
+                        ref={(el) => (amountRefs.current[index] = el)}
                         type='number'
                         value={item.amount}
                         onChange={(e) => handleItemChange(index, 'amount', e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, 'amount', index)}
                         className='w-full text-[10.5px] 2xl:text-sm text-right px-1 py-0.5 focus:outline-none focus:bg-yellow-50'
                         placeholder='0'
                         min='0'
