@@ -38,9 +38,11 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
   // Populate form when tax prop changes
   useEffect(() => {
     if (tax) {
+      const vehicleNum = tax.vehicleNumber || ''
+
       setFormData({
         receiptNo: tax.receiptNo || '',
-        vehicleNumber: tax.vehicleNumber || '',
+        vehicleNumber: vehicleNum,
         ownerName: tax.ownerName || '',
         totalAmount: tax.totalAmount?.toString() || '0',
         paidAmount: tax.paidAmount?.toString() || '0',
@@ -48,6 +50,12 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
         taxFrom: tax.taxFrom || '',
         taxTo: tax.taxTo || ''
       })
+
+      // Validate the vehicle number if it exists
+      if (vehicleNum) {
+        const validation = validateVehicleNumberRealtime(vehicleNum)
+        setVehicleValidation(validation)
+      }
     }
   }, [tax])
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
+import { validateMobileNumberRealtime, enforceMobileNumberFormat, validateEmailRealtime } from '../../../utils/contactValidation'
 
 const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
   // Get current date in DD-MM-YYYY format
@@ -57,6 +58,10 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
   })
 
   const [showAllFields, setShowAllFields] = useState(false)
+
+  // Validation states
+  const [mobileValidation, setMobileValidation] = useState({ isValid: false, message: '' })
+  const [emailValidation, setEmailValidation] = useState({ isValid: true, message: '' })
 
   // Date of Birth state
   const [dobDay, setDobDay] = useState('')
@@ -173,8 +178,73 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
     }
   }, [dobMonth, dobYear])
 
+  // Auto-calculate Learning License Expiry Date (6 months from issue date, minus 1 day)
+  useEffect(() => {
+    if (formData.learningLicenseIssueDate) {
+      // Parse DD-MM-YYYY format
+      const parts = formData.learningLicenseIssueDate.split('-')
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10)
+        const month = parseInt(parts[1], 10) - 1 // Month is 0-indexed
+        const year = parseInt(parts[2], 10)
+
+        // Check if date is valid
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
+          const issueDate = new Date(year, month, day)
+
+          // Check if the date object is valid
+          if (!isNaN(issueDate.getTime())) {
+            const expiryDate = new Date(issueDate)
+            expiryDate.setMonth(expiryDate.getMonth() + 6)
+            // Subtract 1 day because issue date counts as day 1
+            expiryDate.setDate(expiryDate.getDate() - 1)
+
+            // Format date to DD-MM-YYYY
+            const expiryDay = String(expiryDate.getDate()).padStart(2, '0')
+            const expiryMonth = String(expiryDate.getMonth() + 1).padStart(2, '0')
+            const expiryYear = expiryDate.getFullYear()
+
+            setFormData(prev => ({
+              ...prev,
+              learningLicenseExpiryDate: `${expiryDay}-${expiryMonth}-${expiryYear}`
+            }))
+          }
+        }
+      }
+    }
+  }, [formData.learningLicenseIssueDate])
+
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    // Handle mobile number with format enforcement and validation
+    if (name === 'mobileNumber') {
+      // Enforce format: only allow digits
+      const enforcedValue = enforceMobileNumberFormat(value)
+
+      // Validate in real-time
+      const validation = validateMobileNumberRealtime(enforcedValue)
+      setMobileValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
+    // Handle email with validation
+    if (name === 'email') {
+      // Validate in real-time
+      const validation = validateEmailRealtime(value)
+      setEmailValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }))
+      return
+    }
 
     // Apply date formatting for license date fields
     if (name === 'licenseIssueDate' || name === 'licenseExpiryDate' || name === 'learningLicenseIssueDate' || name === 'learningLicenseExpiryDate') {
@@ -219,6 +289,18 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Validate mobile number before submitting
+    if (!mobileValidation.isValid && formData.mobileNumber) {
+      alert('Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9')
+      return
+    }
+
+    // Validate email before submitting
+    if (!emailValidation.isValid && formData.email) {
+      alert('Please enter a valid email address (e.g., user@example.com)')
+      return
+    }
 
     // Show confirmation popup
     const confirmed = window.confirm('Are you sure you want to save this application?')
@@ -333,29 +415,70 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Mobile <span className='text-red-500'>*</span>
                   </label>
-                  <input
-                    type='tel'
-                    name='mobileNumber'
-                    value={formData.mobileNumber}
-                    onChange={handleChange}
-                    placeholder='10-digit number'
-                    maxLength='10'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                    required
-                  />
+                  <div className='relative'>
+                    <input
+                      type='tel'
+                      name='mobileNumber'
+                      value={formData.mobileNumber}
+                      onChange={handleChange}
+                      placeholder='10-digit number'
+                      maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                        formData.mobileNumber && !mobileValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.mobileNumber && mobileValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
+                      required
+                    />
+                    {formData.mobileNumber && mobileValidation.isValid && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {mobileValidation.message && (
+                    <p className={`text-xs mt-1 ${mobileValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {mobileValidation.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Email
                   </label>
-                  <input
-                    type='email'
-                    name='email'
-                    value={formData.email}
-                    onChange={handleChange}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                  />
+                  <div className='relative'>
+                    <input
+                      type='email'
+                      name='email'
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder='user@example.com'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                        formData.email && !emailValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.email && emailValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
+                    />
+                    {formData.email && emailValidation.isValid && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {emailValidation.message && formData.email && (
+                    <p className={`text-xs mt-1 ${emailValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {emailValidation.message}
+                    </p>
+                  )}
                 </div>
                 <div className='md:col-span-3'>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -518,22 +641,22 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                             name='learningLicenseIssueDate'
                             value={formData.learningLicenseIssueDate}
                             onChange={handleChange}
-                            placeholder='Type: 07112025'
+                            placeholder='DD-MM-YYYY'
                             className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-green-600 font-semibold'
                           />
                         </div>
 
                         <div>
                           <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                            LL Expiry Date
+                            LL Expiry Date <span className='text-xs text-blue-500'>(Auto - 6 months)</span>
                           </label>
                           <input
                             type='text'
                             name='learningLicenseExpiryDate'
                             value={formData.learningLicenseExpiryDate}
                             onChange={handleChange}
-                            placeholder='Type: 07112025'
-                            className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-red-600 font-semibold'
+                            placeholder='DD-MM-YYYY'
+                            className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-red-600 font-semibold bg-yellow-50/50'
                           />
                         </div>
                       </div>
@@ -576,7 +699,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                           name='licenseIssueDate'
                           value={formData.licenseIssueDate}
                           onChange={handleChange}
-                          placeholder='Type: 07112025'
+                          placeholder='DD-MM-YYYY'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-green-600 font-semibold'
                         />
                       </div>
@@ -590,7 +713,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                           name='licenseExpiryDate'
                           value={formData.licenseExpiryDate}
                           onChange={handleChange}
-                          placeholder='Type: 07112025'
+                          placeholder='DD-MM-YYYY'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-red-600 font-semibold'
                         />
                       </div>

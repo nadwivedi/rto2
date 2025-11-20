@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
+import { validateMobileNumberRealtime, enforceMobileNumberFormat, validateEmailRealtime } from '../../../utils/contactValidation'
 
 const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
   // Get current date in DD-MM-YYYY format
@@ -90,6 +91,10 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
   const [showAllFields, setShowAllFields] = useState(false)
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
+  // Validation states
+  const [mobileValidation, setMobileValidation] = useState({ isValid: false, message: '' })
+  const [emailValidation, setEmailValidation] = useState({ isValid: true, message: '' })
+
   // Date of Birth state
   const [dobDay, setDobDay] = useState('')
   const [dobMonth, setDobMonth] = useState('')
@@ -110,6 +115,9 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
       const paidAmt = parseFloat(appData.paidAmount) || 0
       const calculatedBalance = totalAmt - paidAmt
 
+      const mobileNum = appData.mobileNumber || ''
+      const emailAddr = appData.email || ''
+
       setFormData({
         name: appData.name || '',
         dateOfBirth: convertISOToDD_MM_YYYY(appData.dateOfBirth) || '',
@@ -117,8 +125,8 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
         bloodGroup: appData.bloodGroup || '',
         fatherName: appData.fatherName || '',
         motherName: appData.motherName || '',
-        mobileNumber: appData.mobileNumber || '',
-        email: appData.email || '',
+        mobileNumber: mobileNum,
+        email: emailAddr,
         address: appData.address || '',
         city: appData.city || '',
         state: appData.state || '',
@@ -144,6 +152,16 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
         applicationStatus: appData.applicationStatus || 'pending',
         notes: appData.notes || ''
       })
+
+      // Validate pre-filled mobile number and email
+      if (mobileNum) {
+        const validation = validateMobileNumberRealtime(mobileNum)
+        setMobileValidation(validation)
+      }
+      if (emailAddr) {
+        const validation = validateEmailRealtime(emailAddr)
+        setEmailValidation(validation)
+      }
     }
   }, [application])
 
@@ -249,6 +267,35 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
+    // Handle mobile number with format enforcement and validation
+    if (name === 'mobileNumber') {
+      // Enforce format: only allow digits
+      const enforcedValue = enforceMobileNumberFormat(value)
+
+      // Validate in real-time
+      const validation = validateMobileNumberRealtime(enforcedValue)
+      setMobileValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: enforcedValue
+      }))
+      return
+    }
+
+    // Handle email with validation
+    if (name === 'email') {
+      // Validate in real-time
+      const validation = validateEmailRealtime(value)
+      setEmailValidation(validation)
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }))
+      return
+    }
+
     // Handle payment calculation with validation
     if (name === 'totalAmount' || name === 'paidAmount') {
       setFormData(prev => {
@@ -316,6 +363,18 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault()
+
+    // Validate mobile number before submitting
+    if (!mobileValidation.isValid && formData.mobileNumber) {
+      alert('Please enter a valid 10-digit mobile number starting with 6, 7, 8, or 9')
+      return
+    }
+
+    // Validate email before submitting
+    if (!emailValidation.isValid && formData.email) {
+      alert('Please enter a valid email address (e.g., user@example.com)')
+      return
+    }
 
     // Validate payment amount
     if (paidExceedsTotal) {
@@ -402,29 +461,70 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Mobile <span className='text-red-500'>*</span>
                   </label>
-                  <input
-                    type='tel'
-                    name='mobileNumber'
-                    value={formData.mobileNumber}
-                    onChange={handleChange}
-                    placeholder='10-digit number'
-                    maxLength='10'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                    required
-                  />
+                  <div className='relative'>
+                    <input
+                      type='tel'
+                      name='mobileNumber'
+                      value={formData.mobileNumber}
+                      onChange={handleChange}
+                      placeholder='10-digit number'
+                      maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                        formData.mobileNumber && !mobileValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.mobileNumber && mobileValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
+                      required
+                    />
+                    {formData.mobileNumber && mobileValidation.isValid && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {mobileValidation.message && (
+                    <p className={`text-xs mt-1 ${mobileValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {mobileValidation.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                     Email
                   </label>
-                  <input
-                    type='email'
-                    name='email'
-                    value={formData.email}
-                    onChange={handleChange}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                  />
+                  <div className='relative'>
+                    <input
+                      type='email'
+                      name='email'
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder='user@example.com'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent ${
+                        formData.email && !emailValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.email && emailValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
+                    />
+                    {formData.email && emailValidation.isValid && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  {emailValidation.message && formData.email && (
+                    <p className={`text-xs mt-1 ${emailValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {emailValidation.message}
+                    </p>
+                  )}
                 </div>
                 <div className='md:col-span-3'>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -584,7 +684,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                             name='learningLicenseIssueDate'
                             value={formData.learningLicenseIssueDate}
                             onChange={handleChange}
-                            placeholder='Type: 07112025'
+                            placeholder='DD-MM-YYYY'
                             className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-green-600 font-semibold'
                           />
                         </div>
@@ -598,7 +698,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                             name='learningLicenseExpiryDate'
                             value={formData.learningLicenseExpiryDate}
                             onChange={handleChange}
-                            placeholder='Type: 07112025'
+                            placeholder='DD-MM-YYYY'
                             className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-red-600 font-semibold'
                           />
                         </div>
@@ -642,7 +742,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                           name='licenseIssueDate'
                           value={formData.licenseIssueDate}
                           onChange={handleChange}
-                          placeholder='Type: 07112025'
+                          placeholder='DD-MM-YYYY'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-green-600 font-semibold'
                         />
                       </div>
@@ -656,7 +756,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                           name='licenseExpiryDate'
                           value={formData.licenseExpiryDate}
                           onChange={handleChange}
-                          placeholder='Type: 07112025'
+                          placeholder='DD-MM-YYYY'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-red-600 font-semibold'
                         />
                       </div>
