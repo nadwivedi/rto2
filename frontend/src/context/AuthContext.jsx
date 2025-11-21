@@ -6,12 +6,19 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
+  // Initialize from localStorage immediately
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user')
+    return savedUser ? JSON.parse(savedUser) : null
+  })
   const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('token')
+  })
 
   const clearAuthState = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
     setUser(null)
     setIsAuthenticated(false)
   }
@@ -42,15 +49,25 @@ export const AuthProvider = ({ children }) => {
       })
 
       if (response.data.success) {
-        setUser(response.data.data.user)
+        const userData = response.data.data.user
+        setUser(userData)
         setIsAuthenticated(true)
+        localStorage.setItem('user', JSON.stringify(userData))
       } else {
         clearAuthState()
       }
     } catch (error) {
       console.error('Auth check error:', error)
-      if (window.location.pathname !== '/login') {
+      // Only clear auth if token is invalid (401), not on network errors
+      if (error.response?.status === 401) {
         clearAuthState()
+      } else if (localStorage.getItem('token')) {
+        // Token exists but API failed (network issue) - restore from localStorage
+        const savedUser = localStorage.getItem('user')
+        if (savedUser) {
+          setUser(JSON.parse(savedUser))
+        }
+        setIsAuthenticated(true)
       }
     } finally {
       setLoading(false)
