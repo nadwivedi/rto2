@@ -3,6 +3,38 @@
     "documents": {
       "partBImage": ""
     },
+    "_id": "691fdc84aac3758f75e0fbfe",
+    "permitNumber": "158223",
+    "partBNumber": "80027",
+    "permitHolder": "SHAILENDRA BELME",
+    "vehicleNumber": "CG04HY7470",
+    "validFrom": "16-11-2025",
+    "validTo": "15-11-2026",
+    "status": "active",
+    "createdAt": "2025-11-21T03:29:08.461Z",
+    "updatedAt": "2025-11-21T03:29:08.461Z",
+    "__v": 0
+  },
+  {
+    "documents": {
+      "partBImage": ""
+    },
+    "_id": "691fdad6aac3758f75e0f9d4",
+    "permitNumber": "CG2025-NP-0353B",
+    "partBNumber": "131011",
+    "permitHolder": "VANDANA KACHHI",
+    "vehicleNumber": "CG04QP5560",
+    "validFrom": "31-10-2025",
+    "validTo": "30-10-2026",
+    "status": "active",
+    "createdAt": "2025-11-21T03:21:58.317Z",
+    "updatedAt": "2025-11-21T03:21:58.317Z",
+    "__v": 0
+  },
+  {
+    "documents": {
+      "partBImage": ""
+    },
     "_id": "691cbcdce8deac0e7e54b923",
     "permitNumber": "563223",
     "partBNumber": "822228",
@@ -425,10 +457,10 @@
     "vehicleNumber": "CG04QP5560",
     "validFrom": "31-10-2025",
     "validTo": "30-10-2026",
-    "status": "active",
+    "status": "expired",
     "notes": "Migrated from old schema - Created with Part A",
     "createdAt": "2025-11-10T02:44:43.840Z",
-    "updatedAt": "2025-11-10T02:44:43.840Z",
+    "updatedAt": "2025-11-21T03:21:58.302Z",
     "__v": 0
   },
   {
