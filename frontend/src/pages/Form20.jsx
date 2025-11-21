@@ -32,36 +32,39 @@ const Form20 = () => {
           <title>FORM 20 - MOTOR VEHICLE REGISTRATION</title>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: Arial, sans-serif; font-size: 10.5px; line-height: 1.4; padding: 12px 18px; text-transform: uppercase; }
-            .title { text-align: center; margin-bottom: 10px; }
-            .title h1 { font-size: 14px; font-weight: bold; }
-            .title h2 { font-size: 12px; font-weight: bold; margin-top: 3px; }
-            .title p { font-size: 10px; }
-            .to { margin-bottom: 8px; }
-            .field { display: flex; margin-bottom: 3px; }
-            .field-num { width: 22px; flex-shrink: 0; }
-            .field-content { flex: 1; }
-            .field-row { display: flex; align-items: flex-end; gap: 5px; flex-wrap: wrap; }
-            .field-sub { margin-left: 14px; margin-top: 2px; }
+            body { font-family: 'Times New Roman', serif; font-size: 11px; line-height: 1.2; padding: 15px 20px; }
+            .form-container { width: 100%; }
+            .title { text-align: center; margin-bottom: 12px; }
+            .title h1 { font-size: 14px; font-weight: bold; letter-spacing: 8px; }
+            .title h2 { font-size: 12px; font-weight: bold; margin-top: 2px; }
+            .title p { font-size: 11px; }
+            .to { margin-bottom: 10px; }
+            .row { display: flex; margin-bottom: 1px; }
+            .num { width: 25px; flex-shrink: 0; padding-top: 6px; }
+            .label { width: 280px !important; flex-shrink: 0; margin-right: 15px; }
+            .line { flex: 1; border-bottom: 1px solid #000; min-height: 14px; }
+            .sub-row { display: flex; margin-left: 25px; margin-bottom: 6px; }
+            .sub-label { width: 255px !important; flex-shrink: 0; margin-right: 15px; }
+            .no-print { display: none !important; }
+            .indent { margin-left: 12px; }
             input {
-              border: none;
-              border-bottom: 1px dotted #000;
+              border: none !important;
               background: transparent;
               outline: none;
-              padding: 0 3px;
-              font-size: 10.5px;
-              text-transform: uppercase;
+              width: 100%;
+              font-family: 'Times New Roman', serif;
+              font-size: 11px;
             }
-            .note { font-size: 9px; margin-top: 2px; }
-            .section-title { text-align: center; font-weight: bold; font-size: 10px; margin: 8px 0 4px; border-top: 1px solid #000; padding-top: 4px; }
-            .sig-row { display: flex; justify-content: space-around; margin-top: 6px; }
-            .sig-box { text-align: center; }
-            .sig-line { border-bottom: 1px dotted #000; width: 80px; height: 20px; margin: 4px auto 0; }
-            .flex-between { display: flex; justify-content: space-between; margin-top: 6px; }
-            .border-note { border-left: 2px solid #000; padding-left: 4px; margin: 4px 0; font-size: 8px; }
+            .note { font-size: 10px; margin-left: 25px; }
+            .section-title { text-align: center; font-weight: bold; margin: 12px 0 8px; border-top: 1px solid #000; padding-top: 8px; }
+            .sig-row { display: flex; justify-content: space-around; margin-top: 8px; }
+            .sig-box { text-align: center; width: 100px; }
+            .sig-line { border-bottom: 1px solid #000; height: 25px; margin-top: 5px; }
+            .flex-between { display: flex; justify-content: space-between; margin: 8px 0; }
+            .border-note { border-left: 2px solid #000; padding-left: 6px; margin: 6px 25px; font-size: 10px; }
             @media print {
-              body { padding: 5px 10px; }
-              @page { margin: 5mm; size: A4; }
+              body { padding: 10px 15px; }
+              @page { margin: 8mm; size: A4; }
             }
           </style>
         </head>
@@ -83,8 +86,6 @@ const Form20 = () => {
       })
     }
   }
-
-  const inputStyle = "border-b border-dotted border-black bg-transparent outline-none px-1 uppercase"
 
   return (
     <div className="min-h-screen pt-16 lg:pt-20 px-4 pb-8 bg-gray-100">
@@ -118,587 +119,698 @@ const Form20 = () => {
         </div>
 
         {/* Form Content */}
-        <div ref={printRef} className="bg-white shadow-lg p-8 text-sm leading-relaxed uppercase">
+        <div ref={printRef} className="bg-white shadow-lg p-8" style={{fontFamily: "'Times New Roman', serif", fontSize: '13px', lineHeight: '1.3'}}>
 
           {currentPage === 1 && (
-            <>
-              <div className="title text-center mb-6">
-                <h1 className="text-lg font-bold">FORM -20</h1>
-                <p className="text-sm">(SEE RULE 47)</p>
-                <h2 className="text-base font-bold mt-2">FORM OF APPLICATION FOR REGISTRATION OF A MOTOR VEHICLE</h2>
+            <div className="form-container">
+              {/* Title */}
+              <div className="title text-center mb-4">
+                <h1 className="text-base font-bold" style={{letterSpacing: '8px'}}>FORM -20</h1>
+                <p className="text-sm">(See Rule 47)</p>
+                <h2 className="text-sm font-bold mt-1">Form of Application for Registration of a Motor Vehicle</h2>
               </div>
 
-              <p className="to mb-4">TO,<br/>&nbsp;&nbsp;&nbsp;&nbsp;THE REGISTERING AUTHORITY RAIPUR</p>
+              <p className="mb-4">To,<br/><span className="ml-8">The Registering Authority Raipur</span></p>
 
-              <div className="space-y-3">
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">1.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>FULL NAME OF PERSON TO BE REGISTERED AS</span>
-                      <input type="text" name="fullName" value={formData.fullName || ''} onChange={handleChange} className={inputStyle} style={{width: '180px'}} />
-                    </div>
-                    <div>REGISTERED OWNER</div>
-                    <div className="field-row flex items-end gap-2">
-                      <span>SON / WIFE / DAUGHTER OF</span>
-                      <input type="text" name="relation" value={formData.relation || ''} onChange={handleChange} className={inputStyle} style={{width: '200px'}} />
-                    </div>
-                  </div>
+              {/* Field 1 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">1.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Full Name of person to be registered as</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="fullName" value={formData.fullName || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
                 </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">2.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>AGE OF THE PERSON TO BE REGISTERED AS</span>
-                      <input type="text" name="age" value={formData.age || ''} onChange={handleChange} className={inputStyle} style={{width: '120px'}} />
-                    </div>
-                    <div>REGISTERED OWNER (PROOF OF AGE TO BE ATTACHED)</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">3.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>PERMANENT ADDRESS OF THE PERSON TO BE</span>
-                      <input type="text" name="permanentAddress1" value={formData.permanentAddress1 || ''} onChange={handleChange} className={inputStyle} style={{width: '180px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2">
-                      <span>REGISTERED AS REGISTERED OWNER</span>
-                      <input type="text" name="permanentAddress2" value={formData.permanentAddress2 || ''} onChange={handleChange} className={inputStyle} style={{width: '200px'}} />
-                    </div>
-                    <div>(EVIDENCE TO BE PRODUCED)</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">4.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>TEMPORARY ADDRESS OF THE PERSON TO BE</span>
-                      <input type="text" name="tempAddress1" value={formData.tempAddress1 || ''} onChange={handleChange} className={inputStyle} style={{width: '180px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2">
-                      <span>REGISTERED AS REGISTERED OWNER</span>
-                      <input type="text" name="tempAddress2" value={formData.tempAddress2 || ''} onChange={handleChange} className={inputStyle} style={{width: '200px'}} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">5.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>NAME & ADDRESS OF THE DEALER OR MANUFACTURE</span>
-                      <input type="text" name="dealerName" value={formData.dealerName || ''} onChange={handleChange} className={inputStyle} style={{width: '150px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2">
-                      <span>FROM WHOMS THE VEHICLE WAS PURCHASED</span>
-                      <input type="text" name="dealerAddress1" value={formData.dealerAddress1 || ''} onChange={handleChange} className={inputStyle} style={{width: '160px'}} />
-                    </div>
-                    <div>(SALE CERTIFICATE AND CERTIFICATE OF ROAD</div>
-                    <div>WORTHINESS ISSUED BY THE MANUFACTURE TO BE ENCLOSED.</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">6.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>IF EX-ARMY VEHICLE OR IMPORTED VEHICLE</span>
-                      <input type="text" name="exArmy1" value={formData.exArmy1 || ''} onChange={handleChange} className={inputStyle} style={{width: '160px'}} />
-                    </div>
-                    <div>ENCLOSED PROOF. IF LOCALLY MANUFACTURER TRAILER</div>
-                    <div>SEMI TRAILER ENCLOSED THE APPROVAL OF DESIGN</div>
-                    <div>BY THE STATE TRANSPORT AUTHORITY AND NOTE</div>
-                    <div>THE PROCEEDINGS NUMBER AND DATE OF APPROVAL</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">7.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>CLASS OF VEHICLE</span>
-                      <input type="text" name="vehicleClass" value={formData.vehicleClass || ''} onChange={handleChange} className={inputStyle} style={{width: '250px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2">
-                      <span>(IF MOTOR VEHICLE, WHETHER WITH OR WITHOUT GEAR)</span>
-                      <input type="text" name="withGear" value={formData.withGear || ''} onChange={handleChange} className={inputStyle} style={{width: '120px'}} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">8.</span>
-                  <div className="field-content flex-1">
-                    <div>THE MOTOR VEHICLE IS</div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>A) A NEW VEHICLE:</span>
-                      <input type="text" name="newVehicle" value={formData.newVehicle || ''} onChange={handleChange} className={inputStyle} style={{width: '220px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>B) EX-ARMY VEHICLE:</span>
-                      <input type="text" name="exArmyVehicle" value={formData.exArmyVehicle || ''} onChange={handleChange} className={inputStyle} style={{width: '210px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>C) IMPORTED VEHICLE:</span>
-                      <input type="text" name="importedVehicle" value={formData.importedVehicle || ''} onChange={handleChange} className={inputStyle} style={{width: '205px'}} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">9.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>TYPE OF BODY</span>
-                    <input type="text" name="bodyType" value={formData.bodyType || ''} onChange={handleChange} className={inputStyle} style={{width: '280px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">10.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>TYPE OF VEHICLE</span>
-                    <input type="text" name="vehicleType" value={formData.vehicleType || ''} onChange={handleChange} className={inputStyle} style={{width: '260px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">11.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>MAKER'S NAME</span>
-                    <input type="text" name="makerName" value={formData.makerName || ''} onChange={handleChange} className={inputStyle} style={{width: '270px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">12.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>MONTH AND YEAR OF MANUFACTURE</span>
-                    <input type="text" name="manufactureDate" value={formData.manufactureDate || ''} onChange={handleChange} className={inputStyle} style={{width: '180px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">13.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>NUMBER OF CYLINDERS</span>
-                    <input type="text" name="cylinders" value={formData.cylinders || ''} onChange={handleChange} className={inputStyle} style={{width: '230px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">14.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>HORSE POWER</span>
-                    <input type="text" name="horsePower" value={formData.horsePower || ''} onChange={handleChange} className={inputStyle} style={{width: '280px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">15.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>CUBIC CAPACITY</span>
-                    <input type="text" name="cubicCapacity" value={formData.cubicCapacity || ''} onChange={handleChange} className={inputStyle} style={{width: '260px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">16.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>MAKER'S CLASSIFICATION OR IF NOT KNOWN</span>
-                      <input type="text" name="makerClass" value={formData.makerClass || ''} onChange={handleChange} className={inputStyle} style={{width: '160px'}} />
-                    </div>
-                    <div>WHEEL BASE</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">17.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>CHASSIS NUMBER</span>
-                      <input type="text" name="chassisNumber" value={formData.chassisNumber || ''} onChange={handleChange} className={inputStyle} style={{width: '240px'}} />
-                    </div>
-                    <div>(AFFIX PENCIL PRINT)</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">18.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>ENGINE NUMBER</span>
-                    <input type="text" name="engineNumber" value={formData.engineNumber || ''} onChange={handleChange} className={inputStyle} style={{width: '260px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">19.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>SEATING CAPACITY</span>
-                      <input type="text" name="seatingCapacity" value={formData.seatingCapacity || ''} onChange={handleChange} className={inputStyle} style={{width: '240px'}} />
-                    </div>
-                    <div>(INCLUDING DRIVER)</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">20.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>FUEL USED IN THE ENGINE</span>
-                    <input type="text" name="fuelUsed" value={formData.fuelUsed || ''} onChange={handleChange} className={inputStyle} style={{width: '210px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">21.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>UNLODED WEIGHT</span>
-                    <input type="text" name="unladenWeight" value={formData.unladenWeight || ''} onChange={handleChange} className={inputStyle} style={{width: '250px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">22.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>PARTICULAR OF PREVIOUS REGISTRATION AND</span>
-                      <input type="text" name="prevReg" value={formData.prevReg || ''} onChange={handleChange} className={inputStyle} style={{width: '160px'}} />
-                    </div>
-                    <div>REGISTERED NUMBER (IF ANY)</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">23.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>COLOUR OR COLOURS OF BODY WINGS AND FRONT END</span>
-                      <input type="text" name="colour" value={formData.colour || ''} onChange={handleChange} className={inputStyle} style={{width: '130px'}} />
-                    </div>
-                    <div className="note text-xs">I HEREBY DECLARE THAT THE VEHICLE HAS NOT BEEN REGISTERED IN ANY STATE IN INDIA.</div>
-                    <div className="note text-xs">ADDITIONAL PARTICULARS TO BE COMPLETED ONLY IN THE CASE OF TRANSPORT VEHICLE OTHER THAN MOTOR CAR</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">24.</span>
-                  <div className="field-content flex-1">
-                    <div>NUMBER DESCRIPTION AND SIZE OF TYRES</div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>A) FRONT AXLE</span>
-                      <input type="text" name="frontAxle" value={formData.frontAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '240px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>B) REAR AXLE</span>
-                      <input type="text" name="rearAxle" value={formData.rearAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '245px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>C) ANY OTHER AXLE</span>
-                      <input type="text" name="otherAxle" value={formData.otherAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '220px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>D) TANDOM AXLE</span>
-                      <input type="text" name="tandomAxle" value={formData.tandomAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '230px'}} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">25.</span>
-                  <div className="field-content flex-1">
-                    <div>GROSS WEIGHT OF VEHICLE</div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>A) AS CERTIFIED BY THE MANUFACTURE</span>
-                      <input type="text" name="grossCertified" value={formData.grossCertified || ''} onChange={handleChange} className={inputStyle} style={{width: '100px'}} />
-                      <span>KGMS</span>
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>B) TO BE REGISTERED</span>
-                      <input type="text" name="grossRegistered" value={formData.grossRegistered || ''} onChange={handleChange} className={inputStyle} style={{width: '150px'}} />
-                      <span>KGMS</span>
-                    </div>
-                  </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>registered owner</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>son / wife / daughter of</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="relation" value={formData.relation || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
                 </div>
               </div>
 
-              <div className="flex justify-end mt-4 no-print">
+              {/* Field 2 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">2.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Age of the person to be registered as</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="age" value={formData.age || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Registered owner</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>(Proof of age to be attached)</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+
+              {/* Field 3 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">3.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Permanent address of the person to be</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="permanentAddress1" value={formData.permanentAddress1 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>registered as registered owner</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="permanentAddress2" value={formData.permanentAddress2 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>(Evidence to be produced)</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+
+              {/* Field 4 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">4.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Temporary address of the person to be</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="tempAddress1" value={formData.tempAddress1 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>registered as registered owner</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="tempAddress2" value={formData.tempAddress2 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 5 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">5.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Name & address of the Dealer or Manufacture</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="dealerName" value={formData.dealerName || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>From whoms the vehicle was Purchased</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="dealerAddress1" value={formData.dealerAddress1 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>(Sale certificate and certificate of road</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>worthines issued by the manufacture to be</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>enclosed.</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+
+              {/* Field 6 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">6.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>If ex-army vehicle or Imported Vehicle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="exArmy1" value={formData.exArmy1 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Enclosed proof. if locally manufacturer trailer</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>semi trailer enclosed the approval of design</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>by the state transport Authority and note</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>the proceedings number and date of approval</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+
+              {/* Field 7 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">7.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Class of vehicle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="vehicleClass" value={formData.vehicleClass || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>(if motor vehicle, Whether with or without gear)</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="withGear" value={formData.withGear || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 8 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">8.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>The Motor Vehicle is</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>a) A new vehicle:</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="newVehicle" value={formData.newVehicle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>b) Ex-army vehicle:</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="exArmyVehicle" value={formData.exArmyVehicle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>c) Imported vehicle:</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="importedVehicle" value={formData.importedVehicle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 9 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">9.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Type of body</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="bodyType" value={formData.bodyType || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 10 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">10.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Type of vehicle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="vehicleType" value={formData.vehicleType || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 11 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">11.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Maker's name</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="makerName" value={formData.makerName || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 12 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">12.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Month and year of manufacture</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="manufactureDate" value={formData.manufactureDate || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 13 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">13.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Number of cylinders</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="cylinders" value={formData.cylinders || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 14 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">14.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Horse power</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="horsePower" value={formData.horsePower || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 15 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">15.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Cubic capacity</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="cubicCapacity" value={formData.cubicCapacity || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 16 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">16.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Maker's classification or if not known</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="makerClass" value={formData.makerClass || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>wheel base</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+
+              {/* Field 17 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">17.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Chassis number</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="chassisNumber" value={formData.chassisNumber || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>(Affix pencil print)</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+
+              {/* Field 18 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">18.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Engine number</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="engineNumber" value={formData.engineNumber || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 19 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">19.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Seating capacity</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="seatingCapacity" value={formData.seatingCapacity || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>(including driver)</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+
+              {/* Field 20 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">20.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Fuel used in the engine</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="fuelUsed" value={formData.fuelUsed || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 21 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">21.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Unloded weight</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="unladenWeight" value={formData.unladenWeight || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 22 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">22.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Particular of previous registration and</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="prevReg" value={formData.prevReg || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>registered number (if any)</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+
+              {/* Field 23 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">23.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Colour or colours of body wings and front end</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="colour" value={formData.colour || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <p className="text-xs ml-7 mb-1">I hereby declare that the vehicle has not been registered in any state in India.</p>
+              <p className="text-xs ml-7 mb-2">Additional particulars to be completed only in the case of transport vehicle other than motor car</p>
+
+              {/* Field 24 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">24.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Number description and size of tyres</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>a) Front axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="frontAxle" value={formData.frontAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>b) Rear axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="rearAxle" value={formData.rearAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>c) Any other axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="otherAxle" value={formData.otherAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>d) Tandom axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="tandomAxle" value={formData.tandomAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              {/* Field 25 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">25.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Gross weight of Vehicle</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>a) As certified by the Manufacture</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="grossCertified" value={formData.grossCertified || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+                <span className="ml-2">Kgms</span>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>b) to be registered</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="grossRegistered" value={formData.grossRegistered || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+                <span className="ml-2">Kgms</span>
+              </div>
+
+              <div className="flex justify-end mt-6 no-print">
                 <button onClick={() => setCurrentPage(2)} className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
                   NEXT PAGE →
                 </button>
               </div>
-            </>
+            </div>
           )}
 
           {currentPage === 2 && (
-            <>
-              <div className="space-y-3">
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">26.</span>
-                  <div className="field-content flex-1">
-                    <div>MAXIMUM AXLE WEIGHT</div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>A) FRONT AXLE</span>
-                      <input type="text" name="maxFrontAxle" value={formData.maxFrontAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '220px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>B) REAR AXLE</span>
-                      <input type="text" name="maxRearAxle" value={formData.maxRearAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '150px'}} />
-                      <span>KGMS</span>
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>C) ANY OTHER AXLE</span>
-                      <input type="text" name="maxOtherAxle" value={formData.maxOtherAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '130px'}} />
-                      <span>KGMS</span>
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>D) TENDOM AXLE</span>
-                      <input type="text" name="maxTandomAxle" value={formData.maxTandomAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '140px'}} />
-                      <span>KGMS</span>
-                    </div>
+            <div className="form-container">
+              {/* Field 26 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">26.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Maximum axle Weight</span>
+                <div className="line flex-1 border-b border-black"></div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>a) Front axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="maxFrontAxle" value={formData.maxFrontAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>b) Rear axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="maxRearAxle" value={formData.maxRearAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+                <span className="ml-2">Kgms</span>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>c) Any other axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="maxOtherAxle" value={formData.maxOtherAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+                <span className="ml-2">Kgms</span>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>d) Tendom axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="maxTandomAxle" value={formData.maxTandomAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+                <span className="ml-2">Kgms</span>
+              </div>
+
+              {/* Field 27 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">27.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>a) Overall length</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="overallLength" value={formData.overallLength || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>b) Overall width</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="overallWidth" value={formData.overallWidth || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>c) Overall height</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="overallHeight" value={formData.overallHeight || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>d) Overall hand</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="overallHand" value={formData.overallHand || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              <p className="text-xs border-l-2 border-black pl-2 my-3 ml-7">
+                The above particulars are to be filled in for a rigid frame motor vehicle of two or more axles or an articulated vehicle of three or more axles, or to the extent applicable for trailer, where a second semi-trailer or additional semi-trailer are to be registered with an articulated motor vehicle, the following particulars are to be furnished of each semi-trailer.
+              </p>
+
+              {/* Fields 28-34 */}
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">28.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Type of body</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="semiBodyType" value={formData.semiBodyType || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">29.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Unloding weight</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="semiUnladenWeight" value={formData.semiUnladenWeight || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">30.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Number description and size of tyres on</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="semiTyres1" value={formData.semiTyres1 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '340px', flexShrink: 0}}>each axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="semiTyres2" value={formData.semiTyres2 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">31.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>Maximum axle weight in respect of each axle</span>
+                <div className="line flex-1 border-b border-black">
+                  <input type="text" name="semiMaxAxle" value={formData.semiMaxAxle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">32.</span>
+                <span className="label" style={{width: '340px', flexShrink: 0}}>The vehicle is covered by a valid certificate</span>
+                <span className="ml-4">Insurance Certificate or cover note</span>
+              </div>
+              <div className="row flex ml-7">
+                <span className="label" style={{width: '200px', flexShrink: 0}}>of insurance under-chapter XI of the Act.</span>
+                <span>No.</span>
+                <div className="border-b border-black mx-2" style={{width: '80px'}}>
+                  <input type="text" name="insuranceNo" value={formData.insuranceNo || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+                <span>Date</span>
+                <div className="border-b border-black ml-2" style={{width: '80px'}}>
+                  <input type="text" name="insuranceDate" value={formData.insuranceDate || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+              <div className="row flex ml-7">
+                <span>(Name of Company</span>
+                <div className="border-b border-black mx-2" style={{width: '200px'}}>
+                  <input type="text" name="insuranceCompany" value={formData.insuranceCompany || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+                <span>)</span>
+              </div>
+
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">33.</span>
+                <span>The vehicle is exempted from insurance - the relevant order is enclosed.</span>
+              </div>
+
+              <div className="row flex">
+                <span className="num w-7 flex-shrink-0">34.</span>
+                <span>I have paid the prescribed fee of Rupees</span>
+                <span className="ml-8">valid from</span>
+                <div className="border-b border-black mx-2" style={{width: '80px'}}>
+                  <input type="text" name="validFrom" value={formData.validFrom || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+                <span>to</span>
+                <div className="border-b border-black ml-2" style={{width: '80px'}}>
+                  <input type="text" name="validTo" value={formData.validTo || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                </div>
+              </div>
+
+              <div className="flex justify-between mt-4">
+                <div className="flex items-end">
+                  <span>Date</span>
+                  <div className="border-b border-black ml-2" style={{width: '120px'}}>
+                    <input type="text" name="formDate" value={formData.formDate || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
                   </div>
                 </div>
+                <div className="text-center">
+                  <div>Signature of the Person to be Registered</div>
+                  <div>As registered owners,</div>
+                </div>
+              </div>
 
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">27.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>A) OVERALL LENGTH</span>
-                      <input type="text" name="overallLength" value={formData.overallLength || ''} onChange={handleChange} className={inputStyle} style={{width: '220px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>B) OVERALL WIDTH</span>
-                      <input type="text" name="overallWidth" value={formData.overallWidth || ''} onChange={handleChange} className={inputStyle} style={{width: '225px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>C) OVERALL HEIGHT</span>
-                      <input type="text" name="overallHeight" value={formData.overallHeight || ''} onChange={handleChange} className={inputStyle} style={{width: '220px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2 field-sub">
-                      <span>D) OVERALL HAND</span>
-                      <input type="text" name="overallHand" value={formData.overallHand || ''} onChange={handleChange} className={inputStyle} style={{width: '225px'}} />
-                    </div>
+              <div className="mt-4 text-sm">
+                <div>Note:- The motor vehicle above prescribed is:</div>
+                <div className="flex items-end mt-1">
+                  <span>i) Subject to hire purchase agreement / tease agree with</span>
+                  <div className="border-b border-black ml-2 flex-1">
+                    <input type="text" name="hirePurchase" value={formData.hirePurchase || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
                   </div>
                 </div>
-
-                <div className="border-note text-xs border-l-2 border-gray-500 pl-2 my-2">
-                  THE ABOVE PARTICULARS ARE TO BE FILLED IN FOR A RIGID FRAME MOTOR VEHICLE OF TWO OR MORE AXLES OR AN ARTICULATED VEHICLE OF THREE OR MORE AXLES, OR TO THE EXTENT APPLICABLE FOR TRAILER, WHERE A SECOND SEMI-TRAILER OR ADDITIONAL SEMI-TRAILER ARE TO BE REGISTERED WITH AN ARTICULATED MOTOR VEHICLE, THE FOLLOWING PARTICULARS ARE TO BE FURNISHED OF EACH SEMI-TRAILER.
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">28.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>TYPE OF BODY</span>
-                    <input type="text" name="semiBodyType" value={formData.semiBodyType || ''} onChange={handleChange} className={inputStyle} style={{width: '280px'}} />
+                <div className="flex items-end mt-1">
+                  <span>ii) Subject to hypothecation in favour of</span>
+                  <div className="border-b border-black ml-2 flex-1">
+                    <input type="text" name="hypothecation" value={formData.hypothecation || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
                   </div>
                 </div>
+                <p className="text-xs mt-1">
+                  III) Note held under hire purchase agreement or lease agreement or subject to hypothecation.
+                  Strike out whatever is inapplicable, if the vehicle is subject to any such agreement the signature of the person with whom the agreement has been entered in to be obtained.
+                </p>
+              </div>
 
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">29.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>UNLODING WEIGHT</span>
-                    <input type="text" name="semiUnladenWeight" value={formData.semiUnladenWeight || ''} onChange={handleChange} className={inputStyle} style={{width: '260px'}} />
+              <div className="flex justify-between mt-4 text-sm">
+                <div>
+                  <div>Signature of the person with whom an agreement of Hire</div>
+                  <div>Purchase, Lease or Hypothecation has been entered in to.</div>
+                  <div>Specimen signature of the person to be registered as registered owner.</div>
+                </div>
+                <div className="text-right">Signature of the owner</div>
+              </div>
+
+              <div className="flex justify-around mt-4">
+                <div className="text-center">
+                  <div>(1) (वेचने वाला)</div>
+                  <div className="border-b border-black w-28 h-6 mt-1 mx-auto"></div>
+                </div>
+                <div className="text-center">
+                  <div>(2) (वेचने वाला)</div>
+                  <div className="border-b border-black w-28 h-6 mt-1 mx-auto"></div>
+                </div>
+                <div className="text-center">
+                  <div>(3) (वेचने वाला)</div>
+                  <div className="border-b border-black w-28 h-6 mt-1 mx-auto"></div>
+                </div>
+              </div>
+
+              {/* Certificate */}
+              <div className="text-center mt-6 border-t pt-3">
+                <h3 className="font-bold">CERTIFICATE</h3>
+                <h4 className="font-bold">INSPECTED THE VEHICLE</h4>
+              </div>
+
+              <p className="mt-3 text-sm">
+                Certified that the particulars contained in the application are true and that the vehicle complaies with the requirements of the motor vehicle Act. 1988 and rules made there under.
+              </p>
+
+              <div className="flex justify-between mt-4">
+                <div className="flex items-end">
+                  <span>Date</span>
+                  <div className="border-b border-black ml-2" style={{width: '120px'}}>
+                    <input type="text" name="certDate" value={formData.certDate || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
                   </div>
                 </div>
+                <div className="text-right">Signature of the Inspecting Authority</div>
+              </div>
 
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">30.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>NUMBER DESCRIPTION AND SIZE OF TYRES ON</span>
-                      <input type="text" name="semiTyres1" value={formData.semiTyres1 || ''} onChange={handleChange} className={inputStyle} style={{width: '150px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2">
-                      <span>EACH AXLE</span>
-                      <input type="text" name="semiTyres2" value={formData.semiTyres2 || ''} onChange={handleChange} className={inputStyle} style={{width: '280px'}} />
-                    </div>
+              <div className="flex justify-center gap-8 mt-3">
+                <div className="flex items-end">
+                  <span>Name</span>
+                  <div className="border-b border-black ml-2" style={{width: '150px'}}>
+                    <input type="text" name="inspectorName" value={formData.inspectorName || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
                   </div>
                 </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">31.</span>
-                  <div className="field-row flex items-end gap-2 flex-1">
-                    <span>MAXIMUM AXLE WEIGHT IN RESPECT OF EACH AXLE</span>
-                    <input type="text" name="semiMaxAxle" value={formData.semiMaxAxle || ''} onChange={handleChange} className={inputStyle} style={{width: '140px'}} />
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">32.</span>
-                  <div className="field-content flex-1">
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>THE VEHICLE IS COVERED BY A VALID CERTIFICATE</span>
-                      <span className="ml-2">INSURANCE CERTIFICATE OR COVER NOTE</span>
-                    </div>
-                    <div className="field-row flex items-end gap-2 flex-wrap">
-                      <span>OF INSURANCE UNDER-CHAPTER XI OF THE ACT.</span>
-                      <span className="ml-2">NO.</span>
-                      <input type="text" name="insuranceNo" value={formData.insuranceNo || ''} onChange={handleChange} className={inputStyle} style={{width: '80px'}} />
-                      <span>DATE</span>
-                      <input type="text" name="insuranceDate" value={formData.insuranceDate || ''} onChange={handleChange} className={inputStyle} style={{width: '80px'}} />
-                    </div>
-                    <div className="field-row flex items-end gap-2">
-                      <span>(NAME OF COMPANY</span>
-                      <input type="text" name="insuranceCompany" value={formData.insuranceCompany || ''} onChange={handleChange} className={inputStyle} style={{width: '180px'}} />
-                      <span>)</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">33.</span>
-                  <div className="field-content flex-1">
-                    <div>THE VEHICLE IS EXEMPTED FROM INSURANCE -</div>
-                    <div>THE RELEVANT ORDER IS ENCLOSED.</div>
-                  </div>
-                </div>
-
-                <div className="field flex">
-                  <span className="field-num w-8 flex-shrink-0">34.</span>
-                  <div className="field-row flex items-end gap-2 flex-1 flex-wrap">
-                    <span>I HAVE PAID THE PRESCRIBED FEE OF RUPEES</span>
-                    <span className="ml-4">VALID FROM</span>
-                    <input type="text" name="validFrom" value={formData.validFrom || ''} onChange={handleChange} className={inputStyle} style={{width: '80px'}} />
-                    <span>TO</span>
-                    <input type="text" name="validTo" value={formData.validTo || ''} onChange={handleChange} className={inputStyle} style={{width: '80px'}} />
-                  </div>
-                </div>
-
-                <div className="flex-between flex justify-between mt-3">
-                  <div className="field-row flex items-end gap-2">
-                    <span>DATE</span>
-                    <input type="text" name="formDate" value={formData.formDate || ''} onChange={handleChange} className={inputStyle} style={{width: '120px'}} />
-                  </div>
-                  <div className="text-center text-sm">
-                    <div>SIGNATURE OF THE PERSON TO BE REGISTERED</div>
-                    <div>AS REGISTERED OWNERS,</div>
-                  </div>
-                </div>
-
-                <div className="mt-3 text-sm">
-                  <div>NOTE:- THE MOTOR VEHICLE ABOVE PRESCRIBED IS:</div>
-                  <div className="field-row flex items-end gap-2 mt-1 flex-wrap">
-                    <span>I) SUBJECT TO HIRE PURCHASE AGREEMENT / LEASE AGREE WITH</span>
-                    <input type="text" name="hirePurchase" value={formData.hirePurchase || ''} onChange={handleChange} className={inputStyle} style={{width: '150px'}} />
-                  </div>
-                  <div className="field-row flex items-end gap-2 flex-wrap">
-                    <span>II) SUBJECT TO HYPOTHECATION IN FAVOUR OF</span>
-                    <input type="text" name="hypothecation" value={formData.hypothecation || ''} onChange={handleChange} className={inputStyle} style={{width: '200px'}} />
-                  </div>
-                  <div className="text-xs mt-1">
-                    III) NOTE HELD UNDER HIRE PURCHASE AGREEMENT OR LEASE AGREEMENT OR SUBJECT TO HYPOTHECATION.<br/>
-                    STRIKE OUT WHATEVER IS INAPPLICABLE, IF THE VEHICLE IS SUBJECT TO ANY SUCH AGREEMENT THE SIGNATURE OF THE PERSON WITH WHOM THE AGREEMENT HAS BEEN ENTERED IN TO BE OBTAINED.
-                  </div>
-                </div>
-
-                <div className="flex justify-between mt-3 text-sm">
-                  <div className="text-center">
-                    <div>SIGNATURE OF THE PERSON WITH WHOM AN AGREEMENT OF HIRE</div>
-                    <div>PURCHASE, LEASE OR HYPOTHECATION HAS BEEN ENTERED IN TO.</div>
-                    <div>SPECIMEN SIGNATURE OF THE PERSON TO BE REGISTERED AS REGISTERED OWNER.</div>
-                  </div>
-                  <div className="text-center">
-                    <div>SIGNATURE OF THE OWNER</div>
-                  </div>
-                </div>
-
-                <div className="sig-row flex justify-around mt-3">
-                  <div className="sig-box text-center">
-                    <div>(1) (वेचने वाला)</div>
-                    <div className="sig-line border-b border-dotted border-black w-24 h-5 mt-1 mx-auto"></div>
-                  </div>
-                  <div className="sig-box text-center">
-                    <div>(2) (वेचने वाला)</div>
-                    <div className="sig-line border-b border-dotted border-black w-24 h-5 mt-1 mx-auto"></div>
-                  </div>
-                  <div className="sig-box text-center">
-                    <div>(3) (वेचने वाला)</div>
-                    <div className="sig-line border-b border-dotted border-black w-24 h-5 mt-1 mx-auto"></div>
-                  </div>
-                </div>
-
-                <div className="section-title text-center font-bold mt-4 border-t pt-2">
-                  <h3>CERTIFICATE</h3>
-                  <h4>INSPECTED THE VEHICLE</h4>
-                </div>
-
-                <div className="mt-2 text-sm">
-                  <p>CERTIFIED THAT THE PARTICULARS CONTAINED IN THE APPLICATION ARE TRUE AND THAT THE VEHICLE COMPLIES WITH THE REQUIREMENTS OF THE MOTOR VEHICLE ACT. 1988 AND RULES MADE THERE UNDER.</p>
-                </div>
-
-                <div className="flex-between flex justify-between mt-3">
-                  <div className="field-row flex items-end gap-2">
-                    <span>DATE</span>
-                    <input type="text" name="certDate" value={formData.certDate || ''} onChange={handleChange} className={inputStyle} style={{width: '120px'}} />
-                  </div>
-                  <div className="text-center text-sm">
-                    <div>SIGNATURE OF THE INSPECTING AUTHORITY</div>
-                  </div>
-                </div>
-
-                <div className="flex justify-center gap-6 mt-2 flex-wrap">
-                  <div className="field-row flex items-end gap-2">
-                    <span>NAME</span>
-                    <input type="text" name="inspectorName" value={formData.inspectorName || ''} onChange={handleChange} className={inputStyle} style={{width: '120px'}} />
-                  </div>
-                  <div className="field-row flex items-end gap-2">
-                    <span>DESIGNATION</span>
-                    <input type="text" name="inspectorDesignation" value={formData.inspectorDesignation || ''} onChange={handleChange} className={inputStyle} style={{width: '120px'}} />
-                  </div>
-                </div>
-
-                <div className="section-title text-center font-bold mt-4 border-t pt-2">
-                  <h3>FOR OFFICE ENDORSEMENT</h3>
-                </div>
-
-                <div className="mt-2 text-sm space-y-1">
-                  <div className="field-row flex items-end gap-2 flex-wrap">
-                    <span>REF. NUMBER</span>
-                    <input type="text" name="refNumber" value={formData.refNumber || ''} onChange={handleChange} className={inputStyle} style={{width: '100px'}} />
-                    <span>OFFICE OF THE -</span>
-                    <input type="text" name="officeName" value={formData.officeName || ''} onChange={handleChange} className={inputStyle} style={{width: '80px'}} />
-                    <span>DATED</span>
-                    <input type="text" name="endorseDate" value={formData.endorseDate || ''} onChange={handleChange} className={inputStyle} style={{width: '80px'}} />
-                  </div>
-                  <div className="field-row flex items-end gap-2 flex-wrap">
-                    <span>THE</span>
-                    <input type="text" name="theVehicle" value={formData.theVehicle || ''} onChange={handleChange} className={inputStyle} style={{width: '100px'}} />
-                    <span>BEARING CHASSES NUMBER</span>
-                    <input type="text" name="endorseChassisNo" value={formData.endorseChassisNo || ''} onChange={handleChange} className={inputStyle} style={{width: '100px'}} />
-                    <span>AND</span>
-                  </div>
-                  <div className="field-row flex items-end gap-2 flex-wrap">
-                    <span>NUMBER</span>
-                    <input type="text" name="engineNo2" value={formData.engineNo2 || ''} onChange={handleChange} className={inputStyle} style={{width: '100px'}} />
-                    <span>HAS BEEN ASSIGNED THE REGISTRATION NUMBER</span>
-                    <input type="text" name="regNumber" value={formData.regNumber || ''} onChange={handleChange} className={inputStyle} style={{width: '80px'}} />
-                  </div>
-                  <div className="field-row flex items-end gap-2 flex-wrap">
-                    <span>AND REGISTERED IN THE NAME OF</span>
-                    <input type="text" name="regName" value={formData.regName || ''} onChange={handleChange} className={inputStyle} style={{width: '220px'}} />
-                  </div>
-                  <div className="field-row flex items-end gap-2 flex-wrap">
-                    <span>AND VEHICLE IS SUBJECT TO AN AGREEMENT OF HIRE PURCHASE/ LEASE/ HYPOTHECATION</span>
-                    <input type="text" name="agreement" value={formData.agreement || ''} onChange={handleChange} className={inputStyle} style={{width: '100px'}} />
-                  </div>
-                  <div>TO,</div>
-                  <div className="flex-between flex justify-between mt-2">
-                    <div>
-                      <div>(NAME AND ADDRESS OF THE FINANCIER)</div>
-                      <div>BY REGISTERED POST TO DEALER UNDER PROPER ACKNOWLEDGEMENT.</div>
-                    </div>
-                    <div className="text-center">
-                      <div>REGISTERING AUTHORITY</div>
-                    </div>
+                <div className="flex items-end">
+                  <span>Designation</span>
+                  <div className="border-b border-black ml-2" style={{width: '120px'}}>
+                    <input type="text" name="inspectorDesignation" value={formData.inspectorDesignation || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-between mt-4 no-print">
+              {/* Office Endorsement */}
+              <div className="text-center mt-6 border-t pt-3">
+                <h3 className="font-bold">FOR OFFICE ENDORSEMENT</h3>
+              </div>
+
+              <div className="mt-3 text-sm space-y-1">
+                <div className="flex items-end flex-wrap gap-1">
+                  <span>Ref. Number</span>
+                  <div className="border-b border-black" style={{width: '100px'}}>
+                    <input type="text" name="refNumber" value={formData.refNumber || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                  <span>office of the -</span>
+                  <div className="border-b border-black" style={{width: '80px'}}>
+                    <input type="text" name="officeName" value={formData.officeName || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                  <span>Dated</span>
+                  <div className="border-b border-black" style={{width: '80px'}}>
+                    <input type="text" name="endorseDate" value={formData.endorseDate || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                </div>
+                <div className="flex items-end flex-wrap gap-1">
+                  <span>The</span>
+                  <div className="border-b border-black" style={{width: '100px'}}>
+                    <input type="text" name="theVehicle" value={formData.theVehicle || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                  <span>bearing chasses number</span>
+                  <div className="border-b border-black" style={{width: '120px'}}>
+                    <input type="text" name="endorseChassisNo" value={formData.endorseChassisNo || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                  <span>and</span>
+                </div>
+                <div className="flex items-end flex-wrap gap-1">
+                  <span>number</span>
+                  <div className="border-b border-black" style={{width: '120px'}}>
+                    <input type="text" name="engineNo2" value={formData.engineNo2 || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                  <span>has been assigned the registration number</span>
+                  <div className="border-b border-black" style={{width: '100px'}}>
+                    <input type="text" name="regNumber" value={formData.regNumber || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-1">
+                  <span>and registered in the name of</span>
+                  <div className="border-b border-black flex-1">
+                    <input type="text" name="regName" value={formData.regName || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                </div>
+                <div className="flex items-end gap-1">
+                  <span>and vehicle is subject to an agreement of hire purchase/ lease/ hypothecation</span>
+                  <div className="border-b border-black" style={{width: '100px'}}>
+                    <input type="text" name="agreement" value={formData.agreement || ''} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  </div>
+                </div>
+                <div>To,</div>
+                <div className="flex justify-between mt-2">
+                  <div>
+                    <div>(Name and address of the financier)</div>
+                    <div>By registered post to dealer under proper acknowledgement.</div>
+                  </div>
+                  <div className="text-right">Registering Authority</div>
+                </div>
+              </div>
+
+              <div className="flex justify-between mt-6 no-print">
                 <button onClick={() => setCurrentPage(1)} className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-medium">
                   ← PREVIOUS PAGE
                 </button>
@@ -714,7 +826,7 @@ const Form20 = () => {
                   </button>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>

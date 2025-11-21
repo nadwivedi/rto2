@@ -103,8 +103,8 @@ exports.login = async (req, res) => {
     // Set HTTP-only cookie
     res.cookie('authToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Use secure in production
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for PWA compatibility on older devices
       maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     })
 
@@ -181,7 +181,7 @@ exports.logout = async (req, res) => {
   res.clearCookie('authToken', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   })
 
   res.json({
