@@ -759,6 +759,12 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                             name='paidAmount'
                             value={formData.paidAmount}
                             onChange={handleChange}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                e.target.form.requestSubmit()
+                              }
+                            }}
                             max={formData.totalAmount}
                             className='w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold text-base md:text-lg'
                             required

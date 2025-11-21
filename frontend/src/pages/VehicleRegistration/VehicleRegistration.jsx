@@ -405,6 +405,7 @@ const VehicleRegistration = () => {
                       <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Chassis No.</th>
                       <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Engine No.</th>
                       <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Owner Name</th>
+                      <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Contact</th>
                       <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Laden Weight</th>
                       <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Unladen Weight</th>
                       <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
@@ -492,6 +493,14 @@ const VehicleRegistration = () => {
                             <div className='text-[11px] 2xl:text-sm font-semibold text-gray-900'>{registration.ownerName || 'N/A'}</div>
                             {registration.sonWifeDaughterOf && (
                               <div className='text-[10px] 2xl:text-xs text-gray-500 mt-0.5'>S/W/D of {registration.sonWifeDaughterOf}</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
+                          <div>
+                            <div className='text-[11px] 2xl:text-sm font-semibold text-gray-900'>{registration.mobileNumber || 'N/A'}</div>
+                            {registration.email && (
+                              <div className='text-[10px] 2xl:text-xs text-gray-500 mt-0.5'>{registration.email}</div>
                             )}
                           </div>
                         </td>
