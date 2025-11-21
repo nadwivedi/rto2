@@ -356,6 +356,21 @@ exports.createFitness = async (req, res) => {
     // Calculate status
     const status = getFitnessStatus(validTo);
 
+    // Mark any existing non-renewed fitness records for this vehicle as expired and renewed
+    await Fitness.updateMany(
+      {
+        vehicleNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id,
+        isRenewed: false
+      },
+      {
+        $set: {
+          status: 'expired',
+          isRenewed: true
+        }
+      }
+    )
+
     // Create new fitness record
     const fitness = new Fitness({
       vehicleNumber,

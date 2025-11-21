@@ -96,6 +96,21 @@ exports.createPermit = async (req, res) => {
     // Calculate status
     const status = getTemporaryPermitOtherStateStatus(validTo);
 
+    // Mark any existing non-renewed temporary permits (other state) for this vehicle as expired and renewed
+    await TemporaryPermitOtherState.updateMany(
+      {
+        vehicleNo: vehicleNo.toUpperCase().trim(),
+        userId: req.user.id,
+        isRenewed: false
+      },
+      {
+        $set: {
+          status: 'expired',
+          isRenewed: true
+        }
+      }
+    )
+
     // Create new temporary permit
     const newPermit = new TemporaryPermitOtherState({
       permitNumber,

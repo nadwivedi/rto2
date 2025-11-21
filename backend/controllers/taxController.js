@@ -152,6 +152,21 @@ exports.createTax = async (req, res) => {
     // Calculate status
     const status = getTaxStatus(taxTo);
 
+    // Mark any existing non-renewed tax records for this vehicle as expired and renewed
+    await Tax.updateMany(
+      {
+        vehicleNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id,
+        isRenewed: false
+      },
+      {
+        $set: {
+          status: 'expired',
+          isRenewed: true
+        }
+      }
+    )
+
     // Create new tax record
     const tax = new Tax({
       receiptNo,

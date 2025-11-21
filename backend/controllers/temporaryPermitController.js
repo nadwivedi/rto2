@@ -242,6 +242,21 @@ exports.createPermit = async (req, res) => {
     if (unladenWeight !== undefined && unladenWeight !== null) permitData.unladenWeight = Number(unladenWeight)
     if (notes && notes.trim() !== '') permitData.notes = notes.trim()
 
+    // Mark any existing non-renewed temporary permits for this vehicle as expired and renewed
+    await TemporaryPermit.updateMany(
+      {
+        vehicleNumber: vehicleNumber.trim().toUpperCase(),
+        userId: req.user.id,
+        isRenewed: false
+      },
+      {
+        $set: {
+          status: 'expired',
+          isRenewed: true
+        }
+      }
+    )
+
     // Create new temporary permit
     const newPermit = new TemporaryPermit(permitData)
     await newPermit.save()

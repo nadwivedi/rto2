@@ -81,6 +81,21 @@ exports.createInsurance = async (req, res) => {
     // Calculate status
     const status = getInsuranceStatus(validTo);
 
+    // Mark any existing non-renewed insurance records for this vehicle as expired and renewed
+    await Insurance.updateMany(
+      {
+        vehicleNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id,
+        isRenewed: false
+      },
+      {
+        $set: {
+          status: 'expired',
+          isRenewed: true
+        }
+      }
+    )
+
     // Create new insurance record
     const newInsurance = new Insurance({
       policyNumber,

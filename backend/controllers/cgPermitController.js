@@ -181,6 +181,21 @@ exports.createPermit = async (req, res) => {
       userId: req.user.id
     }
 
+    // Mark any existing non-renewed CG permits for this vehicle as expired and renewed
+    await CgPermit.updateMany(
+      {
+        vehicleNumber: vehicleNumber.trim().toUpperCase(),
+        userId: req.user.id,
+        isRenewed: false
+      },
+      {
+        $set: {
+          status: 'expired',
+          isRenewed: true
+        }
+      }
+    )
+
     // Create new CG permit
     const newPermit = new CgPermit(permitData)
     await newPermit.save()
