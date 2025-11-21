@@ -1,5 +1,67 @@
 [
   {
+    "_id": "692018e6ba6362a0d4994ba8",
+    "billNumber": "20",
+    "billDate": "21/11/2025",
+    "customerName": "MAHANADI ACADEMY NAGRI DHAMTARI",
+    "items": [
+      {
+        "description": "CHASSIS 334113",
+        "quantity": null,
+        "rate": null,
+        "amount": null,
+        "_id": "692018e6ba6362a0d4994ba9"
+      },
+      {
+        "description": "TR",
+        "quantity": null,
+        "rate": null,
+        "amount": 1000,
+        "_id": "692018e6ba6362a0d4994baa"
+      }
+    ],
+    "totalAmount": 1000,
+    "billPdfPath": "/uploads/bills/BILL-19-1763711206894.pdf",
+    "createdAt": "2025-11-21T07:46:46.924Z",
+    "updatedAt": "2025-11-21T07:46:46.924Z",
+    "__v": 0
+  },
+
+  {
+    "_id": "69200317aac3758f75e101b7",
+    "billDate": "21/11/2025",
+    "customerName": "SUPREME WAREHOSING",
+    "items": [
+      {
+        "description": "CG04PJ1635",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "69200317aac3758f75e101b8"
+      },
+      {
+        "description": "FITNESS",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 3500,
+        "_id": "69200317aac3758f75e101b9"
+      },
+      {
+        "description": "REDIUM",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 2500,
+        "_id": "69200317aac3758f75e101ba"
+      }
+    ],
+    "totalAmount": 6000,
+    "billNumber": "19",
+    "billPdfPath": "/uploads/bills/19.pdf",
+    "createdAt": "2025-11-21T06:13:43.265Z",
+    "updatedAt": "2025-11-21T06:13:43.265Z",
+    "__v": 0
+  },
+  {
     "_id": "691f533daac3758f75e0f887",
     "billDate": "20/11/2025",
     "customerName": "PIRAMAL PETROLIUM RAIPUR",
