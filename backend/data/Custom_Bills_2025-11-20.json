@@ -1,0 +1,566 @@
+[
+  {
+    "_id": "691f533daac3758f75e0f887",
+    "billDate": "20/11/2025",
+    "customerName": "PIRAMAL PETROLIUM RAIPUR",
+    "items": [
+      {
+        "description": "CG08L0293",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691f533daac3758f75e0f888"
+      },
+      {
+        "description": "ODISHA TP",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 4500,
+        "_id": "691f533daac3758f75e0f889"
+      }
+    ],
+    "totalAmount": 4500,
+    "billNumber": "18",
+    "billPdfPath": "/uploads/bills/18.pdf",
+    "createdAt": "2025-11-20T17:43:25.184Z",
+    "updatedAt": "2025-11-20T17:43:25.184Z",
+    "__v": 0
+  },
+  {
+    "_id": "691ecf4f5e6037e67d917fe8",
+    "billDate": "20/11/2025",
+    "customerName": "KV MOTORS RAIPUR",
+    "items": [
+      {
+        "description": "CG04QR3963",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691ecf4f5e6037e67d917fe9"
+      },
+      {
+        "description": "MAHENDRA KUMAR SAHU",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691ecf4f5e6037e67d917fea"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1200,
+        "_id": "691ecf4f5e6037e67d917feb"
+      }
+    ],
+    "totalAmount": 1200,
+    "billNumber": "17",
+    "billPdfPath": "/uploads/bills/17.pdf",
+    "createdAt": "2025-11-20T08:20:31.831Z",
+    "updatedAt": "2025-11-20T08:20:31.831Z",
+    "__v": 0
+  },
+  {
+    "_id": "691ecf165e6037e67d917fc6",
+    "billDate": "20/11/2025",
+    "customerName": "KV MOTORS RAIPUR",
+    "items": [
+      {
+        "description": "CG04QR3631",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691ecf165e6037e67d917fc7"
+      },
+      {
+        "description": "SANJAY SAHU",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691ecf165e6037e67d917fc8"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1200,
+        "_id": "691ecf165e6037e67d917fc9"
+      }
+    ],
+    "totalAmount": 1200,
+    "billNumber": "16",
+    "billPdfPath": "/uploads/bills/16.pdf",
+    "createdAt": "2025-11-20T08:19:34.654Z",
+    "updatedAt": "2025-11-20T08:19:34.654Z",
+    "__v": 0
+  },
+  {
+    "_id": "691ece905e6037e67d917fa4",
+    "billDate": "20/11/2025",
+    "customerName": "KV MOTORS RAIPUR",
+    "items": [
+      {
+        "description": "CG04QR2606",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691ece905e6037e67d917fa5"
+      },
+      {
+        "description": "SANTOSH",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691ece905e6037e67d917fa6"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1200,
+        "_id": "691ece905e6037e67d917fa7"
+      }
+    ],
+    "totalAmount": 1200,
+    "billNumber": "15",
+    "billPdfPath": "/uploads/bills/15.pdf",
+    "createdAt": "2025-11-20T08:17:20.550Z",
+    "updatedAt": "2025-11-20T08:17:20.550Z",
+    "__v": 0
+  },
+  {
+    "_id": "691ece4f5e6037e67d917f82",
+    "billDate": "20/11/2025",
+    "customerName": "KV MOTORS RAIPUT",
+    "items": [
+      {
+        "description": "CG04QR4641",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691ece4f5e6037e67d917f83"
+      },
+      {
+        "description": "JAYA LAXMI",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691ece4f5e6037e67d917f84"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1200,
+        "_id": "691ece4f5e6037e67d917f85"
+      }
+    ],
+    "totalAmount": 1200,
+    "billNumber": "14",
+    "billPdfPath": "/uploads/bills/14.pdf",
+    "createdAt": "2025-11-20T08:16:16.244Z",
+    "updatedAt": "2025-11-20T08:16:16.244Z",
+    "__v": 0
+  },
+  {
+    "_id": "691de287c09e99450275ff19",
+    "billDate": "19/11/2025",
+    "customerName": "CG04JC0271",
+    "items": [
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1000,
+        "_id": "691de287c09e99450275ff1a"
+      }
+    ],
+    "totalAmount": 1000,
+    "billNumber": "13",
+    "billPdfPath": "/uploads/bills/13.pdf",
+    "createdAt": "2025-11-19T15:30:15.914Z",
+    "updatedAt": "2025-11-19T15:30:15.914Z",
+    "__v": 0
+  },
+  {
+    "_id": "691ddc18119f546fb0ed128e",
+    "billDate": "19/11/2025",
+    "customerName": "SINGHANIA ENTERPRISES CIVIL LINES RAIPUR",
+    "items": [
+      {
+        "description": "CG04JD3325 HSRP",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 950,
+        "_id": "691ddc18119f546fb0ed128f"
+      },
+      {
+        "description": "CG07BG4336 HSRP",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 950,
+        "_id": "691ddc18119f546fb0ed1290"
+      },
+      {
+        "description": "CG07BG4332 HSRP",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 950,
+        "_id": "691ddc18119f546fb0ed1291"
+      }
+    ],
+    "totalAmount": 2850,
+    "billNumber": "12",
+    "billPdfPath": "/uploads/bills/12.pdf",
+    "createdAt": "2025-11-19T15:02:48.344Z",
+    "updatedAt": "2025-11-19T15:02:48.344Z",
+    "__v": 0
+  },
+  {
+    "_id": "691dcdc0119f546fb0ed103d",
+    "billDate": "19/11/2025",
+    "customerName": "SHEETAL MOTORRS",
+    "items": [
+      {
+        "description": "CG10CB6752  NAM LAL YADAV",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691dcdc0119f546fb0ed103e"
+      },
+      {
+        "description": "Temporary Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691dcdc0119f546fb0ed103f"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 5750,
+        "_id": "691dcdc0119f546fb0ed1040"
+      },
+      {
+        "description": "Permit",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691dcdc0119f546fb0ed1041"
+      }
+    ],
+    "totalAmount": 5750,
+    "billNumber": "11",
+    "billPdfPath": "/uploads/bills/11.pdf",
+    "createdAt": "2025-11-19T14:01:36.963Z",
+    "updatedAt": "2025-11-19T14:01:36.963Z",
+    "__v": 0
+  },
+  {
+    "_id": "691dcc0b119f546fb0ed0fcd",
+    "billDate": "19/11/2025",
+    "customerName": "BRC PUBLIC SCHOOL KUNDA",
+    "items": [
+      {
+        "description": "CHASSIS330979",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691dcc0b119f546fb0ed0fce"
+      },
+      {
+        "description": "Temporary Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1000,
+        "_id": "691dcc0b119f546fb0ed0fcf"
+      }
+    ],
+    "totalAmount": 1000,
+    "billNumber": "10",
+    "billPdfPath": "/uploads/bills/10.pdf",
+    "createdAt": "2025-11-19T13:54:19.769Z",
+    "updatedAt": "2025-11-19T13:54:19.769Z",
+    "__v": 0
+  },
+  {
+    "_id": "691dcba4119f546fb0ed0faf",
+    "billDate": "19/11/2025",
+    "customerName": "RASTOGI COLLEGE OF NURSING",
+    "items": [
+      {
+        "description": "CH332171",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691dcba4119f546fb0ed0fb0"
+      },
+      {
+        "description": "Temporary Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1000,
+        "_id": "691dcba4119f546fb0ed0fb1"
+      }
+    ],
+    "totalAmount": 1000,
+    "billNumber": "09",
+    "billPdfPath": "/uploads/bills/09.pdf",
+    "createdAt": "2025-11-19T13:52:36.434Z",
+    "updatedAt": "2025-11-19T13:52:36.434Z",
+    "__v": 0
+  },
+  {
+    "_id": "691d7f80119f546fb0ed0ebb",
+    "billDate": "19/11/2025",
+    "customerName": "OM DEALER",
+    "vehicleNumber": "CG12AA4793",
+    "items": [
+      {
+        "description": "Permit",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1000,
+        "_id": "691d7f80119f546fb0ed0ebc"
+      },
+      {
+        "description": "Fitness",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1000,
+        "_id": "691d7f80119f546fb0ed0ebd"
+      }
+    ],
+    "totalAmount": 2000,
+    "billNumber": "08",
+    "billPdfPath": "/uploads/bills/08.pdf",
+    "createdAt": "2025-11-19T08:27:44.693Z",
+    "updatedAt": "2025-11-19T08:27:44.693Z",
+    "__v": 0
+  },
+  {
+    "_id": "691c919ce8deac0e7e54b47e",
+    "billDate": "18/11/2025",
+    "customerName": "HORA TRANSPORT CO PVT LTD",
+    "items": [
+      {
+        "description": "CG04JB4462",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691c919ce8deac0e7e54b47f"
+      },
+      {
+        "description": "FITNESS",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 2200,
+        "_id": "691c919ce8deac0e7e54b480"
+      },
+      {
+        "description": "REDIUM",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 2500,
+        "_id": "691c919ce8deac0e7e54b481"
+      }
+    ],
+    "totalAmount": 4700,
+    "billNumber": "07",
+    "billPdfPath": "/uploads/bills/07.pdf",
+    "createdAt": "2025-11-18T15:32:44.249Z",
+    "updatedAt": "2025-11-18T15:32:44.249Z",
+    "__v": 0
+  },
+  {
+    "_id": "691c829aa35086095e872794",
+    "billDate": "18/11/2025",
+    "customerName": "KV MOTORS",
+    "items": [
+      {
+        "description": "CG04QR3632",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691c829aa35086095e872795"
+      },
+      {
+        "description": "NILESH KATARE",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691c829aa35086095e872796"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1200,
+        "_id": "691c829aa35086095e872797"
+      }
+    ],
+    "totalAmount": 1200,
+    "billNumber": "06",
+    "billPdfPath": "/uploads/bills/06.pdf",
+    "createdAt": "2025-11-18T14:28:42.795Z",
+    "updatedAt": "2025-11-18T14:28:42.795Z",
+    "__v": 0
+  },
+  {
+    "_id": "691c8250a35086095e87277f",
+    "billDate": "18/11/2025",
+    "customerName": "KV MOTORS",
+    "items": [
+      {
+        "description": "CG04GR2973",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691c8250a35086095e872780"
+      },
+      {
+        "description": "NEERAJ PAPER PRODUCT",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691c8250a35086095e872781"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1200,
+        "_id": "691c8250a35086095e872782"
+      }
+    ],
+    "totalAmount": 1200,
+    "billNumber": "05",
+    "billPdfPath": "/uploads/bills/05.pdf",
+    "createdAt": "2025-11-18T14:27:28.072Z",
+    "updatedAt": "2025-11-18T14:27:28.072Z",
+    "__v": 0
+  },
+  {
+    "_id": "691c0d91a35086095e871e58",
+    "billDate": "18/11/2025",
+    "customerName": "DEENDAYA L SAHU",
+    "items": [
+      {
+        "description": "CG04QL1199",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691c0d91a35086095e871e59"
+      },
+      {
+        "description": "PERMIT CANCLE",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 800,
+        "_id": "691c0d91a35086095e871e5a"
+      },
+      {
+        "description": "NEW PERMIT",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 3000,
+        "_id": "691c0d91a35086095e871e5b"
+      }
+    ],
+    "totalAmount": 3800,
+    "billNumber": "04",
+    "billPdfPath": "/uploads/bills/04.pdf",
+    "createdAt": "2025-11-18T06:09:21.230Z",
+    "updatedAt": "2025-11-18T06:09:21.230Z",
+    "__v": 0
+  },
+  {
+    "_id": "691a82098b9fc2479d74d0b0",
+    "billDate": "17/11/2025",
+    "customerName": "KV MOTORS",
+    "items": [
+      {
+        "description": "CG04QQ8952 DIFF TEX",
+        "quantity": 1,
+        "rate": 313,
+        "amount": 313,
+        "_id": "691a82098b9fc2479d74d0b1"
+      }
+    ],
+    "totalAmount": 313,
+    "billNumber": "03",
+    "billPdfPath": "/uploads/bills/03.pdf",
+    "createdAt": "2025-11-17T02:01:46.099Z",
+    "updatedAt": "2025-11-17T02:01:46.099Z",
+    "__v": 0
+  },
+  {
+    "_id": "69189b1c943e8eace008ba5d",
+    "billDate": "15/11/2025",
+    "customerName": "KV MOTORS RAIPUR",
+    "items": [
+      {
+        "description": "PAWAN KUMAR SAHU",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "69189b1c943e8eace008ba5e"
+      },
+      {
+        "description": "CG04QQ9605",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "69189b1c943e8eace008ba5f"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1200,
+        "_id": "69189b1c943e8eace008ba60"
+      }
+    ],
+    "totalAmount": 1200,
+    "billNumber": "02",
+    "billPdfPath": "/uploads/bills/02.pdf",
+    "createdAt": "2025-11-15T15:24:12.366Z",
+    "updatedAt": "2025-11-15T15:24:12.366Z",
+    "__v": 0
+  },
+  {
+    "_id": "691899c5943e8eace008b9f9",
+    "billDate": "15/11/2025",
+    "customerName": "KV MOTORS RAIPUR",
+    "items": [
+      {
+        "description": "LUBDHESH KUMAR DHRUW",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691899c5943e8eace008b9fa"
+      },
+      {
+        "description": "CG04QQ9604",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 0,
+        "_id": "691899c5943e8eace008b9fb"
+      },
+      {
+        "description": "Vehicle Registration",
+        "quantity": 1,
+        "rate": 0,
+        "amount": 1200,
+        "_id": "691899c5943e8eace008b9fc"
+      }
+    ],
+    "totalAmount": 1200,
+    "billNumber": "01",
+    "billPdfPath": "/uploads/bills/01.pdf",
+    "createdAt": "2025-11-15T15:18:29.372Z",
+    "updatedAt": "2025-11-15T15:18:29.372Z",
+    "__v": 0
+  }
+]
