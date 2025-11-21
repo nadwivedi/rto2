@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
@@ -90,23 +91,20 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
       setVehicleError('')
 
       try {
-        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`, {
-          credentials: 'include'
-        })
-        const data = await response.json()
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
 
-        if (response.ok && data.success) {
+        if (response.data.success) {
           // Auto-fill the permit holder name with the owner name from vehicle registration
           setFormData(prev => ({
             ...prev,
-            permitHolderName: data.data.ownerName || prev.permitHolderName,
-            address: data.data.address || prev.address,
-            chassisNumber: data.data.chassisNumber || prev.chassisNumber,
-            engineNumber: data.data.engineNumber || prev.engineNumber,
-            ladenWeight: data.data.ladenWeight || prev.ladenWeight,
-            unladenWeight: data.data.unladenWeight || prev.unladenWeight,
-            mobileNumber: data.data.mobileNumber || prev.mobileNumber,
-            email: data.data.email || prev.email
+            permitHolderName: response.data.data.ownerName || prev.permitHolderName,
+            address: response.data.data.address || prev.address,
+            chassisNumber: response.data.data.chassisNumber || prev.chassisNumber,
+            engineNumber: response.data.data.engineNumber || prev.engineNumber,
+            ladenWeight: response.data.data.ladenWeight || prev.ladenWeight,
+            unladenWeight: response.data.data.unladenWeight || prev.unladenWeight,
+            mobileNumber: response.data.data.mobileNumber || prev.mobileNumber,
+            email: response.data.data.email || prev.email
           }))
           setVehicleError('')
         } else {

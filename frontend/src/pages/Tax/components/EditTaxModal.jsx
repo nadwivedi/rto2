@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { handleDateBlur as utilHandleDateBlur, handleSmartDateInput } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
@@ -74,16 +75,13 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
       setVehicleError('')
 
       try {
-        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`, {
-          credentials: 'include'
-        })
-        const data = await response.json()
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
 
-        if (response.ok && data.success) {
+        if (response.data.success) {
           // Auto-fill the owner name from vehicle registration
           setFormData(prev => ({
             ...prev,
-            ownerName: data.data.ownerName || prev.ownerName
+            ownerName: response.data.data.ownerName || prev.ownerName
           }))
           setVehicleError('')
         } else {

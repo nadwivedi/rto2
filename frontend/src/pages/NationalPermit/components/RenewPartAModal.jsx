@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from 'axios'
 import { formatDate, getFiveYearsFromNow, parseFormattedDate } from '../../../utils/dateHelpers'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
@@ -139,28 +140,22 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/national-permits/${permit.id}/renew-part-a`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          validFrom: formData.validFrom,
-          validTo: formData.validTo,
-          totalFee: parseFloat(formData.totalFee),
-          paid: parseFloat(formData.paid),
-          balance: parseFloat(formData.balance),
-          notes: formData.notes,
-          // Part B data (only if provided)
-          partBNumber: formData.partBNumber || '',
-          partBValidFrom: formData.partBValidFrom || '',
-          partBValidTo: formData.partBValidTo || ''
-        })
+      const response = await axios.post(`${API_BASE_URL}/api/national-permits/${permit.id}/renew-part-a`, {
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        totalFee: parseFloat(formData.totalFee),
+        paid: parseFloat(formData.paid),
+        balance: parseFloat(formData.balance),
+        notes: formData.notes,
+        // Part B data (only if provided)
+        partBNumber: formData.partBNumber || '',
+        partBValidFrom: formData.partBValidFrom || '',
+        partBValidTo: formData.partBValidTo || ''
       })
 
-      const data = await response.json()
+      const data = response.data
 
-      if (!response.ok) {
+      if (!data.success) {
         throw new Error(data.message || 'Failed to renew Part A')
       }
 

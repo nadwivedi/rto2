@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import axios from 'axios'
 import Pagination from '../../components/Pagination'
 import AddVehicleTransferModal from './components/AddVehicleTransferModal'
 import VehicleTransferDetailModal from './components/VehicleTransferDetailModal'
@@ -42,10 +43,8 @@ const VehicleTransfer = () => {
   const fetchTransfers = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
-      const response = await fetch(`${API_URL}/api/vehicle-transfers?page=${page}&limit=${pagination.limit}&search=${searchTerm}`, {
-        credentials: 'include'
-      })
-      const data = await response.json()
+      const response = await axios.get(`${API_URL}/api/vehicle-transfers?page=${page}&limit=${pagination.limit}&search=${searchTerm}`)
+      const data = response.data
 
       if (data.success) {
         setTransfers(data.data)
@@ -67,17 +66,13 @@ const VehicleTransfer = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/vehicle-transfers/statistics`, {
-        credentials: 'include'
-      })
-      const data = await response.json()
+      const response = await axios.get(`${API_URL}/api/vehicle-transfers/statistics`)
+      const data = response.data
 
       if (data.success) {
         // Calculate pending payment amount
-        const transfersResponse = await fetch(`${API_URL}/api/vehicle-transfers`, {
-          credentials: 'include'
-        })
-        const transfersData = await transfersResponse.json()
+        const transfersResponse = await axios.get(`${API_URL}/api/vehicle-transfers`)
+        const transfersData = transfersResponse.data
 
         let pendingAmount = 0
         if (transfersData.success) {
@@ -132,12 +127,8 @@ const VehicleTransfer = () => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/api/vehicle-transfers/${id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      })
-
-      const data = await response.json()
+      const response = await axios.delete(`${API_URL}/api/vehicle-transfers/${id}`)
+      const data = response.data
 
       if (data.success) {
         fetchTransfers()
@@ -166,11 +157,8 @@ const VehicleTransfer = () => {
     if (!confirmPaid) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/vehicle-transfers/${transfer._id}/mark-as-paid`, {
-        method: 'PATCH',
-        credentials: 'include'
-      });
-      const data = await response.json();
+      const response = await axios.patch(`${API_URL}/api/vehicle-transfers/${transfer._id}/mark-as-paid`);
+      const data = response.data;
 
       if (!data.success) throw new Error(data.message || 'Failed to mark payment as paid');
 

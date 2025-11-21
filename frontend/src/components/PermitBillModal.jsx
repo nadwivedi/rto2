@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -93,12 +94,11 @@ const PermitBillModal = ({ permit, onClose, permitType = 'National' }) => {
 
     try {
       // Fetch the PDF file as a blob
-      const response = await fetch(pdfUrl)
-      if (!response.ok) {
-        throw new Error('Failed to fetch PDF')
-      }
+      const response = await axios.get(pdfUrl, {
+        responseType: 'blob'
+      })
 
-      const blob = await response.blob()
+      const blob = response.data
       const billNumber = permit.partA?.billNumber || permit.bill?.billNumber || 'Bill'
       const fileName = `${billNumber}_${permit.permitNumber}.pdf`
 

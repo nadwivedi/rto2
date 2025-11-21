@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
@@ -75,18 +76,12 @@ const ImportModal = ({ isOpen, onClose }) => {
     setLoading(true)
 
     try {
-      const response = await fetch(`${API_URL}/api/import`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          dataType: selectedDataType,
-          data: jsonData
-        })
+      const response = await axios.post(`${API_URL}/api/import`, {
+        dataType: selectedDataType,
+        data: jsonData
       })
 
-      const result = await response.json()
+      const result = response.data
 
       if (result.success) {
         toast.success(`✅ ${result.message}`, {

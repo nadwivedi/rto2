@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import axios from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -41,13 +42,9 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/profile`, {
-        method: 'GET',
-        credentials: 'include'
-      })
-      const data = await response.json()
-      if (data.success && data.data.user) {
-        setUserInfo(data.data.user)
+      const response = await axios.get(`${API_BASE_URL}/api/auth/profile`)
+      if (response.data.success && response.data.data.user) {
+        setUserInfo(response.data.data.user)
       }
     } catch (err) {
       console.error('Error fetching user profile:', err)
@@ -159,30 +156,23 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
     setError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/custom-bills`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          billDate,
-          customerName: customerName.trim(),
-          items: filledItems.map(item => ({
-            description: item.description.trim(),
-            quantity: item.quantity ? parseFloat(item.quantity) : '',
-            rate: item.rate ? parseFloat(item.rate) : '',
-            amount: item.amount ? parseFloat(item.amount) : ''
-          })),
-          totalAmount: calculateTotal()
-        })
+      const response = await axios.post(`${API_BASE_URL}/api/custom-bills`, {
+        billDate,
+        customerName: customerName.trim(),
+        items: filledItems.map(item => ({
+          description: item.description.trim(),
+          quantity: item.quantity ? parseFloat(item.quantity) : '',
+          rate: item.rate ? parseFloat(item.rate) : '',
+          amount: item.amount ? parseFloat(item.amount) : ''
+        })),
+        totalAmount: calculateTotal()
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create dealer bill')
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to create dealer bill')
       }
+
+      const data = response.data
 
       alert('Dealer bill created successfully! Bill number: ' + data.data.billNumber)
 

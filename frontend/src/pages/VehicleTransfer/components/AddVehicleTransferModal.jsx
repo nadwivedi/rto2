@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
@@ -154,16 +155,11 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
       const method = editData ? 'PUT' : 'POST'
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      })
+      const response = editData
+        ? await axios.put(url, formData)
+        : await axios.post(url, formData)
 
-      const data = await response.json()
+      const data = response.data
 
       if (data.success) {
         onSuccess()

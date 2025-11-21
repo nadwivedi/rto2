@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import axios from 'axios'
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -71,13 +72,11 @@ const SharePermitModal = ({ permit, onClose }) => {
         pdfUrl = `${API_BASE_URL}${permit.partA.billPdfPath}`
       } else {
         // Need to generate PDF
-        const response = await fetch(`${API_BASE_URL}/api/national-permits/${permit.id}/generate-bill-pdf`, {
-          method: 'POST'
-        })
+        const response = await axios.post(`${API_BASE_URL}/api/national-permits/${permit.id}/generate-bill-pdf`)
 
-        const data = await response.json()
+        const data = response.data
 
-        if (!response.ok || !data.success) {
+        if (!data.success) {
           throw new Error(data.message || 'Failed to generate PDF')
         }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import axios from 'axios'
 import { getTodayDate as utilGetTodayDate, handleSmartDateInput } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
@@ -83,12 +84,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       setVehicleError('')
 
       try {
-        const response = await fetch(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`, {
-          credentials: 'include'
-        })
-        const data = await response.json()
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
 
-        if (response.ok && data.success) {
+        if (response.data.success) {
           setVehicleError('')
         } else {
           setVehicleError('Vehicle not found in registration database')
