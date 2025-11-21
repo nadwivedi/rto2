@@ -9,14 +9,14 @@ const Navbar = () => {
 
   const menuItems = [
     {
-      name: "Vehicle Registration",
+      name: "Vehicle Reg.",
       icon: "🚗",
       path: "/",
       description: "Register Vehicles",
     },
 
     {
-      name: "National Permit",
+      name: "NP",
       icon: "🛣️",
       path: "/national-permit",
       description: "National Permits",
@@ -68,7 +68,7 @@ const Navbar = () => {
     },
 
     {
-      name: "Driving Licence",
+      name: "DL",
       icon: "🪪",
       path: "/driving",
       description: "DL Applications",
@@ -79,6 +79,18 @@ const Navbar = () => {
       icon: "🔀",
       path: "/vehicle-transfer",
       description: "Transfer Ownership",
+    },
+    {
+      name: "Forms",
+      icon: "📋",
+      path: "/forms",
+      description: "RTO Forms",
+    },
+    {
+      name: "PUC",
+      icon: "💨",
+      path: "/puc",
+      description: "Pollution Certificate",
     },
     {
       name: "setting",

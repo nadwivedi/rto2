@@ -887,7 +887,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
 
                   {/* Document Uploads */}
                   <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase text-indigo-600'>Document Uploads</h4>
+                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-indigo-600'>Document Uploads</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                       {/* Aadhar Upload */}
                       <div className='border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-indigo-500 transition cursor-pointer'>

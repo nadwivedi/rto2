@@ -285,7 +285,6 @@ exports.exportAllPermits = async (req, res) => {
   try {
     // Execute query to get all Part A records without pagination
     const partARecords = await NationalPermitPartA.find({ userId: req.user.id })
-      .populate('bill')
       .sort({ createdAt: -1 })
 
     // For each Part A, get the active Part B
@@ -366,59 +365,10 @@ exports.deletePermit = async (req, res) => {
     const { vehicleNumber, permitNumber } = partA
 
     // Find all Part A records
-    const partARecords = await NationalPermitPartA.find({ vehicleNumber, permitNumber, userId: req.user.id }).populate('bill')
+    const partARecords = await NationalPermitPartA.find({ vehicleNumber, permitNumber, userId: req.user.id })
 
     // Find all Part B records
-    const partBRecords = await NationalPermitPartB.find({ vehicleNumber, permitNumber, userId: req.user.id }).populate('bill')
-
-    // Collect all bill IDs to delete
-    const billIdsToDelete = []
-
-    // Delete Part A bills and PDFs
-    for (const partA of partARecords) {
-      if (partA.bill) {
-        billIdsToDelete.push(partA.bill._id)
-
-        // Delete PDF file if exists
-        if (partA.bill.billPdfPath) {
-          const pdfPath = path.join(__dirname, '..', partA.bill.billPdfPath)
-          if (fs.existsSync(pdfPath)) {
-            try {
-              fs.unlinkSync(pdfPath)
-              console.log('Deleted PDF file:', pdfPath)
-            } catch (err) {
-              console.error('Error deleting PDF file:', err)
-            }
-          }
-        }
-      }
-    }
-
-    // Delete Part B bills and PDFs (only renewals have bills)
-    for (const partB of partBRecords) {
-      if (partB.bill) {
-        billIdsToDelete.push(partB.bill._id)
-
-        // Delete PDF file if exists
-        if (partB.bill.billPdfPath) {
-          const pdfPath = path.join(__dirname, '..', partB.bill.billPdfPath)
-          if (fs.existsSync(pdfPath)) {
-            try {
-              fs.unlinkSync(pdfPath)
-              console.log('Deleted Part B PDF:', pdfPath)
-            } catch (err) {
-              console.error('Error deleting Part B PDF:', err)
-            }
-          }
-        }
-      }
-    }
-
-    // Delete all associated bills
-    if (billIdsToDelete.length > 0) {
-      await CustomBill.deleteMany({ _id: { $in: billIdsToDelete } })
-      console.log(`Deleted ${billIdsToDelete.length} associated bills`)
-    }
+    const partBRecords = await NationalPermitPartB.find({ vehicleNumber, permitNumber, userId: req.user.id })
 
     // Delete all Part A records
     await NationalPermitPartA.deleteMany({ vehicleNumber, permitNumber, userId: req.user.id })
@@ -433,8 +383,7 @@ exports.deletePermit = async (req, res) => {
         permitNumber,
         vehicleNumber,
         partADeleted: partARecords.length,
-        partBDeleted: partBRecords.length,
-        billsDeleted: billIdsToDelete.length
+        partBDeleted: partBRecords.length
       }
     })
   } catch (error) {
@@ -795,7 +744,6 @@ exports.getPartARenewalHistory = async (req, res) => {
       userId: req.user.id
     })
     .sort({ createdAt: -1 })
-    .populate('bill')
 
     res.status(200).json({
       success: true,
@@ -835,7 +783,6 @@ exports.getPartBRenewalHistory = async (req, res) => {
       userId: req.user.id
     })
     .sort({ createdAt: -1 })
-    .populate('bill')
 
     res.status(200).json({
       success: true,

@@ -18,6 +18,9 @@ import Fitness from './pages/Fitness/Fitness'
 import VehicleTransfer from './pages/VehicleTransfer/VehicleTransfer'
 import DealerBill from './pages/DealerBill'
 import Tax from './pages/Tax/Tax'
+import Forms from './pages/Forms'
+import Form20 from './pages/Form20'
+import Puc from './pages/Puc'
 
 function App() {
   return (
@@ -55,6 +58,9 @@ function App() {
                         <Route path='/fitness' element={<Fitness />} />
                         <Route path='/tax' element={<Tax />} />
                         <Route path='/vehicle-transfer' element={<VehicleTransfer />} />
+                        <Route path='/forms' element={<Forms />} />
+                        <Route path='/forms/form-20' element={<Form20 />} />
+                        <Route path='/puc' element={<Puc />} />
                         <Route path='/dealer-bill' element={<DealerBill />} />
                       </Routes>
                     </main>
