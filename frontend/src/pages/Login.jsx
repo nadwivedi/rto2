@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import api from '../utils/api'
+import axios from 'axios'
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
 const Login = () => {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { setUser, setIsAuthenticated } = useAuth()
   const [formData, setFormData] = useState({
     identifier: '',
     password: ''
@@ -33,14 +35,18 @@ const Login = () => {
     setLoading(true)
 
     try {
-      const response = await api.post('/api/auth/login', {
+      const response = await axios.post(`${BACKEND_URL}/api/auth/login`, {
         identifier: formData.identifier,
         password: formData.password
       })
 
       if (response.data.success) {
+        // Store token in localStorage
+        localStorage.setItem('token', response.data.token)
+
         // Update auth context
-        login(response.data.data.user)
+        setUser(response.data.data.user)
+        setIsAuthenticated(true)
 
         // Redirect to home/dashboard
         navigate('/')

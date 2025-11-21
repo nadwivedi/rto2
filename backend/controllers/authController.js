@@ -100,17 +100,10 @@ exports.login = async (req, res) => {
       { expiresIn: '30d' }
     )
 
-    // Set HTTP-only cookie
-    res.cookie('authToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for PWA compatibility on older devices
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    })
-
     res.json({
       success: true,
       message: 'Login successful',
+      token,
       data: {
         user: {
           id: user._id,
@@ -177,13 +170,6 @@ exports.getProfile = async (req, res) => {
 
 // Logout user
 exports.logout = async (req, res) => {
-  // Clear the authentication cookie
-  res.clearCookie('authToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-  })
-
   res.json({
     success: true,
     message: 'Logged out successfully'

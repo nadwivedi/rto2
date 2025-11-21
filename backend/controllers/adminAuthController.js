@@ -60,17 +60,10 @@ exports.login = async (req, res) => {
       { expiresIn: '30d' }
     )
 
-    // Set HTTP-only cookie
-    res.cookie('adminAuthToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-    })
-
     res.json({
       success: true,
       message: 'Login successful',
+      token,
       data: {
         admin: {
           id: admin._id,
@@ -135,23 +128,8 @@ exports.getProfile = async (req, res) => {
 
 // Admin logout
 exports.logout = async (req, res) => {
-  try {
-    // Clear the HTTP-only cookie
-    res.clearCookie('adminAuthToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
-    })
-
-    res.json({
-      success: true,
-      message: 'Logged out successfully'
-    })
-  } catch (error) {
-    console.error('Admin logout error:', error)
-    res.status(500).json({
-      success: false,
-      message: 'An error occurred during logout'
-    })
-  }
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
+  })
 }
