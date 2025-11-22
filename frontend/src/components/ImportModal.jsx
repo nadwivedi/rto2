@@ -79,6 +79,8 @@ const ImportModal = ({ isOpen, onClose }) => {
       const response = await axios.post(`${API_URL}/api/import`, {
         dataType: selectedDataType,
         data: jsonData
+      }, {
+        withCredentials: true
       })
 
       const result = response.data

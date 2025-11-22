@@ -43,7 +43,9 @@ const VehicleTransfer = () => {
   const fetchTransfers = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
-      const response = await axios.get(`${API_URL}/api/vehicle-transfers?page=${page}&limit=${pagination.limit}&search=${searchTerm}`)
+      const response = await axios.get(`${API_URL}/api/vehicle-transfers?page=${page}&limit=${pagination.limit}&search=${searchTerm}`, {
+        withCredentials: true
+      })
       const data = response.data
 
       if (data.success) {
@@ -66,12 +68,16 @@ const VehicleTransfer = () => {
 
   const fetchStatistics = async () => {
     try {
-      const response = await axios.get(`${API_URL}/api/vehicle-transfers/statistics`)
+      const response = await axios.get(`${API_URL}/api/vehicle-transfers/statistics`, {
+        withCredentials: true
+      })
       const data = response.data
 
       if (data.success) {
         // Calculate pending payment amount
-        const transfersResponse = await axios.get(`${API_URL}/api/vehicle-transfers`)
+        const transfersResponse = await axios.get(`${API_URL}/api/vehicle-transfers`, {
+          withCredentials: true
+        })
         const transfersData = transfersResponse.data
 
         let pendingAmount = 0
@@ -127,7 +133,9 @@ const VehicleTransfer = () => {
     }
 
     try {
-      const response = await axios.delete(`${API_URL}/api/vehicle-transfers/${id}`)
+      const response = await axios.delete(`${API_URL}/api/vehicle-transfers/${id}`, {
+        withCredentials: true
+      })
       const data = response.data
 
       if (data.success) {
@@ -157,7 +165,9 @@ const VehicleTransfer = () => {
     if (!confirmPaid) return;
 
     try {
-      const response = await axios.patch(`${API_URL}/api/vehicle-transfers/${transfer._id}/mark-as-paid`);
+      const response = await axios.patch(`${API_URL}/api/vehicle-transfers/${transfer._id}/mark-as-paid`, {}, {
+        withCredentials: true
+      });
       const data = response.data;
 
       if (!data.success) throw new Error(data.message || 'Failed to mark payment as paid');

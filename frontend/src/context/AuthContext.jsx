@@ -6,19 +6,11 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
-  // Initialize from localStorage immediately
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user')
-    return savedUser ? JSON.parse(savedUser) : null
-  })
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return !!localStorage.getItem('token')
-  })
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   const clearAuthState = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
     setUser(null)
     setIsAuthenticated(false)
   }
@@ -36,23 +28,15 @@ export const AuthProvider = ({ children }) => {
         return
       }
 
-      const token = localStorage.getItem('token')
-      if (!token) {
-        clearAuthState()
-        setLoading(false)
-        return
-      }
-
       // Verify token by fetching user profile
       const response = await axios.get(`${BACKEND_URL}/api/auth/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
+        withCredentials: true
       })
 
       if (response.data.success) {
         const userData = response.data.data.user
         setUser(userData)
         setIsAuthenticated(true)
-        localStorage.setItem('user', JSON.stringify(userData))
       } else {
         clearAuthState()
       }
@@ -61,13 +45,6 @@ export const AuthProvider = ({ children }) => {
       // Only clear auth if token is invalid (401), not on network errors
       if (error.response?.status === 401) {
         clearAuthState()
-      } else if (localStorage.getItem('token')) {
-        // Token exists but API failed (network issue) - restore from localStorage
-        const savedUser = localStorage.getItem('user')
-        if (savedUser) {
-          setUser(JSON.parse(savedUser))
-        }
-        setIsAuthenticated(true)
       }
     } finally {
       setLoading(false)

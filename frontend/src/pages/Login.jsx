@@ -38,13 +38,11 @@ const Login = () => {
       const response = await axios.post(`${BACKEND_URL}/api/auth/login`, {
         identifier: formData.identifier,
         password: formData.password
+      }, {
+        withCredentials: true
       })
 
       if (response.data.success) {
-        // Store token and user in localStorage
-        localStorage.setItem('token', response.data.token)
-        localStorage.setItem('user', JSON.stringify(response.data.data.user))
-
         // Update auth context
         setUser(response.data.data.user)
         setIsAuthenticated(true)

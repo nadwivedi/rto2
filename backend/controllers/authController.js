@@ -100,10 +100,17 @@ exports.login = async (req, res) => {
       { expiresIn: '30d' }
     )
 
+    // Set token in HTTP-only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    })
+
     res.json({
       success: true,
       message: 'Login successful',
-      token,
       data: {
         user: {
           id: user._id,
@@ -170,6 +177,13 @@ exports.getProfile = async (req, res) => {
 
 // Logout user
 exports.logout = async (req, res) => {
+  // Clear the token cookie
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+  })
+
   res.json({
     success: true,
     message: 'Logged out successfully'

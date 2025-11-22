@@ -95,7 +95,8 @@ const PermitBillModal = ({ permit, onClose, permitType = 'National' }) => {
     try {
       // Fetch the PDF file as a blob
       const response = await axios.get(pdfUrl, {
-        responseType: 'blob'
+        responseType: 'blob',
+        withCredentials: true
       })
 
       const blob = response.data

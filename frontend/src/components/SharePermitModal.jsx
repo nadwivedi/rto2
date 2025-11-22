@@ -72,7 +72,9 @@ const SharePermitModal = ({ permit, onClose }) => {
         pdfUrl = `${API_BASE_URL}${permit.partA.billPdfPath}`
       } else {
         // Need to generate PDF
-        const response = await axios.post(`${API_BASE_URL}/api/national-permits/${permit.id}/generate-bill-pdf`)
+        const response = await axios.post(`${API_BASE_URL}/api/national-permits/${permit.id}/generate-bill-pdf`, {}, {
+          withCredentials: true
+        })
 
         const data = response.data
 

@@ -24,7 +24,9 @@ const EditDealerBillModal = ({ isOpen, onClose, onSuccess, billData }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/auth/profile`)
+      const response = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
+        withCredentials: true
+      })
       if (response.data.success && response.data.data.user) {
         setUserInfo(response.data.data.user)
       }
@@ -144,6 +146,8 @@ const EditDealerBillModal = ({ isOpen, onClose, onSuccess, billData }) => {
           amount: item.amount ? parseFloat(item.amount) : ''
         })),
         totalAmount: calculateTotal()
+      }, {
+        withCredentials: true
       })
 
       const data = response.data
