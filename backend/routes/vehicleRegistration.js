@@ -20,6 +20,9 @@ router.get('/:id', vehicleRegistrationController.getRegistrationById)
 // GET vehicle registration by registration number
 router.get('/number/:registrationNumber', vehicleRegistrationController.getRegistrationByNumber)
 
+// GET vehicle registrations by flexible search (last 4 digits, series, or full number)
+router.get('/search/:searchInput', vehicleRegistrationController.searchRegistrationByNumber)
+
 // POST create new vehicle registration
 router.post('/', vehicleRegistrationController.createRegistration)
 

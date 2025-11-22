@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
@@ -113,18 +113,18 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Handle vehicle number with format enforcement and validation
+    // Handle vehicle number with validation only (no enforcement)
     if (name === 'vehicleNumber') {
-      // Enforce format: only allow correct characters at each position
-      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+      // Convert to uppercase
+      const upperValue = value.toUpperCase()
 
-      // Validate in real-time
-      const validation = validateVehicleNumberRealtime(enforcedValue)
+      // Validate in real-time (only show validation if 10 characters)
+      const validation = upperValue.length === 10 ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
       setVehicleValidation(validation)
 
       setFormData(prev => ({
         ...prev,
-        [name]: enforcedValue
+        [name]: upperValue
       }))
       return
     }
@@ -214,9 +214,15 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Validate vehicle number before submitting
-    if (!vehicleValidation.isValid && formData.vehicleNumber) {
+    // Validate vehicle number before submitting (must be exactly 10 characters and valid format)
+    if (formData.vehicleNumber.length === 10 && !vehicleValidation.isValid) {
       alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
+    // Ensure vehicle number is exactly 10 characters for submission
+    if (formData.vehicleNumber && formData.vehicleNumber.length !== 10) {
+      alert('Vehicle number must be exactly 10 characters')
       return
     }
 

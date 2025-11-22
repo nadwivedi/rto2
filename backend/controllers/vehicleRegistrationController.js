@@ -149,6 +149,59 @@ exports.getRegistrationByNumber = async (req, res) => {
   }
 }
 
+// Search vehicle registrations by flexible input (last 4 digits, series+digits, or full number)
+exports.searchRegistrationByNumber = async (req, res) => {
+  try {
+    const searchInput = req.params.searchInput.toUpperCase()
+    let registrations = []
+
+    // Pattern 1: If input is exactly 10 characters (full vehicle number like CG12AA4793)
+    if (searchInput.length === 10) {
+      const exactMatch = await VehicleRegistration.findOne({
+        registrationNumber: searchInput,
+        userId: req.user.id
+      })
+      if (exactMatch) {
+        registrations = [exactMatch]
+      }
+    }
+
+    // Pattern 2 & 3: If input is 4-6 characters (could be last 4 digits like "4793" or series like "AA4793")
+    if (registrations.length === 0 && searchInput.length >= 4) {
+      // Search for vehicle numbers that end with the input
+      // This handles both "4793" and "AA4793" cases
+      registrations = await VehicleRegistration.find({
+        registrationNumber: { $regex: searchInput + '$', $options: 'i' },
+        userId: req.user.id
+      }).sort({ createdAt: -1 })
+    }
+
+    if (registrations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No vehicles found matching the search criteria'
+      })
+    }
+
+    res.json({
+      success: true,
+      count: registrations.length,
+      data: registrations.length === 1 ? registrations[0] : registrations,
+      multiple: registrations.length > 1
+    })
+  } catch (error) {
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
 // Create new vehicle registration
 exports.createRegistration = async (req, res) => {
   try {
