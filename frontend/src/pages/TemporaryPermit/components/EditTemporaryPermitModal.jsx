@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
-import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
@@ -42,6 +42,10 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
   const [vehicleError, setVehicleError] = useState('')
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
+  const [vehicleMatches, setVehicleMatches] = useState([])
+  const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
+  const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
+  const dropdownItemRefs = useRef([])
 
   // Pre-fill form when permitData is provided (for editing)
   useEffect(() => {
@@ -98,17 +102,23 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
       setVehicleError('')
       setFetchingVehicle(false)
       setVehicleValidation({ isValid: false, message: '' })
+      setVehicleMatches([])
+      setShowVehicleDropdown(false)
+      setSelectedDropdownIndex(0)
     }
   }, [permitData, isOpen])
 
   // Fetch vehicle details when registration number is entered
   useEffect(() => {
     const fetchVehicleDetails = async () => {
-      const registrationNum = formData.vehicleNumber.trim()
+      const searchInput = formData.vehicleNumber.trim()
 
-      // Only fetch if registration number has at least 10 characters (complete registration number like CG12AA4793)
-      if (registrationNum.length < 10) {
+      // Only fetch if search input has at least 4 characters
+      if (searchInput.length < 4) {
         setVehicleError('')
+        setVehicleMatches([])
+        setShowVehicleDropdown(false)
+        setSelectedDropdownIndex(0)
         return
       }
 
@@ -116,28 +126,49 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
       setVehicleError('')
 
       try {
-        const response = await axios.get(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`)
 
         if (response.data.success) {
-          // Auto-fill the permit holder name with the owner name from vehicle registration
-          setFormData(prev => ({
-            ...prev,
-            permitHolderName: response.data.data.ownerName || prev.permitHolderName,
-            address: response.data.data.address || prev.address,
-            chassisNumber: response.data.data.chassisNumber || prev.chassisNumber,
-            engineNumber: response.data.data.engineNumber || prev.engineNumber,
-            ladenWeight: response.data.data.ladenWeight || prev.ladenWeight,
-            unladenWeight: response.data.data.unladenWeight || prev.unladenWeight,
-            mobileNumber: response.data.data.mobileNumber || prev.mobileNumber,
-            email: response.data.data.email || prev.email
-          }))
-          setVehicleError('')
-        } else {
-          setVehicleError('Vehicle not found in registration database')
+          // Check if multiple vehicles found
+          if (response.data.multiple) {
+            // Show dropdown with multiple matches
+            setVehicleMatches(response.data.data)
+            setShowVehicleDropdown(true)
+            setSelectedDropdownIndex(0) // Reset to first item
+            setVehicleError('')
+          } else {
+            // Single match found - auto-fill including full vehicle number
+            const vehicleData = response.data.data
+            setFormData(prev => ({
+              ...prev,
+              vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
+              permitHolderName: vehicleData.ownerName || prev.permitHolderName,
+              address: vehicleData.address || prev.address,
+              chassisNumber: vehicleData.chassisNumber || prev.chassisNumber,
+              engineNumber: vehicleData.engineNumber || prev.engineNumber,
+              ladenWeight: vehicleData.ladenWeight || prev.ladenWeight,
+              unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
+              email: vehicleData.email || prev.email
+            }))
+            // Validate the full vehicle number
+            const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
+            setVehicleValidation(validation)
+            setVehicleError('')
+            setVehicleMatches([])
+            setShowVehicleDropdown(false)
+          }
         }
       } catch (error) {
         console.error('Error fetching vehicle details:', error)
-        setVehicleError('Error fetching vehicle details')
+        if (error.response && error.response.status === 404) {
+          setVehicleError('No vehicles found matching the search')
+        } else {
+          setVehicleError('Error fetching vehicle details')
+        }
+        setVehicleMatches([])
+        setShowVehicleDropdown(false)
+        setSelectedDropdownIndex(0)
       } finally {
         setFetchingVehicle(false)
       }
@@ -239,16 +270,58 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
     }
   }, [formData.validFrom, formData.vehicleType, formData.validTo])
 
-  // Keyboard shortcuts
+  // Auto-scroll to selected dropdown item
+  useEffect(() => {
+    if (showVehicleDropdown && dropdownItemRefs.current[selectedDropdownIndex]) {
+      dropdownItemRefs.current[selectedDropdownIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      })
+    }
+  }, [selectedDropdownIndex, showVehicleDropdown])
+
+  // Keyboard shortcuts and dropdown navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ctrl+Enter to submit
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      // Handle dropdown navigation
+      if (showVehicleDropdown && vehicleMatches.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault()
+          setSelectedDropdownIndex(prev =>
+            prev < vehicleMatches.length - 1 ? prev + 1 : 0
+          )
+          return
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault()
+          setSelectedDropdownIndex(prev =>
+            prev > 0 ? prev - 1 : vehicleMatches.length - 1
+          )
+          return
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          if (vehicleMatches[selectedDropdownIndex]) {
+            handleVehicleSelect(vehicleMatches[selectedDropdownIndex])
+          }
+          return
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          setShowVehicleDropdown(false)
+          setVehicleMatches([])
+          setSelectedDropdownIndex(0)
+          return
+        }
+      }
+
+      // Ctrl+Enter to submit (only when dropdown is not showing)
+      if (!showVehicleDropdown && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault()
         document.querySelector('form')?.requestSubmit()
       }
-      // Escape to close
-      if (e.key === 'Escape') {
+      // Escape to close modal (only when dropdown is not showing)
+      if (!showVehicleDropdown && e.key === 'Escape') {
         onClose()
       }
     }
@@ -257,23 +330,47 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
       document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, showVehicleDropdown, vehicleMatches, selectedDropdownIndex])
+
+  // Handle vehicle selection from dropdown
+  const handleVehicleSelect = (vehicle) => {
+    setFormData(prev => ({
+      ...prev,
+      vehicleNumber: vehicle.registrationNumber,
+      permitHolderName: vehicle.ownerName || prev.permitHolderName,
+      address: vehicle.address || prev.address,
+      chassisNumber: vehicle.chassisNumber || prev.chassisNumber,
+      engineNumber: vehicle.engineNumber || prev.engineNumber,
+      ladenWeight: vehicle.ladenWeight || prev.ladenWeight,
+      unladenWeight: vehicle.unladenWeight || prev.unladenWeight,
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
+      email: vehicle.email || prev.email
+    }))
+    setShowVehicleDropdown(false)
+    setVehicleMatches([])
+    setVehicleError('')
+    setSelectedDropdownIndex(0)
+
+    // Validate the selected vehicle number
+    const validation = validateVehicleNumberRealtime(vehicle.registrationNumber)
+    setVehicleValidation(validation)
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Handle vehicle number with format enforcement and validation
+    // Handle vehicle number with validation only (no enforcement)
     if (name === 'vehicleNumber') {
-      // Enforce format: only allow correct characters at each position
-      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+      // Convert to uppercase
+      const upperValue = value.toUpperCase()
 
-      // Validate in real-time
-      const validation = validateVehicleNumberRealtime(enforcedValue)
+      // Validate in real-time (only show validation if 10 characters)
+      const validation = upperValue.length === 10 ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
       setVehicleValidation(validation)
 
       setFormData(prev => ({
         ...prev,
-        [name]: enforcedValue
+        [name]: upperValue
       }))
       return
     }
@@ -327,12 +424,15 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Check if vehicle number has changed from original
-    const vehicleNumberChanged = permitData && formData.vehicleNumber !== permitData.vehicleNo
-
-    // Only validate vehicle number if it was changed
-    if (vehicleNumberChanged && !vehicleValidation.isValid && formData.vehicleNumber) {
+    // Validate vehicle number before submitting (must be exactly 10 characters and valid format)
+    if (formData.vehicleNumber.length === 10 && !vehicleValidation.isValid) {
       alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      return
+    }
+
+    // Ensure vehicle number is exactly 10 characters for submission
+    if (formData.vehicleNumber && formData.vehicleNumber.length !== 10) {
+      alert('Vehicle number must be exactly 10 characters')
       return
     }
 
@@ -393,7 +493,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='CG04AA1234'
+                      placeholder='CG04AA1234 or AA4793 or 4793'
                       maxLength='10'
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNumber && !vehicleValidation.isValid
@@ -413,15 +513,64 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
                         </svg>
                       </div>
                     )}
-                    {!fetchingVehicle && vehicleValidation.isValid && formData.vehicleNumber && (
+                    {!fetchingVehicle && vehicleValidation.isValid && formData.vehicleNumber && !showVehicleDropdown && (
                       <div className='absolute right-3 top-2.5'>
                         <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                         </svg>
                       </div>
                     )}
+
+                    {/* Dropdown for multiple vehicle matches */}
+                    {showVehicleDropdown && vehicleMatches.length > 0 && (
+                      <div className='absolute z-50 w-full mt-1 bg-white border border-orange-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                        <div className='p-2 bg-orange-50 border-b border-orange-200'>
+                          <p className='text-xs font-semibold text-orange-700'>
+                            {vehicleMatches.length} vehicles found - Use ↑↓ arrows to navigate, Enter to select
+                          </p>
+                        </div>
+                        {vehicleMatches.map((vehicle, index) => (
+                          <div
+                            key={vehicle._id || index}
+                            ref={(el) => (dropdownItemRefs.current[index] = el)}
+                            onClick={() => handleVehicleSelect(vehicle)}
+                            className={`p-3 cursor-pointer border-b border-gray-100 last:border-b-0 transition ${
+                              index === selectedDropdownIndex
+                                ? 'bg-orange-100 border-l-4 border-l-orange-600'
+                                : 'hover:bg-orange-50'
+                            }`}
+                          >
+                            <div className='flex justify-between items-start'>
+                              <div>
+                                <p className={`font-mono font-bold text-sm ${
+                                  index === selectedDropdownIndex ? 'text-orange-800' : 'text-orange-700'
+                                }`}>
+                                  {vehicle.registrationNumber}
+                                </p>
+                                <p className='text-xs text-gray-700 mt-1'>
+                                  {vehicle.ownerName || 'N/A'}
+                                </p>
+                                {vehicle.chassisNumber && (
+                                  <p className='text-xs text-gray-500 mt-0.5'>
+                                    Chassis: {vehicle.chassisNumber}
+                                  </p>
+                                )}
+                              </div>
+                              <svg className={`w-5 h-5 ${
+                                index === selectedDropdownIndex ? 'text-orange-600' : 'text-orange-400'
+                              }`} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                              </svg>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {vehicleValidation.message && !fetchingVehicle && (
+                  <p className='text-xs text-gray-500 mt-1'>
+                    Search by: Full number (CG04AA1234), Series (AA4793), or Last 4 digits (4793)
+                  </p>
+                  {vehicleValidation.message && !fetchingVehicle && !showVehicleDropdown && (
                     <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
                       {vehicleValidation.message}
                     </p>
@@ -429,7 +578,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
                   {vehicleError && (
                     <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
                   )}
-                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.permitHolderName && vehicleValidation.isValid && (
+                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.permitHolderName && vehicleValidation.isValid && !showVehicleDropdown && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner details auto-filled</p>
                   )}
                   

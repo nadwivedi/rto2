@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
@@ -40,6 +40,8 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
   const [vehicleMatches, setVehicleMatches] = useState([])
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
+  const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
+  const dropdownItemRefs = useRef([])
 
   // Pre-fill form when initialData is provided (for renewal)
   useEffect(() => {
@@ -77,6 +79,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
       setFetchingVehicle(false)
       setVehicleMatches([])
       setShowVehicleDropdown(false)
+      setSelectedDropdownIndex(0)
     }
   }, [initialData, isOpen])
 
@@ -90,6 +93,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
         setVehicleError('')
         setVehicleMatches([])
         setShowVehicleDropdown(false)
+        setSelectedDropdownIndex(0)
         return
       }
 
@@ -105,6 +109,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
             // Show dropdown with multiple matches
             setVehicleMatches(response.data.data)
             setShowVehicleDropdown(true)
+            setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
             // Single match found - auto-fill including full vehicle number
@@ -138,6 +143,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
         }
         setVehicleMatches([])
         setShowVehicleDropdown(false)
+        setSelectedDropdownIndex(0)
       } finally {
         setFetchingVehicle(false)
       }
@@ -189,16 +195,58 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
     }
   }, [formData.validFrom])
 
-  // Keyboard shortcuts
+  // Auto-scroll to selected dropdown item
+  useEffect(() => {
+    if (showVehicleDropdown && dropdownItemRefs.current[selectedDropdownIndex]) {
+      dropdownItemRefs.current[selectedDropdownIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      })
+    }
+  }, [selectedDropdownIndex, showVehicleDropdown])
+
+  // Keyboard shortcuts and dropdown navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ctrl+Enter to submit
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      // Handle dropdown navigation
+      if (showVehicleDropdown && vehicleMatches.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault()
+          setSelectedDropdownIndex(prev =>
+            prev < vehicleMatches.length - 1 ? prev + 1 : 0
+          )
+          return
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault()
+          setSelectedDropdownIndex(prev =>
+            prev > 0 ? prev - 1 : vehicleMatches.length - 1
+          )
+          return
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          if (vehicleMatches[selectedDropdownIndex]) {
+            handleVehicleSelect(vehicleMatches[selectedDropdownIndex])
+          }
+          return
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          setShowVehicleDropdown(false)
+          setVehicleMatches([])
+          setSelectedDropdownIndex(0)
+          return
+        }
+      }
+
+      // Ctrl+Enter to submit (only when dropdown is not showing)
+      if (!showVehicleDropdown && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault()
         document.querySelector('form')?.requestSubmit()
       }
-      // Escape to close
-      if (e.key === 'Escape') {
+      // Escape to close modal (only when dropdown is not showing)
+      if (!showVehicleDropdown && e.key === 'Escape') {
         onClose()
       }
     }
@@ -207,7 +255,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
       document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, showVehicleDropdown, vehicleMatches, selectedDropdownIndex])
 
   // Handle vehicle selection from dropdown
   const handleVehicleSelect = (vehicle) => {
@@ -226,6 +274,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
     setShowVehicleDropdown(false)
     setVehicleMatches([])
     setVehicleError('')
+    setSelectedDropdownIndex(0)
 
     // Validate the selected vehicle number
     const validation = validateVehicleNumberRealtime(vehicle.registrationNumber)
@@ -382,6 +431,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
     setVehicleValidation({ isValid: false, message: '' })
     setVehicleMatches([])
     setShowVehicleDropdown(false)
+    setSelectedDropdownIndex(0)
     onClose()
   }
 
@@ -462,18 +512,25 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                       <div className='absolute z-50 w-full mt-1 bg-white border border-indigo-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
                         <div className='p-2 bg-indigo-50 border-b border-indigo-200'>
                           <p className='text-xs font-semibold text-indigo-700'>
-                            {vehicleMatches.length} vehicles found - Select one:
+                            {vehicleMatches.length} vehicles found - Use ↑↓ arrows to navigate, Enter to select
                           </p>
                         </div>
                         {vehicleMatches.map((vehicle, index) => (
                           <div
                             key={vehicle._id || index}
+                            ref={(el) => (dropdownItemRefs.current[index] = el)}
                             onClick={() => handleVehicleSelect(vehicle)}
-                            className='p-3 hover:bg-indigo-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition'
+                            className={`p-3 cursor-pointer border-b border-gray-100 last:border-b-0 transition ${
+                              index === selectedDropdownIndex
+                                ? 'bg-indigo-100 border-l-4 border-l-indigo-600'
+                                : 'hover:bg-indigo-50'
+                            }`}
                           >
                             <div className='flex justify-between items-start'>
                               <div>
-                                <p className='font-mono font-bold text-indigo-700 text-sm'>
+                                <p className={`font-mono font-bold text-sm ${
+                                  index === selectedDropdownIndex ? 'text-indigo-800' : 'text-indigo-700'
+                                }`}>
                                   {vehicle.registrationNumber}
                                 </p>
                                 <p className='text-xs text-gray-700 mt-1'>
@@ -485,7 +542,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                                   </p>
                                 )}
                               </div>
-                              <svg className='w-5 h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <svg className={`w-5 h-5 ${
+                                index === selectedDropdownIndex ? 'text-indigo-600' : 'text-indigo-400'
+                              }`} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
                               </svg>
                             </div>
