@@ -1,11 +1,15 @@
-import { useState, useEffect } from 'react'
-import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
+import { useState, useEffect, useRef } from 'react'
+import axios from 'axios'
+import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
+    mobileNumber: '',
     validFrom: '',
     validTo: '',
     totalFee: '',
@@ -14,12 +18,19 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
   })
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
+  const [fetchingVehicle, setFetchingVehicle] = useState(false)
+  const [vehicleError, setVehicleError] = useState('')
+  const [vehicleMatches, setVehicleMatches] = useState([])
+  const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
+  const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
+  const dropdownItemRefs = useRef([])
 
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setFormData({
         vehicleNumber: '',
+        mobileNumber: '',
         validFrom: '',
         validTo: '',
         totalFee: '',
@@ -28,6 +39,11 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
       })
       setPaidExceedsTotal(false)
       setVehicleValidation({ isValid: false, message: '' })
+      setFetchingVehicle(false)
+      setVehicleError('')
+      setVehicleMatches([])
+      setShowVehicleDropdown(false)
+      setSelectedDropdownIndex(0)
     }
   }, [isOpen])
 
@@ -67,9 +83,124 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     }
   }, [formData.validFrom])
 
+  // Fetch vehicle details when registration number is entered
+  useEffect(() => {
+    const fetchVehicleDetails = async () => {
+      const searchInput = formData.vehicleNumber.trim()
+
+      // Only fetch if search input has at least 4 characters
+      if (searchInput.length < 4) {
+        setVehicleError('')
+        setVehicleMatches([])
+        setShowVehicleDropdown(false)
+        setSelectedDropdownIndex(0)
+        return
+      }
+
+      setFetchingVehicle(true)
+      setVehicleError('')
+
+      try {
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`, { withCredentials: true })
+
+        if (response.data.success) {
+          // Check if multiple vehicles found
+          if (response.data.multiple) {
+            // Show dropdown with multiple matches
+            setVehicleMatches(response.data.data)
+            setShowVehicleDropdown(true)
+            setSelectedDropdownIndex(0) // Reset to first item
+            setVehicleError('')
+          } else {
+            // Single match found - auto-fill including full vehicle number and mobile number
+            const vehicleData = response.data.data
+            setFormData(prev => ({
+              ...prev,
+              vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
+            }))
+            // Validate the full vehicle number
+            const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
+            setVehicleValidation(validation)
+            setVehicleError('')
+            setVehicleMatches([])
+            setShowVehicleDropdown(false)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching vehicle details:', error)
+        if (error.response && error.response.status === 404) {
+          setVehicleError('No vehicles found matching the search')
+        } else {
+          setVehicleError('Error fetching vehicle details')
+        }
+        setVehicleMatches([])
+        setShowVehicleDropdown(false)
+        setSelectedDropdownIndex(0)
+      } finally {
+        setFetchingVehicle(false)
+      }
+    }
+
+    // Debounce the API call - wait 500ms after user stops typing
+    const timeoutId = setTimeout(() => {
+      if (formData.vehicleNumber) {
+        fetchVehicleDetails()
+      }
+    }, 500) // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.vehicleNumber])
+
+  // Auto-scroll to selected dropdown item
+  useEffect(() => {
+    if (showVehicleDropdown && dropdownItemRefs.current[selectedDropdownIndex]) {
+      dropdownItemRefs.current[selectedDropdownIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      })
+    }
+  }, [selectedDropdownIndex, showVehicleDropdown])
+
+  // Handle vehicle selection from dropdown
+  const handleVehicleSelect = (vehicle) => {
+    setFormData(prev => ({
+      ...prev,
+      vehicleNumber: vehicle.registrationNumber,
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber
+    }))
+    setShowVehicleDropdown(false)
+    setVehicleMatches([])
+    setVehicleError('')
+    setSelectedDropdownIndex(0)
+
+    // Validate the selected vehicle number
+    const validation = validateVehicleNumberRealtime(vehicle.registrationNumber)
+    setVehicleValidation(validation)
+  }
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Handle dropdown navigation
+      if (showVehicleDropdown && vehicleMatches.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault()
+          setSelectedDropdownIndex(prev => (prev + 1) % vehicleMatches.length)
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault()
+          setSelectedDropdownIndex(prev => (prev - 1 + vehicleMatches.length) % vehicleMatches.length)
+        } else if (e.key === 'Enter') {
+          e.preventDefault()
+          handleVehicleSelect(vehicleMatches[selectedDropdownIndex])
+        } else if (e.key === 'Escape') {
+          e.preventDefault()
+          setShowVehicleDropdown(false)
+          setVehicleMatches([])
+        }
+        return
+      }
+
       // Ctrl+Enter to submit
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault()
@@ -85,23 +216,23 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
       document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, showVehicleDropdown, vehicleMatches, selectedDropdownIndex])
 
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    // Handle vehicle number with format enforcement and validation
+    // Handle vehicle number with validation only (no enforcement)
     if (name === 'vehicleNumber') {
-      // Enforce format: only allow correct characters at each position
-      const enforcedValue = enforceVehicleNumberFormat(formData.vehicleNumber, value)
+      // Convert to uppercase
+      const upperValue = value.toUpperCase()
 
-      // Validate in real-time
-      const validation = validateVehicleNumberRealtime(enforcedValue)
+      // Validate in real-time (only show validation if 9 or 10 characters)
+      const validation = (upperValue.length === 9 || upperValue.length === 10) ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
       setVehicleValidation(validation)
 
       setFormData(prev => ({
         ...prev,
-        [name]: enforcedValue
+        [name]: upperValue
       }))
       return
     }
@@ -214,9 +345,15 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Validate vehicle number before submitting
-    if (!vehicleValidation.isValid && formData.vehicleNumber) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+    // Validate vehicle number before submitting (must be 9 or 10 characters and valid format)
+    if ((formData.vehicleNumber.length === 9 || formData.vehicleNumber.length === 10) && !vehicleValidation.isValid) {
+      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
+      return
+    }
+
+    // Ensure vehicle number is 9 or 10 characters for submission
+    if (formData.vehicleNumber && formData.vehicleNumber.length !== 9 && formData.vehicleNumber.length !== 10) {
+      alert('Vehicle number must be 9 or 10 characters')
       return
     }
 
@@ -280,7 +417,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                 Vehicle Details
               </h3>
 
-              <div className='grid grid-cols-1 gap-3 md:gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                 {/* Vehicle Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -292,7 +429,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='CG04AA1234'
+                      placeholder='CG04AA1234 or 4793'
                       maxLength='10'
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNumber && !vehicleValidation.isValid
@@ -304,20 +441,82 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                       required
                       autoFocus
                     />
-                    {vehicleValidation.isValid && formData.vehicleNumber && (
+                    {fetchingVehicle && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='animate-spin h-5 w-5 text-emerald-500' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                        </svg>
+                      </div>
+                    )}
+                    {!fetchingVehicle && vehicleValidation.isValid && formData.vehicleNumber && !showVehicleDropdown && (
                       <div className='absolute right-3 top-2.5'>
                         <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
                         </svg>
                       </div>
                     )}
+
+                    {/* Dropdown for multiple vehicle matches */}
+                    {showVehicleDropdown && vehicleMatches.length > 0 && (
+                      <div className='absolute z-50 w-full mt-1 bg-white border border-emerald-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                        {vehicleMatches.map((vehicle, index) => (
+                          <div
+                            key={vehicle._id}
+                            ref={(el) => (dropdownItemRefs.current[index] = el)}
+                            onClick={() => handleVehicleSelect(vehicle)}
+                            className={`px-4 py-3 cursor-pointer transition-colors ${
+                              index === selectedDropdownIndex
+                                ? 'bg-emerald-100 border-l-4 border-emerald-500'
+                                : 'hover:bg-emerald-50 border-l-4 border-transparent'
+                            }`}
+                          >
+                            <div className='flex items-center justify-between'>
+                              <div>
+                                <p className='font-mono font-bold text-gray-900'>{vehicle.registrationNumber}</p>
+                                <p className='text-sm text-gray-600'>{vehicle.ownerName}</p>
+                              </div>
+                              {index === selectedDropdownIndex && (
+                                <svg className='w-5 h-5 text-emerald-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  {vehicleValidation.message && (
+                  {vehicleValidation.message && !fetchingVehicle && (
                     <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
                       {vehicleValidation.message}
                     </p>
                   )}
+                  {vehicleError && (
+                    <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
+                  )}
+                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && vehicleValidation.isValid && !showVehicleDropdown && (
+                    <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Details verified</p>
+                  )}
+                  <p className='text-xs mt-1 text-gray-500'>
+                    Search by: Full number (CG04AA1234), Series (AA4793), or Last 4 digits (4793)
+                  </p>
+                </div>
 
+                {/* Mobile Number */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Mobile Number
+                  </label>
+                  <input
+                    type='tel'
+                    name='mobileNumber'
+                    value={formData.mobileNumber}
+                    onChange={handleChange}
+                    placeholder='10-digit number'
+                    maxLength='10'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent'
+                  />
                 </div>
               </div>
             </div>

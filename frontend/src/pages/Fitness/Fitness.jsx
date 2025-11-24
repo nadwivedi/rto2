@@ -85,6 +85,7 @@ const Fitness = () => {
           id: record._id,
           _id: record._id, // Keep _id for edit/delete operations
           vehicleNumber: record.vehicleNumber,
+          mobileNumber: record.mobileNumber,
           validFrom: record.validFrom,
           validTo: record.validTo,
           totalFee: record.totalFee || 0,
@@ -152,6 +153,7 @@ const Fitness = () => {
     try {
       const response = await axios.post(`${API_URL}/api/fitness`, {
         vehicleNumber: formData.vehicleNumber,
+        mobileNumber: formData.mobileNumber,
         validFrom: formData.validFrom,
         validTo: formData.validTo,
         totalFee: parseFloat(formData.totalFee),
@@ -201,6 +203,7 @@ const Fitness = () => {
         `${API_URL}/api/fitness/id/${fitnessId}`,
         {
           vehicleNumber: formData.vehicleNumber,
+          mobileNumber: formData.mobileNumber,
           validFrom: formData.validFrom,
           validTo: formData.validTo,
           totalFee: parseFloat(formData.totalFee),
@@ -682,44 +685,54 @@ const Fitness = () => {
                       >
                         {/* Vehicle Number */}
                         <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          <div className="flex items-center gap-2 2xl:gap-3">
-                            {(() => {
-                              const parts = getVehicleNumberParts(
-                                record.vehicleNumber
-                              );
-                              if (!parts) {
+                          <div>
+                            <div className="flex items-center gap-2 2xl:gap-3">
+                              {(() => {
+                                const parts = getVehicleNumberParts(
+                                  record.vehicleNumber
+                                );
+                                if (!parts) {
+                                  return (
+                                    <div className="text-[11px] 2xl:text-sm font-inter font-bold text-gray-900">
+                                      {record.vehicleNumber}
+                                    </div>
+                                  );
+                                }
                                 return (
-                                  <div className="text-[11px] 2xl:text-sm font-inter font-bold text-gray-900">
-                                    {record.vehicleNumber}
+                                  <div className={vehicleDesign.container}>
+                                    <svg
+                                      className="w-3.5 h-5 2xl:w-4 2xl:h-6 mr-0.5 text-blue-800 flex-shrink-0"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                      <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
+                                    </svg>
+
+                                    <span className={vehicleDesign.stateCode}>
+                                      {parts.stateCode}
+                                    </span>
+                                    <span className={vehicleDesign.districtCode}>
+                                      {parts.districtCode}
+                                    </span>
+                                    <span className={vehicleDesign.series}>
+                                      {parts.series}
+                                    </span>
+                                    <span className={vehicleDesign.last4Digits}>
+                                      {parts.last4Digits}
+                                    </span>
                                   </div>
                                 );
-                              }
-                              return (
-                                <div className={vehicleDesign.container}>
-                                  <svg
-                                    className="w-3.5 h-5 2xl:w-4 2xl:h-6 mr-0.5 text-blue-800 flex-shrink-0"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                                    <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-                                  </svg>
-
-                                  <span className={vehicleDesign.stateCode}>
-                                    {parts.stateCode}
-                                  </span>
-                                  <span className={vehicleDesign.districtCode}>
-                                    {parts.districtCode}
-                                  </span>
-                                  <span className={vehicleDesign.series}>
-                                    {parts.series}
-                                  </span>
-                                  <span className={vehicleDesign.last4Digits}>
-                                    {parts.last4Digits}
-                                  </span>
-                                </div>
-                              );
-                            })()}
+                              })()}
+                            </div>
+                            {record.mobileNumber && (
+                              <div className="flex items-center mt-1.5 text-[10px] 2xl:text-xs text-gray-600">
+                                <svg className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                                {record.mobileNumber}
+                              </div>
+                            )}
                           </div>
                         </td>
 

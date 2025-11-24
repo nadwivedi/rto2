@@ -21,6 +21,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     receiptNo: '',
     vehicleNumber: '',
     ownerName: '',
+    mobileNumber: '',
     totalAmount: '',
     paidAmount: '',
     balance: '',
@@ -48,6 +49,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
         receiptNo: '',
         vehicleNumber: '',
         ownerName: '',
+        mobileNumber: '',
         totalAmount: '',
         paidAmount: '',
         balance: '',
@@ -82,7 +84,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
       setVehicleError('')
 
       try {
-        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`)
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`,{withCredentials:true})
 
         if (response.data.success) {
           // Check if multiple vehicles found
@@ -93,12 +95,13 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number
+            // Single match found - auto-fill including full vehicle number, owner name, and mobile number
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
               vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
-              ownerName: vehicleData.ownerName || prev.ownerName
+              ownerName: vehicleData.ownerName || prev.ownerName,
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -148,7 +151,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     setFormData(prev => ({
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
-      ownerName: vehicle.ownerName || prev.ownerName
+      ownerName: vehicle.ownerName || prev.ownerName,
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])
@@ -289,8 +293,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
       // Convert to uppercase
       const upperValue = value.toUpperCase()
 
-      // Validate in real-time (only show validation if 10 characters)
-      const validation = upperValue.length === 10 ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
+      // Validate in real-time (only show validation if 9 or 10 characters)
+      const validation = (upperValue.length === 9 || upperValue.length === 10) ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
       setVehicleValidation(validation)
 
       setFormData(prev => ({
@@ -394,15 +398,15 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Validate vehicle number before submitting (must be exactly 10 characters and valid format)
-    if (formData.vehicleNumber.length === 10 && !vehicleValidation.isValid) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+    // Validate vehicle number before submitting (must be 9 or 10 characters and valid format)
+    if ((formData.vehicleNumber.length === 9 || formData.vehicleNumber.length === 10) && !vehicleValidation.isValid) {
+      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
       return
     }
 
-    // Ensure vehicle number is exactly 10 characters for submission
-    if (formData.vehicleNumber && formData.vehicleNumber.length !== 10) {
-      alert('Vehicle number must be exactly 10 characters')
+    // Ensure vehicle number is 9 or 10 characters for submission
+    if (formData.vehicleNumber && formData.vehicleNumber.length !== 9 && formData.vehicleNumber.length !== 10) {
+      alert('Vehicle number must be 9 or 10 characters')
       return
     }
 
@@ -602,6 +606,22 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
                     value={formData.ownerName}
                     onChange={handleChange}
                     placeholder='Enter owner name'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                  />
+                </div>
+
+                {/* Mobile Number */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Mobile Number
+                  </label>
+                  <input
+                    type='tel'
+                    name='mobileNumber'
+                    value={formData.mobileNumber}
+                    onChange={handleChange}
+                    placeholder='10-digit number'
+                    maxLength='10'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                 </div>

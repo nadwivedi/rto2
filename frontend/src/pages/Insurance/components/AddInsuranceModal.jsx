@@ -15,6 +15,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     policyNumber: '',
+    mobileNumber: '',
     validFrom: '',
     validTo: '',
     totalFee: '',
@@ -58,12 +59,13 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       setFormData({
         vehicleNumber: '',
         policyNumber: '',
+        mobileNumber: '',
         validFrom: '',
         validTo: '',
-              totalFee: '',
-              paid: '',
-              balance: ''
-            })
+        totalFee: '',
+        paid: '',
+        balance: ''
+      })
       setFetchingVehicle(false)
       setVehicleValidation({ isValid: false, message: '' })
     }
@@ -89,6 +91,11 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
         })
 
         if (response.data.success) {
+          // Auto-fill mobile number from vehicle registration
+          setFormData(prev => ({
+            ...prev,
+            mobileNumber: response.data.data.mobileNumber || prev.mobileNumber
+          }))
           setVehicleError('')
         } else {
           setVehicleError('Vehicle not found in registration database')
@@ -393,6 +400,22 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     placeholder='INS001234567'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
                     required
+                  />
+                </div>
+
+                {/* Mobile Number */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Mobile Number
+                  </label>
+                  <input
+                    type='tel'
+                    name='mobileNumber'
+                    value={formData.mobileNumber}
+                    onChange={handleChange}
+                    placeholder='10-digit number'
+                    maxLength='10'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                 </div>
               </div>

@@ -25,6 +25,10 @@ const taxSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  mobileNumber: {
+    type: String,
+    trim: true
+  },
   // Payment Information
   totalAmount: {
     type: Number,

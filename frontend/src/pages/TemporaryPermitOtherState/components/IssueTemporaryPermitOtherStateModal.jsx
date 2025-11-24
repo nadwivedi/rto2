@@ -143,7 +143,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
       setVehicleError('')
 
       try {
-        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`)
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`,{withCredentials:true})
 
         if (response.data.success) {
           // Check if multiple vehicles found
