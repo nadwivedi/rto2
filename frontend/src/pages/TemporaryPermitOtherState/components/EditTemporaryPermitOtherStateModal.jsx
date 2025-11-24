@@ -160,7 +160,7 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
 
     // Validate vehicle number before submitting
     if (!vehicleValidation.isValid && formData.vehicleNo) {
-      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
       return
     }
 
@@ -253,7 +253,7 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
                       name='vehicleNo'
                       value={formData.vehicleNo}
                       onChange={handleChange}
-                      placeholder='CG04AA1234'
+                      placeholder='CG04AA1234 or CG04G1234'
                       maxLength='10'
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNo && !vehicleValidation.isValid

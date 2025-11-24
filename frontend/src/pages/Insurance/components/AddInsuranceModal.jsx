@@ -84,7 +84,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       setVehicleError('')
 
       try {
-        const response = await axios.get(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`)
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/number/${registrationNum}`, {
+          withCredentials: true
+        })
 
         if (response.data.success) {
           setVehicleError('')

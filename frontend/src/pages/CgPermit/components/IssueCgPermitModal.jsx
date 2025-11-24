@@ -101,7 +101,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
       setVehicleError('')
 
       try {
-        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`)
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`, {
+          withCredentials: true
+        })
 
         if (response.data.success) {
           // Check if multiple vehicles found
@@ -289,8 +291,8 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
       // Convert to uppercase
       const upperValue = value.toUpperCase()
 
-      // Validate in real-time (only show validation if 10 characters)
-      const validation = upperValue.length === 10 ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
+      // Validate in real-time (only show validation if 9 or 10 characters)
+      const validation = (upperValue.length === 9 || upperValue.length === 10) ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
       setVehicleValidation(validation)
 
       setFormData(prev => ({
@@ -385,15 +387,15 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Validate vehicle number before submitting (must be exactly 10 characters and valid format)
-    if (formData.vehicleNumber.length === 10 && !vehicleValidation.isValid) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+    // Validate vehicle number before submitting (must be 9 or 10 characters and valid format)
+    if ((formData.vehicleNumber.length === 9 || formData.vehicleNumber.length === 10) && !vehicleValidation.isValid) {
+      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
       return
     }
 
-    // Ensure vehicle number is exactly 10 characters for submission
-    if (formData.vehicleNumber && formData.vehicleNumber.length !== 10) {
-      alert('Vehicle number must be exactly 10 characters')
+    // Ensure vehicle number is 9 or 10 characters for submission
+    if (formData.vehicleNumber && formData.vehicleNumber.length !== 9 && formData.vehicleNumber.length !== 10) {
+      alert('Vehicle number must be 9 or 10 characters')
       return
     }
 
@@ -479,7 +481,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
-                      placeholder='CG04AA1234 or AA4793 or 4793'
+                      placeholder='CG04AA1234 or CG04G1234'
                       maxLength='10'
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNumber && !vehicleValidation.isValid
@@ -554,7 +556,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                     )}
                   </div>
                   <p className='text-xs text-gray-500 mt-1'>
-                    Search by: Full number (CG04AA1234), Series (AA4793), or Last 4 digits (4793)
+                    Search by: Full number (CG04AA1234 or CG04G1234), Series (AA4793), or Last 4 digits (4793)
                   </p>
                   {vehicleValidation.message && !fetchingVehicle && !showVehicleDropdown && (
                     <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
