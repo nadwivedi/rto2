@@ -107,22 +107,7 @@ const TemporaryPermitOtherState = () => {
     }
   }
 
-  const parseDate = (dateStr) => {
-    if (!dateStr) return null
 
-    // Handle DD/MM/YYYY format
-    if (dateStr.includes('/')) {
-      const [day, month, year] = dateStr.split('/')
-      return new Date(year, month - 1, day)
-    }
-
-    // Handle YYYY-MM-DD format
-    if (dateStr.includes('-')) {
-      return new Date(dateStr)
-    }
-
-    return null
-  }
 
   const handlePageChange = (newPage) => {
     fetchPermits(newPage)
@@ -161,7 +146,7 @@ const TemporaryPermitOtherState = () => {
     if (!confirmPaid) return;
 
     try {
-      const response = await axios.patch(`${API_URL}/api/temporary-permits-other-state/${permit.id}/mark-as-paid`, {}, { withCredentials: true });
+      const response = await axios.patch(`${API_URL}/api/temporary-permits-other-state/${permit._id}/mark-as-paid`, {}, { withCredentials: true });
       if (!response.data.success) throw new Error(response.data.message || 'Failed to mark payment as paid');
 
       toast.success('Payment marked as paid successfully!', { position: 'top-right', autoClose: 3000 });
@@ -393,7 +378,7 @@ const TemporaryPermitOtherState = () => {
                 },
                 {
                   title: 'Delete Permit',
-                  onClick: (permit) => handleDeletePermit(permit.id),
+                  onClick: (permit) => handleDeletePermit(permit._id),
                   bgColor: 'bg-red-100',
                   textColor: 'text-red-600',
                   hoverBgColor: 'bg-red-200',

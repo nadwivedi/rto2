@@ -66,12 +66,19 @@ exports.getAllCustomBills = async (req, res) => {
     // Build search query
     let query = { userId: req.user.id }
     if (search) {
+      const searchConditions = [
+        { customerName: { $regex: search, $options: 'i' } }
+      ]
+
+      // If search is a valid number, also search by billNumber
+      const searchAsNumber = parseInt(search)
+      if (!isNaN(searchAsNumber)) {
+        searchConditions.push({ billNumber: searchAsNumber })
+      }
+
       query = {
         userId: req.user.id,
-        $or: [
-          { billNumber: { $regex: search, $options: 'i' } },
-          { customerName: { $regex: search, $options: 'i' } }
-        ]
+        $or: searchConditions
       }
     }
 
