@@ -558,7 +558,7 @@ const Tax = () => {
               avatarGradient='from-indigo-500 to-purple-500'
               cardConfig={{
                 header: {
-                  avatar: (record) => record.vehicleNumber?.substring(0, 2) || 'V',
+                  avatar: null,
                   title: (record) => record.vehicleNumber,
                   subtitle: (record) => record.ownerName || '-',
                   extraInfo: (record) => (
@@ -582,11 +582,16 @@ const Tax = () => {
                   showValidity: true,
                   customFields: [
                     {
-                      render: (record) => (
-                        <div className='flex items-center justify-between pb-2.5 border-b border-gray-100'>
-                          <div>
-                            <p className='text-[10px] text-gray-500 font-semibold uppercase'>Receipt No</p>
-                            <p className='text-sm font-mono font-bold text-gray-900'>{record.receiptNo}</p>
+                      render: (record, { getStatusColor, getStatusText }) => (
+                        <div className='flex items-center justify-between gap-2 pb-2.5 border-b border-gray-100'>
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold whitespace-nowrap ${getStatusColor(record.status)}`}>
+                            {getStatusText(record.status)}
+                          </span>
+                          <div className='flex items-center gap-1.5'>
+                            <svg className='w-3.5 h-3.5 text-indigo-600 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                            </svg>
+                            <span className='text-xs font-medium text-gray-700'>{record.receiptNo}</span>
                           </div>
                         </div>
                       ),
@@ -624,9 +629,9 @@ const Tax = () => {
                 {
                   title: 'Edit',
                   onClick: handleEditClick,
-                  bgColor: 'bg-green-100',
-                  textColor: 'text-green-600',
-                  hoverBgColor: 'bg-green-200',
+                  bgColor: 'bg-amber-100',
+                  textColor: 'text-amber-600',
+                  hoverBgColor: 'bg-amber-200',
                   icon: (
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
@@ -643,22 +648,6 @@ const Tax = () => {
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                     </svg>
-                  ),
-                },
-                {
-                  title: '',
-                  onClick: () => {},
-                  bgColor: '',
-                  textColor: '',
-                  hoverBgColor: '',
-                  icon: (record) => (
-                    <span className={`px-3 py-1.5 rounded-lg text-xs font-bold ${getStatusColor(record.status)} border-2 ${
-                      getStatusText(record.status) === 'Expired' ? 'border-red-300' :
-                      getStatusText(record.status) === 'Expiring Soon' ? 'border-orange-300' :
-                      'border-green-300'
-                    }`}>
-                      {getStatusText(record.status)}
-                    </span>
                   ),
                 },
               ]}

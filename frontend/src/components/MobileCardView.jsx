@@ -176,11 +176,13 @@ const MobileCardView = ({
                 {/* Card Header with Avatar and Actions */}
                 <div className={`bg-gradient-to-r ${headerGradient} p-3 flex items-start justify-between`}>
                   <div className='flex items-center gap-3'>
-                    <div className={`flex-shrink-0 h-12 w-12 bg-gradient-to-br ${avatarGradient} rounded-full flex items-center justify-center text-white font-bold shadow-md`}>
-                      {typeof config.header.avatar === 'function'
-                        ? config.header.avatar(record)
-                        : config.header.avatar}
-                    </div>
+                    {config.header.avatar !== null && (
+                      <div className={`flex-shrink-0 h-12 w-12 bg-gradient-to-br ${avatarGradient} rounded-full flex items-center justify-center text-white font-bold shadow-md`}>
+                        {typeof config.header.avatar === 'function'
+                          ? config.header.avatar(record)
+                          : config.header.avatar}
+                      </div>
+                    )}
                     <div>
                       {config.header.showVehicleParts && config.header.title(record) ? (
                         renderVehicleNumber(config.header.title(record))

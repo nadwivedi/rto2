@@ -573,10 +573,9 @@ const Fitness = () => {
               loadingMessage='Loading fitness records...'
               cardConfig={{
                 header: {
-                  avatar: (record) => record.vehicleNumber?.substring(0, 2) || 'V',
+                  avatar: null,
                   title: (record) => record.vehicleNumber,
-                  subtitle: () => 'Fitness Certificate',
-                  extraInfo: (record) => (
+                  subtitle: (record) => (
                     record.mobileNumber && (
                       <a
                         href={`tel:${record.mobileNumber}`}
@@ -589,6 +588,7 @@ const Fitness = () => {
                       </a>
                     )
                   ),
+                  extraInfo: null,
                   showVehicleParts: true,
                 },
                 body: {
