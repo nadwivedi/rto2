@@ -151,6 +151,8 @@ const RenewPartAModal = ({ permit, onClose, onRenewalSuccess }) => {
         partBNumber: formData.partBNumber || '',
         partBValidFrom: formData.partBValidFrom || '',
         partBValidTo: formData.partBValidTo || ''
+      }, {
+        withCredentials: true
       })
 
       const data = response.data

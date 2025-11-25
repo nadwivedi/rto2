@@ -92,6 +92,8 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
         paid: parseFloat(formData.paid),
         balance: parseFloat(formData.balance),
         notes: formData.notes
+      }, {
+        withCredentials: true
       })
 
       const data = response.data

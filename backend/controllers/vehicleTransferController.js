@@ -227,6 +227,58 @@ exports.getAllTransfers = async (req, res) => {
   }
 }
 
+// Get pending payment transfers
+exports.getPendingTransfers = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+
+    const query = { balance: { $gt: 0 }, userId: req.user.id }
+
+    if (search) {
+      query.$or = [
+        { vehicleNumber: { $regex: search, $options: 'i' } },
+        { currentOwnerName: { $regex: search, $options: 'i' } },
+        { newOwnerName: { $regex: search, $options: 'i' } },
+        { byName: { $regex: search, $options: 'i' } }
+      ]
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const transfers = await VehicleTransfer.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await VehicleTransfer.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: transfers,
+      pagination: {
+        total,
+        totalItems: total,
+        totalRecords: total,
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        page: parseInt(page),
+        pages: Math.ceil(total / parseInt(limit)),
+        itemsPerPage: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error getting pending vehicle transfers:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching pending vehicle transfers',
+      error: error.message
+    })
+  }
+}
+
 // Get statistics
 exports.getStatistics = async (req, res) => {
   try {

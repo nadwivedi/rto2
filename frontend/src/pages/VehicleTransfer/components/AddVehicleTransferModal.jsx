@@ -156,8 +156,8 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
       const method = editData ? 'PUT' : 'POST'
 
       const response = editData
-        ? await axios.put(url, formData)
-        : await axios.post(url, formData)
+        ? await axios.put(url, formData, { withCredentials: true })
+        : await axios.post(url, formData, { withCredentials: true })
 
       const data = response.data
 
@@ -180,6 +180,19 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
       onClose()
     } else if (e.key === 'Enter' && e.ctrlKey) {
       handleSubmit(e)
+    }
+  }
+
+  const handleTextareaKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault() // Prevent new line in textarea
+      // Move to next input field
+      const form = e.target.form
+      const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]):not([disabled]), textarea'))
+      const index = inputs.indexOf(e.target)
+      if (index > -1 && index < inputs.length - 1) {
+        inputs[index + 1].focus()
+      }
     }
   }
 
@@ -351,6 +364,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='currentOwnerAddress'
                   value={formData.currentOwnerAddress}
                   onChange={handleChange}
+                  onKeyDown={handleTextareaKeyDown}
                   required
                   rows='2'
                   placeholder='Enter complete address'
@@ -427,6 +441,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='newOwnerAddress'
                   value={formData.newOwnerAddress}
                   onChange={handleChange}
+                  onKeyDown={handleTextareaKeyDown}
                   required
                   rows='2'
                   placeholder='Enter complete address'

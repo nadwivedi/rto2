@@ -19,6 +19,7 @@ const VehicleTransfer = () => {
   const [editData, setEditData] = useState(null)
   const [viewData, setViewData] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all') // 'all' or 'pending'
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -38,12 +39,19 @@ const VehicleTransfer = () => {
   useEffect(() => {
     fetchTransfers(1)
     fetchStatistics()
-  }, [searchTerm])
+  }, [searchTerm, statusFilter])
 
   const fetchTransfers = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
-      const response = await axios.get(`${API_URL}/api/vehicle-transfers?page=${page}&limit=${pagination.limit}&search=${searchTerm}`, {
+
+      // Build URL based on statusFilter
+      let url = `${API_URL}/api/vehicle-transfers`
+      if (statusFilter !== 'all') {
+        url = `${API_URL}/api/vehicle-transfers/${statusFilter}`
+      }
+
+      const response = await axios.get(`${url}?page=${page}&limit=${pagination.limit}&search=${searchTerm}`, {
         withCredentials: true
       })
       const data = response.data
@@ -192,6 +200,8 @@ const VehicleTransfer = () => {
                 title='Total Transfers'
                 value={statistics.total}
                 color='teal'
+                isActive={statusFilter === 'all'}
+                onClick={() => setStatusFilter('all')}
                 icon={
                   <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' />
@@ -202,6 +212,9 @@ const VehicleTransfer = () => {
                 title='Pending Payments'
                 value={statistics.pendingPayments}
                 color='orange'
+                isActive={statusFilter === 'pending'}
+                onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
+                extraValue={`₹${statistics.pendingPaymentAmount.toLocaleString('en-IN')}`}
                 icon={
                   <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />

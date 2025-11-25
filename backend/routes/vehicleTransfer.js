@@ -8,6 +8,9 @@ router.get('/', vehicleTransferController.getAllTransfers)
 // GET statistics
 router.get('/statistics', vehicleTransferController.getStatistics)
 
+// GET pending payment transfers
+router.get('/pending', vehicleTransferController.getPendingTransfers)
+
 // GET single vehicle transfer by ID
 router.get('/:id', vehicleTransferController.getTransferById)
 
