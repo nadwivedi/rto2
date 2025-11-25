@@ -17,6 +17,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
   const [vehicleMatches, setVehicleMatches] = useState([])
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
+  const [manuallyEditedValidTo, setManuallyEditedValidTo] = useState(false)
   const dropdownItemRefs = useRef([])
   const [formData, setFormData] = useState({
     permitNumber: '',
@@ -98,7 +99,8 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
   }
 
   useEffect(() => {
-    if (formData.validFrom) {
+    // Only auto-calculate if user hasn't manually edited validTo
+    if (formData.validFrom && !manuallyEditedValidTo) {
       const parts = formData.validFrom.split('-')
       if (parts.length === 3) {
         const day = parseInt(parts[0], 10)
@@ -123,7 +125,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
         }
       }
     }
-  }, [formData.validFrom])
+  }, [formData.validFrom, manuallyEditedValidTo])
 
   // Fetch vehicle details when registration number is entered
   useEffect(() => {
@@ -276,6 +278,15 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
           ...prev,
           [name]: formatted
         }))
+
+        // If user manually edits validTo, mark it as manually edited
+        if (name === 'validTo') {
+          setManuallyEditedValidTo(true)
+        }
+        // If user edits validFrom, allow auto-calculation again
+        if (name === 'validFrom') {
+          setManuallyEditedValidTo(false)
+        }
       }
       return
     }
@@ -335,6 +346,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
         })
         setShowOptionalFields(false)
         setVehicleValidation({ isValid: false, message: '' })
+        setManuallyEditedValidTo(false)
         onPermitIssued()
       }
     } catch (error) {
@@ -561,7 +573,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                 {/* Valid To */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid To <span className='text-red-500'>*</span>
+                    Valid To <span className='text-red-500'>*</span> <span className='text-xs text-blue-500'>(Auto-filled, Editable)</span>
                   </label>
                   <input
                     type='text'
@@ -570,10 +582,10 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                    placeholder='Auto-calculated (28 days)'
+                    placeholder='DD-MM-YYYY or Auto-filled'
                     required
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated: 28 days from Valid From date</p>
+                  <p className='text-xs text-gray-500 mt-1'>Auto-filled: 28 days from Valid From date. You can edit this date.</p>
                 </div>
               </div>
             </div>

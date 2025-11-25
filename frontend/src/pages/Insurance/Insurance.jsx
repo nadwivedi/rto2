@@ -411,6 +411,7 @@ const Insurance = () => {
               <StatisticsCard
                 title="Pending Payment"
                 value={stats.pendingPaymentCount}
+                extraValue={`₹${stats.pendingPaymentAmount.toLocaleString('en-IN')}`}
                 color="amber"
                 isActive={statusFilter === "pending"}
                 onClick={() =>

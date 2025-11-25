@@ -45,6 +45,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
   const [vehicleMatches, setVehicleMatches] = useState([])
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
+  const [manuallyEditedValidTo, setManuallyEditedValidTo] = useState(false)
   const dropdownItemRefs = useRef([])
 
   // Pre-fill form when initialData is provided (for renewal)
@@ -89,6 +90,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       setVehicleMatches([])
       setShowVehicleDropdown(false)
       setSelectedDropdownIndex(0)
+      setManuallyEditedValidTo(false)
     }
   }, [initialData, isOpen])
 
@@ -170,8 +172,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
 
   // Calculate valid to date based on vehicle type (CV=3 months, PV=4 months)
   useEffect(() => {
-    // Only calculate if both validFrom and vehicleType are present
-    if (!formData.validFrom || !formData.vehicleType) {
+    // Only calculate if both validFrom and vehicleType are present and user hasn't manually edited
+    if (!formData.validFrom || !formData.vehicleType || manuallyEditedValidTo) {
       return
     }
 
@@ -252,7 +254,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
         validTo: formattedValidTo
       }))
     }
-  }, [formData.validFrom, formData.vehicleType, formData.validTo])
+  }, [formData.validFrom, formData.vehicleType, formData.validTo, manuallyEditedValidTo])
 
   // Auto-scroll to selected dropdown item
   useEffect(() => {
@@ -395,8 +397,22 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
           ...prev,
           [name]: formatted
         }))
+
+        // If user manually edits validTo, mark it as manually edited
+        if (name === 'validTo') {
+          setManuallyEditedValidTo(true)
+        }
+        // If user edits validFrom, allow auto-calculation again
+        if (name === 'validFrom') {
+          setManuallyEditedValidTo(false)
+        }
       }
       return
+    }
+
+    // If vehicle type changes, allow auto-calculation again
+    if (name === 'vehicleType') {
+      setManuallyEditedValidTo(false)
     }
 
     setFormData(prev => ({
@@ -689,21 +705,21 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                   <p className='text-xs text-gray-500 mt-1'>Smart input: type 5 → 05-, auto-expands years</p>
                 </div>
 
-                {/* Valid To (Auto-calculated) */}
+                {/* Valid To (Auto-calculated but editable) */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid To <span className='text-xs text-blue-500'>(Auto-calculated)</span>
+                    Valid To <span className='text-xs text-blue-500'>(Auto-filled, Editable)</span>
                   </label>
                   <input
                     type='text'
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
-                    placeholder='Auto-calculated'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
+                    placeholder='DD-MM-YYYY or Auto-filled'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                   <p className='text-xs text-gray-500 mt-1'>
-                    Auto-calculated: CV = +3 months - 1 day, PV = +4 months - 1 day
+                    Auto-filled: CV = +3 months - 1 day, PV = +4 months - 1 day. You can edit this date.
                   </p>
                 </div>
               </div>

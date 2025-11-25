@@ -41,7 +41,8 @@ const TemporaryPermitOtherState = () => {
     active: 0,
     expiringSoon: 0,
     expired: 0,
-    pendingPaymentCount: 0
+    pendingPaymentCount: 0,
+    pendingPaymentAmount: 0
   })
 
   const fetchStatistics = async () => {
@@ -264,7 +265,7 @@ const TemporaryPermitOtherState = () => {
               <StatisticsCard
                 title='Pending Payment'
                 value={statistics.pendingPaymentCount}
-                // extraValue={`₹${statistics.pendingPaymentAmount.toLocaleString('en-IN')}`}
+                extraValue={`₹${statistics.pendingPaymentAmount.toLocaleString('en-IN')}`}
                 color='yellow'
                 isActive={statusFilter === 'pending'}
                 onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
