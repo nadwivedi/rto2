@@ -74,6 +74,7 @@ const userAuth = require('./middleware/userAuth')
 const authRoutes = require('./routes/auth')
 const adminAuthRoutes = require('./routes/adminAuth')
 const adminUsersRoutes = require('./routes/adminUsers')
+const adminVehicleRegistrationsRoutes = require('./routes/adminVehicleRegistrations')
 const drivingLicenseRoutes = require('./routes/drivingLicense')
 const nationalPermitRoutes = require('./routes/nationalPermit')
 const cgPermitRoutes = require('./routes/cgPermit')
@@ -91,6 +92,7 @@ const vehicleTransferRoutes = require('./routes/vehicleTransfer')
 // Admin routes
 app.use('/api/admin/auth', adminAuthRoutes)
 app.use('/api/admin/users', adminUsersRoutes)
+app.use('/api/admin/vehicle-registrations', adminVehicleRegistrationsRoutes)
 
 // User routes
 app.use('/api/auth', authRoutes)

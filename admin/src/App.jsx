@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Users from './pages/Users'
+import VehicleRegistrations from './pages/VehicleRegistrations'
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -39,6 +40,7 @@ function App() {
           <div className='flex-1 p-4 md:p-8'>
             <Routes>
               <Route path='/' element={<Users />} />
+              <Route path='/vehicle-registrations' element={<VehicleRegistrations />} />
             </Routes>
           </div>
         </div>
