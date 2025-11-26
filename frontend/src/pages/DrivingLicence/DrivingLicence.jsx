@@ -28,6 +28,8 @@ const DrivingLicence = () => {
   const [llExpiryFilter, setLlExpiryFilter] = useState('All')
   const [llExpiringCount, setLlExpiringCount] = useState(0)
   const [dlExpiringCount, setDlExpiringCount] = useState(0)
+  const [pendingPaymentCount, setPendingPaymentCount] = useState(0)
+  const [totalPendingAmount, setTotalPendingAmount] = useState(0)
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -38,42 +40,38 @@ const DrivingLicence = () => {
   // Fetch applications from backend
   useEffect(() => {
     fetchApplications(1)
-  }, [searchQuery, typeFilter, paymentStatusFilter, dlExpiryFilter, llExpiryFilter])
+  }, [searchQuery, typeFilter, paymentStatusFilter])
 
-  // Fetch expiring counts on component mount
+  // Fetch statistics on component mount
   useEffect(() => {
-    fetchExpiringCounts()
+    fetchStatistics()
   }, [])
 
-  const fetchExpiringCounts = async () => {
+  const fetchStatistics = async () => {
     try {
-      console.log('Fetching expiring counts...')
+      console.log('Fetching statistics...')
 
-      // Fetch LL expiring count
-      const llResponse = await axios.get(`${API_URL}/api/driving-licenses/ll-expiring-soon`, {
-        params: { page: 1, limit: 1 },
+      // Fetch all statistics in one call
+      const response = await axios.get(`${API_URL}/api/driving-licenses/statistics`, {
         withCredentials: true
       })
-      console.log('LL Response:', llResponse.data)
-      const llCount = llResponse.data.pagination?.totalItems || 0
-      console.log('LL Count:', llCount)
-      setLlExpiringCount(llCount)
+      console.log('Statistics Response:', response.data)
 
-      // Fetch DL expiring count
-      const dlResponse = await axios.get(`${API_URL}/api/driving-licenses/dl-expiring-soon`, {
-        params: { page: 1, limit: 1 },
-        withCredentials: true
-      })
-      console.log('DL Response:', dlResponse.data)
-      const dlCount = dlResponse.data.pagination?.totalItems || 0
-      console.log('DL Count:', dlCount)
-      setDlExpiringCount(dlCount)
+      if (response.data.success) {
+        const data = response.data.data
+        setLlExpiringCount(data.llExpiringCount || 0)
+        setDlExpiringCount(data.dlExpiringCount || 0)
+        setPendingPaymentCount(data.pendingPaymentCount || 0)
+        setTotalPendingAmount(data.pendingPaymentAmount || 0)
 
-      console.log('Expiring counts updated - LL:', llCount, 'DL:', dlCount)
+        console.log('Statistics updated - LL:', data.llExpiringCount, 'DL:', data.dlExpiringCount, 'Pending Payment Count:', data.pendingPaymentCount, 'Amount:', data.pendingPaymentAmount)
+      }
     } catch (error) {
-      console.error('Error fetching expiring counts:', error)
+      console.error('Error fetching statistics:', error)
       setLlExpiringCount(0)
       setDlExpiringCount(0)
+      setPendingPaymentCount(0)
+      setTotalPendingAmount(0)
     }
   }
 
@@ -252,17 +250,14 @@ const DrivingLicence = () => {
     const expiringSoon = dlExpiringCount
     const llExpiringSoon = llExpiringCount
 
-    const totalPending = applications.reduce((sum, app) => sum + (app.balanceAmount || 0), 0)
-    const pendingCount = applications.filter(app => (app.balanceAmount || 0) > 0).length
-
     return {
       total,
       expiringSoon,
       llExpiringSoon,
-      totalPending,
-      pendingCount
+      totalPending: totalPendingAmount,
+      pendingCount: pendingPaymentCount
     }
-  }, [applications, pagination.totalRecords, dlExpiringCount, llExpiringCount])
+  }, [pagination.totalRecords, dlExpiringCount, llExpiringCount, totalPendingAmount, pendingPaymentCount])
 
   // Page change handler
   const handlePageChange = (newPage) => {
@@ -300,7 +295,7 @@ const DrivingLicence = () => {
       if (response.data.success) {
         toast.success('Application deleted successfully!', { autoClose: 700 })
         fetchApplications() // Refresh the list
-        fetchExpiringCounts() // Refresh the expiring counts
+        fetchStatistics() // Refresh the statistics
       }
     } catch (error) {
       console.error('Error deleting application:', error)
@@ -327,6 +322,7 @@ const DrivingLicence = () => {
 
       toast.success('Payment marked as paid successfully!', { autoClose: 700 });
       fetchApplications();
+      fetchStatistics(); // Refresh the statistics
     } catch (error) {
       console.error('Error marking payment as paid:', error);
       toast.error(`Failed to mark payment as paid: ${error.message}`, { autoClose: 700 });
@@ -379,7 +375,7 @@ const DrivingLicence = () => {
       if (response.data.success) {
         toast.success('Application submitted successfully!', { autoClose: 700 })
         fetchApplications() // Refresh the list
-        fetchExpiringCounts() // Refresh the expiring counts
+        fetchStatistics() // Refresh the statistics
       }
     } catch (error) {
       console.error('Error submitting application:', error)
@@ -438,7 +434,7 @@ const DrivingLicence = () => {
         toast.success('Application updated successfully!', { autoClose: 700 })
         setIsEditFormOpen(false)
         fetchApplications() // Refresh the list
-        fetchExpiringCounts() // Refresh the expiring counts
+        fetchStatistics() // Refresh the statistics
       }
     } catch (error) {
       console.error('Error updating application:', error)
@@ -458,10 +454,8 @@ const DrivingLicence = () => {
                 title='Total Applications'
                 value={stats.total}
                 color='blue'
-                isActive={dlExpiryFilter === 'All' && llExpiryFilter === 'All' && paymentStatusFilter === 'All'}
+                isActive={paymentStatusFilter === 'All'}
                 onClick={() => {
-                  setDlExpiryFilter('All')
-                  setLlExpiryFilter('All')
                   setPaymentStatusFilter('All')
                 }}
                 icon={
@@ -474,12 +468,8 @@ const DrivingLicence = () => {
                 title='DL Expiring Soon'
                 value={stats.expiringSoon}
                 color='purple'
-                isActive={dlExpiryFilter === '30'}
-                onClick={() => {
-                  setDlExpiryFilter(dlExpiryFilter === '30' ? 'All' : '30')
-                  setLlExpiryFilter('All')
-                  setPaymentStatusFilter('All')
-                }}
+                isActive={false}
+                onClick={() => {}}
                 subtext='Within 30 days'
                 icon={
                   <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -491,12 +481,8 @@ const DrivingLicence = () => {
                 title='LL Expiring Soon'
                 value={stats.llExpiringSoon}
                 color='yellow'
-                isActive={llExpiryFilter === '30'}
-                onClick={() => {
-                  setLlExpiryFilter(llExpiryFilter === '30' ? 'All' : '30')
-                  setDlExpiryFilter('All')
-                  setPaymentStatusFilter('All')
-                }}
+                isActive={false}
+                onClick={() => {}}
                 subtext='Within 30 days'
                 icon={
                   <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -511,8 +497,6 @@ const DrivingLicence = () => {
                 isActive={paymentStatusFilter === 'Pending'}
                 onClick={() => {
                   setPaymentStatusFilter(paymentStatusFilter === 'Pending' ? 'All' : 'Pending')
-                  setDlExpiryFilter('All')
-                  setLlExpiryFilter('All')
                 }}
                 extraValue={`₹${stats.totalPending.toLocaleString('en-IN')}`}
                 icon={
@@ -598,41 +582,13 @@ const DrivingLicence = () => {
                 <option value='Pending'>Pending</option>
               </select>
 
-              {/* DL Expiry Filter */}
-              <select
-                value={dlExpiryFilter}
-                onChange={(e) => {
-                  setDlExpiryFilter(e.target.value)
-                }}
-                className='w-[calc(50%-0.25rem)] lg:w-auto px-2 lg:px-3 py-2 lg:py-3 text-xs lg:text-sm border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-400 font-semibold bg-white hover:border-purple-300 transition-all shadow-sm'
-              >
-                <option value='All'>DL Expiry</option>
-                <option value='30'>30 Days</option>
-                <option value='60'>60 Days</option>
-              </select>
-
-              {/* LL Expiry Filter */}
-              <select
-                value={llExpiryFilter}
-                onChange={(e) => {
-                  setLlExpiryFilter(e.target.value)
-                }}
-                className='w-[calc(50%-0.25rem)] lg:w-auto px-2 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm border-2 border-yellow-200 rounded-xl focus:ring-2 focus:ring-yellow-500 focus:border-yellow-400 font-semibold bg-white hover:border-yellow-300 transition-all shadow-sm'
-              >
-                <option value='All'>LL Expiry</option>
-                <option value='30'>30 Days</option>
-                <option value='45'>45 Days</option>
-              </select>
-
               {/* Clear Filters */}
-              {(typeFilter !== 'All' || searchQuery || paymentStatusFilter !== 'All' || dlExpiryFilter !== 'All' || llExpiryFilter !== 'All') && (
+              {(typeFilter !== 'All' || searchQuery || paymentStatusFilter !== 'All') && (
                 <button
                   onClick={() => {
                     setTypeFilter('All')
                     setSearchQuery('')
                     setPaymentStatusFilter('All')
-                    setDlExpiryFilter('All')
-                    setLlExpiryFilter('All')
                   }}
                   className='px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
                 >

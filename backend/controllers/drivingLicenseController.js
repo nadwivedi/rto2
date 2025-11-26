@@ -547,46 +547,54 @@ exports.updateLicenseStatus = async (req, res) => {
 // Get statistics
 exports.getStatistics = async (req, res) => {
   try {
-    const userFilter = { userId: req.user.id }
-    const totalApplications = await Driving.countDocuments(userFilter)
-    const pendingApplications = await Driving.countDocuments({ ...userFilter, applicationStatus: 'pending' })
-    const approvedApplications = await Driving.countDocuments({ ...userFilter, applicationStatus: 'approved' })
-    const rejectedApplications = await Driving.countDocuments({ ...userFilter, applicationStatus: 'rejected' })
-    const underReviewApplications = await Driving.countDocuments({ ...userFilter, applicationStatus: 'under_review' })
+    const today = new Date()
+    const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
 
-    const mcwgLicenses = await Driving.countDocuments({ ...userFilter, licenseClass: 'MCWG' })
-    const lmvLicenses = await Driving.countDocuments({ ...userFilter, licenseClass: 'LMV' })
-    const bothLicenses = await Driving.countDocuments({ ...userFilter, licenseClass: 'MCWG+LMV' })
+    // Pending payment aggregation
+    const pendingPaymentPipeline = [
+      { $match: { balanceAmount: { $gt: 0 }, userId: new mongoose.Types.ObjectId(req.user.id) } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$balanceAmount' }
+        }
+      }
+    ]
 
-    const totalRevenue = await Driving.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(req.user.id) } },
-      { $group: { _id: null, total: { $sum: '$paidAmount' } } }
-    ])
+    const pendingPaymentResults = await Driving.aggregate(pendingPaymentPipeline)
+    const pendingPaymentCount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].count : 0
+    const pendingPaymentAmount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].totalAmount : 0
 
-    const pendingPayments = await Driving.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(req.user.id) } },
-      { $group: { _id: null, total: { $sum: '$balanceAmount' } } }
-    ])
+    // Count LL expiring in next 30 days
+    const llExpiringCount = await Driving.countDocuments({
+      userId: new mongoose.Types.ObjectId(req.user.id),
+      learningLicenseExpiryDate: {
+        $exists: true,
+        $ne: null,
+        $gte: today,
+        $lte: thirtyDaysFromNow
+      }
+    })
+
+    // Count DL expiring in next 30 days
+    const dlExpiringCount = await Driving.countDocuments({
+      userId: new mongoose.Types.ObjectId(req.user.id),
+      LicenseExpiryDate: {
+        $exists: true,
+        $ne: null,
+        $gte: today,
+        $lte: thirtyDaysFromNow
+      }
+    })
 
     res.status(200).json({
       success: true,
       data: {
-        applications: {
-          total: totalApplications,
-          pending: pendingApplications,
-          approved: approvedApplications,
-          rejected: rejectedApplications,
-          underReview: underReviewApplications
-        },
-        licenses: {
-          mcwg: mcwgLicenses,
-          lmv: lmvLicenses,
-          both: bothLicenses
-        },
-        revenue: {
-          total: totalRevenue.length > 0 ? totalRevenue[0].total : 0,
-          pending: pendingPayments.length > 0 ? pendingPayments[0].total : 0
-        }
+        pendingPaymentCount,
+        pendingPaymentAmount,
+        llExpiringCount,
+        dlExpiringCount
       }
     })
   } catch (error) {
