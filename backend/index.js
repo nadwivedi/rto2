@@ -34,9 +34,9 @@ app.use(cors({
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
 }))
 
-// Middleware
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+// Middleware (12MB limit for image uploads)
+app.use(express.json({ limit: '12mb' }))
+app.use(express.urlencoded({ extended: true, limit: '12mb' }))
 app.use(cookieParser())
 
 // Serve static files (PDFs) from uploads folder
@@ -89,6 +89,7 @@ const taxRoutes = require('./routes/tax')
 const insuranceRoutes = require('./routes/insurance')
 const vehicleTransferRoutes = require('./routes/vehicleTransfer')
 const pucRoutes = require('./routes/puc')
+const uploadRoutes = require('./routes/upload')
 
 // Use Routes
 
@@ -100,6 +101,7 @@ app.use('/api/admin/vehicle-registrations', adminVehicleRegistrationsRoutes)
 // User routes
 app.use('/api/auth', authRoutes)
 // Protect all routes below with userAuth middleware
+app.use('/api/upload', userAuth, uploadRoutes)
 app.use('/api/driving-licenses', userAuth, drivingLicenseRoutes)
 app.use('/api/national-permits', userAuth, nationalPermitRoutes)
 app.use('/api/cg-permits', userAuth, cgPermitRoutes)

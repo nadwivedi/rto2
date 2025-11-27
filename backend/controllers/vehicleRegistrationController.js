@@ -267,7 +267,8 @@ exports.createRegistration = async (req, res) => {
       manufactureYear,
       vehicleCategory,
       purchaseDeliveryDate,
-      saleAmount
+      saleAmount,
+      rcImage
     })
 
     res.status(201).json({
@@ -312,7 +313,8 @@ exports.updateRegistration = async (req, res) => {
       manufactureYear,
       vehicleCategory,
       purchaseDeliveryDate,
-      saleAmount
+      saleAmount,
+      rcImage
     } = req.body
 
     const registration = await VehicleRegistration.findOne({
@@ -349,6 +351,7 @@ exports.updateRegistration = async (req, res) => {
     if (vehicleCategory !== undefined) registration.vehicleCategory = vehicleCategory
     if (purchaseDeliveryDate !== undefined) registration.purchaseDeliveryDate = purchaseDeliveryDate
     if (saleAmount !== undefined) registration.saleAmount = saleAmount
+    if (rcImage !== undefined) registration.rcImage = rcImage
 
     await registration.save()
 
@@ -383,6 +386,24 @@ exports.deleteRegistration = async (req, res) => {
         success: false,
         message: 'Vehicle registration not found'
       })
+    }
+
+    // Delete RC image file if exists
+    if (registration.rcImage) {
+      const fs = require('fs')
+      const path = require('path')
+      try {
+        const filename = path.basename(registration.rcImage)
+        const uploadsDir = path.join(__dirname, '..', 'uploads', 'rc-images')
+        const filePath = path.join(uploadsDir, filename)
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath)
+          console.log(`Deleted RC image: ${filename}`)
+        }
+      } catch (fileError) {
+        console.error('Error deleting RC image file:', fileError)
+        // Don't fail the deletion if file removal fails
+      }
     }
 
     res.json({

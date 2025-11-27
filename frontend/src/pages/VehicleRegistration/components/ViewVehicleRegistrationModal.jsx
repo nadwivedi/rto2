@@ -1,7 +1,18 @@
+import { useState } from 'react'
+import ImageViewer from '../../../components/ImageViewer'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+
 const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration }) => {
+  const [showImageViewer, setShowImageViewer] = useState(false)
+
   if (!isOpen || !selectedRegistration) {
     return null
   }
+
+  const rcImageUrl = selectedRegistration.rcImage?.startsWith('data:')
+    ? selectedRegistration.rcImage
+    : `${API_URL}${selectedRegistration.rcImage}`
 
   return (
     <div className='fixed inset-0 bg-black/70  flex items-center justify-center z-50 p-2 md:p-4 animate-fadeIn'>
@@ -33,6 +44,38 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
 
         {/* Content */}
         <div className='overflow-y-auto max-h-[calc(98vh-100px)] md:max-h-[calc(95vh-130px)] p-3 md:p-5'>
+          {/* RC Image Section */}
+          {selectedRegistration.rcImage && (
+            <div className='mb-4 bg-gradient-to-br from-green-50 to-emerald-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-green-200'>
+              <h3 className='text-sm md:text-base font-bold text-green-900 mb-3 flex items-center gap-2'>
+                <svg className='w-4 h-4 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                </svg>
+                RC Document Image
+              </h3>
+              <div className='relative bg-white rounded-lg p-2 border-2 border-green-300 group'>
+                <img
+                  src={rcImageUrl}
+                  alt='RC Document'
+                  onClick={() => setShowImageViewer(true)}
+                  className='w-full max-h-96 object-contain rounded cursor-pointer hover:opacity-90 transition-opacity'
+                  title='Click to view full image with zoom'
+                />
+                <div className='absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg'>
+                  WebP Format
+                </div>
+                <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => setShowImageViewer(true)}>
+                  <div className='bg-white text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 font-bold'>
+                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
+                    </svg>
+                    Click to View & Zoom
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4'>
             {/* Column 1: Registration & Vehicle Details */}
             <div className='bg-gradient-to-br from-indigo-50 to-purple-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-indigo-200 flex flex-col'>
@@ -141,6 +184,28 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
                     <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5 leading-relaxed'>{selectedRegistration.address}</div>
                   </div>
                 )}
+                {selectedRegistration.mobileNumber && (
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <div className='text-[10px] md:text-xs font-semibold text-gray-600 flex items-center gap-1'>
+                      <svg className='w-3 h-3 text-purple-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                      </svg>
+                      Mobile Number
+                    </div>
+                    <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.mobileNumber}</div>
+                  </div>
+                )}
+                {selectedRegistration.email && (
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <div className='text-[10px] md:text-xs font-semibold text-gray-600 flex items-center gap-1'>
+                      <svg className='w-3 h-3 text-purple-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' />
+                      </svg>
+                      Email Address
+                    </div>
+                    <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5 break-all'>{selectedRegistration.email}</div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -203,6 +268,14 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
             Close
           </button>
         </div>
+
+        {/* Image Viewer Modal */}
+        <ImageViewer
+          isOpen={showImageViewer}
+          onClose={() => setShowImageViewer(false)}
+          imageUrl={rcImageUrl}
+          title='RC Document Image'
+        />
       </div>
     </div>
   )

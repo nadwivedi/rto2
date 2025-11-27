@@ -3,11 +3,13 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
+import ImageViewer from '../../../components/ImageViewer'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
+  const [showImageViewer, setShowImageViewer] = useState(false)
   const [formData, setFormData] = useState({
     registrationNumber: '',
     dateOfRegistration: '',
@@ -28,11 +30,14 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     manufactureYear: '',
     vehicleCategory: '',
     purchaseDeliveryDate: '',
-    saleAmount: ''
+    saleAmount: '',
+    rcImage: ''
   })
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [rcImagePreview, setRcImagePreview] = useState(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   // Handle Enter key to move to next field in order
   const handleKeyDown = (e) => {
@@ -94,6 +99,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         const validation = validateVehicleNumberRealtime(regNumber)
         setVehicleValidation(validation)
       }
+
+      // Set RC image preview if exists
+      if (editData.rcImage) {
+        setRcImagePreview(`${API_URL}${editData.rcImage}`)
+      } else {
+        setRcImagePreview(null)
+      }
     } else {
       setFormData({
         registrationNumber: '',
@@ -115,9 +127,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         manufactureYear: '',
         vehicleCategory: '',
         purchaseDeliveryDate: '',
-        saleAmount: ''
+        saleAmount: '',
+        rcImage: ''
       })
       setVehicleValidation({ isValid: false, message: '' })
+      setRcImagePreview(null)
     }
     setError('')
   }, [editData, isOpen])
@@ -161,6 +175,148 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         [name]: formatted
       }))
     }
+  }
+
+  // Handle RC image upload and convert to WebP
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select a valid image file', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    // Validate file size (max 12MB)
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error('Image size should be less than 12MB', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    setUploadingImage(true)
+
+    try {
+      // Create canvas to convert image to WebP
+      const img = new Image()
+      const reader = new FileReader()
+
+      reader.onload = (event) => {
+        img.onload = async () => {
+          // Create canvas with image dimensions
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+
+          // Set max dimensions while maintaining aspect ratio
+          const maxWidth = 1920
+          const maxHeight = 1920
+          let width = img.width
+          let height = img.height
+
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height)
+            width = width * ratio
+            height = height * ratio
+          }
+
+          canvas.width = width
+          canvas.height = height
+
+          // Draw image on canvas
+          ctx.drawImage(img, 0, 0, width, height)
+
+          // Convert to WebP blob
+          canvas.toBlob(
+            async (blob) => {
+              if (blob) {
+                // Convert blob to base64 for upload
+                const webpReader = new FileReader()
+                webpReader.onloadend = async () => {
+                  try {
+                    const base64String = webpReader.result
+
+                    // Upload to server (include vehicleRegistrationId if editing to replace old image)
+                    const response = await axios.post(
+                      `${API_URL}/api/upload/rc-image`,
+                      {
+                        imageData: base64String,
+                        vehicleRegistrationId: editData?._id || null
+                      },
+                      { withCredentials: true }
+                    )
+
+                    if (response.data.success) {
+                      // Set the server path in form data
+                      setFormData(prev => ({
+                        ...prev,
+                        rcImage: response.data.data.path
+                      }))
+
+                      // Create preview URL from base64
+                      const previewUrl = URL.createObjectURL(blob)
+                      setRcImagePreview(previewUrl)
+
+                      setUploadingImage(false)
+                      toast.success(`RC image uploaded successfully! (${response.data.data.sizeInMB}MB, ${response.data.data.format})`, {
+                        position: 'top-right',
+                        autoClose: 2000
+                      })
+                    } else {
+                      setUploadingImage(false)
+                      toast.error(response.data.message || 'Failed to upload image', {
+                        position: 'top-right',
+                        autoClose: 3000
+                      })
+                    }
+                  } catch (uploadError) {
+                    console.error('Error uploading to server:', uploadError)
+                    setUploadingImage(false)
+                    toast.error(uploadError.response?.data?.message || 'Failed to upload image to server', {
+                      position: 'top-right',
+                      autoClose: 3000
+                    })
+                  }
+                }
+                webpReader.readAsDataURL(blob)
+              } else {
+                setUploadingImage(false)
+                toast.error('Failed to convert image', { position: 'top-right', autoClose: 3000 })
+              }
+            },
+            'image/webp',
+            0.8 // Quality: 0.8 for good balance between quality and size
+          )
+        }
+
+        img.onerror = () => {
+          setUploadingImage(false)
+          toast.error('Failed to load image', { position: 'top-right', autoClose: 3000 })
+        }
+
+        img.src = event.target.result
+      }
+
+      reader.onerror = () => {
+        setUploadingImage(false)
+        toast.error('Failed to read file', { position: 'top-right', autoClose: 3000 })
+      }
+
+      reader.readAsDataURL(file)
+    } catch (error) {
+      console.error('Error uploading image:', error)
+      setUploadingImage(false)
+      toast.error('Error uploading image', { position: 'top-right', autoClose: 3000 })
+    }
+  }
+
+  // Remove RC image
+  const handleRemoveImage = () => {
+    setRcImagePreview(null)
+    setFormData(prev => ({
+      ...prev,
+      rcImage: ''
+    }))
+    toast.info('RC image removed', { position: 'top-right', autoClose: 2000 })
   }
 
   const handleSubmit = async (e) => {
@@ -835,6 +991,105 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               </div>
             </div>
 
+            {/* RC Image Upload Section */}
+            <div className='mb-4 md:mb-8'>
+              <div className='flex items-center gap-2 md:gap-3 mb-3 md:mb-6'>
+                <div className='bg-gradient-to-br from-green-500 to-emerald-600 p-1.5 md:p-2.5 rounded-lg md:rounded-xl shadow-lg'>
+                  <svg className='w-4 h-4 md:w-6 md:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className='text-sm md:text-xl font-bold text-gray-800'>RC Document Image</h3>
+                  <p className='text-[10px] md:text-sm text-gray-500 hidden md:block'>Upload RC image (Optional - Only 1 image allowed, auto-converts to WebP)</p>
+                </div>
+              </div>
+              <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-3 md:p-6 rounded-xl md:rounded-2xl border border-green-100'>
+                <div className='flex flex-col md:flex-row gap-4'>
+                  {/* Upload Area */}
+                  <div className='flex-1'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
+                      Upload RC Image {rcImagePreview && <span className='text-green-600'>(Replaces existing)</span>}
+                    </label>
+                    <div className='relative'>
+                      <input
+                        type='file'
+                        accept='image/*'
+                        onChange={handleImageUpload}
+                        disabled={uploadingImage}
+                        className='hidden'
+                        id='rcImageInput'
+                      />
+                      <label
+                        htmlFor='rcImageInput'
+                        className={`flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                          uploadingImage
+                            ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                            : 'border-green-300 bg-white hover:bg-green-50 hover:border-green-400'
+                        }`}
+                      >
+                        {uploadingImage ? (
+                          <div className='flex flex-col items-center'>
+                            <svg className='animate-spin h-8 w-8 text-green-600 mb-2' fill='none' viewBox='0 0 24 24'>
+                              <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                              <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                            </svg>
+                            <p className='text-sm text-gray-600 font-semibold'>Converting to WebP...</p>
+                          </div>
+                        ) : (
+                          <>
+                            <svg className='w-10 h-10 md:w-12 md:h-12 text-green-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
+                            </svg>
+                            <p className='text-xs md:text-sm text-gray-600 font-semibold mb-1'>Click to upload RC image</p>
+                            <p className='text-[10px] md:text-xs text-gray-500'>PNG, JPG, JPEG, WebP (Max 12MB)</p>
+                            <p className='text-[10px] text-green-600 font-semibold mt-1'>Only 1 image • Auto-converts to WebP</p>
+                          </>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Image Preview */}
+                  {rcImagePreview && (
+                    <div className='flex-1'>
+                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
+                        Preview
+                      </label>
+                      <div className='relative group'>
+                        <img
+                          src={rcImagePreview}
+                          alt='RC Preview'
+                          onClick={() => setShowImageViewer(true)}
+                          className='w-full h-32 md:h-40 object-contain bg-white rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-500 transition-all'
+                          title='Click to view full image'
+                        />
+                        <button
+                          type='button'
+                          onClick={handleRemoveImage}
+                          className='absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-all duration-200 opacity-0 group-hover:opacity-100 z-10'
+                          title='Remove image'
+                        >
+                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                          </svg>
+                        </button>
+                        <div className='absolute bottom-1 left-1 bg-green-600 text-white px-2 py-0.5 rounded text-[10px] font-bold'>
+                          WebP Format
+                        </div>
+                        <div className='absolute bottom-1 right-1 bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
+                          </svg>
+                          View
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
           </form>
         </div>
 
@@ -878,6 +1133,14 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
           </div>
         </div>
       </div>
+
+      {/* Image Viewer Modal */}
+      <ImageViewer
+        isOpen={showImageViewer}
+        onClose={() => setShowImageViewer(false)}
+        imageUrl={rcImagePreview}
+        title='RC Document Image'
+      />
     </div>
   )
 }

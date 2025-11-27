@@ -668,6 +668,12 @@ const Tax = () => {
                       Owner Name
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
+                      Tax From
+                    </th>
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
+                      Tax To
+                    </th>
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Total Amount (₹)
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
@@ -675,12 +681,6 @@ const Tax = () => {
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Balance (₹)
-                    </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
-                      Tax From
-                    </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
-                      Tax To
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Status
@@ -770,33 +770,6 @@ const Tax = () => {
                           </div>
                         </td>
 
-                        {/* Total Amount */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          <span className="text-[11px] 2xl:text-sm font-bold text-gray-800">
-                            ₹{(record.totalAmount || 0).toLocaleString("en-IN")}
-                          </span>
-                        </td>
-
-                        {/* Paid Amount */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                            ₹{(record.paidAmount || 0).toLocaleString("en-IN")}
-                          </span>
-                        </td>
-
-                        {/* Balance Amount */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          {record.balanceAmount > 0 ? (
-                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
-                              ₹{record.balanceAmount.toLocaleString("en-IN")}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
-                              ₹0
-                            </span>
-                          )}
-                        </td>
-
                         {/* Tax From */}
                         <td className="px-4 2xl:px-6 py-3 2xl:py-4">
                           <div className="flex items-center text-[11px] 2xl:text-sm text-green-600 font-semibold">
@@ -835,6 +808,33 @@ const Tax = () => {
                             </svg>
                             {record.taxTo}
                           </div>
+                        </td>
+
+                        {/* Total Amount */}
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <span className="text-[11px] 2xl:text-sm font-bold text-gray-800">
+                            ₹{(record.totalAmount || 0).toLocaleString("en-IN")}
+                          </span>
+                        </td>
+
+                        {/* Paid Amount */}
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            ₹{(record.paidAmount || 0).toLocaleString("en-IN")}
+                          </span>
+                        </td>
+
+                        {/* Balance Amount */}
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          {record.balanceAmount > 0 ? (
+                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                              ₹{record.balanceAmount.toLocaleString("en-IN")}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
+                              ₹0
+                            </span>
+                          )}
                         </td>
 
                         {/* Status */}

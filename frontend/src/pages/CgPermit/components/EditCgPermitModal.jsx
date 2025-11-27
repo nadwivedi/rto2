@@ -1,17 +1,26 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import axios from 'axios'
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL
 
 const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
   const [showOptionalFields, setShowOptionalFields] = useState(true) // Show optional fields by default in edit mode
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
+  const [fetchingVehicle, setFetchingVehicle] = useState(false)
+  const [vehicleError, setVehicleError] = useState('')
+  const [vehicleMatches, setVehicleMatches] = useState([])
+  const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
+  const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
+  const dropdownItemRefs = useRef([])
 
   const [formData, setFormData] = useState({
     // Required fields
     permitNumber: '',
-    permitHolder: '',
+    permitHolderName: '',
     vehicleNumber: '',
     validFrom: '',
     validTo: '',
@@ -21,6 +30,12 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     address: '',
     mobileNumber: '',
     email: '',
+
+    // Vehicle details
+    chassisNumber: '',
+    engineNumber: '',
+    ladenWeight: '',
+    unladenWeight: '',
 
     // Fees
     totalFee: '',
@@ -34,7 +49,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       const vehicleNum = permit.vehicleNo || permit.vehicleNumber || ''
       setFormData({
         permitNumber: permit.permitNumber || '',
-        permitHolder: permit.permitHolder || '',
+        permitHolderName: permit.permitHolder || permit.permitHolderName || '',
         vehicleNumber: vehicleNum,
         validFrom: permit.validFrom || '',
         validTo: permit.validTill || permit.validTo || '',
@@ -42,6 +57,10 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         address: permit.address || '',
         mobileNumber: permit.mobileNumber?.replace('+91 ', '') || '',
         email: permit.email || '',
+        chassisNumber: permit.chassisNumber || '',
+        engineNumber: permit.engineNumber || '',
+        ladenWeight: permit.ladenWeight || '',
+        unladenWeight: permit.unladenWeight || '',
         totalFee: (permit.totalFee || permit.fees)?.toString() || '',
         paid: permit.paid?.toString() || '',
         balance: permit.balance?.toString() || ''
@@ -53,6 +72,84 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       }
     }
   }, [permit])
+
+  // Fetch vehicle details when registration number is entered
+  useEffect(() => {
+    const fetchVehicleDetails = async () => {
+      const searchInput = formData.vehicleNumber.trim()
+
+      // Only fetch if search input has at least 4 characters
+      if (searchInput.length < 4) {
+        setVehicleError('')
+        setVehicleMatches([])
+        setShowVehicleDropdown(false)
+        setSelectedDropdownIndex(0)
+        return
+      }
+
+      setFetchingVehicle(true)
+      setVehicleError('')
+
+      try {
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`, {
+          withCredentials: true
+        })
+
+        if (response.data.success) {
+          // Check if multiple vehicles found
+          if (response.data.multiple) {
+            // Show dropdown with multiple matches
+            setVehicleMatches(response.data.data)
+            setShowVehicleDropdown(true)
+            setSelectedDropdownIndex(0) // Reset to first item
+            setVehicleError('')
+          } else {
+            // Single match found - auto-fill including full vehicle number
+            const vehicleData = response.data.data
+            setFormData(prev => ({
+              ...prev,
+              vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
+              permitHolderName: vehicleData.ownerName || prev.permitHolderName,
+              address: vehicleData.address || prev.address,
+              chassisNumber: vehicleData.chassisNumber || prev.chassisNumber,
+              engineNumber: vehicleData.engineNumber || prev.engineNumber,
+              ladenWeight: vehicleData.ladenWeight || prev.ladenWeight,
+              unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
+              email: vehicleData.email || prev.email
+            }))
+            // Validate the full vehicle number
+            const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
+            setVehicleValidation(validation)
+            setVehicleError('')
+            setVehicleMatches([])
+            setShowVehicleDropdown(false)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching vehicle details:', error)
+        if (error.response && error.response.status === 404) {
+          setVehicleError('No vehicles found matching the search')
+        } else {
+          setVehicleError('Error fetching vehicle details')
+        }
+        setVehicleMatches([])
+        setShowVehicleDropdown(false)
+        setSelectedDropdownIndex(0)
+      } finally {
+        setFetchingVehicle(false)
+      }
+    }
+
+    // Debounce the API call - wait 500ms after user stops typing
+    const timeoutId = setTimeout(() => {
+      if (formData.vehicleNumber) {
+        fetchVehicleDetails()
+      }
+    }, 500) // Wait 500ms after user stops typing
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.vehicleNumber])
 
   // Calculate valid to date (5 years from valid from)
   useEffect(() => {
@@ -90,16 +187,58 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     }
   }, [formData.validFrom])
 
-  // Keyboard shortcuts
+  // Auto-scroll to selected dropdown item
+  useEffect(() => {
+    if (showVehicleDropdown && dropdownItemRefs.current[selectedDropdownIndex]) {
+      dropdownItemRefs.current[selectedDropdownIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest'
+      })
+    }
+  }, [selectedDropdownIndex, showVehicleDropdown])
+
+  // Keyboard shortcuts and dropdown navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ctrl+Enter to submit
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      // Handle dropdown navigation
+      if (showVehicleDropdown && vehicleMatches.length > 0) {
+        if (e.key === 'ArrowDown') {
+          e.preventDefault()
+          setSelectedDropdownIndex(prev =>
+            prev < vehicleMatches.length - 1 ? prev + 1 : 0
+          )
+          return
+        }
+        if (e.key === 'ArrowUp') {
+          e.preventDefault()
+          setSelectedDropdownIndex(prev =>
+            prev > 0 ? prev - 1 : vehicleMatches.length - 1
+          )
+          return
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          if (vehicleMatches[selectedDropdownIndex]) {
+            handleVehicleSelect(vehicleMatches[selectedDropdownIndex])
+          }
+          return
+        }
+        if (e.key === 'Escape') {
+          e.preventDefault()
+          setShowVehicleDropdown(false)
+          setVehicleMatches([])
+          setSelectedDropdownIndex(0)
+          return
+        }
+      }
+
+      // Ctrl+Enter to submit (only when dropdown is not showing)
+      if (!showVehicleDropdown && (e.ctrlKey || e.metaKey) && e.key === 'Enter') {
         e.preventDefault()
         document.querySelector('form')?.requestSubmit()
       }
-      // Escape to close
-      if (e.key === 'Escape') {
+      // Escape to close modal (only when dropdown is not showing)
+      if (!showVehicleDropdown && e.key === 'Escape') {
         onClose()
       }
     }
@@ -108,7 +247,31 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, showVehicleDropdown, vehicleMatches, selectedDropdownIndex])
+
+  // Handle vehicle selection from dropdown
+  const handleVehicleSelect = (vehicle) => {
+    setFormData(prev => ({
+      ...prev,
+      vehicleNumber: vehicle.registrationNumber,
+      permitHolderName: vehicle.ownerName || prev.permitHolderName,
+      address: vehicle.address || prev.address,
+      chassisNumber: vehicle.chassisNumber || prev.chassisNumber,
+      engineNumber: vehicle.engineNumber || prev.engineNumber,
+      ladenWeight: vehicle.ladenWeight || prev.ladenWeight,
+      unladenWeight: vehicle.unladenWeight || prev.unladenWeight,
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
+      email: vehicle.email || prev.email
+    }))
+    setShowVehicleDropdown(false)
+    setVehicleMatches([])
+    setVehicleError('')
+    setSelectedDropdownIndex(0)
+
+    // Validate the selected vehicle number
+    const validation = validateVehicleNumberRealtime(vehicle.registrationNumber)
+    setVehicleValidation(validation)
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -168,7 +331,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     }
 
     // Convert specific fields to uppercase
-    const uppercaseFields = ['permitHolder', 'fatherName', 'address', 'chassisNumber', 'engineNumber']
+    const uppercaseFields = ['permitHolderName', 'fatherName', 'address', 'chassisNumber', 'engineNumber']
     const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
 
     // For other fields, just store the value
@@ -267,10 +430,111 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
             <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
-                Essential Information
+                Type A
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+                {/* Vehicle Number */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Vehicle Number <span className='text-red-500'>*</span>
+                  </label>
+                  <div className='relative'>
+                    <input
+                      type='text'
+                      name='vehicleNumber'
+                      value={formData.vehicleNumber}
+                      onChange={handleChange}
+                      placeholder='CG04AA1234 or CG04G1234'
+                      maxLength='10'
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                        formData.vehicleNumber && !vehicleValidation.isValid
+                          ? 'border-red-500 focus:ring-red-500'
+                          : formData.vehicleNumber && vehicleValidation.isValid
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-300 focus:ring-indigo-500'
+                      }`}
+                      autoFocus
+                      required
+                    />
+                    {fetchingVehicle && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='animate-spin h-5 w-5 text-indigo-500' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                        </svg>
+                      </div>
+                    )}
+                    {!fetchingVehicle && vehicleValidation.isValid && formData.vehicleNumber && !showVehicleDropdown && (
+                      <div className='absolute right-3 top-2.5'>
+                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                        </svg>
+                      </div>
+                    )}
+
+                    {/* Dropdown for multiple vehicle matches */}
+                    {showVehicleDropdown && vehicleMatches.length > 0 && (
+                      <div className='absolute z-50 w-full mt-1 bg-white border border-indigo-300 rounded-lg shadow-lg max-h-60 overflow-y-auto'>
+                        <div className='p-2 bg-indigo-50 border-b border-indigo-200'>
+                          <p className='text-xs font-semibold text-indigo-700'>
+                            {vehicleMatches.length} vehicles found - Use ↑↓ arrows to navigate, Enter to select
+                          </p>
+                        </div>
+                        {vehicleMatches.map((vehicle, index) => (
+                          <div
+                            key={vehicle._id || index}
+                            ref={(el) => (dropdownItemRefs.current[index] = el)}
+                            onClick={() => handleVehicleSelect(vehicle)}
+                            className={`p-3 cursor-pointer border-b border-gray-100 last:border-b-0 transition ${
+                              index === selectedDropdownIndex
+                                ? 'bg-indigo-100 border-l-4 border-l-indigo-600'
+                                : 'hover:bg-indigo-50'
+                            }`}
+                          >
+                            <div className='flex justify-between items-start'>
+                              <div>
+                                <p className={`font-mono font-bold text-sm ${
+                                  index === selectedDropdownIndex ? 'text-indigo-800' : 'text-indigo-700'
+                                }`}>
+                                  {vehicle.registrationNumber}
+                                </p>
+                                <p className='text-xs text-gray-700 mt-1'>
+                                  {vehicle.ownerName || 'N/A'}
+                                </p>
+                                {vehicle.chassisNumber && (
+                                  <p className='text-xs text-gray-500 mt-0.5'>
+                                    Chassis: {vehicle.chassisNumber}
+                                  </p>
+                                )}
+                              </div>
+                              <svg className={`w-5 h-5 ${
+                                index === selectedDropdownIndex ? 'text-indigo-600' : 'text-indigo-400'
+                              }`} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                              </svg>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <p className='text-xs text-gray-500 mt-1'>
+                    Search by: Full number (CG04AA1234 or CG04G1234), Series (AA4793), or Last 4 digits (4793)
+                  </p>
+                  {vehicleValidation.message && !fetchingVehicle && !showVehicleDropdown && (
+                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {vehicleValidation.message}
+                    </p>
+                  )}
+                  {vehicleError && (
+                    <p className='text-xs text-amber-600 mt-1'>{vehicleError}</p>
+                  )}
+                  {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.permitHolderName && vehicleValidation.isValid && !showVehicleDropdown && (
+                    <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner details auto-filled</p>
+                  )}
+                </div>
+
                 {/* Permit Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -294,50 +558,13 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                   </label>
                   <input
                     type='text'
-                    name='permitHolder'
-                    value={formData.permitHolder}
+                    name='permitHolderName'
+                    value={formData.permitHolderName}
                     onChange={handleChange}
                     placeholder='Rajesh Transport Services'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
                     required
                   />
-                </div>
-
-                {/* Vehicle Number */}
-                <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Vehicle Number <span className='text-red-500'>*</span>
-                  </label>
-                  <div className='relative'>
-                    <input
-                      type='text'
-                      name='vehicleNumber'
-                      value={formData.vehicleNumber}
-                      onChange={handleChange}
-                      placeholder='CG04AA1234 or CG04G1234'
-                      maxLength='10'
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
-                        formData.vehicleNumber && !vehicleValidation.isValid
-                          ? 'border-red-500 focus:ring-red-500'
-                          : formData.vehicleNumber && vehicleValidation.isValid
-                          ? 'border-green-500 focus:ring-green-500'
-                          : 'border-gray-300 focus:ring-indigo-500'
-                      }`}
-                      required
-                    />
-                    {vehicleValidation.isValid && formData.vehicleNumber && (
-                      <div className='absolute right-3 top-2.5'>
-                        <svg className='h-5 w-5 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  {vehicleValidation.message && (
-                    <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
-                      {vehicleValidation.message}
-                    </p>
-                  )}
                 </div>
 
                 {/* Mobile Number */}
@@ -519,6 +746,68 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                           rows='2'
                           placeholder='Complete address with street, area, landmark'
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Vehicle Details */}
+                  <div className='border-t border-gray-200 pt-4'>
+                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase '>Vehicle Details</h4>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Chassis Number
+                        </label>
+                        <input
+                          type='text'
+                          name='chassisNumber'
+                          value={formData.chassisNumber}
+                          onChange={handleChange}
+                          placeholder='Enter chassis number'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                        />
+                      </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Engine Number
+                        </label>
+                        <input
+                          type='text'
+                          name='engineNumber'
+                          value={formData.engineNumber}
+                          onChange={handleChange}
+                          placeholder='Enter engine number'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                        />
+                      </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Laden Weight (kg)
+                        </label>
+                        <input
+                          type='number'
+                          name='ladenWeight'
+                          value={formData.ladenWeight}
+                          onChange={handleChange}
+                          placeholder='Enter laden weight'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                        />
+                      </div>
+
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          Unladen Weight (kg)
+                        </label>
+                        <input
+                          type='number'
+                          name='unladenWeight'
+                          value={formData.unladenWeight}
+                          onChange={handleChange}
+                          placeholder='Enter unladen weight'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                         />
                       </div>
                     </div>
