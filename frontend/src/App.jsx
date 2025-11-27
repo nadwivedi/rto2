@@ -20,7 +20,7 @@ import DealerBill from './pages/DealerBill'
 import Tax from './pages/Tax/Tax'
 import Forms from './pages/Forms'
 import Form20 from './pages/Form20'
-import Puc from './pages/Puc'
+import Puc from './pages/Puc/Puc'
 
 function App() {
   return (

@@ -1,0 +1,701 @@
+const Puc = require('../models/Puc')
+const mongoose = require('mongoose')
+
+// helper function to calculate status
+const getPucStatus = (validTo) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const thirtyDaysFromNow = new Date();
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+  thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+  // a little utility function to parse dates consistently
+  const parseDate = (dateString) => {
+      const parts = dateString.split(/[-/]/);
+      // new Date(year, monthIndex, day)
+      return new Date(parts[2], parts[1] - 1, parts[0]);
+  };
+
+  const validToDate = parseDate(validTo);
+
+  if (validToDate < today) {
+    return 'expired';
+  } else if (validToDate <= thirtyDaysFromNow) {
+    return 'expiring_soon';
+  } else {
+    return 'active';
+  }
+};
+
+
+// Get all PUC records
+exports.getAllPuc = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+
+    const query = { userId: req.user.id }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const pucRecords = await Puc.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Puc.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: pucRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + pucRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching PUC records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching PUC records',
+      error: error.message
+    })
+  }
+}
+
+// Export all PUC records without pagination
+exports.exportAllPuc = async (req, res) => {
+  try {
+    const pucRecords = await Puc.find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
+
+    res.json({
+      success: true,
+      data: pucRecords,
+      total: pucRecords.length
+    })
+  } catch (error) {
+    console.error('Error exporting PUC records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export PUC records',
+      error: error.message
+    })
+  }
+}
+
+// Get expiring soon PUC records
+exports.getExpiringSoonPuc = async (req, res) => {
+  try {
+
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
+
+    // Find all vehicle numbers that have both expiring_soon and active PUC
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActivePuc = await Puc.find({ status: 'active', userId: req.user.id })
+      .distinct('vehicleNumber')
+
+    const query = {
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActivePuc },
+      userId: req.user.id
+    }
+
+    if (search) {
+      // Update the vehicleNumber condition to work with search
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActivePuc } },
+        { vehicleNumber: { $regex: search, $options: 'i' } }
+      ]
+      delete query.vehicleNumber
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const pucRecords = await Puc.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Puc.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: pucRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + pucRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expiring soon PUC records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expiring soon PUC records',
+      error: error.message
+    })
+  }
+}
+
+// Get expired PUC records
+exports.getExpiredPuc = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'desc' } = req.query
+
+    // Find all vehicle numbers that have active PUC
+    // These vehicles have been renewed and should be excluded
+    const vehiclesWithActivePuc = await Puc.find({ status: 'active', userId: req.user.id })
+      .distinct('vehicleNumber')
+
+    const query = {
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActivePuc },
+      userId: req.user.id
+    }
+
+    if (search) {
+      // Update the vehicleNumber condition to work with search
+      query.$and = [
+        { vehicleNumber: { $nin: vehiclesWithActivePuc } },
+        { vehicleNumber: { $regex: search, $options: 'i' } }
+      ]
+      delete query.vehicleNumber
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const pucRecords = await Puc.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Puc.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: pucRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + pucRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching expired PUC records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching expired PUC records',
+      error: error.message
+    })
+  }
+}
+
+// Get active PUC records
+exports.getActivePuc = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'validTo', sortOrder = 'asc' } = req.query
+
+    const query = { status: 'active', userId: req.user.id }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const pucRecords = await Puc.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Puc.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: pucRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + pucRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching active PUC records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching active PUC records',
+      error: error.message
+    })
+  }
+}
+
+// Get pending PUC records
+exports.getPendingPuc = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
+
+    const query = { balance: { $gt: 0 }, userId: req.user.id }
+
+    if (search) {
+      query.vehicleNumber = { $regex: search, $options: 'i' }
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+
+    const pucRecords = await Puc.find(query)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(parseInt(limit))
+
+    const total = await Puc.countDocuments(query)
+
+    res.json({
+      success: true,
+      data: pucRecords,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        hasMore: skip + pucRecords.length < total
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching pending PUC records:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching pending PUC records',
+      error: error.message
+    })
+  }
+}
+
+
+// Get single PUC record by ID
+exports.getPucById = async (req, res) => {
+  try {
+    const puc = await Puc.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!puc) {
+      return res.status(404).json({
+        success: false,
+        message: 'PUC record not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      data: puc
+    })
+  } catch (error) {
+    console.error('Error fetching PUC record:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching PUC record',
+      error: error.message
+    })
+  }
+}
+
+// Create new PUC record
+exports.createPuc = async (req, res) => {
+  try {
+    const { vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+
+    // Validate required fields
+    if (!vehicleNumber ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required '
+      })
+    }
+
+    if(!validFrom || !validTo){
+      return res.status(400).json({success:false , message:'valid from, and valid to are required'})
+
+    }
+
+    if(totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null){
+      return res.status(400).json({success:false , message:'total fee, paid amount, and balance are required'})
+    }
+
+    // Validate that paid amount can't be greater than total amount
+    if(paid > totalFee){
+      return res.status(400).json({success:false , message:'paid amount cannot be greater than total fee'})
+    }
+
+    // Validate that balance amount can't be negative
+    if(balance < 0){
+      return res.status(400).json({success:false , message:'balance amount cannot be negative'})
+    }
+
+    // Calculate status
+    const status = getPucStatus(validTo);
+
+    // Mark any existing non-renewed PUC records for this vehicle as expired and renewed
+    await Puc.updateMany(
+      {
+        vehicleNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id,
+        isRenewed: false
+      },
+      {
+        $set: {
+          status: 'expired',
+          isRenewed: true
+        }
+      }
+    )
+
+    // Create new PUC record
+    const puc = new Puc({
+      vehicleNumber,
+      mobileNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      status,
+      userId: req.user.id
+    })
+
+    await puc.save()
+
+    res.status(201).json({
+      success: true,
+      message: 'PUC record created successfully',
+      data: puc
+    })
+  } catch (error) {
+    console.error('Error creating PUC record:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error creating PUC record',
+      error: error.message
+    })
+  }
+}
+
+// Update PUC record
+exports.updatePuc = async (req, res) => {
+  try {
+    const { vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+
+    const puc = await Puc.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!puc) {
+      return res.status(404).json({
+        success: false,
+        message: 'PUC record not found'
+      })
+    }
+
+    // Prepare updated values for validation
+    const updatedTotalFee = totalFee !== undefined ? totalFee : puc.totalFee
+    const updatedPaid = paid !== undefined ? paid : puc.paid
+    const updatedBalance = balance !== undefined ? balance : puc.balance
+
+    // Validate that paid amount can't be greater than total amount
+    if (updatedPaid > updatedTotalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (updatedBalance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
+
+    // Update fields
+    if (vehicleNumber) puc.vehicleNumber = vehicleNumber
+    if (mobileNumber !== undefined) puc.mobileNumber = mobileNumber
+    if (validFrom) puc.validFrom = validFrom
+    if (validTo) {
+        puc.validTo = validTo
+        // Recalculate status if validTo is updated
+        puc.status = getPucStatus(validTo);
+    }
+    if (totalFee !== undefined) puc.totalFee = totalFee
+    if (paid !== undefined) puc.paid = paid
+    if (balance !== undefined) puc.balance = balance
+
+    await puc.save()
+
+    res.json({
+      success: true,
+      message: 'PUC record updated successfully',
+      data: puc
+    })
+  } catch (error) {
+    console.error('Error updating PUC record:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error updating PUC record',
+      error: error.message
+    })
+  }
+}
+
+// Delete PUC record
+exports.deletePuc = async (req, res) => {
+  try {
+    const puc = await Puc.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!puc) {
+      return res.status(404).json({
+        success: false,
+        message: 'PUC record not found'
+      })
+    }
+
+    await puc.deleteOne()
+
+    res.json({
+      success: true,
+      message: 'PUC record deleted successfully'
+    })
+  } catch (error) {
+    console.error('Error deleting PUC record:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting PUC record',
+      error: error.message
+    })
+  }
+}
+
+// Get PUC statistics
+exports.getPucStatistics = async (req, res) => {
+  try {
+    // Count permits by status (now using the indexed status field)
+    const activePuc = await Puc.countDocuments({ status: 'active', userId: req.user.id })
+
+    // For expiring soon and expired, exclude vehicles that also have active PUC (renewed vehicles)
+    const vehiclesWithActivePuc = await Puc.find({ status: 'active', userId: req.user.id })
+      .distinct('vehicleNumber')
+
+    const expiringSoonPuc = await Puc.countDocuments({
+      status: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActivePuc },
+      userId: req.user.id
+    })
+
+    const expiredPuc = await Puc.countDocuments({
+      status: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActivePuc },
+      userId: req.user.id
+    })
+
+    const total = await Puc.countDocuments({ userId: req.user.id })
+
+    // Pending payment aggregation
+    const pendingPaymentPipeline = [
+      { $match: { balance: { $gt: 0 }, userId: new mongoose.Types.ObjectId(req.user.id) } },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$balance' }
+        }
+      }
+    ]
+
+    const pendingPaymentResults = await Puc.aggregate(pendingPaymentPipeline)
+    const pendingPaymentCount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].count : 0
+    const pendingPaymentAmount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].totalAmount : 0
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        active: activePuc,
+        expired: expiredPuc,
+        expiringSoon: expiringSoonPuc,
+        pendingPaymentCount,
+        pendingPaymentAmount
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching PUC statistics:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching PUC statistics',
+      error: error.message
+    })
+  }
+}
+
+
+// Renew PUC - creates new PUC record and marks old one as renewed
+exports.renewPuc = async (req, res) => {
+  try {
+    const { oldPucId, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+
+    // Validate required fields
+    if (!oldPucId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Old PUC ID is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle number is required'
+      })
+    }
+
+    if (!validFrom || !validTo) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid from and valid to are required'
+      })
+    }
+
+    if (totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Total fee, paid amount, and balance are required'
+      })
+    }
+
+    // Validate that paid amount can't be greater than total amount
+    if (paid > totalFee) {
+      return res.status(400).json({
+        success: false,
+        message: 'Paid amount cannot be greater than total fee'
+      })
+    }
+
+    // Validate that balance amount can't be negative
+    if (balance < 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Balance amount cannot be negative'
+      })
+    }
+
+    // Find and validate old PUC record
+    const oldPuc = await Puc.findOne({ _id: oldPucId, userId: req.user.id })
+    if (!oldPuc) {
+      return res.status(404).json({
+        success: false,
+        message: 'Old PUC record not found'
+      })
+    }
+
+    // Mark old PUC as renewed
+    oldPuc.isRenewed = true
+    await oldPuc.save()
+
+    // Calculate status for new PUC
+    const status = getPucStatus(validTo)
+
+    // Create new PUC record
+    const newPuc = new Puc({
+      vehicleNumber,
+      mobileNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      status,
+      isRenewed: false,  // New PUC is not renewed yet
+      userId: req.user.id
+    })
+
+    await newPuc.save()
+
+    res.status(201).json({
+      success: true,
+      message: 'PUC renewed successfully',
+      data: {
+        oldPuc: {
+          id: oldPuc._id,
+          isRenewed: oldPuc.isRenewed
+        },
+        newPuc: newPuc
+      }
+    })
+  } catch (error) {
+    console.error('Error renewing PUC:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error renewing PUC',
+      error: error.message
+    })
+  }
+}
+
+// Mark PUC as paid
+exports.markAsPaid = async (req, res) => {
+  try {
+    const puc = await Puc.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!puc) {
+      return res.status(404).json({
+        success: false,
+        message: 'PUC record not found'
+      })
+    }
+
+    // Check if there's a balance to pay
+    if (!puc.balance || puc.balance === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No pending payment for this PUC record'
+      })
+    }
+
+    // Update payment details
+    puc.paid = puc.totalFee || 0
+    puc.balance = 0
+
+    await puc.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment marked as paid successfully',
+      data: puc
+    })
+  } catch (error) {
+    console.error('Error marking payment as paid:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error marking payment as paid',
+      error: error.message
+    })
+  }
+}

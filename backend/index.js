@@ -60,12 +60,14 @@ const { initFitnessStatusCron } = require('./jobs/updateFitnessStatus')
 const { initTaxStatusCron } = require('./jobs/updateTaxStatus')
 const { initInsuranceStatusCron } = require('./jobs/updateInsuranceStatus')
 const { initTemporaryPermitOtherStateStatusCron } = require('./jobs/updateTemporaryPermitOtherStateStatus')
+const { initPucStatusCron } = require('./jobs/updatePucStatus')
 initTemporaryPermitStatusCron()
 initCgPermitStatusCron()
 initFitnessStatusCron()
 initTaxStatusCron()
 initInsuranceStatusCron()
 initTemporaryPermitOtherStateStatusCron()
+initPucStatusCron()
 
 // Import Middleware
 const userAuth = require('./middleware/userAuth')
@@ -86,6 +88,7 @@ const customBillRoutes = require('./routes/customBill')
 const taxRoutes = require('./routes/tax')
 const insuranceRoutes = require('./routes/insurance')
 const vehicleTransferRoutes = require('./routes/vehicleTransfer')
+const pucRoutes = require('./routes/puc')
 
 // Use Routes
 
@@ -108,6 +111,7 @@ app.use('/api/custom-bills', userAuth, customBillRoutes)
 app.use('/api/tax', userAuth, taxRoutes)
 app.use('/api/insurance', userAuth, insuranceRoutes)
 app.use('/api/vehicle-transfers', userAuth, vehicleTransferRoutes)
+app.use('/api/puc', userAuth, pucRoutes)
 
 // Root route
 app.get('/', (req, res) => {
