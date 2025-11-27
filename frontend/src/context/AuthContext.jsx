@@ -51,8 +51,18 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const logout = () => {
-    clearAuthState()
+  const logout = async () => {
+    try {
+      // Call backend logout endpoint to clear cookie
+      await axios.post(`${BACKEND_URL}/api/auth/logout`, {}, {
+        withCredentials: true
+      })
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      // Always clear local auth state, even if API call fails
+      clearAuthState()
+    }
   }
 
 

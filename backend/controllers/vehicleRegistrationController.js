@@ -229,6 +229,9 @@ exports.createRegistration = async (req, res) => {
       saleAmount
     } = req.body
 
+    // RC image is optional
+    const rcImage = req.body.rcImage
+
     // Validate required fields
     if (!registrationNumber) {
       return res.status(400).json({
@@ -245,7 +248,8 @@ exports.createRegistration = async (req, res) => {
     }
 
     // Create vehicle registration with userId
-    const registration = await VehicleRegistration.create({
+    // Build the registration object, only include rcImage if it's provided
+    const registrationData = {
       userId: req.user.id,
       registrationNumber,
       dateOfRegistration,
@@ -267,9 +271,15 @@ exports.createRegistration = async (req, res) => {
       manufactureYear,
       vehicleCategory,
       purchaseDeliveryDate,
-      saleAmount,
-      rcImage
-    })
+      saleAmount
+    }
+
+    // Only add rcImage if it's provided (optional field)
+    if (rcImage) {
+      registrationData.rcImage = rcImage
+    }
+
+    const registration = await VehicleRegistration.create(registrationData)
 
     res.status(201).json({
       success: true,
@@ -313,9 +323,11 @@ exports.updateRegistration = async (req, res) => {
       manufactureYear,
       vehicleCategory,
       purchaseDeliveryDate,
-      saleAmount,
-      rcImage
+      saleAmount
     } = req.body
+
+    // RC image is optional
+    const rcImage = req.body.rcImage
 
     const registration = await VehicleRegistration.findOne({
       _id: req.params.id,
@@ -351,7 +363,10 @@ exports.updateRegistration = async (req, res) => {
     if (vehicleCategory !== undefined) registration.vehicleCategory = vehicleCategory
     if (purchaseDeliveryDate !== undefined) registration.purchaseDeliveryDate = purchaseDeliveryDate
     if (saleAmount !== undefined) registration.saleAmount = saleAmount
-    if (rcImage !== undefined) registration.rcImage = rcImage
+    // Handle optional rcImage field - can be empty string to remove image
+    if (rcImage !== undefined) {
+      registration.rcImage = rcImage || undefined
+    }
 
     await registration.save()
 

@@ -338,6 +338,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         vehicleNumber: formData.registrationNumber
       }
 
+      // Only include rcImage if it has a value (optional field)
+      if (!submitData.rcImage) {
+        delete submitData.rcImage
+      }
+
       let response
       if (editData) {
         response = await axios.put(`${API_URL}/api/vehicle-registrations/${editData._id}`, submitData, { withCredentials: true })
