@@ -221,8 +221,14 @@ async function generateCustomBillPDF(customBill, userInfo) {
         amount: rightMargin - 70
       }
 
+      // Calculate dynamic table height based on number of items
+      const rowHeight = 60
+      const headerHeight = 35
+      const totalRowHeight = 35
+      const numberOfItems = customBill.items && customBill.items.length > 0 ? customBill.items.length : 3
+      const tableHeight = headerHeight + (numberOfItems * rowHeight) + totalRowHeight
+
       // Table outer border
-      const tableHeight = 280
       doc.rect(leftMargin, tableTop, rightMargin - leftMargin, tableHeight)
         .lineWidth(3)
         .strokeColor('#000000')
@@ -287,56 +293,52 @@ async function generateCustomBillPDF(customBill, userInfo) {
 
       // Add items
       let itemY = tableTop + 45
-      const maxItemsPerRow = 3
-      const rowHeight = 60
 
       doc.font('Helvetica')
         .fontSize(11)
 
       if (customBill.items && customBill.items.length > 0) {
         customBill.items.forEach((item, index) => {
-          if (index < maxItemsPerRow) {
-            // SI No
-            doc.text((index + 1).toString(), colX.slNo + 5, itemY, {
-              width: 30,
+          // SI No
+          doc.text((index + 1).toString(), colX.slNo + 5, itemY, {
+            width: 30,
+            align: 'center'
+          })
+
+          // Description (handle multiline)
+          const description = (item.description || '').toUpperCase()
+          doc.text(description, colX.description + 10, itemY, {
+            width: 250,
+            height: rowHeight - 10,
+            align: 'left'
+          })
+
+          // Quantity
+          if (item.quantity) {
+            doc.text(item.quantity.toString(), colX.qty + 5, itemY, {
+              width: 50,
               align: 'center'
             })
+          }
 
-            // Description (handle multiline)
-            const description = (item.description || '').toUpperCase()
-            doc.text(description, colX.description + 10, itemY, {
-              width: 250,
-              height: rowHeight - 10,
-              align: 'left'
+          // Rate - leave empty (don't display any value)
+
+          // Amount
+          if (item.amount) {
+            doc.text(item.amount.toLocaleString('en-IN'), colX.amount, itemY, {
+              width: 65,
+              align: 'center'
             })
+          }
 
-            // Quantity
-            if (item.quantity) {
-              doc.text(item.quantity.toString(), colX.qty + 5, itemY, {
-                width: 50,
-                align: 'center'
-              })
-            }
-
-            // Rate - leave empty (don't display any value)
-
-            // Amount
-            if (item.amount) {
-              doc.text(item.amount.toLocaleString('en-IN'), colX.amount, itemY, {
-                width: 65,
-                align: 'center'
-              })
-            }
-
-            // Line separator between items
-            if (index < customBill.items.length - 1 && index < maxItemsPerRow - 1) {
-              itemY += rowHeight
-              doc.moveTo(leftMargin, itemY - 5)
-                .lineTo(rightMargin, itemY - 5)
-                .strokeColor('#cccccc')
-                .lineWidth(1)
-                .stroke()
-            }
+          // Line separator between items
+          if (index < customBill.items.length - 1) {
+            itemY += rowHeight
+            doc.moveTo(leftMargin, itemY - 5)
+              .lineTo(rightMargin, itemY - 5)
+              .strokeColor('#cccccc')
+              .lineWidth(1)
+              .stroke()
           }
         })
       }
