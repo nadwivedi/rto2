@@ -454,9 +454,11 @@ const DrivingLicence = () => {
                 title='Total Applications'
                 value={stats.total}
                 color='blue'
-                isActive={paymentStatusFilter === 'All'}
+                isActive={paymentStatusFilter === 'All' && dlExpiryFilter === 'All' && llExpiryFilter === 'All'}
                 onClick={() => {
                   setPaymentStatusFilter('All')
+                  setDlExpiryFilter('All')
+                  setLlExpiryFilter('All')
                 }}
                 icon={
                   <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -470,7 +472,15 @@ const DrivingLicence = () => {
                 color='purple'
                 isActive={dlExpiryFilter === '30'}
                 onClick={() => {
-                  setDlExpiryFilter(dlExpiryFilter === '30' ? 'All' : '30')
+                  if (dlExpiryFilter === '30') {
+                    // If already active, reset to show all
+                    setDlExpiryFilter('All')
+                  } else {
+                    // Activate DL expiring filter and reset others
+                    setDlExpiryFilter('30')
+                    setLlExpiryFilter('All')
+                    setPaymentStatusFilter('All')
+                  }
                 }}
                 subtext='Within 30 days'
                 icon={
@@ -485,7 +495,15 @@ const DrivingLicence = () => {
                 color='yellow'
                 isActive={llExpiryFilter === '30'}
                 onClick={() => {
-                  setLlExpiryFilter(llExpiryFilter === '30' ? 'All' : '30')
+                  if (llExpiryFilter === '30') {
+                    // If already active, reset to show all
+                    setLlExpiryFilter('All')
+                  } else {
+                    // Activate LL expiring filter and reset others
+                    setLlExpiryFilter('30')
+                    setDlExpiryFilter('All')
+                    setPaymentStatusFilter('All')
+                  }
                 }}
                 subtext='Within 30 days'
                 icon={
@@ -500,7 +518,15 @@ const DrivingLicence = () => {
                 color='orange'
                 isActive={paymentStatusFilter === 'Pending'}
                 onClick={() => {
-                  setPaymentStatusFilter(paymentStatusFilter === 'Pending' ? 'All' : 'Pending')
+                  if (paymentStatusFilter === 'Pending') {
+                    // If already active, reset to show all
+                    setPaymentStatusFilter('All')
+                  } else {
+                    // Activate pending payment filter and reset others
+                    setPaymentStatusFilter('Pending')
+                    setDlExpiryFilter('All')
+                    setLlExpiryFilter('All')
+                  }
                 }}
                 extraValue={`₹${stats.totalPending.toLocaleString('en-IN')}`}
                 icon={
