@@ -733,13 +733,13 @@ const TemporaryPermit = () => {
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                       Permit Holder
                     </th>
-                    <th className="px-1 2xl:px-2 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-0.5 2xl:px-1 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider pl-8 2xl:pl-12">
                       Valid From
                     </th>
-                    <th className="px-1 2xl:px-2 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-0.5 2xl:px-1 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                       Valid To
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10 pl-12 2xl:pl-16">
                       Total Fee
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10">
@@ -748,7 +748,7 @@ const TemporaryPermit = () => {
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10">
                       Balance
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider pl-16 2xl:pl-24">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider pl-20 2xl:pl-32">
                       Status
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
@@ -875,7 +875,7 @@ const TemporaryPermit = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-1 2xl:px-2 py-3 2xl:py-5">
+                        <td className="px-0.5 2xl:px-1 py-3 2xl:py-5 pl-8 2xl:pl-12">
                           <div className="flex items-center text-[11px] 2xl:text-[13.8px]">
                             <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200">
                               <svg
@@ -895,7 +895,7 @@ const TemporaryPermit = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-1 2xl:px-2 py-3 2xl:py-5">
+                        <td className="px-0.5 2xl:px-1 py-3 2xl:py-5">
                           <div className="flex items-center text-[11px] 2xl:text-[13.8px]">
                             <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200">
                               <svg
@@ -916,7 +916,7 @@ const TemporaryPermit = () => {
                           </div>
                         </td>
                         {/* Total Fee */}
-                        <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30">
+                        <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30 pl-12 2xl:pl-16">
                           <div className="text-right">
                             <div className="text-[11px] 2xl:text-sm font-bold text-gray-900">₹{(permit.totalFee || 0).toLocaleString("en-IN")}</div>
                             <div className="text-[10px] 2xl:text-xs text-gray-500 mt-0.5">Total Amount</div>
@@ -942,7 +942,7 @@ const TemporaryPermit = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-5 pl-16 2xl:pl-24">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-5 pl-20 2xl:pl-32">
                           <span
                             className={`inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold whitespace-nowrap ${getStatusColor(
                               permit.status
