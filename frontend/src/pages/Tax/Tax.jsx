@@ -659,13 +659,10 @@ const Tax = () => {
                 <thead className={theme.tableHeader}>
                   <tr>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
-                      Vehicle Number
+                      Vehicle/Receipt No
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
-                      Receipt No
-                    </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
-                      Owner Name
+                      Owner/Mobile No
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Tax From
@@ -697,7 +694,7 @@ const Tax = () => {
                         key={record.id}
                         className="hover:bg-gradient-to-r hover:from-indigo-50/50 hover:via-purple-50/50 hover:to-pink-50/50 transition-all duration-200 group"
                       >
-                        {/* Vehicle Number */}
+                        {/* Vehicle Number / Receipt No */}
                         <td className="px-4 2xl:px-6 py-3 2xl:py-4">
                           <div>
                             <div className="flex items-center gap-2 2xl:gap-3">
@@ -745,6 +742,21 @@ const Tax = () => {
                                 );
                               })()}
                             </div>
+                            <div className="flex items-center mt-1.5 text-[10px] 2xl:text-xs text-indigo-600 font-medium">
+                              <svg className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 mr-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              {record.receiptNo}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Owner Name / Mobile No */}
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div>
+                            <div className="text-[11px] 2xl:text-sm font-semibold text-gray-900">
+                              {record.ownerName || "-"}
+                            </div>
                             {record.mobileNumber && (
                               <div className="flex items-center mt-1.5 text-[10px] 2xl:text-xs text-gray-600">
                                 <svg className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -753,20 +765,6 @@ const Tax = () => {
                                 {record.mobileNumber}
                               </div>
                             )}
-                          </div>
-                        </td>
-
-                        {/* Receipt No */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          <div className="text-[11px] 2xl:text-sm font-mono font-bold text-gray-900">
-                            {record.receiptNo}
-                          </div>
-                        </td>
-
-                        {/* Owner Name */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          <div className="text-[11px] 2xl:text-sm font-semibold text-gray-900">
-                            {record.ownerName || "-"}
                           </div>
                         </td>
 
