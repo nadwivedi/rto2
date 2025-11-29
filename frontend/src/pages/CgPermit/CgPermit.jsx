@@ -670,8 +670,8 @@ const CgPermit = () => {
               <tr>
                 <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider'>Vehicle/Permit No.</th>
                 <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider'>Permit Holder</th>
-                <th className='px-2 2xl:px-3 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider'>Valid From</th>
-                <th className='px-2 2xl:px-3 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider'>Valid Till</th>
+                <th className='px-0.5 2xl:px-1 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider pl-8 2xl:pl-12'>Valid From</th>
+                <th className='px-0.5 2xl:px-1 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider'>Valid To</th>
                 <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10 pl-12 2xl:pl-16'>Total Fee</th>
                 <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10'>Paid</th>
                 <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10'>Balance</th>
@@ -762,8 +762,8 @@ const CgPermit = () => {
                         </div>
                       </div>
                     </td>
-                    <td className='px-2 2xl:px-3 py-3 2xl:py-5'>
-                      <div className='flex items-center text-[11px] 2xl:text-sm'>
+                    <td className='px-0.5 2xl:px-1 py-3 2xl:py-5 pl-8 2xl:pl-12'>
+                      <div className='flex items-center text-[11px] 2xl:text-[13.8px]'>
                         <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200'>
                           <svg className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
@@ -772,8 +772,8 @@ const CgPermit = () => {
                         </span>
                       </div>
                     </td>
-                    <td className='px-2 2xl:px-3 py-3 2xl:py-5'>
-                      <div className='flex items-center text-[11px] 2xl:text-sm'>
+                    <td className='px-0.5 2xl:px-1 py-3 2xl:py-5'>
+                      <div className='flex items-center text-[11px] 2xl:text-[13.8px]'>
                         <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200'>
                           <svg className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />

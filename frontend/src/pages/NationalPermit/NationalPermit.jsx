@@ -723,7 +723,7 @@ const NationalPermit = () => {
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Vehicle/Permit No.</th>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Permit Holder</th>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>
-                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid Till</th>
+                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid To</th>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Part B</th>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Fee (₹)</th>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Paid (₹)</th>
