@@ -669,16 +669,16 @@ const Fitness = () => {
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Valid To
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
-                      Total Fee (₹)
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10 pl-12 2xl:pl-16">
+                      Total Fee
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
-                      Paid (₹)
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10">
+                      Paid
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
-                      Balance (₹)
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10">
+                      Balance
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide pl-20 2xl:pl-32">
                       Payment Status
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
@@ -790,28 +790,35 @@ const Fitness = () => {
                         </td>
 
                         {/* Total Fee */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          <span className="text-[11px] 2xl:text-sm font-bold text-gray-800">
-                            ₹{(record.totalFee || 0).toLocaleString("en-IN")}
-                          </span>
+                        <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30 pl-12 2xl:pl-16">
+                          <div className="text-right">
+                            <div className="text-[11px] 2xl:text-sm font-bold text-gray-900">₹{(record.totalFee || 0).toLocaleString("en-IN")}</div>
+                            <div className="text-[10px] 2xl:text-xs text-gray-500 mt-0.5">Total Amount</div>
+                          </div>
                         </td>
 
                         {/* Paid */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          <span className="text-[11px] 2xl:text-sm font-bold text-green-600">
-                            ₹{(record.paid || 0).toLocaleString("en-IN")}
-                          </span>
+                        <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-emerald-50/30">
+                          <div className="text-right">
+                            <div className="text-[11px] 2xl:text-sm font-bold text-emerald-600">₹{(record.paid || 0).toLocaleString("en-IN")}</div>
+                            <div className="text-[10px] 2xl:text-xs text-emerald-600 mt-0.5">Paid Amount</div>
+                          </div>
                         </td>
 
                         {/* Balance */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
-                          <span className="text-[11px] 2xl:text-sm font-bold text-orange-600">
-                            ₹{(record.balance || 0).toLocaleString("en-IN")}
-                          </span>
+                        <td className={`px-4 py-4 bg-gray-50/50 ${(record.balance || 0) > 0 ? 'group-hover:bg-amber-50/30' : 'group-hover:bg-gray-50'}`}>
+                          <div className="text-right">
+                            <div className={`text-[11px] 2xl:text-sm font-bold ${(record.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                              ₹{(record.balance || 0).toLocaleString("en-IN")}
+                            </div>
+                            <div className={`text-[10px] 2xl:text-xs mt-0.5 ${(record.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                              {(record.balance || 0) > 0 ? 'Pending' : 'Cleared'}
+                            </div>
+                          </div>
                         </td>
 
                         {/* Payment Status */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4 pl-20 2xl:pl-32">
                           {(record.balance || 0) > 0 ? (
                             <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
                               <svg

@@ -646,16 +646,16 @@ const Insurance = () => {
                         <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Valid To
                         </th>
-                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                          Total Fee (₹)
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10 pl-12 2xl:pl-16">
+                          Total Fee
                         </th>
-                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                          Paid (₹)
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10">
+                          Paid
                         </th>
-                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                          Balance (₹)
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10">
+                          Balance
                         </th>
-                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
+                        <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider pl-20 2xl:pl-32">
                           Status
                         </th>
                         <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
@@ -773,34 +773,34 @@ const Insurance = () => {
                                 </span>
                               </div>
                             </td>
-                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
-                              <span className="text-[11px] 2xl:text-sm font-bold text-gray-800">
-                                ₹
-                                {(insurance.totalFee || 0).toLocaleString(
-                                  "en-IN"
-                                )}
-                              </span>
+                            {/* Total Fee */}
+                            <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30 pl-12 2xl:pl-16">
+                              <div className="text-right">
+                                <div className="text-[11px] 2xl:text-sm font-bold text-gray-900">₹{(insurance.totalFee || 0).toLocaleString("en-IN")}</div>
+                                <div className="text-[10px] 2xl:text-xs text-gray-500 mt-0.5">Total Amount</div>
+                              </div>
                             </td>
-                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
-                              <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                                ₹{(insurance.paid || 0).toLocaleString("en-IN")}
-                              </span>
+
+                            {/* Paid */}
+                            <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-emerald-50/30">
+                              <div className="text-right">
+                                <div className="text-[11px] 2xl:text-sm font-bold text-emerald-600">₹{(insurance.paid || 0).toLocaleString("en-IN")}</div>
+                                <div className="text-[10px] 2xl:text-xs text-emerald-600 mt-0.5">Paid Amount</div>
+                              </div>
                             </td>
-                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
-                              {(insurance.balance || 0) > 0 ? (
-                                <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
-                                  ₹
-                                  {(insurance.balance || 0).toLocaleString(
-                                    "en-IN"
-                                  )}
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
-                                  ₹0
-                                </span>
-                              )}
+
+                            {/* Balance */}
+                            <td className={`px-4 py-4 bg-gray-50/50 ${(insurance.balance || 0) > 0 ? 'group-hover:bg-amber-50/30' : 'group-hover:bg-gray-50'}`}>
+                              <div className="text-right">
+                                <div className={`text-[11px] 2xl:text-sm font-bold ${(insurance.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                                  ₹{(insurance.balance || 0).toLocaleString("en-IN")}
+                                </div>
+                                <div className={`text-[10px] 2xl:text-xs mt-0.5 ${(insurance.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                                  {(insurance.balance || 0) > 0 ? 'Pending' : 'Cleared'}
+                                </div>
+                              </div>
                             </td>
-                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                            <td className="px-4 2xl:px-6 py-3 2xl:py-5 pl-20 2xl:pl-32">
                               <div className="flex items-center justify-center">
                                 <span
                                   className={`px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold ${getStatusColor(
