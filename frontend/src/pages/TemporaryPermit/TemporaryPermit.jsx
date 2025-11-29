@@ -733,22 +733,22 @@ const TemporaryPermit = () => {
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                       Permit Holder
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-1 2xl:px-2 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                       Valid From
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                      Valid Till
+                    <th className="px-1 2xl:px-2 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
+                      Valid To
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                      Total Fee (₹)
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10">
+                      Total Fee
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                      Paid (₹)
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10">
+                      Paid
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                      Balance (₹)
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider bg-white/10">
+                      Balance
                     </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider pl-16 2xl:pl-24">
                       Status
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
@@ -875,7 +875,7 @@ const TemporaryPermit = () => {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                        <td className="px-1 2xl:px-2 py-3 2xl:py-5">
                           <div className="flex items-center text-[11px] 2xl:text-[13.8px]">
                             <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200">
                               <svg
@@ -895,7 +895,7 @@ const TemporaryPermit = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                        <td className="px-1 2xl:px-2 py-3 2xl:py-5">
                           <div className="flex items-center text-[11px] 2xl:text-[13.8px]">
                             <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200">
                               <svg
@@ -915,28 +915,34 @@ const TemporaryPermit = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-5">
-                          <span className="text-[11px] 2xl:text-sm font-bold text-gray-800">
-                            ₹{(permit.totalFee || 0).toLocaleString("en-IN")}
-                          </span>
+                        {/* Total Fee */}
+                        <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30">
+                          <div className="text-right">
+                            <div className="text-[11px] 2xl:text-sm font-bold text-gray-900">₹{(permit.totalFee || 0).toLocaleString("en-IN")}</div>
+                            <div className="text-[10px] 2xl:text-xs text-gray-500 mt-0.5">Total Amount</div>
+                          </div>
                         </td>
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-5">
-                          <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                            ₹{(permit.paid || 0).toLocaleString("en-IN")}
-                          </span>
+
+                        {/* Paid */}
+                        <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-emerald-50/30">
+                          <div className="text-right">
+                            <div className="text-[11px] 2xl:text-sm font-bold text-emerald-600">₹{(permit.paid || 0).toLocaleString("en-IN")}</div>
+                            <div className="text-[10px] 2xl:text-xs text-emerald-600 mt-0.5">Paid Amount</div>
+                          </div>
                         </td>
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-5">
-                          {(permit.balance || 0) > 0 ? (
-                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
+
+                        {/* Balance */}
+                        <td className={`px-4 py-4 bg-gray-50/50 ${(permit.balance || 0) > 0 ? 'group-hover:bg-amber-50/30' : 'group-hover:bg-gray-50'}`}>
+                          <div className="text-right">
+                            <div className={`text-[11px] 2xl:text-sm font-bold ${(permit.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
                               ₹{(permit.balance || 0).toLocaleString("en-IN")}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg text-[10px] 2xl:text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
-                              ₹0
-                            </span>
-                          )}
+                            </div>
+                            <div className={`text-[10px] 2xl:text-xs mt-0.5 ${(permit.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                              {(permit.balance || 0) > 0 ? 'Pending' : 'Cleared'}
+                            </div>
+                          </div>
                         </td>
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-5">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-5 pl-16 2xl:pl-24">
                           <span
                             className={`inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold whitespace-nowrap ${getStatusColor(
                               permit.status
@@ -951,7 +957,7 @@ const TemporaryPermit = () => {
                             {(permit.balance || 0) > 0 && (
                               <button
                                 onClick={() => handleMarkAsPaid(permit)}
-                                className="p-1.5 2xl:p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 cursor-pointer"
+                                className="p-1.5 2xl:p-2 text-green-600 hover:bg-green-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Mark as Paid"
                               >
                                 <svg className="w-4 h-4 2xl:w-5 2xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -962,7 +968,7 @@ const TemporaryPermit = () => {
                             {shouldShowRenewButton(permit) && (
                               <button
                                 onClick={() => handleRenewClick(permit)}
-                                className="p-1.5 2xl:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 cursor-pointer"
+                                className="p-1.5 2xl:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                 title="Renew Permit"
                               >
                                 <svg
@@ -982,8 +988,7 @@ const TemporaryPermit = () => {
                             )}
                             <button
                               onClick={() => handleEditClick(permit)}
-
-                              className="p-1.5 2xl:p-2 text-amber-600 hover:bg-amber-50 rounded-lg transition-all duration-200 cursor-pointer"
+                              className="p-1.5 2xl:p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Edit Permit"
                             >
                               <svg
@@ -1002,7 +1007,7 @@ const TemporaryPermit = () => {
                             </button>
                             <button
                               onClick={() => handleDeletePermit(permit)}
-                              className="p-1.5 2xl:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 cursor-pointer"
+                              className="p-1.5 2xl:p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                               title="Delete Permit"
                             >
                               <svg
