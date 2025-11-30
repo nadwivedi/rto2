@@ -80,18 +80,20 @@ const Navbar = () => {
       path: "/vehicle-transfer",
       description: "Transfer Ownership",
     },
-    // {
-    //   name: "Forms",
-    //   icon: "📋",
-    //   path: "/forms",
-    //   description: "RTO Forms",
-    // },
     {
       name: "PUC",
       icon: "💨",
       path: "/puc",
       description: "Pollution Certificate",
     },
+
+     {
+      name: "Forms",
+      icon: "📋",
+      path: "/forms",
+      description: "RTO Forms",
+    },
+
     {
       name: "setting",
       icon: "⚙️",

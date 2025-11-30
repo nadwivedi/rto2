@@ -9,6 +9,13 @@ const Forms = () => {
       description: 'Application for Registration of a Motor Vehicle',
       icon: '📋',
       path: '/forms/form-20'
+    },
+    {
+      id: 'form-46',
+      name: 'Form 46',
+      description: 'Application for grant of authorisation tourist Permit or National Permit',
+      icon: '🚗',
+      path: '/forms/form-46'
     }
   ]
 
