@@ -18,7 +18,7 @@ import Fitness from './pages/Fitness/Fitness'
 import VehicleTransfer from './pages/VehicleTransfer/VehicleTransfer'
 import DealerBill from './pages/DealerBill'
 import Tax from './pages/Tax/Tax'
-import Forms from './pages/Forms/Forms'
+import Forms from './pages/forms/Forms'
 import Form20 from './pages/Form20'
 import Puc from './pages/Puc/Puc'
 
