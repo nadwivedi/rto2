@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const bcrypt = require('bcryptjs')
 const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 
 // Get all users
@@ -187,6 +188,10 @@ exports.createUser = async (req, res) => {
       }
     }
 
+    // Hash password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(password, salt)
+
     // Create new user
     const newUser = new User({
       name: name.trim(),
@@ -196,7 +201,7 @@ exports.createUser = async (req, res) => {
       address: address && address.trim() ? address.trim() : undefined,
       billName: billName && billName.trim() ? billName.trim() : undefined,
       billDescription: billDescription && billDescription.trim() ? billDescription.trim() : undefined,
-      password: password,
+      password: hashedPassword,
       isActive: true
     })
 
@@ -305,7 +310,9 @@ exports.updateUser = async (req, res) => {
           message: 'Password must be at least 4 characters'
         })
       }
-      user.password = password
+      // Hash the new password
+      const salt = await bcrypt.genSalt(10)
+      user.password = await bcrypt.hash(password, salt)
     }
 
     await user.save()

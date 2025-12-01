@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const readline = require('readline')
+const bcrypt = require('bcryptjs')
 const Admin = require('../models/Admin')
 
 // Create readline interface
@@ -66,12 +67,16 @@ async function createAdmin() {
       process.exit(1)
     }
 
+    // Hash password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(password, salt)
+
     // Create admin
     const admin = new Admin({
       name,
       username: username.toLowerCase(),
       email: email.toLowerCase(),
-      password,
+      password: hashedPassword,
       role: 'admin',
       isActive: true
     })

@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Form46Modal from './components/Form46Modal'
+import Form20Modal from './components/Form20Modal'
 
 const Forms = () => {
   const [isForm46Open, setIsForm46Open] = useState(false)
+  const [isForm20Open, setIsForm20Open] = useState(false)
 
   const forms = [
     {
@@ -11,8 +13,7 @@ const Forms = () => {
       name: 'Form 20',
       description: 'Application for Registration of a Motor Vehicle',
       icon: '📋',
-      path: '/forms/form-20',
-      isModal: false
+      isModal: true
     },
     {
       id: 'form-46',
@@ -27,6 +28,8 @@ const Forms = () => {
     if (form.isModal) {
       if (form.id === 'form-46') {
         setIsForm46Open(true)
+      } else if (form.id === 'form-20') {
+        setIsForm20Open(true)
       }
     }
   }
@@ -62,6 +65,11 @@ const Forms = () => {
           ))}
         </div>
       </div>
+
+      {/* Form 20 Modal */}
+      {isForm20Open && (
+        <Form20Modal onClose={() => setIsForm20Open(false)} />
+      )}
 
       {/* Form 46 Modal */}
       {isForm46Open && (

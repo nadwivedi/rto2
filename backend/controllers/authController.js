@@ -83,9 +83,8 @@ exports.login = async (req, res) => {
       })
     }
 
-    // Update last login
-    user.lastLogin = new Date()
-    await user.save()
+    // Update last login (using updateOne to avoid triggering pre-save hooks)
+    await User.updateOne({ _id: user._id }, { lastLogin: new Date() })
 
     // Generate JWT token
     const token = jwt.sign(

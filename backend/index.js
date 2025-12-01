@@ -71,6 +71,7 @@ initPucStatusCron()
 
 // Import Middleware
 const userAuth = require('./middleware/userAuth')
+const adminAuth = require('./middleware/adminAuth')
 
 // Import Routes
 const authRoutes = require('./routes/auth')
@@ -95,8 +96,8 @@ const uploadRoutes = require('./routes/upload')
 
 // Admin routes
 app.use('/api/admin/auth', adminAuthRoutes)
-app.use('/api/admin/users', adminUsersRoutes)
-app.use('/api/admin/vehicle-registrations', adminVehicleRegistrationsRoutes)
+app.use('/api/admin/users', adminAuth, adminUsersRoutes)
+app.use('/api/admin/vehicle-registrations', adminAuth, adminVehicleRegistrationsRoutes)
 
 // User routes
 app.use('/api/auth', authRoutes)
