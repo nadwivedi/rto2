@@ -84,20 +84,6 @@ const Form46Modal = ({ onClose }) => {
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { font-family: 'Times New Roman', serif; font-size: 12px; line-height: 1.4; padding: 20px; }
             .form-container { width: 100%; max-width: 800px; margin: 0 auto; }
-            .title { text-align: center; margin-bottom: 15px; }
-            .title h1 { font-size: 18px; font-weight: bold; letter-spacing: 4px; }
-            .title p { font-size: 11px; margin-top: 3px; }
-            .title h2 { font-size: 13px; font-weight: bold; margin-top: 5px; }
-            .to { margin-bottom: 15px; }
-            .intro { margin-bottom: 15px; line-height: 1.6; }
-            .section-title { font-weight: bold; margin: 10px 0 5px 0; }
-            .row { display: flex; margin-bottom: 8px; align-items: baseline; }
-            .num { width: 30px; flex-shrink: 0; }
-            .label { flex-shrink: 0; margin-right: 10px; }
-            .line { flex: 1; border-bottom: 1px solid #000; min-height: 16px; position: relative; }
-            .inline-field { display: inline-flex; align-items: baseline; margin: 0 5px; }
-            .inline-label { margin-right: 5px; }
-            .inline-line { border-bottom: 1px solid #000; min-width: 80px; display: inline-block; }
             input {
               border: none !important;
               background: transparent;
@@ -107,14 +93,7 @@ const Form46Modal = ({ onClose }) => {
               font-size: 12px;
               padding: 0 2px;
             }
-            table { width: 100%; border-collapse: collapse; margin: 15px 0; }
-            table, th, td { border: 1px solid #000; }
-            th, td { padding: 8px; text-align: left; font-size: 11px; }
-            th { font-weight: bold; text-align: center; }
             .no-print { display: none !important; }
-            .footer { margin-top: 20px; }
-            .sig-section { display: flex; justify-content: space-between; margin-top: 15px; }
-            .note { font-size: 10px; font-style: italic; margin-top: 5px; }
             @media print {
               body { padding: 10px; }
               @page { margin: 10mm; size: A4; }
@@ -141,285 +120,270 @@ const Form46Modal = ({ onClose }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-xl font-bold text-gray-800">Form 46 - Tourist/National Permit</h2>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePrint(true)}
-              className="px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium"
-              title="Print Empty Form"
-            >
-              📄 EMPTY
-            </button>
-            <button
-              onClick={() => handlePrint(false)}
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
-              title="Print Filled Form"
-            >
-              🖨️ PRINT
-            </button>
-            <button
-              onClick={onClose}
-              className="ml-2 text-gray-500 hover:text-gray-700 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-200 transition-colors"
-              title="Close"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        {/* Modal Body - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div ref={printRef} className="bg-white" style={{fontFamily: "'Times New Roman', serif", fontSize: '14px', lineHeight: '1.5'}}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 overflow-y-auto pt-1 pb-2">
+      <div className="w-full max-w-[1280px] flex gap-2 px-2">
+        {/* Form Section */}
+        <div className="flex-1 bg-gray-100 rounded-lg p-2">
+          <style>{`
+            .no-print { display: table-cell !important; }
+            @media print {
+              .no-print { display: none !important; }
+            }
+          `}</style>
+          <div
+            ref={printRef}
+            className="bg-white shadow-lg mx-auto"
+            style={{
+              width: '210mm',
+              minHeight: '297mm',
+              padding: '20mm',
+              fontFamily: "'Times New Roman', serif",
+              fontSize: '12px',
+              lineHeight: '1.4'
+            }}
+          >
             <div className="form-container">
               {/* Title */}
-              <div className="title text-center mb-6">
-                <h1 className="text-2xl font-bold" style={{letterSpacing: '4px'}}>FORM 46</h1>
-                <p className="text-sm mt-1">See Rule (83) (1) and 87 (1)</p>
-                <h2 className="text-base font-bold mt-2">Form of application for grant of authorisation</h2>
-                <h2 className="text-base font-bold">tourist Permit or National Permit</h2>
+              <div style={{textAlign: 'center', marginBottom: '15px'}}>
+                <h1 style={{fontSize: '18px', fontWeight: 'bold', letterSpacing: '4px'}}>FORM 46</h1>
+                <p style={{fontSize: '11px', marginTop: '3px'}}>See Rule (83) (1) and 87 (1)</p>
+                <h2 style={{fontSize: '13px', fontWeight: 'bold', marginTop: '5px'}}>Form of application for grant of authorisation</h2>
+                <h2 style={{fontSize: '13px', fontWeight: 'bold'}}>tourist Permit or National Permit</h2>
               </div>
 
               {/* To Section */}
-              <div className="to mb-4">
+              <div style={{marginBottom: '15px'}}>
                 <p>To,</p>
-                <p className="ml-12 mt-1">The Regional / State Transport Authority</p>
+                <p style={{marginLeft: '48px', marginTop: '4px'}}>The Regional / State Transport Authority</p>
               </div>
 
               {/* Intro */}
-              <div className="intro mb-4">
+              <div style={{marginBottom: '15px', lineHeight: '1.6'}}>
                 <p>I/We the undersigned hereby by apply for grant of authorisation valid throughout the territory</p>
-                <div className="flex items-baseline mt-1">
+                <div style={{display: 'flex', alignItems: 'baseline', marginTop: '4px'}}>
                   <span>of India/ in the state of</span>
-                  <div className="flex-1 ml-2 border-b border-black">
-                    <input type="text" name="stateName" value={formData.stateName} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                  <div style={{flex: 1, borderBottom: '2px solid #000', marginLeft: '8px', minHeight: '16px'}}>
+                    <input type="text" name="stateName" value={formData.stateName} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                   </div>
                 </div>
               </div>
 
               {/* Section Title */}
-              <p className="text-center font-bold mb-3">(Specify the name of the State)</p>
+              <p style={{textAlign: 'center', fontWeight: 'bold', marginBottom: '12px'}}>(Specify the name of the State)</p>
 
               {/* Field 1 */}
-              <div className="row flex mb-2">
-                <span className="num">1.</span>
-                <span className="label" style={{width: '280px'}}>Name of the applicants in full</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="applicantName" value={formData.applicantName} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>1.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Name of the applicants in full</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="applicantName" value={formData.applicantName} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
 
               {/* Field 2 */}
-              <div className="row flex mb-2">
-                <span className="num">2.</span>
-                <span className="label" style={{width: '280px'}}>Son/ Wife/ Daughter of</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="relation" value={formData.relation} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>2.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Son/ Wife/ Daughter of</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="relation" value={formData.relation} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
 
               {/* Field 3 */}
-              <div className="row flex mb-2">
-                <span className="num">3.</span>
-                <span className="label" style={{width: '280px'}}>Address</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="address" value={formData.address} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>3.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Address</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="address" value={formData.address} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
 
               {/* Field 4 */}
-              <div className="row flex mb-2">
-                <span className="num">4.</span>
-                <span className="label" style={{width: '280px'}}>Registration mark & year of manufacture</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="regMark" value={formData.regMark} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>4.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Registration mark & year of manufacture</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="regMark" value={formData.regMark} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
-              <div className="row flex ml-8 mb-2">
-                <span className="label" style={{width: '272px'}}>& date of registration of the motor vehicle</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="dateOfRegistration" value={formData.dateOfRegistration} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>& date of registration of the motor vehicle</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="dateOfRegistration" value={formData.dateOfRegistration} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
 
               {/* Field 5 */}
-              <div className="row flex mb-2">
-                <span className="num">5.</span>
-                <span className="label" style={{width: '280px'}}>Engine number of the motor vehicle</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="engineNumber" value={formData.engineNumber} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>5.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Engine number of the motor vehicle</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="engineNumber" value={formData.engineNumber} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
 
               {/* Field 6 */}
-              <div className="row flex mb-2">
-                <span className="num">6.</span>
-                <span className="label" style={{width: '280px'}}>Chassis number of the motor vehicle</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="chassisNumber" value={formData.chassisNumber} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>6.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Chassis number of the motor vehicle</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="chassisNumber" value={formData.chassisNumber} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
 
               {/* Field 7 */}
-              <div className="row flex mb-2">
-                <span className="num">7.</span>
-                <span className="label" style={{width: '280px'}}>Permit number of the authority who has</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="permitNumber" value={formData.permitNumber} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>7.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Permit number of the authority who has</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="permitNumber" value={formData.permitNumber} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
-              <div className="row flex ml-8 mb-2">
-                <span className="label" style={{width: '272px'}}>issued the permit and date of issue and</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="permitIssueDate" value={formData.permitIssueDate} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>issued the permit and date of issue and</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="permitIssueDate" value={formData.permitIssueDate} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
-              <div className="row flex ml-8 mb-2">
-                <span className="label" style={{width: '272px'}}>date of expiry of the permit</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="permitExpiryDate" value={formData.permitExpiryDate} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>date of expiry of the permit</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="permitExpiryDate" value={formData.permitExpiryDate} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
 
               {/* Field 8 */}
-              <div className="row flex mb-2">
-                <span className="num">8.</span>
-                <span className="label" style={{width: '280px'}}>Unladen weight of the motor vehicle</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="unladenWeight" value={formData.unladenWeight} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>8.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Unladen weight of the motor vehicle</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="unladenWeight" value={formData.unladenWeight} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
 
               {/* Field 9 */}
-              <div className="row flex mb-2">
-                <span className="num">9.</span>
-                <span className="label" style={{width: '280px'}}>Gross vehicle weight of the motor</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="grossWeight" value={formData.grossWeight} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>9.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Gross vehicle weight of the motor</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="grossWeight" value={formData.grossWeight} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
-              <div className="row flex ml-8 mb-2">
-                <span className="label" style={{width: '272px'}}>vehicle</span>
-                <div className="line flex-1 border-b border-black"></div>
+              <div style={{display: 'flex', marginBottom: '8px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>vehicle</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}></div>
               </div>
 
               {/* Field 10 */}
-              <div className="row flex mb-2">
-                <span className="num">10.</span>
-                <span className="label" style={{width: '280px'}}>Pay load of the motor vehicle seating</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="payLoad" value={formData.payLoad} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>10.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Pay load of the motor vehicle seating</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="payLoad" value={formData.payLoad} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
-              <div className="row flex ml-8 mb-2">
-                <span className="label" style={{width: '272px'}}>capacity in the case of tourist vehicle</span>
-                <div className="line flex-1 border-b border-black"></div>
+              <div style={{display: 'flex', marginBottom: '8px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>capacity in the case of tourist vehicle</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}></div>
               </div>
 
               {/* Field 11 */}
-              <div className="row flex mb-2">
-                <span className="num">11.</span>
-                <span className="label" style={{width: '200px'}}>Period for which the authorisation is</span>
-                <span className="inline-label">From</span>
-                <div className="border-b border-black" style={{width: '100px', display: 'inline-block'}}>
-                  <input type="text" name="periodFrom" value={formData.periodFrom} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>11.</span>
+                <span style={{width: '200px', flexShrink: 0, marginRight: '10px'}}>Period for which the authorisation is</span>
+                <span style={{marginRight: '5px'}}>From</span>
+                <div style={{width: '100px', borderBottom: '2px solid #000', minHeight: '16px', display: 'inline-block'}}>
+                  <input type="text" name="periodFrom" value={formData.periodFrom} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
-                <span className="inline-label ml-4">To</span>
-                <div className="border-b border-black flex-1" style={{minWidth: '100px', display: 'inline-block'}}>
-                  <input type="text" name="periodTo" value={formData.periodTo} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                <span style={{marginLeft: '16px', marginRight: '5px'}}>To</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'inline-block', minWidth: '100px'}}>
+                  <input type="text" name="periodTo" value={formData.periodTo} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
-              <div className="row flex ml-8 mb-2">
-                <span className="label" style={{width: '272px'}}>sought from</span>
-                <div className="line flex-1 border-b border-black"></div>
+              <div style={{display: 'flex', marginBottom: '8px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>sought from</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}></div>
               </div>
 
               {/* Field 12 */}
-              <div className="row flex mb-2">
-                <span className="num">12.</span>
-                <span className="label" style={{width: '280px'}}>I/We enclosed the certificate of</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="certificateEnclosed" value={formData.certificateEnclosed} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>12.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>I/We enclosed the certificate of</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="certificateEnclosed" value={formData.certificateEnclosed} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
-              <div className="row flex ml-8 mb-2">
-                <span className="label" style={{width: '272px'}}>registration & permit of the vehicle</span>
-                <div className="line flex-1 border-b border-black"></div>
+              <div style={{display: 'flex', marginBottom: '8px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>registration & permit of the vehicle</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}></div>
               </div>
 
               {/* Field 13 */}
-              <div className="row flex mb-4">
-                <span className="num">13.</span>
-                <span className="label" style={{width: '280px'}}>I/We enclosed Bank draft as</span>
-                <div className="line flex-1 border-b border-black">
-                  <input type="text" name="bankDraft" value={formData.bankDraft} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+              <div style={{display: 'flex', marginBottom: '16px', alignItems: 'baseline'}}>
+                <span style={{width: '30px', flexShrink: 0}}>13.</span>
+                <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>I/We enclosed Bank draft as</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <input type="text" name="bankDraft" value={formData.bankDraft} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                 </div>
               </div>
-              <div className="row flex ml-8 mb-2">
-                <span className="label" style={{width: '272px'}}>manufactured hereunder toward payment</span>
-                <div className="line flex-1 border-b border-black"></div>
+              <div style={{display: 'flex', marginBottom: '8px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>manufactured hereunder toward payment</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}></div>
               </div>
-              <div className="row flex ml-8 mb-4">
-                <span className="label" style={{width: '272px'}}>of the authorisation.</span>
-                <div className="line flex-1 border-b border-black"></div>
+              <div style={{display: 'flex', marginBottom: '16px', marginLeft: '32px', alignItems: 'baseline'}}>
+                <span style={{width: '272px', flexShrink: 0, marginRight: '10px'}}>of the authorisation.</span>
+                <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}></div>
               </div>
 
               {/* Payment Table */}
-              <table className="w-full border-collapse border border-black mt-4 mb-4">
+              <table style={{width: '100%', borderCollapse: 'collapse', border: '2px solid #000', margin: '15px 0'}}>
                 <thead>
                   <tr>
-                    <th className="border border-black p-2 text-center" style={{width: '60px'}}>S.No.<br/>1</th>
-                    <th className="border border-black p-2 text-center">Name of the State<br/>2</th>
-                    <th className="border border-black p-2 text-center" style={{width: '120px'}}>Amount Paid<br/>3</th>
-                    <th className="border border-black p-2 text-center">Particulars of Bank<br/>Draft & Date</th>
-                    <th className="border border-black p-2 text-center" style={{width: '120px'}}>Date of<br/>Payment<br/>5</th>
-                    <th className="border border-black p-2 text-center no-print" style={{width: '60px'}}>Action</th>
+                    <th style={{border: '2px solid #000', padding: '8px', textAlign: 'center', width: '60px', fontSize: '11px', fontWeight: 'bold'}}>S.No.<br/>1</th>
+                    <th style={{border: '2px solid #000', padding: '8px', textAlign: 'center', fontSize: '11px', fontWeight: 'bold'}}>Name of the State<br/>2</th>
+                    <th style={{border: '2px solid #000', padding: '8px', textAlign: 'center', width: '120px', fontSize: '11px', fontWeight: 'bold'}}>Amount Paid<br/>3</th>
+                    <th style={{border: '2px solid #000', padding: '8px', textAlign: 'center', fontSize: '11px', fontWeight: 'bold'}}>Particulars of Bank<br/>Draft & Date</th>
+                    <th style={{border: '2px solid #000', padding: '8px', textAlign: 'center', width: '120px', fontSize: '11px', fontWeight: 'bold'}}>Date of<br/>Payment<br/>5</th>
+                    <th className="no-print" style={{border: '2px solid #000', padding: '8px', textAlign: 'center', width: '60px', fontSize: '11px', fontWeight: 'bold'}}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {formData.statePayments.map((payment, index) => (
                     <tr key={index}>
-                      <td className="border border-black p-2 text-center">{payment.sno}</td>
-                      <td className="border border-black p-2">
+                      <td style={{border: '2px solid #000', padding: '8px', textAlign: 'center', fontSize: '11px'}}>{payment.sno}</td>
+                      <td style={{border: '2px solid #000', padding: '8px', fontSize: '11px'}}>
                         <input
                           type="text"
                           value={payment.stateName}
                           onChange={(e) => handlePaymentChange(index, 'stateName', e.target.value)}
-                          className="w-full outline-none bg-transparent"
-                          style={{border:'none'}}
+                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px'}}
                         />
                       </td>
-                      <td className="border border-black p-2">
+                      <td style={{border: '2px solid #000', padding: '8px', fontSize: '11px'}}>
                         <input
                           type="text"
                           value={payment.amountPaid}
                           onChange={(e) => handlePaymentChange(index, 'amountPaid', e.target.value)}
-                          className="w-full outline-none bg-transparent"
-                          style={{border:'none'}}
+                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px'}}
                         />
                       </td>
-                      <td className="border border-black p-2">
+                      <td style={{border: '2px solid #000', padding: '8px', fontSize: '11px'}}>
                         <input
                           type="text"
                           value={payment.bankDraft}
                           onChange={(e) => handlePaymentChange(index, 'bankDraft', e.target.value)}
-                          className="w-full outline-none bg-transparent"
-                          style={{border:'none'}}
+                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px'}}
                         />
                       </td>
-                      <td className="border border-black p-2">
+                      <td style={{border: '2px solid #000', padding: '8px', fontSize: '11px'}}>
                         <input
                           type="text"
                           value={payment.dateOfPayment}
                           onChange={(e) => handlePaymentChange(index, 'dateOfPayment', e.target.value)}
-                          className="w-full outline-none bg-transparent"
-                          style={{border:'none'}}
+                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px'}}
                         />
                       </td>
-                      <td className="border border-black p-2 text-center no-print">
+                      <td className="no-print" style={{border: '2px solid #000', padding: '8px', textAlign: 'center', fontSize: '11px'}}>
                         <button
                           onClick={() => removePaymentRow(index)}
                           className="text-red-600 hover:text-red-800 text-xs"
@@ -441,23 +405,63 @@ const Form46Modal = ({ onClose }) => {
               </button>
 
               {/* Footer */}
-              <div className="footer mt-6">
-                <div className="flex justify-between items-end">
-                  <div className="flex items-baseline">
+              <div style={{marginTop: '20px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'end'}}>
+                  <div style={{display: 'flex', alignItems: 'baseline'}}>
                     <span>Date</span>
-                    <div className="border-b border-black ml-4" style={{width: '150px'}}>
-                      <input type="text" name="date" value={formData.date} onChange={handleChange} className="w-full outline-none bg-transparent" style={{border:'none'}} />
+                    <div style={{borderBottom: '2px solid #000', marginLeft: '16px', width: '150px', minHeight: '16px'}}>
+                      <input type="text" name="date" value={formData.date} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
                     </div>
                   </div>
-                  <div className="text-center">
-                    <div className="border-b border-black mb-1" style={{width: '200px', height: '40px'}}></div>
-                    <p className="text-sm font-bold">Signature of thumb impression</p>
-                    <p className="text-sm font-bold">of the applicant</p>
+                  <div style={{textAlign: 'center'}}>
+                    <div style={{borderBottom: '2px solid #000', marginBottom: '4px', width: '200px', height: '40px'}}></div>
+                    <p style={{fontSize: '11px', fontWeight: 'bold'}}>Signature of thumb impression</p>
+                    <p style={{fontSize: '11px', fontWeight: 'bold'}}>of the applicant</p>
                   </div>
                 </div>
-                <p className="text-xs mt-4 italic">Strike out whichever is inapplicable</p>
+                <p style={{fontSize: '10px', fontStyle: 'italic', marginTop: '16px'}}>Strike out whichever is inapplicable</p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Buttons Section on Right */}
+        <div className="w-44 flex-shrink-0">
+          <div className="sticky top-1 bg-white rounded-lg shadow-xl p-3 space-y-2">
+            <button
+              onClick={onClose}
+              className="w-full text-gray-600 hover:text-gray-800 text-3xl font-bold h-12 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-all border-2 border-gray-300 hover:border-gray-400"
+              title="Close"
+            >
+              ✕
+            </button>
+            <div className="border-t border-gray-200 my-2"></div>
+            <button
+              onClick={() => handlePrint(true)}
+              className="w-full px-3 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-800 text-xs font-semibold shadow-md hover:shadow-lg transition-all"
+              title="Print Empty Form"
+            >
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-lg">📄</span>
+                <div className="leading-tight text-center">
+                  <div>PRINT</div>
+                  <div>EMPTY</div>
+                </div>
+              </div>
+            </button>
+            <button
+              onClick={() => handlePrint(false)}
+              className="w-full px-3 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-xs font-semibold shadow-md hover:shadow-lg transition-all"
+              title="Print Filled Form"
+            >
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-lg">🖨️</span>
+                <div className="leading-tight text-center">
+                  <div>PRINT</div>
+                  <div>FILLED</div>
+                </div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
