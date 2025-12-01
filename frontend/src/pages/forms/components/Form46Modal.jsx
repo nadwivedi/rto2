@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react'
 
 const Form46Modal = ({ onClose }) => {
   const printRef = useRef()
+  const inputRefs = useRef([])
 
   const [formData, setFormData] = useState({
     stateName: '',
@@ -31,12 +32,22 @@ const Form46Modal = ({ onClose }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => ({ ...prev, [name]: value.toUpperCase() }))
+  }
+
+  const handleKeyDown = (e, currentIndex) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      const nextIndex = currentIndex + 1
+      if (inputRefs.current[nextIndex]) {
+        inputRefs.current[nextIndex].focus()
+      }
+    }
   }
 
   const handlePaymentChange = (index, field, value) => {
     const updatedPayments = [...formData.statePayments]
-    updatedPayments[index][field] = value
+    updatedPayments[index][field] = value.toUpperCase()
     setFormData(prev => ({ ...prev, statePayments: updatedPayments }))
   }
 
@@ -163,7 +174,15 @@ const Form46Modal = ({ onClose }) => {
                 <div style={{display: 'flex', alignItems: 'baseline', marginTop: '4px'}}>
                   <span>of India/ in the state of</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', marginLeft: '8px', minHeight: '16px'}}>
-                    <input type="text" name="stateName" value={formData.stateName} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                    <input
+                      ref={(el) => inputRefs.current[0] = el}
+                      type="text"
+                      name="stateName"
+                      value={formData.stateName}
+                      onChange={handleChange}
+                      onKeyDown={(e) => handleKeyDown(e, 0)}
+                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                    />
                   </div>
                 </div>
               </div>
@@ -176,7 +195,15 @@ const Form46Modal = ({ onClose }) => {
                 <span style={{width: '30px', flexShrink: 0}}>1.</span>
                 <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Name of the applicants in full</span>
                 <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                  <input type="text" name="applicantName" value={formData.applicantName} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                  <input
+                    ref={(el) => inputRefs.current[1] = el}
+                    type="text"
+                    name="applicantName"
+                    value={formData.applicantName}
+                    onChange={handleChange}
+                    onKeyDown={(e) => handleKeyDown(e, 1)}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                  />
                 </div>
               </div>
 
@@ -185,7 +212,15 @@ const Form46Modal = ({ onClose }) => {
                 <span style={{width: '30px', flexShrink: 0}}>2.</span>
                 <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Son/ Wife/ Daughter of</span>
                 <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                  <input type="text" name="relation" value={formData.relation} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                  <input
+                    ref={(el) => inputRefs.current[2] = el}
+                    type="text"
+                    name="relation"
+                    value={formData.relation}
+                    onChange={handleChange}
+                    onKeyDown={(e) => handleKeyDown(e, 2)}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                  />
                 </div>
               </div>
 
@@ -194,7 +229,15 @@ const Form46Modal = ({ onClose }) => {
                 <span style={{width: '30px', flexShrink: 0}}>3.</span>
                 <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Address</span>
                 <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                  <input type="text" name="address" value={formData.address} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                  <input
+                    ref={(el) => inputRefs.current[3] = el}
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    onKeyDown={(e) => handleKeyDown(e, 3)}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                  />
                 </div>
               </div>
 
@@ -208,7 +251,15 @@ const Form46Modal = ({ onClose }) => {
                       <div>& date of registration of the motor vehicle</div>
                     </div>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                      <input type="text" name="regMark" value={formData.regMark} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[4] = el}
+                        type="text"
+                        name="regMark"
+                        value={formData.regMark}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 4)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                   </div>
                 </div>
@@ -219,7 +270,15 @@ const Form46Modal = ({ onClose }) => {
                 <span style={{width: '30px', flexShrink: 0}}>5.</span>
                 <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Engine number of the motor vehicle</span>
                 <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                  <input type="text" name="engineNumber" value={formData.engineNumber} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                  <input
+                    ref={(el) => inputRefs.current[5] = el}
+                    type="text"
+                    name="engineNumber"
+                    value={formData.engineNumber}
+                    onChange={handleChange}
+                    onKeyDown={(e) => handleKeyDown(e, 5)}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                  />
                 </div>
               </div>
 
@@ -228,7 +287,15 @@ const Form46Modal = ({ onClose }) => {
                 <span style={{width: '30px', flexShrink: 0}}>6.</span>
                 <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Chassis number of the motor vehicle</span>
                 <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                  <input type="text" name="chassisNumber" value={formData.chassisNumber} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                  <input
+                    ref={(el) => inputRefs.current[6] = el}
+                    type="text"
+                    name="chassisNumber"
+                    value={formData.chassisNumber}
+                    onChange={handleChange}
+                    onKeyDown={(e) => handleKeyDown(e, 6)}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                  />
                 </div>
               </div>
 
@@ -243,7 +310,15 @@ const Form46Modal = ({ onClose }) => {
                       <div>date of expiry of the permit</div>
                     </div>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                      <input type="text" name="permitNumber" value={formData.permitNumber} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[7] = el}
+                        type="text"
+                        name="permitNumber"
+                        value={formData.permitNumber}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 7)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                   </div>
                 </div>
@@ -254,7 +329,15 @@ const Form46Modal = ({ onClose }) => {
                 <span style={{width: '30px', flexShrink: 0}}>8.</span>
                 <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Unladen weight of the motor vehicle</span>
                 <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                  <input type="text" name="unladenWeight" value={formData.unladenWeight} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                  <input
+                    ref={(el) => inputRefs.current[8] = el}
+                    type="text"
+                    name="unladenWeight"
+                    value={formData.unladenWeight}
+                    onChange={handleChange}
+                    onKeyDown={(e) => handleKeyDown(e, 8)}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                  />
                 </div>
               </div>
 
@@ -268,7 +351,15 @@ const Form46Modal = ({ onClose }) => {
                       <div>vehicle</div>
                     </div>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                      <input type="text" name="grossWeight" value={formData.grossWeight} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[9] = el}
+                        type="text"
+                        name="grossWeight"
+                        value={formData.grossWeight}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 9)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                   </div>
                 </div>
@@ -284,7 +375,15 @@ const Form46Modal = ({ onClose }) => {
                       <div>capacity in the case of tourist vehicle</div>
                     </div>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                      <input type="text" name="payLoad" value={formData.payLoad} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[10] = el}
+                        type="text"
+                        name="payLoad"
+                        value={formData.payLoad}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 10)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                   </div>
                 </div>
@@ -301,11 +400,27 @@ const Form46Modal = ({ onClose }) => {
                     </div>
                     <span style={{marginRight: '5px', paddingTop: '0px'}}>From</span>
                     <div style={{width: '90px', borderBottom: '2px solid #000', minHeight: '16px'}}>
-                      <input type="text" name="periodFrom" value={formData.periodFrom} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[11] = el}
+                        type="text"
+                        name="periodFrom"
+                        value={formData.periodFrom}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 11)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                     <span style={{marginLeft: '10px', marginRight: '5px'}}>To</span>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                      <input type="text" name="periodTo" value={formData.periodTo} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[12] = el}
+                        type="text"
+                        name="periodTo"
+                        value={formData.periodTo}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 12)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                   </div>
                 </div>
@@ -321,7 +436,15 @@ const Form46Modal = ({ onClose }) => {
                       <div>registration & permit of the vehicle</div>
                     </div>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                      <input type="text" name="certificateEnclosed" value={formData.certificateEnclosed} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[13] = el}
+                        type="text"
+                        name="certificateEnclosed"
+                        value={formData.certificateEnclosed}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 13)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                   </div>
                 </div>
@@ -338,7 +461,15 @@ const Form46Modal = ({ onClose }) => {
                       <div>of the authorisation.</div>
                     </div>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                      <input type="text" name="bankDraft" value={formData.bankDraft} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[14] = el}
+                        type="text"
+                        name="bankDraft"
+                        value={formData.bankDraft}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 14)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                   </div>
                 </div>
@@ -365,7 +496,7 @@ const Form46Modal = ({ onClose }) => {
                           type="text"
                           value={payment.stateName}
                           onChange={(e) => handlePaymentChange(index, 'stateName', e.target.value)}
-                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px'}}
+                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px', textTransform: 'uppercase'}}
                         />
                       </td>
                       <td style={{border: '2px solid #000', padding: '8px', fontSize: '11px'}}>
@@ -373,7 +504,7 @@ const Form46Modal = ({ onClose }) => {
                           type="text"
                           value={payment.amountPaid}
                           onChange={(e) => handlePaymentChange(index, 'amountPaid', e.target.value)}
-                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px'}}
+                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px', textTransform: 'uppercase'}}
                         />
                       </td>
                       <td style={{border: '2px solid #000', padding: '8px', fontSize: '11px'}}>
@@ -381,7 +512,7 @@ const Form46Modal = ({ onClose }) => {
                           type="text"
                           value={payment.bankDraft}
                           onChange={(e) => handlePaymentChange(index, 'bankDraft', e.target.value)}
-                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px'}}
+                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px', textTransform: 'uppercase'}}
                         />
                       </td>
                       <td style={{border: '2px solid #000', padding: '8px', fontSize: '11px'}}>
@@ -389,7 +520,7 @@ const Form46Modal = ({ onClose }) => {
                           type="text"
                           value={payment.dateOfPayment}
                           onChange={(e) => handlePaymentChange(index, 'dateOfPayment', e.target.value)}
-                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px'}}
+                          style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '11px', textTransform: 'uppercase'}}
                         />
                       </td>
                       <td className="no-print" style={{border: '2px solid #000', padding: '8px', textAlign: 'center', fontSize: '11px'}}>
@@ -419,7 +550,15 @@ const Form46Modal = ({ onClose }) => {
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
                     <span>Date</span>
                     <div style={{borderBottom: '2px solid #000', marginLeft: '16px', width: '150px', minHeight: '16px'}}>
-                      <input type="text" name="date" value={formData.date} onChange={handleChange} style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px'}} />
+                      <input
+                        ref={(el) => inputRefs.current[15] = el}
+                        type="text"
+                        name="date"
+                        value={formData.date}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 15)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      />
                     </div>
                   </div>
                   <div style={{textAlign: 'center'}}>
