@@ -319,9 +319,12 @@ const Form20Modal = ({ onClose }) => {
                 </div>
 
                 {/* Field 7 */}
-                <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+                <div style={{display: 'flex', marginBottom: '4px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>7.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Class of vehicle (if motor cycle, Whether with or without gear)</span>
+                  <div style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>
+                    <div>Class of vehicle</div>
+                    <div>(if motor cycle, Whether with or without gear)</div>
+                  </div>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[7] = el}
@@ -330,20 +333,6 @@ const Form20Modal = ({ onClose }) => {
                       value={formData.vehicleClass}
                       onChange={handleChange}
                       onKeyDown={(e) => handleKeyDown(e, 7)}
-                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
-                    />
-                  </div>
-                </div>
-                <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}></span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
-                    <input
-                      ref={(el) => inputRefs.current[8] = el}
-                      type="text"
-                      name="withGear"
-                      value={formData.withGear}
-                      onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 8)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -359,12 +348,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>a) A new vehicle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[9] = el}
+                      ref={(el) => inputRefs.current[8] = el}
                       type="text"
                       name="newVehicle"
                       value={formData.newVehicle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 9)}
+                      onKeyDown={(e) => handleKeyDown(e, 8)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -373,12 +362,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>b) Ex - Army vehicle :</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[10] = el}
+                      ref={(el) => inputRefs.current[9] = el}
                       type="text"
                       name="exArmyVehicle"
                       value={formData.exArmyVehicle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 10)}
+                      onKeyDown={(e) => handleKeyDown(e, 9)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -387,12 +376,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>c) Imported vehicle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[11] = el}
+                      ref={(el) => inputRefs.current[10] = el}
                       type="text"
                       name="importedVehicle"
                       value={formData.importedVehicle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 11)}
+                      onKeyDown={(e) => handleKeyDown(e, 10)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -404,12 +393,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Type of body</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[12] = el}
+                      ref={(el) => inputRefs.current[11] = el}
                       type="text"
                       name="bodyType"
                       value={formData.bodyType}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 12)}
+                      onKeyDown={(e) => handleKeyDown(e, 11)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -421,12 +410,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Type of vehicle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[13] = el}
+                      ref={(el) => inputRefs.current[12] = el}
                       type="text"
                       name="vehicleType"
                       value={formData.vehicleType}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 13)}
+                      onKeyDown={(e) => handleKeyDown(e, 12)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -438,12 +427,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Maker's Name</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[14] = el}
+                      ref={(el) => inputRefs.current[13] = el}
                       type="text"
                       name="makerName"
                       value={formData.makerName}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 14)}
+                      onKeyDown={(e) => handleKeyDown(e, 13)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -455,12 +444,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Month and year of manufacturer</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[15] = el}
+                      ref={(el) => inputRefs.current[14] = el}
                       type="text"
                       name="manufactureDate"
                       value={formData.manufactureDate}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 15)}
+                      onKeyDown={(e) => handleKeyDown(e, 14)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -472,12 +461,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Number of cylinders</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[16] = el}
+                      ref={(el) => inputRefs.current[15] = el}
                       type="text"
                       name="cylinders"
                       value={formData.cylinders}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 16)}
+                      onKeyDown={(e) => handleKeyDown(e, 15)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -489,12 +478,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Horse Power</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[17] = el}
+                      ref={(el) => inputRefs.current[16] = el}
                       type="text"
                       name="horsePower"
                       value={formData.horsePower}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 17)}
+                      onKeyDown={(e) => handleKeyDown(e, 16)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -506,12 +495,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Cubic capacity</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[18] = el}
+                      ref={(el) => inputRefs.current[17] = el}
                       type="text"
                       name="cubicCapacity"
                       value={formData.cubicCapacity}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 18)}
+                      onKeyDown={(e) => handleKeyDown(e, 17)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -523,12 +512,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Maker's classification or if not known wheel base</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[19] = el}
+                      ref={(el) => inputRefs.current[18] = el}
                       type="text"
                       name="makerClass"
                       value={formData.makerClass}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 19)}
+                      onKeyDown={(e) => handleKeyDown(e, 18)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -540,12 +529,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Chassis Number (Affix pencil print)</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[20] = el}
+                      ref={(el) => inputRefs.current[19] = el}
                       type="text"
                       name="chassisNumber"
                       value={formData.chassisNumber}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 20)}
+                      onKeyDown={(e) => handleKeyDown(e, 19)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -557,12 +546,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Engine Number</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[21] = el}
+                      ref={(el) => inputRefs.current[20] = el}
                       type="text"
                       name="engineNumber"
                       value={formData.engineNumber}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 21)}
+                      onKeyDown={(e) => handleKeyDown(e, 20)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -574,12 +563,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Seating Capacity (including driver)</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[22] = el}
+                      ref={(el) => inputRefs.current[21] = el}
                       type="text"
                       name="seatingCapacity"
                       value={formData.seatingCapacity}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 22)}
+                      onKeyDown={(e) => handleKeyDown(e, 21)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -591,12 +580,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Fuel used in the engine</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[23] = el}
+                      ref={(el) => inputRefs.current[22] = el}
                       type="text"
                       name="fuelUsed"
                       value={formData.fuelUsed}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 23)}
+                      onKeyDown={(e) => handleKeyDown(e, 22)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -608,12 +597,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Unloaded weight</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[24] = el}
+                      ref={(el) => inputRefs.current[23] = el}
                       type="text"
                       name="unladenWeight"
                       value={formData.unladenWeight}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 24)}
+                      onKeyDown={(e) => handleKeyDown(e, 23)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -625,12 +614,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Particular of previous registration and registered number (if any)</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[25] = el}
+                      ref={(el) => inputRefs.current[24] = el}
                       type="text"
                       name="prevReg"
                       value={formData.prevReg}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 25)}
+                      onKeyDown={(e) => handleKeyDown(e, 24)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -642,12 +631,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Colour or colours of body wings and front end</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[26] = el}
+                      ref={(el) => inputRefs.current[25] = el}
                       type="text"
                       name="colour"
                       value={formData.colour}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 26)}
+                      onKeyDown={(e) => handleKeyDown(e, 25)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -666,12 +655,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(a) Front axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[27] = el}
+                      ref={(el) => inputRefs.current[26] = el}
                       type="text"
                       name="frontAxle"
                       value={formData.frontAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 27)}
+                      onKeyDown={(e) => handleKeyDown(e, 26)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -680,12 +669,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(b) Rear axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[28] = el}
+                      ref={(el) => inputRefs.current[27] = el}
                       type="text"
                       name="rearAxle"
                       value={formData.rearAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 28)}
+                      onKeyDown={(e) => handleKeyDown(e, 27)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -694,12 +683,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(c) Any other axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[29] = el}
+                      ref={(el) => inputRefs.current[28] = el}
                       type="text"
                       name="otherAxle"
                       value={formData.otherAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 29)}
+                      onKeyDown={(e) => handleKeyDown(e, 28)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -708,12 +697,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(d) Tandem axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[30] = el}
+                      ref={(el) => inputRefs.current[29] = el}
                       type="text"
                       name="tandomAxle"
                       value={formData.tandomAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 30)}
+                      onKeyDown={(e) => handleKeyDown(e, 29)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -729,12 +718,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>a) As certified by the Manufacture</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
-                      ref={(el) => inputRefs.current[31] = el}
+                      ref={(el) => inputRefs.current[30] = el}
                       type="text"
                       name="grossCertified"
                       value={formData.grossCertified}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 31)}
+                      onKeyDown={(e) => handleKeyDown(e, 30)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                     <span style={{marginLeft: '8px', flexShrink: 0}}>Kgms</span>
@@ -744,12 +733,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>b) To be registered</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
-                      ref={(el) => inputRefs.current[32] = el}
+                      ref={(el) => inputRefs.current[31] = el}
                       type="text"
                       name="grossRegistered"
                       value={formData.grossRegistered}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 32)}
+                      onKeyDown={(e) => handleKeyDown(e, 31)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                     <span style={{marginLeft: '8px', flexShrink: 0}}>Kgms</span>
@@ -776,12 +765,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>a) Front axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
-                      ref={(el) => inputRefs.current[33] = el}
+                      ref={(el) => inputRefs.current[32] = el}
                       type="text"
                       name="maxFrontAxle"
                       value={formData.maxFrontAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 33)}
+                      onKeyDown={(e) => handleKeyDown(e, 32)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                     <span style={{marginLeft: '8px', flexShrink: 0}}>Kgms</span>
@@ -791,12 +780,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>b) Rear axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
-                      ref={(el) => inputRefs.current[34] = el}
+                      ref={(el) => inputRefs.current[33] = el}
                       type="text"
                       name="maxRearAxle"
                       value={formData.maxRearAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 34)}
+                      onKeyDown={(e) => handleKeyDown(e, 33)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                     <span style={{marginLeft: '8px', flexShrink: 0}}>Kgms</span>
@@ -806,12 +795,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>c) Any other axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
-                      ref={(el) => inputRefs.current[35] = el}
+                      ref={(el) => inputRefs.current[34] = el}
                       type="text"
                       name="maxOtherAxle"
                       value={formData.maxOtherAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 35)}
+                      onKeyDown={(e) => handleKeyDown(e, 34)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                     <span style={{marginLeft: '8px', flexShrink: 0}}>Kgms</span>
@@ -821,12 +810,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>d) Tandem axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
-                      ref={(el) => inputRefs.current[36] = el}
+                      ref={(el) => inputRefs.current[35] = el}
                       type="text"
                       name="maxTandomAxle"
                       value={formData.maxTandomAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 36)}
+                      onKeyDown={(e) => handleKeyDown(e, 35)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                     <span style={{marginLeft: '8px', flexShrink: 0}}>Kgms</span>
@@ -839,12 +828,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>a) Overall length</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[37] = el}
+                      ref={(el) => inputRefs.current[36] = el}
                       type="text"
                       name="overallLength"
                       value={formData.overallLength}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 37)}
+                      onKeyDown={(e) => handleKeyDown(e, 36)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -853,12 +842,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>b) Overall width</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[38] = el}
+                      ref={(el) => inputRefs.current[37] = el}
                       type="text"
                       name="overallWidth"
                       value={formData.overallWidth}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 38)}
+                      onKeyDown={(e) => handleKeyDown(e, 37)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -867,12 +856,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>c) Overall height</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[39] = el}
+                      ref={(el) => inputRefs.current[38] = el}
                       type="text"
                       name="overallHeight"
                       value={formData.overallHeight}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 39)}
+                      onKeyDown={(e) => handleKeyDown(e, 38)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -881,12 +870,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>d) Overall hand</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[40] = el}
+                      ref={(el) => inputRefs.current[39] = el}
                       type="text"
                       name="overallHand"
                       value={formData.overallHand}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 40)}
+                      onKeyDown={(e) => handleKeyDown(e, 39)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -902,12 +891,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Type of body</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[41] = el}
+                      ref={(el) => inputRefs.current[40] = el}
                       type="text"
                       name="semiBodyType"
                       value={formData.semiBodyType}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 41)}
+                      onKeyDown={(e) => handleKeyDown(e, 40)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -919,12 +908,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Unloading weight</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[42] = el}
+                      ref={(el) => inputRefs.current[41] = el}
                       type="text"
                       name="semiUnladenWeight"
                       value={formData.semiUnladenWeight}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 42)}
+                      onKeyDown={(e) => handleKeyDown(e, 41)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -936,12 +925,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Number description and size of tyres on each axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[43] = el}
+                      ref={(el) => inputRefs.current[42] = el}
                       type="text"
                       name="semiTyres"
                       value={formData.semiTyres}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 43)}
+                      onKeyDown={(e) => handleKeyDown(e, 42)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -953,12 +942,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Maximum axle weight in respect of each axle</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
-                      ref={(el) => inputRefs.current[44] = el}
+                      ref={(el) => inputRefs.current[43] = el}
                       type="text"
                       name="semiMaxAxle"
                       value={formData.semiMaxAxle}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 44)}
+                      onKeyDown={(e) => handleKeyDown(e, 43)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                   </div>
@@ -972,24 +961,24 @@ const Form20Modal = ({ onClose }) => {
                     <span>Insurance certificate or cover note No</span>
                     <div style={{borderBottom: '2px solid #000', minHeight: '16px', width: '100px'}}>
                       <input
-                        ref={(el) => inputRefs.current[45] = el}
+                        ref={(el) => inputRefs.current[44] = el}
                         type="text"
                         name="insuranceNo"
                         value={formData.insuranceNo}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 45)}
+                        onKeyDown={(e) => handleKeyDown(e, 44)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
                     <span>Date</span>
                     <div style={{borderBottom: '2px solid #000', minHeight: '16px', width: '100px'}}>
                       <input
-                        ref={(el) => inputRefs.current[46] = el}
+                        ref={(el) => inputRefs.current[45] = el}
                         type="text"
                         name="insuranceDate"
                         value={formData.insuranceDate}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 46)}
+                        onKeyDown={(e) => handleKeyDown(e, 45)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -999,12 +988,12 @@ const Form20Modal = ({ onClose }) => {
                   <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(Name of Company</span>
                   <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
-                      ref={(el) => inputRefs.current[47] = el}
+                      ref={(el) => inputRefs.current[46] = el}
                       type="text"
                       name="insuranceCompany"
                       value={formData.insuranceCompany}
                       onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 47)}
+                      onKeyDown={(e) => handleKeyDown(e, 46)}
                       style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                     />
                     <span style={{marginLeft: '8px'}}>)</span>
@@ -1025,24 +1014,24 @@ const Form20Modal = ({ onClose }) => {
                     <span>valid from</span>
                     <div style={{borderBottom: '2px solid #000', minHeight: '16px', width: '100px'}}>
                       <input
-                        ref={(el) => inputRefs.current[48] = el}
+                        ref={(el) => inputRefs.current[47] = el}
                         type="text"
                         name="validFrom"
                         value={formData.validFrom}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 48)}
+                        onKeyDown={(e) => handleKeyDown(e, 47)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
                     <span>to</span>
                     <div style={{borderBottom: '2px solid #000', minHeight: '16px', width: '100px'}}>
                       <input
-                        ref={(el) => inputRefs.current[49] = el}
+                        ref={(el) => inputRefs.current[48] = el}
                         type="text"
                         name="validTo"
                         value={formData.validTo}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 49)}
+                        onKeyDown={(e) => handleKeyDown(e, 48)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1054,12 +1043,12 @@ const Form20Modal = ({ onClose }) => {
                     <span>Date</span>
                     <div style={{borderBottom: '2px solid #000', marginLeft: '16px', width: '150px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[50] = el}
+                        ref={(el) => inputRefs.current[49] = el}
                         type="text"
                         name="formDate"
                         value={formData.formDate}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 50)}
+                        onKeyDown={(e) => handleKeyDown(e, 49)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1078,12 +1067,12 @@ const Form20Modal = ({ onClose }) => {
                     <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Subject to hire purchase agreement / lease agreement with</span>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[51] = el}
+                        ref={(el) => inputRefs.current[50] = el}
                         type="text"
                         name="hirePurchase"
                         value={formData.hirePurchase}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 51)}
+                        onKeyDown={(e) => handleKeyDown(e, 50)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1093,12 +1082,12 @@ const Form20Modal = ({ onClose }) => {
                     <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Subject to hypothecation in favour of</span>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[52] = el}
+                        ref={(el) => inputRefs.current[51] = el}
                         type="text"
                         name="hypothecation"
                         value={formData.hypothecation}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 52)}
+                        onKeyDown={(e) => handleKeyDown(e, 51)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1147,12 +1136,12 @@ const Form20Modal = ({ onClose }) => {
                     <span>Date</span>
                     <div style={{borderBottom: '2px solid #000', marginLeft: '16px', width: '150px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[53] = el}
+                        ref={(el) => inputRefs.current[52] = el}
                         type="text"
                         name="certDate"
                         value={formData.certDate}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 53)}
+                        onKeyDown={(e) => handleKeyDown(e, 52)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1165,12 +1154,12 @@ const Form20Modal = ({ onClose }) => {
                     <span>Name</span>
                     <div style={{borderBottom: '2px solid #000', marginLeft: '8px', width: '150px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[54] = el}
+                        ref={(el) => inputRefs.current[53] = el}
                         type="text"
                         name="inspectorName"
                         value={formData.inspectorName}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 54)}
+                        onKeyDown={(e) => handleKeyDown(e, 53)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1179,12 +1168,12 @@ const Form20Modal = ({ onClose }) => {
                     <span>Designation</span>
                     <div style={{borderBottom: '2px solid #000', marginLeft: '8px', width: '120px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[55] = el}
+                        ref={(el) => inputRefs.current[54] = el}
                         type="text"
                         name="inspectorDesignation"
                         value={formData.inspectorDesignation}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 55)}
+                        onKeyDown={(e) => handleKeyDown(e, 54)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1201,36 +1190,36 @@ const Form20Modal = ({ onClose }) => {
                     <span>Ref. Number</span>
                     <div style={{borderBottom: '2px solid #000', width: '100px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[56] = el}
+                        ref={(el) => inputRefs.current[55] = el}
                         type="text"
                         name="refNumber"
                         value={formData.refNumber}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 56)}
+                        onKeyDown={(e) => handleKeyDown(e, 55)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
                     <span>office of the -</span>
                     <div style={{borderBottom: '2px solid #000', width: '80px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[57] = el}
+                        ref={(el) => inputRefs.current[56] = el}
                         type="text"
                         name="officeName"
                         value={formData.officeName}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 57)}
+                        onKeyDown={(e) => handleKeyDown(e, 56)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
                     <span>dated</span>
                     <div style={{borderBottom: '2px solid #000', width: '80px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[58] = el}
+                        ref={(el) => inputRefs.current[57] = el}
                         type="text"
                         name="endorseDate"
                         value={formData.endorseDate}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 58)}
+                        onKeyDown={(e) => handleKeyDown(e, 57)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1239,24 +1228,24 @@ const Form20Modal = ({ onClose }) => {
                     <span>The</span>
                     <div style={{borderBottom: '2px solid #000', width: '100px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[59] = el}
+                        ref={(el) => inputRefs.current[58] = el}
                         type="text"
                         name="theVehicle"
                         value={formData.theVehicle}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 59)}
+                        onKeyDown={(e) => handleKeyDown(e, 58)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
                     <span>bearing chasses number</span>
                     <div style={{borderBottom: '2px solid #000', width: '120px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[60] = el}
+                        ref={(el) => inputRefs.current[59] = el}
                         type="text"
                         name="endorseChassisNo"
                         value={formData.endorseChassisNo}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 60)}
+                        onKeyDown={(e) => handleKeyDown(e, 59)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1266,24 +1255,24 @@ const Form20Modal = ({ onClose }) => {
                     <span>Number</span>
                     <div style={{borderBottom: '2px solid #000', width: '120px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[61] = el}
+                        ref={(el) => inputRefs.current[60] = el}
                         type="text"
                         name="engineNo2"
                         value={formData.engineNo2}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 61)}
+                        onKeyDown={(e) => handleKeyDown(e, 60)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
                     <span>has been assigned the registration number</span>
                     <div style={{borderBottom: '2px solid #000', width: '100px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[62] = el}
+                        ref={(el) => inputRefs.current[61] = el}
                         type="text"
                         name="regNumber"
                         value={formData.regNumber}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 62)}
+                        onKeyDown={(e) => handleKeyDown(e, 61)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1292,12 +1281,12 @@ const Form20Modal = ({ onClose }) => {
                     <span>and registered in the name of</span>
                     <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[63] = el}
+                        ref={(el) => inputRefs.current[62] = el}
                         type="text"
                         name="regName"
                         value={formData.regName}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 63)}
+                        onKeyDown={(e) => handleKeyDown(e, 62)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>
@@ -1306,12 +1295,12 @@ const Form20Modal = ({ onClose }) => {
                     <span>and vehicle is subject to an agreement of hire purchase / lease / hypothecation</span>
                     <div style={{borderBottom: '2px solid #000', width: '100px', minHeight: '16px'}}>
                       <input
-                        ref={(el) => inputRefs.current[64] = el}
+                        ref={(el) => inputRefs.current[63] = el}
                         type="text"
                         name="agreement"
                         value={formData.agreement}
                         onChange={handleChange}
-                        onKeyDown={(e) => handleKeyDown(e, 64)}
+                        onKeyDown={(e) => handleKeyDown(e, 63)}
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
                       />
                     </div>

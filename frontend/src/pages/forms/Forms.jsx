@@ -2,10 +2,14 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Form46Modal from './components/Form46Modal'
 import Form20Modal from './components/Form20Modal'
+import Form48Modal from './components/Form48Modal'
+import SapathPatraModal from './components/SapathPatraModal'
 
 const Forms = () => {
   const [isForm46Open, setIsForm46Open] = useState(false)
   const [isForm20Open, setIsForm20Open] = useState(false)
+  const [isForm48Open, setIsForm48Open] = useState(false)
+  const [isSapathPatraOpen, setIsSapathPatraOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   const forms = [
@@ -24,6 +28,22 @@ const Forms = () => {
       icon: '🚗',
       isModal: true,
       category: 'Permit'
+    },
+    {
+      id: 'form-48',
+      name: 'Form 48',
+      description: 'Application for the Grant of National Permit',
+      icon: '🚚',
+      isModal: true,
+      category: 'Permit'
+    },
+    {
+      id: 'sapath-patra',
+      name: 'Sapath Patra (शपथ-पत्र)',
+      description: 'Affidavit Form for RTO - Notary District Civil Office',
+      icon: '📜',
+      isModal: true,
+      category: 'Affidavit'
     }
   ]
 
@@ -33,6 +53,10 @@ const Forms = () => {
         setIsForm46Open(true)
       } else if (form.id === 'form-20') {
         setIsForm20Open(true)
+      } else if (form.id === 'form-48') {
+        setIsForm48Open(true)
+      } else if (form.id === 'sapath-patra') {
+        setIsSapathPatraOpen(true)
       }
     }
   }
@@ -124,6 +148,85 @@ const Forms = () => {
                 <h2 style="font-size: 13px; font-weight: bold;">tourist Permit or National Permit</h2>
               </div>
               ${generateForm46Fields()}
+            </div>
+          </body>
+        </html>
+      `)
+    } else if (formId === 'form-48') {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>FORM 48 - Application for National Permit</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: 'Times New Roman', serif; font-size: 12px; line-height: 1.4; padding: 20px; }
+              .form-container { width: 100%; max-width: 800px; margin: 0 auto; }
+              input {
+                border: none !important;
+                background: transparent;
+                outline: none;
+                width: 100%;
+                font-family: 'Times New Roman', serif;
+                font-size: 12px;
+                padding: 0 2px;
+              }
+              @media print {
+                body { padding: 10mm; margin: 0; }
+                @page {
+                  margin: 0;
+                  size: A4;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="form-container">
+              <div style="text-align: center; margin-bottom: 15px;">
+                <h1 style="font-size: 18px; font-weight: bold; letter-spacing: 4px;">FORM 48</h1>
+                <p style="font-size: 11px; margin-top: 3px;">[Refer Rule 86]</p>
+                <h2 style="font-size: 13px; font-weight: bold; margin-top: 5px;">APPLICATION FOR THE GRANT OF NATIONAL PERMIT</h2>
+              </div>
+              ${generateForm48Fields()}
+            </div>
+          </body>
+        </html>
+      `)
+    } else if (formId === 'sapath-patra') {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>शपथ-पत्र (Sapath Patra)</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: 'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif; font-size: 14px; line-height: 1.6; padding: 20px; }
+              .form-container { width: 100%; max-width: 800px; margin: 0 auto; }
+              input {
+                border: none !important;
+                background: transparent;
+                outline: none;
+                width: 100%;
+                font-family: 'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif;
+                font-size: 14px;
+                padding: 0 2px;
+              }
+              @media print {
+                body { padding: 10mm; margin: 0; }
+                @page {
+                  margin: 0;
+                  size: A4;
+                }
+              }
+            </style>
+            <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap" rel="stylesheet">
+          </head>
+          <body>
+            <div class="form-container">
+              <div style="text-align: center; margin-bottom: 15px;">
+                <h1 style="font-size: 28px; font-weight: bold; letter-spacing: 2px;">शपथ–पत्र</h1>
+                <p style="font-size: 14px; margin-top: 5px;">समक्ष नोटरी जिला सिविल कार्यालय</p>
+                <p style="font-size: 13px; margin-top: 2px;">(आर.टी.ओ. कार्यालय में पेश करने हेतु)</p>
+              </div>
+              ${generateSapathPatraFields()}
             </div>
           </body>
         </html>
@@ -485,6 +588,318 @@ const Forms = () => {
     `
   }
 
+  const generateForm48Fields = () => {
+    return `
+      <div style="margin-bottom: 15px;">
+        <p>To</p>
+        <div style="display: flex; margin-top: 4px; margin-left: 48px;">
+          <div style="flex: 1;">
+            <p style="margin-bottom: 4px;">The Regional/State Transport Authority,</p>
+            <div style="border-bottom: 2px dotted #000; min-height: 16px; width: 100%;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom: 15px; line-height: 1.6;">
+        <p>I/We the undersigned hereby apply for the grant of national permit valid</p>
+        <div style="display: flex; align-items: baseline; margin-top: 4px;">
+          <span>throughout the territory of India/in the State of</span>
+          <div style="flex: 1; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 16px;"></div>
+        </div>
+        <p style="font-size: 10px; font-style: italic; margin-top: 2px;">(here write the names of the States desired)</p>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">1.</span>
+        <span style="width: 360px; flex-shrink: 0; margin-right: 10px;">Name of the applicant(s) in full</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">2.</span>
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>Status of the applicant, whether individual, company</div>
+          <div>or partnership firm, cooperative society, etc.</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">3.</span>
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>Name of father or husband (in case of individual and in</div>
+          <div>case of company or firm the particulars of managing partner</div>
+          <div>or managing director, as the case may be)</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">4.</span>
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>Full address (to be supported by attested copy of ration</div>
+          <div>card, electricity bill, etc. in case of individual or any other</div>
+          <div>valid documentary proof to the satisfaction of the State Trans-</div>
+          <div>port Authority/Regional Transport Authority and in case of</div>
+          <div>company or firm, the certified copy of the Memorandum of</div>
+          <div>Association or copy of the deed of partnership, as the case</div>
+          <div>may be)</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">5.</span>
+        <span style="width: 360px; flex-shrink: 0; margin-right: 10px;">(a) Whether the applicant himself intends to drive the vehicle ?</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>(b) (i) If so, whether the applicant holds heavy</div>
+          <div style="margin-left: 48px;">passenger motor vehicle driving licence</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>(ii) The number, date and validity period of driving</div>
+          <div style="margin-left: 48px;">licence</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
+        <span style="width: 360px; flex-shrink: 0; margin-right: 10px;">(iii) Name and address of the licensing authority</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">6.</span>
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>Registration certificate along with the date of first registration,</div>
+          <div>insurance certificate number</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">7.</span>
+        <span style="width: 360px; flex-shrink: 0; margin-right: 10px;">Details of other permits if held in respect of a particular vehicle</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">8.</span>
+        <span style="width: 360px; flex-shrink: 0; margin-right: 10px;">Details of number of national permits held by the applicant</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">9.</span>
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>Type of vehicle, whether two-axle truck or articulated vehicle</div>
+          <div>or multi-axle vehicle or tractor-trailer combination</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">10.</span>
+        <span style="width: 360px; flex-shrink: 0; margin-right: 10px;">Make of motor vehicle</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">11.</span>
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>Particulars of convictions/suspensions/cancellation, if any,</div>
+          <div>during the past three years in respect of the vehicle/permit</div>
+          <div>held by the applicant(s)</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">12.</span>
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>I/We forward herewith the certificate of registration of the</div>
+          <div>vehicle or I/We will produce the certificate of registration</div>
+          <div>of the vehicle before the permits are issued</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">13.</span>
+        <div style="width: 360px; flex-shrink: 0; margin-right: 10px;">
+          <div>I/We hereby declare that the above statements are true and that</div>
+          <div>I/We am/are the resident(s) of this State having principal place</div>
+          <div>of business in this State at</div>
+        </div>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
+        <span style="width: 30px; flex-shrink: 0;">14.</span>
+        <span style="width: 360px; flex-shrink: 0; margin-right: 10px;">I/We have paid the fee of Rs.</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; min-height: 16px;"></div>
+      </div>
+      <div style="border-bottom: 2px dotted #000; margin: 15px 0;"></div>
+      <div style="margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: end;">
+          <div style="display: flex; align-items: baseline;">
+            <span>Date</span>
+            <div style="border-bottom: 2px dotted #000; margin-left: 16px; width: 150px; min-height: 16px;"></div>
+          </div>
+          <div style="text-align: center;">
+            <div style="border-bottom: 2px dotted #000; margin-bottom: 4px; width: 250px; height: 40px;"></div>
+            <p style="font-size: 11px; font-weight: normal;">Signature or thumb impression of the applicant</p>
+          </div>
+        </div>
+      </div>
+    `
+  }
+
+  const generateSapathPatraFields = () => {
+    return `
+      <div style="margin-bottom: 12px; display: flex; align-items: baseline;">
+        <span>मैं</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+        <span style="margin-left: 8px;">पिता/पति</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+      </div>
+      <div style="margin-bottom: 12px; display: flex; align-items: baseline;">
+        <span>उम्र</span>
+        <div style="width: 100px; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+        <span style="margin-left: 8px;">वर्ष, निवासी</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+        <span style="margin-left: 8px;">तहसील</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+      </div>
+      <div style="margin-bottom: 12px; display: flex; align-items: baseline;">
+        <span>जिला</span>
+        <div style="flex: 1; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+        <span style="margin-left: 8px;">का रहने वाला हूं, जो कि निम्नलिखित कथन पूर्वक कहता हूं –</span>
+      </div>
+      <div style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+        <span style="margin-right: 8px;">1.</span>
+        <div style="flex: 1;">
+          <div style="display: flex; align-items: baseline; flex-wrap: wrap;">
+            <span>यह है कि मैं वाहन क्रमांक</span>
+            <div style="flex: 1 1 200px; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+            <span style="margin-left: 8px;">का पंजीकृत स्वामी हूं, जिसका</span>
+          </div>
+          <div style="display: flex; align-items: baseline; margin-top: 4px;">
+            <span>चेसिस नंबर</span>
+            <div style="flex: 1 1 200px; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+            <span style="margin-left: 8px;">इंजन नंबर</span>
+            <div style="flex: 1 1 200px; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+          </div>
+          <div style="display: flex; align-items: baseline; margin-top: 4px;">
+            <span>मॉडल नं.</span>
+            <div style="flex: 1 1 200px; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+            <span style="margin-left: 8px;">है। जिसका मार्क कर</span>
+            <div style="flex: 1 1 150px; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+            <span style="margin-left: 8px;">तक जमा है।</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+        <span style="margin-right: 8px;">2.</span>
+        <div style="flex: 1;">
+          <span>यह है कि मैं वाहन क्रमांक</span>
+          <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 200px; margin-left: 8px;"></div>
+          <span style="margin-left: 8px;">जो कि</span>
+          <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 350px; margin-left: 8px;"></div>
+          <div style="margin-top: 4px;">
+            <span>पिता/पति श्री</span>
+            <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 500px; margin-left: 8px;"></div>
+          </div>
+          <div style="margin-top: 4px;">
+            <span>निवासी</span>
+            <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 550px; margin-left: 8px;"></div>
+            <span style="margin-left: 8px;">तहसील</span>
+            <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 200px; margin-left: 8px;"></div>
+          </div>
+          <div style="margin-top: 4px;">
+            <span>जिला</span>
+            <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 200px; margin-left: 8px;"></div>
+            <span style="margin-left: 8px;">को बिक्री कर दिया हूं। जिसका रकम प्राप्त हो गया है।</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+        <span style="margin-right: 8px;">3.</span>
+        <div style="flex: 1;">
+          <span>यह है कि वाहन क्रमांक</span>
+          <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 200px; margin-left: 8px;"></div>
+          <span style="margin-left: 8px;">को श्री</span>
+          <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 200px; margin-left: 8px;"></div>
+          <div style="margin-top: 4px;">
+            <span>पिता</span>
+            <div style="border-bottom: 2px dotted #000; min-height: 20px; display: inline-block; min-width: 550px; margin-left: 8px;"></div>
+            <span style="margin-left: 8px;">के नाम से स्वामित्व अन्तरण किया जाता है तो उसमें</span>
+          </div>
+          <div style="margin-top: 4px;">मुझे एवं वारिसों को कोई आपत्ति नहीं है।</div>
+        </div>
+      </div>
+      <div style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+        <span style="margin-right: 8px;">4.</span>
+        <span>यह है कि बिक्री पत्र फार्म नं. 29 एवं 30 में रजिस्टर्ड ओनर द्वारा मेरे समक्ष हस्ताक्षर किया है।</span>
+      </div>
+      <div style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+        <span style="margin-right: 8px;">5.</span>
+        <span>यह है कि मैंने बिकेता रजिस्टर्ड ओनर को वाहन का बिक्रय मूल्य पूरी तौर से भुगतान कर दिया है।</span>
+      </div>
+      <div style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+        <span style="margin-right: 8px;">6.</span>
+        <span>यह है कि उक्त वाहन के बिक्रय में किसी भी भी प्रकार का विवाद नहीं है।</span>
+      </div>
+      <div style="margin-bottom: 10px; display: flex; align-items: flex-start;">
+        <span style="margin-right: 8px;">7.</span>
+        <span>यह है कि उक्त वाहन के बिक्री राशि संबंधी, स्वामित्व अन्तरण संबंधी या अन्य किसी बाबत कोई विवाद होता है तो उसकी पूरी जवाबदारी व्यक्तिगत रूप से बिकेता एवं हम दोनों की होगी।</span>
+      </div>
+      <div style="margin-bottom: 15px; display: flex; align-items: flex-start;">
+        <span style="margin-right: 8px;">8.</span>
+        <div style="flex: 1;">
+          <span>यह है कि उक्त वर्णित वाहन का कब्जा बिकेता द्वारा क्रेता को चाबी एवं दस्तावेज की मूल प्रति आज दिनांक को दे दिया गया है। उक्त वाहन के संबंध में आज से पूर्व हुई किसी भी प्रकार के मामलों की जिम्मेदारी बिकेता की होगी तथा आज दिनांक के बाद की समस्त जवाबदारी क्रेता की होगी।</span>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 30px; margin-bottom: 30px;">
+        <div style="width: 150px; border: 2px solid #000; padding: 60px 10px 10px; text-align: center; min-height: 120px;">
+          <strong>Buyer</strong>
+        </div>
+        <div style="text-align: center; flex: 1; padding: 0 20px;">
+          <div style="margin-bottom: 15px;">
+            <strong style="font-size: 16px;">P</strong> <span>शपथकर्ता (क्रेता)</span>
+          </div>
+          <div style="border-bottom: 2px dotted #000; min-height: 40px; margin-bottom: 15px;"></div>
+          <div style="margin-top: 30px;">
+            <h2 style="font-size: 20px; font-weight: bold;">सत्यापन</h2>
+          </div>
+        </div>
+        <div style="width: 150px; border: 2px solid #000; padding: 60px 10px 10px; text-align: center; min-height: 120px;">
+          <strong>Seller</strong>
+        </div>
+        <div style="text-align: center; flex: 1; padding: 0 20px;">
+          <div style="margin-bottom: 15px;">
+            <strong style="font-size: 16px;">S</strong> <span>शपथकर्ता (बिक्रेता)</span>
+          </div>
+          <div style="border-bottom: 2px dotted #000; min-height: 40px;"></div>
+        </div>
+      </div>
+      <div style="margin-top: 20px;">
+        <div style="margin-bottom: 10px; display: flex; align-items: baseline;">
+          <span>मैं</span>
+          <div style="flex: 1; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+          <span style="margin-left: 8px;">पिता/पति</span>
+          <div style="flex: 1; border-bottom: 2px dotted #000; margin-left: 8px; min-height: 20px;"></div>
+        </div>
+        <p style="margin-bottom: 10px;">पता <span style="margin-left: 8px; border-bottom: 2px dotted #000; display: inline-block; min-width: 500px;">यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</span></p>
+        <p style="margin-bottom: 10px;">की गई सभी जानकारी क्रेता एवं बिक्रेता को स्वीकार्य है। हम दोनों ने अपने होशो–हवाश में पढ़कर व समझकर</p>
+        <p style="margin-bottom: 20px;">आज दिनांक <span style="margin-left: 8px; border-bottom: 2px dotted #000; display: inline-block; min-width: 200px;"></span> को हस्ताक्षर किया।</p>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 30px;">
+        <div style="text-align: center;">
+          <div style="border-bottom: 2px dotted #000; min-height: 50px; width: 200px; margin-bottom: 8px;"></div>
+          <p>शपथकर्ता (क्रेता)</p>
+          <div style="border-bottom: 2px dotted #000; min-height: 20px; width: 200px; margin-top: 15px;"></div>
+          <p>मो.नं.</p>
+        </div>
+        <div style="text-align: center;">
+          <div style="border-bottom: 2px dotted #000; min-height: 50px; width: 200px; margin-bottom: 8px;"></div>
+          <p>शपथकर्ता (बिक्रेता)</p>
+          <div style="border-bottom: 2px dotted #000; min-height: 20px; width: 200px; margin-top: 15px;"></div>
+          <p>मो.नं.</p>
+        </div>
+      </div>
+    `
+  }
+
   // Filter forms based on search query
   const filteredForms = forms.filter(form =>
     form.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -631,6 +1046,16 @@ const Forms = () => {
       {/* Form 46 Modal */}
       {isForm46Open && (
         <Form46Modal onClose={() => setIsForm46Open(false)} />
+      )}
+
+      {/* Form 48 Modal */}
+      {isForm48Open && (
+        <Form48Modal onClose={() => setIsForm48Open(false)} />
+      )}
+
+      {/* Sapath Patra Modal */}
+      {isSapathPatraOpen && (
+        <SapathPatraModal onClose={() => setIsSapathPatraOpen(false)} />
       )}
     </div>
   )
