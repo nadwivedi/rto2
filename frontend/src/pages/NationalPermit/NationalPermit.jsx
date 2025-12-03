@@ -725,9 +725,9 @@ const NationalPermit = () => {
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid From</th>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Valid To</th>
                 <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Part B</th>
-                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Fee (₹)</th>
-                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Paid (₹)</th>
-                <th className='px-5 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Balance (₹)</th>
+                <th className='px-5 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Total Fee</th>
+                <th className='px-5 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Paid</th>
+                <th className='px-5 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Balance</th>
                 <th className='px-5 py-4 text-right text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
               </tr>
             </thead>
@@ -802,20 +802,24 @@ const NationalPermit = () => {
                         </div>
                       </div>
                     </td>
-                    <td className='px-5 py-4'>
-                      <div className='flex items-center text-sm text-gray-700 font-medium whitespace-nowrap'>
-                        <svg className='w-4 h-4 mr-2 text-green-500 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                        </svg>
-                        {permit.partA?.permitValidFrom || permit.validFrom || 'N/A'}
+                    <td className='px-0.5 py-3 pl-8'>
+                      <div className='flex items-center'>
+                        <span className='inline-flex items-center px-2 py-1 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200 whitespace-nowrap text-sm'>
+                          <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                          </svg>
+                          {permit.partA?.permitValidFrom || permit.validFrom || 'N/A'}
+                        </span>
                       </div>
                     </td>
-                    <td className='px-5 py-4'>
-                      <div className='flex items-center text-sm text-gray-700 font-medium whitespace-nowrap'>
-                        <svg className='w-4 h-4 mr-2 text-red-500 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                        </svg>
-                        {permit.validTill}
+                    <td className='px-0.5 py-3'>
+                      <div className='flex items-center'>
+                        <span className='inline-flex items-center px-2 py-1 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200 whitespace-nowrap text-sm'>
+                          <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
+                          </svg>
+                          {permit.validTill}
+                        </span>
                       </div>
                     </td>
                     <td className='px-5 py-4'>
@@ -831,24 +835,27 @@ const NationalPermit = () => {
                         </div>
                       </div>
                     </td>
-                    <td className='px-5 py-4'>
-                      <span className='text-sm font-bold text-gray-900'>₹{(permit.totalFee || 0).toLocaleString('en-IN')}</span>
+                    <td className='px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30'>
+                      <div className='text-right'>
+                        <div className='text-sm font-bold text-gray-900'>₹{(permit.totalFee || 0).toLocaleString('en-IN')}</div>
+                        <div className='text-xs text-gray-500 mt-0.5'>Total Fee</div>
+                      </div>
                     </td>
-                    <td className='px-5 py-4'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 border border-emerald-200 shadow-sm'>
-                        ₹{(permit.paid || 0).toLocaleString('en-IN')}
-                      </span>
+                    <td className='px-4 py-4 bg-gray-50/50 group-hover:bg-emerald-50/30'>
+                      <div className='text-right'>
+                        <div className='text-sm font-bold text-emerald-600'>₹{(permit.paid || 0).toLocaleString('en-IN')}</div>
+                        <div className='text-xs text-emerald-600 mt-0.5'>Paid Amount</div>
+                      </div>
                     </td>
-                    <td className='px-5 py-4'>
-                      {(permit.balance || 0) > 0 ? (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-orange-50 to-orange-100 text-orange-700 border border-orange-200 shadow-sm'>
+                    <td className={`px-4 py-4 bg-gray-50/50 ${(permit.balance || 0) > 0 ? 'group-hover:bg-amber-50/30' : 'group-hover:bg-gray-50'}`}>
+                      <div className='text-right'>
+                        <div className={`text-sm font-bold ${(permit.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
                           ₹{(permit.balance || 0).toLocaleString('en-IN')}
-                        </span>
-                      ) : (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-50 text-gray-500 border border-gray-200'>
-                          ₹0
-                        </span>
-                      )}
+                        </div>
+                        <div className={`text-xs mt-0.5 ${(permit.balance || 0) > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                          {(permit.balance || 0) > 0 ? 'Pending' : 'Cleared'}
+                        </div>
+                      </div>
                     </td>
                     <td className='px-5 py-4'>
                       <div className='flex items-center justify-end gap-2'>
