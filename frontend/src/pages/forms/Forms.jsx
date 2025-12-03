@@ -246,41 +246,41 @@ const Forms = () => {
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">1.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Full name of person to be registered as registered owner</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">son / wife / daughter of</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">2.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Age of the person to be registered as Registered owner (Proof of age to be attached)</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">3.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Permanent address of the person to be registered as registered owner (Evidence to be produced)</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">4.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Temporary address of the person to be registered as registered owner</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">5.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Name & address of the Dealer or Manufacturer from whoms the vehicle was Purchased</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">6.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">If ex-army vehicle or imported vehicle enclosed proof</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">7.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Class of vehicle (if motor cycle, Whether with or without gear)</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">8.</span>
@@ -288,90 +288,90 @@ const Forms = () => {
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">a) A new vehicle</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">b) Ex - Army vehicle :</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">c) Imported vehicle</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">9.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Type of body</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">10.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Type of vehicle</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">11.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Maker's Name</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">12.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Month and year of manufacturer</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">13.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Number of cylinders</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">14.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Horse Power</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">15.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Cubic capacity</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">16.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Maker's classification or if not known wheel base</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">17.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Chassis Number (Affix pencil print)</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">18.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Engine Number</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">19.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Seating Capacity (including driver)</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">20.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Fuel used in the engine</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">21.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Unloaded weight</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">22.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Particular of previous registration and registered number (if any)</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">23.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Colour or colours of body wings and front end</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <p style="font-size: 10px; font-style: italic; margin-left: 30px; margin-bottom: 8px;">I hereby declare that the vehicle has not been registered in any state in india</p>
       <p style="font-size: 10px; font-style: italic; margin-left: 30px; margin-bottom: 8px;">Additional particulars to be completed only in the case of transport vehicle other than motor car</p>
@@ -381,19 +381,19 @@ const Forms = () => {
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">(a) Front axle</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">(b) Rear axle</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">(c) Any other axle</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">(d) Tandem axle</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">25.</span>
@@ -401,19 +401,19 @@ const Forms = () => {
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">a) As certified by the Manufacture</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
         <span style="margin-left: 8px;">Kgms</span>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">b) To be registered</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
         <span style="margin-left: 8px;">Kgms</span>
       </div>
       <div style="margin-top: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: end;">
           <div style="display: flex; align-items: baseline;">
             <span>Date</span>
-            <div style="border-bottom: 2px solid #000; margin-left: 16px; width: 150px; min-height: 16px;"></div>
+            <div style="border-bottom: 1px solid #000; margin-left: 16px; width: 150px; min-height: 13px;"></div>
           </div>
           <div style="text-align: center;">
             <div>Signature of the person to be registered</div>
@@ -432,7 +432,7 @@ const Forms = () => {
           <span style="width: 48px; flex-shrink: 0;"></span>
           <div style="flex: 1;">
             <p style="margin-bottom: 4px;">The Regional / State Transport Authority</p>
-            <div style="border-bottom: 2px solid #000; min-height: 16px; width: 252px;"></div>
+            <div style="border-bottom: 2px solid #000; min-height: 13px; width: 252px;"></div>
           </div>
         </div>
       </div>
@@ -440,14 +440,14 @@ const Forms = () => {
         <p>I/We the undersigned hereby by apply for grant of authorisation valid throughout the territory</p>
         <div style="display: flex; align-items: baseline; margin-top: 4px;">
           <span>of India/ in the state of</span>
-          <div style="flex: 1; border-bottom: 2px solid #000; margin-left: 8px; min-height: 16px;"></div>
+          <div style="flex: 1; border-bottom: 2px solid #000; margin-left: 8px; min-height: 13px;"></div>
         </div>
       </div>
       <p style="text-align: center; font-weight: bold; margin-bottom: 12px;">(Specify the name of the State)</p>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">1.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Name of the applicants in full</span>
-        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 16px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">2.</span>

@@ -118,6 +118,18 @@ const Form20Modal = ({ onClose }) => {
               font-size: 12px;
               padding: 0 2px;
             }
+            div[style*="border-bottom"] {
+              border-bottom: 2px solid #000 !important;
+              min-height: 13px !important;
+              transform: scaleY(0.75) !important;
+              transform-origin: bottom !important;
+            }
+            span[style*="marginRight: '40px'"] {
+              margin-right: 40px !important;
+            }
+            div[style*="flex: 0.9"] {
+              flex: 0.9 !important;
+            }
             .no-print { display: none !important; }
             @media print {
               body { padding: 10mm; margin: 0; }
@@ -205,8 +217,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 1 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>1.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Full name of person to be registered as registered owner</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Full name of person to be registered as registered owner</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[0] = el}
                       type="text"
@@ -219,8 +231,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>son / wife / daughter of</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>son / wife / daughter of</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[1] = el}
                       type="text"
@@ -236,8 +248,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 2 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>2.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Age of the person to be registered as Registered owner (Proof of age to be attached)</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Age of the person to be registered as Registered owner (Proof of age to be attached)</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[2] = el}
                       type="text"
@@ -253,8 +265,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 3 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>3.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Permanent address of the person to be registered as registered owner (Evidence to be produced)</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Permanent address of the person to be registered as registered owner (Evidence to be produced)</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[3] = el}
                       type="text"
@@ -270,8 +282,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 4 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>4.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Temporary address of the person to be registered as registered owner</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Temporary address of the person to be registered as registered owner</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[4] = el}
                       type="text"
@@ -287,8 +299,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 5 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>5.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Name & address of the Dealer or Manufacturer from whoms the vehicle was Purchased (Sale certificate and certificate of road Worthiness issued by the manufacturer to be enclosed)</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Name & address of the Dealer or Manufacturer from whoms the vehicle was Purchased (Sale certificate and certificate of road Worthiness issued by the manufacturer to be enclosed)</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[5] = el}
                       type="text"
@@ -304,8 +316,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 6 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>6.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>If ex-army vehicle or imported vehicle enclosed proof if locally manufacturer trailer, semi trailer enclosed the approval of design by the State Transport Authority and note the proceedings number and date of approval</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>If ex-army vehicle or imported vehicle enclosed proof if locally manufacturer trailer, semi trailer enclosed the approval of design by the State Transport Authority and note the proceedings number and date of approval</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[6] = el}
                       type="text"
@@ -321,11 +333,11 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 7 */}
                 <div style={{display: 'flex', marginBottom: '4px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>7.</span>
-                  <div style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>
+                  <div style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>
                     <div>Class of vehicle</div>
                     <div>(if motor cycle, Whether with or without gear)</div>
                   </div>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[7] = el}
                       type="text"
@@ -341,12 +353,12 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 8 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>8.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>The motor vehicle is</span>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>The motor vehicle is</span>
                   <div style={{flex: 1}}></div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>a) A new vehicle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>a) A new vehicle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[8] = el}
                       type="text"
@@ -359,8 +371,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>b) Ex - Army vehicle :</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>b) Ex - Army vehicle :</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[9] = el}
                       type="text"
@@ -373,8 +385,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>c) Imported vehicle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>c) Imported vehicle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[10] = el}
                       type="text"
@@ -390,8 +402,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 9 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>9.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Type of body</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Type of body</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[11] = el}
                       type="text"
@@ -407,8 +419,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 10 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>10.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Type of vehicle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Type of vehicle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[12] = el}
                       type="text"
@@ -424,8 +436,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 11 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>11.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Maker's Name</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Maker's Name</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[13] = el}
                       type="text"
@@ -441,8 +453,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 12 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>12.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Month and year of manufacturer</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Month and year of manufacturer</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[14] = el}
                       type="text"
@@ -458,8 +470,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 13 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>13.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Number of cylinders</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Number of cylinders</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[15] = el}
                       type="text"
@@ -475,8 +487,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 14 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>14.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Horse Power</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Horse Power</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[16] = el}
                       type="text"
@@ -492,8 +504,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 15 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>15.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Cubic capacity</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Cubic capacity</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[17] = el}
                       type="text"
@@ -509,8 +521,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 16 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>16.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Maker's classification or if not known wheel base</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Maker's classification or if not known wheel base</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[18] = el}
                       type="text"
@@ -526,8 +538,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 17 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>17.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Chassis Number (Affix pencil print)</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Chassis Number (Affix pencil print)</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[19] = el}
                       type="text"
@@ -543,8 +555,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 18 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>18.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Engine Number</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Engine Number</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[20] = el}
                       type="text"
@@ -560,8 +572,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 19 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>19.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Seating Capacity (including driver)</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Seating Capacity (including driver)</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[21] = el}
                       type="text"
@@ -577,8 +589,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 20 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>20.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Fuel used in the engine</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Fuel used in the engine</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[22] = el}
                       type="text"
@@ -594,8 +606,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 21 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>21.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Unloaded weight</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Unloaded weight</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[23] = el}
                       type="text"
@@ -611,8 +623,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 22 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>22.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Particular of previous registration and registered number (if any)</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Particular of previous registration and registered number (if any)</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[24] = el}
                       type="text"
@@ -628,8 +640,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 23 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>23.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Colour or colours of body wings and front end</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Colour or colours of body wings and front end</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[25] = el}
                       type="text"
@@ -648,12 +660,12 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 24 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>24.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Number description and size of tyres</span>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Number description and size of tyres</span>
                   <div style={{flex: 1}}></div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(a) Front axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>(a) Front axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[26] = el}
                       type="text"
@@ -666,8 +678,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(b) Rear axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>(b) Rear axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[27] = el}
                       type="text"
@@ -680,8 +692,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(c) Any other axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>(c) Any other axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[28] = el}
                       type="text"
@@ -694,8 +706,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(d) Tandem axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>(d) Tandem axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[29] = el}
                       type="text"
@@ -711,12 +723,12 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 25 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>25.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Gross weight of vehicle</span>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Gross weight of vehicle</span>
                   <div style={{flex: 1}}></div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>a) As certified by the Manufacture</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>a) As certified by the Manufacture</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
                       ref={(el) => inputRefs.current[30] = el}
                       type="text"
@@ -730,8 +742,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>b) To be registered</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>b) To be registered</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
                       ref={(el) => inputRefs.current[31] = el}
                       type="text"
@@ -758,12 +770,12 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 26 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>26.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Maximum axle Weight</span>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Maximum axle Weight</span>
                   <div style={{flex: 1}}></div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>a) Front axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>a) Front axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
                       ref={(el) => inputRefs.current[32] = el}
                       type="text"
@@ -777,8 +789,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>b) Rear axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>b) Rear axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
                       ref={(el) => inputRefs.current[33] = el}
                       type="text"
@@ -792,8 +804,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>c) Any other axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>c) Any other axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
                       ref={(el) => inputRefs.current[34] = el}
                       type="text"
@@ -807,8 +819,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>d) Tandem axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>d) Tandem axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
                       ref={(el) => inputRefs.current[35] = el}
                       type="text"
@@ -825,8 +837,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 27 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>27.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>a) Overall length</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>a) Overall length</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[36] = el}
                       type="text"
@@ -839,8 +851,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>b) Overall width</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>b) Overall width</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[37] = el}
                       type="text"
@@ -853,8 +865,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>c) Overall height</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>c) Overall height</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[38] = el}
                       type="text"
@@ -867,8 +879,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>d) Overall hand</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>d) Overall hand</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[39] = el}
                       type="text"
@@ -888,8 +900,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 28 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>28.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Type of body</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Type of body</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[40] = el}
                       type="text"
@@ -905,8 +917,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 29 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>29.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Unloading weight</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Unloading weight</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[41] = el}
                       type="text"
@@ -922,8 +934,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 30 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>30.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Number description and size of tyres on each axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Number description and size of tyres on each axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[42] = el}
                       type="text"
@@ -939,8 +951,8 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 31 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>31.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Maximum axle weight in respect of each axle</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Maximum axle weight in respect of each axle</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                     <input
                       ref={(el) => inputRefs.current[43] = el}
                       type="text"
@@ -956,7 +968,7 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 32 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>32.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>The vehicle is covered by a valid certificate of insurance under-chapter XI of the act</span>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>The vehicle is covered by a valid certificate of insurance under-chapter XI of the act</span>
                   <div style={{flex: 1, display: 'flex', gap: '10px', alignItems: 'baseline'}}>
                     <span>Insurance certificate or cover note No</span>
                     <div style={{borderBottom: '2px solid #000', minHeight: '16px', width: '100px'}}>
@@ -985,8 +997,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                 </div>
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>(Name of Company</span>
-                  <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>(Name of Company</span>
+                  <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px', display: 'flex', alignItems: 'baseline'}}>
                     <input
                       ref={(el) => inputRefs.current[46] = el}
                       type="text"
@@ -1009,7 +1021,7 @@ const Form20Modal = ({ onClose }) => {
                 {/* Field 34 */}
                 <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
                   <span style={{width: '30px', flexShrink: 0}}>34.</span>
-                  <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>I have paid the prescribed fee of Rupees</span>
+                  <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>I have paid the prescribed fee of Rupees</span>
                   <div style={{flex: 1, display: 'flex', gap: '10px', alignItems: 'baseline'}}>
                     <span>valid from</span>
                     <div style={{borderBottom: '2px solid #000', minHeight: '16px', width: '100px'}}>
@@ -1064,8 +1076,8 @@ const Form20Modal = ({ onClose }) => {
                   <div style={{marginBottom: '8px'}}>Note: The motor vehicle above prescribed is</div>
                   <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '6px'}}>
                     <span style={{width: '30px', flexShrink: 0}}>i)</span>
-                    <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Subject to hire purchase agreement / lease agreement with</span>
-                    <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                    <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Subject to hire purchase agreement / lease agreement with</span>
+                    <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                       <input
                         ref={(el) => inputRefs.current[50] = el}
                         type="text"
@@ -1079,8 +1091,8 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                   <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '6px'}}>
                     <span style={{width: '30px', flexShrink: 0}}>ii)</span>
-                    <span style={{width: '280px', flexShrink: 0, marginRight: '10px'}}>Subject to hypothecation in favour of</span>
-                    <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                    <span style={{width: '280px', flexShrink: 0, marginRight: '40px'}}>Subject to hypothecation in favour of</span>
+                    <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                       <input
                         ref={(el) => inputRefs.current[51] = el}
                         type="text"
@@ -1279,7 +1291,7 @@ const Form20Modal = ({ onClose }) => {
                   </div>
                   <div style={{display: 'flex', gap: '8px', alignItems: 'baseline', marginBottom: '6px'}}>
                     <span>and registered in the name of</span>
-                    <div style={{flex: 1, borderBottom: '2px solid #000', minHeight: '16px'}}>
+                    <div style={{flex: 0.9, borderBottom: '2px solid #000', minHeight: '16px'}}>
                       <input
                         ref={(el) => inputRefs.current[62] = el}
                         type="text"
