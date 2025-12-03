@@ -671,7 +671,7 @@ const Tax = () => {
                       Tax To
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10 pl-12 2xl:pl-16">
-                      Total Amount
+                      Total Fee
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10">
                       Paid
@@ -812,11 +812,11 @@ const Tax = () => {
                           </div>
                         </td>
 
-                        {/* Total Amount */}
+                        {/* Total Fee */}
                         <td className="px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30 pl-12 2xl:pl-16">
                           <div className="text-right">
                             <div className="text-[11px] 2xl:text-sm font-bold text-gray-900">₹{(record.totalAmount || 0).toLocaleString("en-IN")}</div>
-                            <div className="text-[10px] 2xl:text-xs text-gray-500 mt-0.5">Total Amount</div>
+                            <div className="text-[10px] 2xl:text-xs text-gray-500 mt-0.5">Total Fee</div>
                           </div>
                         </td>
 
