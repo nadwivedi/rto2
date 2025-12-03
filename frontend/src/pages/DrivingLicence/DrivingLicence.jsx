@@ -859,13 +859,12 @@ const DrivingLicence = () => {
               <tr>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Applicant Details</th>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Class</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Number</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Issue Date</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Expiry Date</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Total Amount</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Paid Amount</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Balance</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Status</th>
+                <th className='px-2 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Number</th>
+                <th className='px-1 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Issue Date</th>
+                <th className='px-1 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Expiry Date</th>
+                <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10 pl-6 2xl:pl-8'>Total Amount</th>
+                <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Paid</th>
+                <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Balance</th>
                 <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
               </tr>
             </thead>
@@ -909,63 +908,86 @@ const DrivingLicence = () => {
                         {app.type}
                       </span>
                     </td>
-                    <td className='px-4 py-4'>
-                      <div className='text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-3 py-1.5 rounded-lg inline-block border border-gray-200'>
+                    {/* License Number */}
+                    <td className='px-2 py-4'>
+                      <div className='text-[11px] 2xl:text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-2.5 py-1.5 rounded-lg inline-block border border-gray-200'>
                         {app.licenseNumber}
                       </div>
                     </td>
-                    <td className='px-4 py-4'>
-                      <div className='flex items-center text-sm text-green-600 font-semibold'>
-                        <svg className='w-4 h-4 mr-2 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                        </svg>
-                        {app.issueDate || '-'}
+
+                    {/* Issue Date */}
+                    <td className='px-1 py-3 2xl:py-5'>
+                      <div className='flex items-center text-[11px] 2xl:text-[13.8px]'>
+                        <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200 whitespace-nowrap'>
+                          <svg
+                            className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                            />
+                          </svg>
+                          {app.issueDate || '-'}
+                        </span>
                       </div>
                     </td>
-                    <td className='px-4 py-4'>
-                      <div className='flex items-center text-sm text-red-600 font-semibold'>
-                        <svg className='w-4 h-4 mr-2 text-red-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                        </svg>
-                        {app.expiryDate || '-'}
+
+                    {/* Expiry Date */}
+                    <td className='px-1 py-3 2xl:py-5'>
+                      <div className='flex items-center text-[11px] 2xl:text-[13.8px]'>
+                        <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200 whitespace-nowrap'>
+                          <svg
+                            className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2'
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                          >
+                            <path
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                              d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                            />
+                          </svg>
+                          {app.expiryDate || '-'}
+                        </span>
                       </div>
                     </td>
-                    <td className='px-4 py-4'>
-                      <span className='text-sm font-bold text-gray-800'>₹{app.totalAmount.toLocaleString('en-IN')}</span>
+
+                    {/* Total Amount */}
+                    <td className='px-4 py-4 bg-gray-50/50 group-hover:bg-purple-50/30 pl-6 2xl:pl-8'>
+                      <div className='text-right'>
+                        <div className='text-[11px] 2xl:text-sm font-bold text-gray-900'>₹{app.totalAmount.toLocaleString('en-IN')}</div>
+                        <div className='text-[10px] 2xl:text-xs text-gray-500 mt-0.5'>Total Amount</div>
+                      </div>
                     </td>
-                    <td className='px-4 py-4'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200'>
-                        ₹{app.paidAmount.toLocaleString('en-IN')}
-                      </span>
+
+                    {/* Paid */}
+                    <td className='px-4 py-4 bg-gray-50/50 group-hover:bg-emerald-50/30'>
+                      <div className='text-right'>
+                        <div className='text-[11px] 2xl:text-sm font-bold text-emerald-600'>₹{app.paidAmount.toLocaleString('en-IN')}</div>
+                        <div className='text-[10px] 2xl:text-xs text-emerald-600 mt-0.5'>Paid Amount</div>
+                      </div>
                     </td>
-                    <td className='px-4 py-4'>
-                      {app.balanceAmount > 0 ? (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200'>
+
+                    {/* Balance */}
+                    <td className={`px-4 py-4 bg-gray-50/50 ${app.balanceAmount > 0 ? 'group-hover:bg-amber-50/30' : 'group-hover:bg-gray-50'}`}>
+                      <div className='text-right'>
+                        <div className={`text-[11px] 2xl:text-sm font-bold ${app.balanceAmount > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
                           ₹{app.balanceAmount.toLocaleString('en-IN')}
-                        </span>
-                      ) : (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200'>
-                          ₹0
-                        </span>
-                      )}
+                        </div>
+                        <div className={`text-[10px] 2xl:text-xs mt-0.5 ${app.balanceAmount > 0 ? 'text-orange-600' : 'text-gray-500'}`}>
+                          {app.balanceAmount > 0 ? 'Pending' : 'Cleared'}
+                        </div>
+                      </div>
                     </td>
-                    <td className='px-4 py-4'>
-                      {app.balanceAmount === 0 ? (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200'>
-                          <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
-                            <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
-                          </svg>
-                          Paid
-                        </span>
-                      ) : (
-                        <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200'>
-                          <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
-                            <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z' clipRule='evenodd' />
-                          </svg>
-                          Pending
-                        </span>
-                      )}
-                    </td>
+
+                    {/* Actions */}
                     <td className='px-4 py-4'>
                       <div className='flex items-center justify-center gap-2'>
                         {/* Mark as Paid Button */}

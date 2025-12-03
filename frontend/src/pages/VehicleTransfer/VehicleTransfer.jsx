@@ -435,7 +435,7 @@ const VehicleTransfer = () => {
                           </td>
 
                           {/* Old Owner */}
-                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
+                          <td className='px-2 2xl:px-3 py-3 2xl:py-4'>
                             <div>
                               <div className='text-[11px] 2xl:text-sm font-semibold text-gray-900'>{transfer.currentOwnerName}</div>
                               <div className='text-[10px] 2xl:text-xs text-gray-500 mt-0.5'>Previous Owner</div>
@@ -443,7 +443,7 @@ const VehicleTransfer = () => {
                           </td>
 
                           {/* New Owner */}
-                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
+                          <td className='px-2 2xl:px-3 py-3 2xl:py-4'>
                             <div>
                               <div className='text-[11px] 2xl:text-sm font-semibold text-teal-700'>{transfer.newOwnerName}</div>
                               <div className='text-[10px] 2xl:text-xs text-teal-600 mt-0.5 flex items-center gap-1'>

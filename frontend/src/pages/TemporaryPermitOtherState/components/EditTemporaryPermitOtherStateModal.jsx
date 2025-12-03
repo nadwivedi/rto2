@@ -180,23 +180,7 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
     try {
       setLoading(true)
 
-      // Convert dates from DD-MM-YYYY to DD/MM/YYYY format for backend
-      const formatDateForBackend = (dateStr) => {
-        if (!dateStr) return ''
-        // If in DD-MM-YYYY format, convert to DD/MM/YYYY
-        if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
-          return dateStr.replace(/-/g, '/')
-        }
-        return dateStr
-      }
-
-      const dataToSend = {
-        ...formData,
-        validFrom: formatDateForBackend(formData.validFrom),
-        validTo: formatDateForBackend(formData.validTo)
-      }
-
-      const response = await axios.put(`${API_URL}/api/temporary-permits-other-state/${permit._id}`, dataToSend, { withCredentials: true })
+      const response = await axios.put(`${API_URL}/api/temporary-permits-other-state/${permit._id}`, formData, { withCredentials: true })
 
       if (response.data.success) {
         toast.success('Temporary permit (other state) updated successfully!')
