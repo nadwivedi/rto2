@@ -51,9 +51,17 @@ exports.getExportStatistics = async (req, res) => {
 // Export all data combined in one zip file
 exports.exportAllDataCombined = async (req, res) => {
   try {
+    console.log('Starting combined export...')
+
     // Fetch all data
+    console.log('Fetching users...')
     const users = await User.find({}).select('-password').lean()
+    console.log(`Found ${users.length} users`)
+
+    console.log('Fetching vehicle registrations...')
     const vehicleRegistrations = await VehicleRegistration.find({}).populate('userId', 'name mobile1').lean()
+    console.log(`Found ${vehicleRegistrations.length} vehicle registrations`)
+
     const drivingLicenses = await DrivingLicense.find({}).populate('userId', 'name mobile1').lean()
     const nationalPermitsPartA = await NationalPermitPartA.find({}).populate('userId', 'name mobile1').lean()
     const nationalPermitsPartB = await NationalPermitPartB.find({}).populate('userId', 'name mobile1').lean()
@@ -67,9 +75,26 @@ exports.exportAllDataCombined = async (req, res) => {
     const vehicleTransfers = await VehicleTransfer.find({}).populate('userId', 'name mobile1').lean()
     const customBills = await CustomBill.find({}).populate('userId', 'name mobile1').lean()
 
+    console.log('All data fetched successfully')
+
     // Create zip file
     const archive = archiver('zip', {
       zlib: { level: 9 }
+    })
+
+    // Handle archive errors
+    archive.on('error', (err) => {
+      console.error('Archive error:', err)
+      throw err
+    })
+
+    // Handle archive warnings
+    archive.on('warning', (err) => {
+      if (err.code === 'ENOENT') {
+        console.warn('Archive warning:', err)
+      } else {
+        throw err
+      }
     })
 
     // Set response headers
@@ -80,6 +105,7 @@ exports.exportAllDataCombined = async (req, res) => {
     // Pipe archive to response
     archive.pipe(res)
 
+    console.log('Adding files to archive...')
     // Add JSON files to archive
     archive.append(JSON.stringify(users, null, 2), { name: 'users.json' })
     archive.append(JSON.stringify(vehicleRegistrations, null, 2), { name: 'vehicle_registrations.json' })
@@ -96,10 +122,13 @@ exports.exportAllDataCombined = async (req, res) => {
     archive.append(JSON.stringify(vehicleTransfers, null, 2), { name: 'vehicle_transfers.json' })
     archive.append(JSON.stringify(customBills, null, 2), { name: 'custom_bills.json' })
 
+    console.log('Finalizing archive...')
     // Finalize archive
     await archive.finalize()
+    console.log('Export completed successfully')
   } catch (error) {
     console.error('Export all data combined error:', error)
+    console.error('Error stack:', error.stack)
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
@@ -113,12 +142,31 @@ exports.exportAllDataCombined = async (req, res) => {
 // Export all data organized by user
 exports.exportAllDataUserWise = async (req, res) => {
   try {
+    console.log('Starting user-wise export...')
+
     // Fetch all users
+    console.log('Fetching users...')
     const users = await User.find({}).select('-password').lean()
+    console.log(`Found ${users.length} users`)
 
     // Create zip file
     const archive = archiver('zip', {
       zlib: { level: 9 }
+    })
+
+    // Handle archive errors
+    archive.on('error', (err) => {
+      console.error('Archive error:', err)
+      throw err
+    })
+
+    // Handle archive warnings
+    archive.on('warning', (err) => {
+      if (err.code === 'ENOENT') {
+        console.warn('Archive warning:', err)
+      } else {
+        throw err
+      }
     })
 
     // Set response headers
@@ -129,6 +177,7 @@ exports.exportAllDataUserWise = async (req, res) => {
     // Pipe archive to response
     archive.pipe(res)
 
+    console.log('Processing users...')
     // Process each user
     for (const user of users) {
       const userId = user._id
@@ -194,10 +243,13 @@ exports.exportAllDataUserWise = async (req, res) => {
       }
     }
 
+    console.log('Finalizing archive...')
     // Finalize archive
     await archive.finalize()
+    console.log('User-wise export completed successfully')
   } catch (error) {
     console.error('Export all data user-wise error:', error)
+    console.error('Error stack:', error.stack)
     if (!res.headersSent) {
       res.status(500).json({
         success: false,
