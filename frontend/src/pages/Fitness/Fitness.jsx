@@ -193,57 +193,13 @@ const Fitness = () => {
     }
   };
 
-  const handleEditFitness = async (formData) => {
-    setLoading(true);
-    try {
-      // Use _id if available, fallback to id
-      const fitnessId = selectedFitness._id || selectedFitness.id;
+  const handleEditSuccess = async () => {
+    // Refresh the list and statistics from the server
+    await fetchFitnessRecords();
+    await fetchStatistics();
 
-      const response = await axios.put(
-        `${API_URL}/api/fitness/id/${fitnessId}`,
-        {
-          vehicleNumber: formData.vehicleNumber,
-          mobileNumber: formData.mobileNumber,
-          validFrom: formData.validFrom,
-          validTo: formData.validTo,
-          totalFee: parseFloat(formData.totalFee),
-          paid: parseFloat(formData.paid),
-          balance: parseFloat(formData.balance),
-        },
-        { withCredentials: true }
-      );
-
-      if (response.data.success) {
-        toast.success("Fitness certificate updated successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-
-        // Refresh the list and statistics from the server
-        await fetchFitnessRecords();
-        await fetchStatistics();
-
-        // Close modal and reset
-        setIsEditModalOpen(false);
-        setSelectedFitness(null);
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error updating fitness record:", error);
-
-      const errorMessage = error.response?.data?.message || "Failed to update fitness certificate.";
-
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 3000,
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Reset selected fitness
+    setSelectedFitness(null);
   };
 
   const handleEditClick = (record) => {
@@ -1012,8 +968,11 @@ const Fitness = () => {
       {isEditModalOpen && (
                   <EditFitnessModal
             isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            onSubmit={handleEditFitness}
+            onClose={() => {
+              setIsEditModalOpen(false);
+              setSelectedFitness(null);
+            }}
+            onSuccess={handleEditSuccess}
             fitness={selectedFitness}
           />
       )}

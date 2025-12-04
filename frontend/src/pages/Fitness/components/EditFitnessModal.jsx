@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { handleDateBlur as utilHandleDateBlur, handleSmartDateInput } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
-const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
+const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     mobileNumber: '',
@@ -18,6 +19,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
   })
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Vehicle search states
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
@@ -282,7 +284,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
     utilHandleDateBlur(e, setFormData)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     // Validate vehicle number before submitting (skip if unchanged from original)
@@ -290,25 +292,81 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
 
     // Validate vehicle number format (must be 9 or 10 characters and valid format)
     if (vehicleNumberChanged && (formData.vehicleNumber.length === 9 || formData.vehicleNumber.length === 10) && !vehicleValidation.isValid) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
+      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)', {
+        position: 'top-right',
+        autoClose: 3000
+      })
       return
     }
 
     // Ensure vehicle number is 9 or 10 characters for submission (if changed)
     if (vehicleNumberChanged && formData.vehicleNumber && formData.vehicleNumber.length !== 9 && formData.vehicleNumber.length !== 10) {
-      alert('Vehicle number must be 9 or 10 characters')
+      toast.error('Vehicle number must be 9 or 10 characters', {
+        position: 'top-right',
+        autoClose: 3000
+      })
       return
     }
 
     // Validate paid amount doesn't exceed total fee
     if (paidExceedsTotal) {
-      alert('Paid amount cannot be more than the total fee!')
+      toast.error('Paid amount cannot be more than the total fee!', {
+        position: 'top-right',
+        autoClose: 3000
+      })
       return
     }
 
-    if (onSubmit) {
-      onSubmit(formData)
-      // Don't close here - let parent handle closing after successful update
+    // Handle API call here
+    setIsSubmitting(true)
+    try {
+      // Use _id if available, fallback to id
+      const fitnessId = fitness._id || fitness.id
+
+      const response = await axios.put(
+        `${API_URL}/api/fitness/id/${fitnessId}`,
+        {
+          vehicleNumber: formData.vehicleNumber,
+          mobileNumber: formData.mobileNumber,
+          validFrom: formData.validFrom,
+          validTo: formData.validTo,
+          totalFee: parseFloat(formData.totalFee),
+          paid: parseFloat(formData.paid),
+          balance: parseFloat(formData.balance),
+        },
+        { withCredentials: true }
+      )
+
+      if (response.data.success) {
+        toast.success('Fitness certificate updated successfully!', {
+          position: 'top-right',
+          autoClose: 3000,
+        })
+
+        // Call the success callback to refresh parent data
+        if (onSuccess) {
+          onSuccess()
+        }
+
+        // Close modal
+        onClose()
+      } else {
+        toast.error(`Error: ${response.data.message}`, {
+          position: 'top-right',
+          autoClose: 3000,
+        })
+      }
+    } catch (error) {
+      console.error('Error updating fitness record:', error)
+
+      const errorMessage = error.response?.data?.message || 'Failed to update fitness certificate.'
+
+      toast.error(errorMessage, {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -603,12 +661,25 @@ const EditFitnessModal = ({ isOpen, onClose, onSubmit, fitness }) => {
 
               <button
                 type='submit'
-                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
+                disabled={isSubmitting}
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                </svg>
-                Save Changes
+                {isSubmitting ? (
+                  <>
+                    <svg className='animate-spin h-5 w-5' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    Save Changes
+                  </>
+                )}
               </button>
             </div>
           </div>
