@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Users from './pages/Users'
 import VehicleRegistrations from './pages/VehicleRegistrations'
+import Export from './pages/Export'
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -41,6 +42,7 @@ function App() {
             <Routes>
               <Route path='/' element={<Users />} />
               <Route path='/vehicle-registrations' element={<VehicleRegistrations />} />
+              <Route path='/export' element={<Export />} />
             </Routes>
           </div>
         </div>
