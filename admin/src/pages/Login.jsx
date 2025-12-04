@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import api from '../utils/api'
+import axios from 'axios'
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
 const Login = () => {
   const navigate = useNavigate()
@@ -33,9 +35,11 @@ const Login = () => {
     setLoading(true)
 
     try {
-      const response = await api.post('/api/admin/auth/login', {
+      const response = await axios.post(`${BACKEND_URL}/api/admin/auth/login`, {
         username: formData.username,
         password: formData.password
+      }, {
+        withCredentials: true
       })
 
       if (response.data.success) {

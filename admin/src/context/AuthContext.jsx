@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import api from '../utils/api'
+import axios from 'axios'
+
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
 
 const AuthContext = createContext(null)
 
@@ -22,7 +24,9 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Verify cookie by fetching admin profile
-      const response = await api.get('/api/admin/auth/profile')
+      const response = await axios.get(`${BACKEND_URL}/api/admin/auth/profile`, {
+        withCredentials: true
+      })
 
       if (response.data.success) {
         setAdmin(response.data.data.admin)
@@ -48,7 +52,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       if (isAuthenticated) {
-        await api.post('/api/admin/auth/logout')
+        await axios.post(`${BACKEND_URL}/api/admin/auth/logout`, {}, {
+          withCredentials: true
+        })
       }
     } catch (error) {
       console.error('Logout error:', error)
