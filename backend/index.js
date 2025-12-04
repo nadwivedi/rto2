@@ -61,6 +61,8 @@ const { initTaxStatusCron } = require('./jobs/updateTaxStatus')
 const { initInsuranceStatusCron } = require('./jobs/updateInsuranceStatus')
 const { initTemporaryPermitOtherStateStatusCron } = require('./jobs/updateTemporaryPermitOtherStateStatus')
 const { initPucStatusCron } = require('./jobs/updatePucStatus')
+const { initEmailDataExportCron } = require('./jobs/emailDataExport')
+
 initTemporaryPermitStatusCron()
 initCgPermitStatusCron()
 initFitnessStatusCron()
@@ -68,6 +70,7 @@ initTaxStatusCron()
 initInsuranceStatusCron()
 initTemporaryPermitOtherStateStatusCron()
 initPucStatusCron()
+initEmailDataExportCron()
 
 // Import Middleware
 const userAuth = require('./middleware/userAuth')
