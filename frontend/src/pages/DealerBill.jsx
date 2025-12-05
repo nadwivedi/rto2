@@ -170,20 +170,6 @@ const DealerBill = () => {
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'>
       <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
-        {/* Page Header */}
-        <div className='mb-6'>
-          <div className='flex items-center justify-between'>
-            <div>
-              <h1 className='text-2xl md:text-3xl font-black text-gray-800'>Dealer Bills</h1>
-              <p className='text-sm text-gray-600 mt-1'>Manage dealer bills for Permit, Fitness, and Registration</p>
-            </div>
-            <AddButton
-              onClick={() => setIsAddModalOpen(true)}
-              title='Add Dealer Bill'
-            />
-          </div>
-        </div>
-
         {/* Add Modal */}
         {isAddModalOpen && (
           <AddDealerBillModal
@@ -210,27 +196,185 @@ const DealerBill = () => {
           />
         )}
 
-        {/* Dealer Bills Table */}
-        <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
-          <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border-b border-gray-200'>
-            <div className='flex flex-col lg:flex-row gap-2 items-stretch lg:items-center justify-between'>
-              {/* Search Bar */}
-              <SearchBar
-                value={searchQuery}
-                onChange={(value) => {
-                  setSearchQuery(value);
-                  setCurrentPage(1);
-                }}
-                placeholder='Search by bill number or customer name...'
-              />
-
-              {/* Total Count */}
-              <div className='text-sm font-bold text-gray-700'>
-                Total: <span className='text-indigo-600'>{totalItems}</span> bills
+        {/* Total Bills Card */}
+        <div className='mt-3 mb-4 w-full md:max-w-xs'>
+          <div className='bg-white rounded-lg shadow-md border border-transparent p-3 hover:shadow-lg transition-all duration-300'>
+            <div className='flex items-center justify-between'>
+              <div>
+                <p className='text-xs font-bold text-gray-500 uppercase tracking-wide mb-1'>Total Bills</p>
+                <h3 className='text-2xl font-black text-gray-800'>{totalItems}</h3>
+              </div>
+              <div className='w-11 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-md'>
+                <svg className='w-6 h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                </svg>
               </div>
             </div>
           </div>
+        </div>
 
+        {/* Search and Filter Section */}
+        <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden mb-6 md:mb-0'>
+          <div className='px-6 py-5 bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50'>
+            <div className='flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between'>
+              {/* Search Bar */}
+              <div className='flex-1'>
+                <SearchBar
+                  value={searchQuery}
+                  onChange={(value) => {
+                    setSearchQuery(value);
+                    setCurrentPage(1);
+                  }}
+                  placeholder='Search by bill number or customer name...'
+                />
+              </div>
+
+              {/* Add Button */}
+              <AddButton
+                onClick={() => setIsAddModalOpen(true)}
+                title='Add Dealer Bill'
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className='md:hidden space-y-4'>
+          {loading ? (
+            <div className='bg-white rounded-2xl shadow-xl border border-gray-200 p-8'>
+              <div className='text-center'>
+                <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                </svg>
+                <p className='text-sm font-semibold text-gray-600'>Loading bills...</p>
+              </div>
+            </div>
+          ) : dealerBills.length > 0 ? (
+            dealerBills.map((bill, index) => (
+              <div key={bill._id} className='bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-all duration-300'>
+                {/* Card Header */}
+                <div className='px-3 py-2 bg-gradient-to-r from-gray-600 to-gray-700 border-b border-gray-600'>
+                  <div className='text-sm font-mono font-bold text-white'>
+                    Bill No - {bill.billNumber || 'N/A'}
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className='p-3 space-y-2'>
+                  {/* Customer Name and Date */}
+                  <div className='flex items-start justify-between gap-2'>
+                    <div>
+                      <p className='text-xs text-gray-500 font-medium'>Customer Name</p>
+                      <p className='text-sm font-bold text-gray-900'>{bill.customerName || 'N/A'}</p>
+                    </div>
+                    <div className='text-right'>
+                      <p className='text-xs text-gray-500 font-medium'>Date</p>
+                      <div className='text-sm text-gray-600'>
+                        {bill.billDate || (bill.createdAt ? formatDate(bill.createdAt) : 'N/A')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Items */}
+                  {getIncludedItems(bill.items).length > 0 && (
+                    <div>
+                      <p className='text-xs text-gray-500 font-medium mb-1.5'>Items</p>
+                      <div className='flex flex-wrap gap-1'>
+                        {getIncludedItems(bill.items).map((item, idx) => (
+                          <div key={idx} className='text-xs font-semibold text-gray-900 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200'>
+                            {item}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Total Amount */}
+                  <div className='pt-2 border-t border-gray-100'>
+                    <p className='text-xs text-gray-500 font-medium'>Total Amount</p>
+                    <div className='text-lg font-bold text-indigo-600'>
+                      ₹{bill.totalAmount ? bill.totalAmount.toLocaleString('en-IN') : '0'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Actions */}
+                <div className='px-3 py-2 bg-gray-50 border-t border-gray-200'>
+                  <div className='grid grid-cols-5 gap-2'>
+                    {/* Preview Button */}
+                    <button
+                      onClick={() => handlePreviewBill(bill)}
+                      className='p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-all'
+                      title='Preview'
+                    >
+                      <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' />
+                      </svg>
+                    </button>
+
+                    {/* Edit Button */}
+                    <button
+                      onClick={() => handleEditBill(bill)}
+                      className='p-2 bg-orange-100 text-orange-600 rounded-lg hover:bg-orange-200 transition-all'
+                      title='Edit'
+                    >
+                      <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                      </svg>
+                    </button>
+
+                    {/* Share Button */}
+                    <button
+                      onClick={() => handleShareBill(bill)}
+                      className='p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-all'
+                      title='Share'
+                    >
+                      <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' />
+                      </svg>
+                    </button>
+
+                    {/* Download Button */}
+                    <button
+                      onClick={() => handleDownloadBill(bill._id, bill.billNumber)}
+                      className='p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-all'
+                      title='Download'
+                    >
+                      <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                      </svg>
+                    </button>
+
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleDeleteBill(bill._id)}
+                      className='p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-all'
+                      title='Delete'
+                    >
+                      <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className='bg-white rounded-2xl shadow-xl border border-gray-200 p-12'>
+              <div className='text-center text-gray-400'>
+                <svg className='mx-auto h-12 w-12 mb-3 text-gray-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                </svg>
+                <p className='text-sm font-semibold text-gray-600'>No bills found</p>
+                <p className='text-xs text-gray-500 mt-1'>Click "Add Dealer Bill" to create your first bill</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className='hidden md:block bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
           <div className='overflow-x-auto'>
             <table className='w-full'>
               <thead className={theme.tableHeader}>
@@ -288,7 +432,7 @@ const DealerBill = () => {
                         </div>
                       </td>
                       <td className='px-4 py-4'>
-                        <div className='flex items-center justify-center gap-2'>
+                        <div className='flex items-center justify-center gap-3'>
                           {/* Preview Button */}
                           <button
                             onClick={() => handlePreviewBill(bill)}
