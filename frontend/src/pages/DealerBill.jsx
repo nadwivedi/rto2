@@ -109,6 +109,50 @@ const DealerBill = () => {
     }
   }
 
+  const handleShareBill = async (bill) => {
+    try {
+      // Fetch the PDF file as a blob
+      const response = await axios.get(`${API_URL}/api/custom-bills/${bill._id}/download`, {
+        responseType: 'blob',
+        withCredentials: true
+      })
+
+      // Create a file from the blob
+      const pdfFile = new File(
+        [response.data],
+        `${bill.billNumber}.pdf`,
+        { type: 'application/pdf' }
+      )
+
+      const shareData = {
+        title: `Bill ${bill.billNumber}`,
+        text: `Bill for ${bill.customerName} - Amount: ₹${bill.totalAmount?.toLocaleString('en-IN')}`,
+        files: [pdfFile]
+      }
+
+      // Check if Web Share API is supported and can share files
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData)
+      } else {
+        // Fallback: Download the file if sharing is not supported
+        const url = window.URL.createObjectURL(new Blob([response.data]))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${bill.billNumber}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+        alert('File sharing not supported on this device. PDF downloaded instead.')
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing bill:', error)
+        alert('Failed to share bill. Please try again.')
+      }
+    }
+  }
+
   const getIncludedItems = (items) => {
     if (!items || !Array.isArray(items)) return []
     return items.map(item => item.description).filter(desc => desc && desc.trim() !== '')
@@ -265,6 +309,17 @@ const DealerBill = () => {
                           >
                             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' />
+                            </svg>
+                          </button>
+
+                          {/* Share Button */}
+                          <button
+                            onClick={() => handleShareBill(bill)}
+                            className='p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-200 transition-all'
+                            title='Share Bill'
+                          >
+                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z' />
                             </svg>
                           </button>
 
