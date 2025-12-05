@@ -329,6 +329,70 @@ const DrivingLicence = () => {
     }
   };
 
+  // Helper function to open WhatsApp with custom message (expiring only)
+  const handleWhatsAppClick = (app) => {
+    if (!app.mobileNumber || app.mobileNumber === 'N/A') {
+      toast.error('Mobile number not available for this application', {
+        position: 'top-right',
+        autoClose: 3000
+      });
+      return;
+    }
+
+    // Format mobile number (remove spaces, dashes, etc.)
+    let phoneNumber = app.mobileNumber.replace(/\D/g, '');
+
+    // Add +91 country code if not already present
+    if (!phoneNumber.startsWith('91')) {
+      phoneNumber = '91' + phoneNumber;
+    }
+
+    // Create custom message for expiring licenses only
+    let message = `Hello ${app.name || ''},\n\n`;
+
+    // Check if LL is expiring
+    if (app.llExpiryDate && isExpiringSoon(app.llExpiryDate)) {
+      message += `Your Learner's License is expiring on ${app.llExpiryDate}.\n`;
+      message += `Please renew your license at the earliest.\n\n`;
+    }
+
+    // Check if DL is expiring
+    if (app.dlExpiryDate && isExpiringSoon(app.dlExpiryDate)) {
+      message += `Your Driving License is expiring on ${app.dlExpiryDate}.\n`;
+      message += `Please renew your license at the earliest.\n\n`;
+    }
+
+    message += `Thank you for your cooperation.`;
+
+    // Open WhatsApp directly (not web)
+    const whatsappURL = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+    window.location.href = whatsappURL;
+  };
+
+  // Helper function to check if date is expiring soon (within 30 days)
+  const isExpiringSoon = (dateStr) => {
+    if (!dateStr || dateStr === 'N/A') return false;
+
+    // Parse date string (DD-MM-YYYY format)
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return false;
+
+    const expiryDate = new Date(parts[2], parts[1] - 1, parts[0]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+    return daysRemaining <= 30 && daysRemaining >= 0;
+  };
+
+  // Determine if WhatsApp button should be shown (expiring licenses only)
+  const shouldShowWhatsAppButton = (app) => {
+    return (
+      (app.llExpiryDate && isExpiringSoon(app.llExpiryDate)) ||
+      (app.dlExpiryDate && isExpiringSoon(app.dlExpiryDate))
+    );
+  };
+
   const handleFormSubmit = async (formData) => {
     try {
       // Helper function to convert DD-MM-YYYY to ISO date format
@@ -799,6 +863,19 @@ const DrivingLicence = () => {
             },
           }}
           actions={[
+            {
+              title: 'WhatsApp Reminder',
+              condition: shouldShowWhatsAppButton,
+              onClick: handleWhatsAppClick,
+              bgColor: 'bg-green-50',
+              textColor: 'text-green-600',
+              hoverBgColor: 'bg-green-100',
+              icon: (
+                <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
+                  <path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/>
+                </svg>
+              ),
+            },
             {
               title: 'Mark as Paid',
               condition: (app) => (app.balanceAmount || 0) > 0,
