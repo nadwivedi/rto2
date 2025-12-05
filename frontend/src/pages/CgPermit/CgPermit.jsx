@@ -25,7 +25,6 @@ const CgPermit = () => {
 
   const [permits, setPermits] = useState([])
   const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [selectedPermit, setSelectedPermit] = useState(null)
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
@@ -71,20 +70,11 @@ const CgPermit = () => {
     }
   }
 
-  // Debounce search query to avoid losing focus on every keystroke
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery)
-    }, 500) // 500ms delay
-
-    return () => clearTimeout(timer)
-  }, [searchQuery])
-
   // Fetch permits from backend on component mount and when filters change
   useEffect(() => {
     fetchPermits(1)
     fetchStatistics()
-  }, [debouncedSearchQuery, statusFilter])
+  }, [searchQuery, statusFilter])
 
   // Page change handler
   const handlePageChange = (newPage) => {
@@ -99,7 +89,7 @@ const CgPermit = () => {
     const params = {
       page,
       limit: pagination.limit,
-      search: debouncedSearchQuery
+      search: searchQuery
     }
 
     if (statusFilter !== 'all') {

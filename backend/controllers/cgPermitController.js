@@ -238,9 +238,13 @@ exports.getAllPermits = async (req, res) => {
     // Build query
     const query = { userId: req.user.id }
 
-    // Search by vehicle number only
+    // Search by vehicle number, permit number, or permit holder name
     if (search) {
-      query.vehicleNumber = { $regex: search, $options: 'i' }
+      query.$or = [
+        { vehicleNumber: { $regex: search, $options: 'i' } },
+        { permitNumber: { $regex: search, $options: 'i' } },
+        { permitHolder: { $regex: search, $options: 'i' } }
+      ]
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit)
