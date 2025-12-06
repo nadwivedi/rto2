@@ -349,6 +349,8 @@ const Insurance = () => {
     if (insurance.status === 'expiring_soon' || insurance.status === 'expired') {
       const statusText = insurance.status === 'expired' ? 'has expired' : 'is going to expire';
       message += `Your insurance ${statusText} on ${insurance.validTo}.\n`;
+      message += `Vehicle Number: ${insurance.vehicleNumber}\n`;
+      message += `Policy Number: ${insurance.policyNumber}\n`;
       message += `Please renew your insurance at the earliest.\n\n`;
     }
 
@@ -361,7 +363,7 @@ const Insurance = () => {
 
   // Determine if WhatsApp button should be shown
   const shouldShowWhatsAppButton = (insurance) => {
-    return (insurance.status === 'expiring_soon' || (insurance.balance || 0) > 0);
+    return (insurance.status === 'expiring_soon' || insurance.status === 'expired' || (insurance.balance || 0) > 0);
   };
 
   const handleFilterChange = (filterType, value) => {

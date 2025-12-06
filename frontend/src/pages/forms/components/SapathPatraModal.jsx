@@ -69,7 +69,7 @@ const SapathPatraModal = ({ onClose }) => {
             body {
               font-family: Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif;
               font-size: 15px;
-              line-height: 1.8;
+              line-height: 1.75;
               padding: 20px;
               font-weight: 700;
               color: #000000;
@@ -84,7 +84,8 @@ const SapathPatraModal = ({ onClose }) => {
               width: 100%;
               font-family: Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif;
               font-size: 15px;
-              padding: 0 2px;
+              padding: 0;
+              line-height: 1.75;
               font-weight: bold;
               color: #000000;
             }
@@ -138,7 +139,7 @@ const SapathPatraModal = ({ onClose }) => {
               padding: '5mm',
               fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif",
               fontSize: '15px',
-              lineHeight: '1.8',
+              lineHeight: '1.75',
               fontWeight: '700',
               color: '#000000'
             }}
@@ -154,7 +155,7 @@ const SapathPatraModal = ({ onClose }) => {
               {/* Opening Section */}
               <div style={{marginBottom: '3px', display: 'flex', alignItems: 'baseline'}}>
                 <span>मैं</span>
-                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                   <input
                     ref={(el) => inputRefs.current[0] = el}
                     type="text"
@@ -162,11 +163,11 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.name}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 0)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
                 <span style={{marginLeft: '10px'}}>पिता/पति</span>
-                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                   <input
                     ref={(el) => inputRefs.current[1] = el}
                     type="text"
@@ -174,7 +175,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.buyerFather}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 1)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
               </div>
@@ -183,7 +184,7 @@ const SapathPatraModal = ({ onClose }) => {
 
               <div style={{marginBottom: '3px', display: 'flex', alignItems: 'baseline'}}>
                 <span>उम्र</span>
-                <div style={{width: '100px', borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                <div style={{width: '100px', borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                   <input
                     ref={(el) => inputRefs.current[2] = el}
                     type="text"
@@ -191,11 +192,11 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.age}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 2)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
                 <span style={{marginLeft: '8px'}}>वर्ष, निवासी</span>
-                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                   <input
                     ref={(el) => inputRefs.current[3] = el}
                     type="text"
@@ -203,11 +204,11 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.resident}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 3)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
                 <span style={{marginLeft: '8px'}}>तहसील</span>
-                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                   <input
                     ref={(el) => inputRefs.current[4] = el}
                     type="text"
@@ -215,7 +216,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.district}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 4)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
               </div>
@@ -224,7 +225,7 @@ const SapathPatraModal = ({ onClose }) => {
 
               <div style={{marginBottom: '3px', display: 'flex', alignItems: 'baseline'}}>
                 <span>जिला</span>
-                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                   <input
                     ref={(el) => inputRefs.current[5] = el}
                     type="text"
@@ -232,7 +233,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.buyerDistrict}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 5)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
                 <span style={{marginLeft: '8px'}}>का रहने वाला हूं, जो कि निम्नलिखित कथन पूर्वक कहता हूं –</span>
@@ -244,7 +245,7 @@ const SapathPatraModal = ({ onClose }) => {
                 <div style={{flex: 1}}>
                   <div style={{display: 'flex', alignItems: 'baseline', flexWrap: 'wrap'}}>
                     <span>यह है कि मैं वाहन क्रमांक</span>
-                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                       <input
                         ref={(el) => inputRefs.current[6] = el}
                         type="text"
@@ -252,14 +253,14 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.vehicleNumber}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 6)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>का पंजीकृत स्वामी हूं, जिसका</span>
                   </div>
                   <div style={{display: 'flex', alignItems: 'baseline', marginTop: '4px'}}>
                     <span>चेसिस नंबर</span>
-                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                       <input
                         ref={(el) => inputRefs.current[7] = el}
                         type="text"
@@ -267,11 +268,11 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.chassisNumber}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 7)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>इंजन नंबर</span>
-                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                       <input
                         ref={(el) => inputRefs.current[8] = el}
                         type="text"
@@ -279,7 +280,7 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.mobileNumber}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 8)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                   </div>
@@ -287,7 +288,7 @@ const SapathPatraModal = ({ onClose }) => {
                   {/* model no  */}
                   <div style={{display: 'flex', alignItems: 'baseline', marginTop: '3px'}}>
                     <span>मॉडल नं.</span>
-                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                       <input
                         ref={(el) => inputRefs.current[9] = el}
                         type="text"
@@ -295,11 +296,11 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.model}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 9)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>है। जिसका मार्क कर</span>
-                    <div style={{flex: '1 1 150px', borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                    <div style={{flex: '1 1 150px', borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.75'}}>
                       <input
                         ref={(el) => inputRefs.current[10] = el}
                         type="text"
@@ -307,7 +308,7 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.make}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 10)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>तक जमा है।</span>
@@ -398,36 +399,36 @@ const SapathPatraModal = ({ onClose }) => {
 
               {/* Buyer and Seller Section */}
               <div>
-                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '5px'}}>
-                  <div style={{width: '120px', height: '110px', border: '2px solid #000', padding: '10px', textAlign: 'center', display: 'flex', alignItems: 'flex-end', justifyContent: 'center'}}>
-                    <strong style={{fontWeight: '900', color: '#000000'}}>Buyer Photo</strong>
+                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '2px'}}>
+                  <div style={{width: '100px', height: '90px', border: '2px solid #000', padding: '8px', textAlign: 'center', display: 'flex', alignItems: 'flex-end', justifyContent: 'center'}}>
+                    <strong style={{fontWeight: '900', color: '#000000', fontSize: '12px'}}>Buyer Photo</strong>
                   </div>
-                  <div style={{textAlign: 'center', flex: 1, padding: '0 15px'}}>
-                    <div style={{marginBottom: '15px'}}>
+                  <div style={{textAlign: 'center', flex: 1, padding: '0 10px'}}>
+                    <div style={{marginBottom: '8px'}}>
                       <strong style={{fontSize: '16px', fontWeight: '900', color: '#000000'}}>P</strong> <span style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (क्रेता)</span>
                     </div>
-                    <div style={{borderBottom: '2px dotted #000', minHeight: '40px', marginBottom: '15px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', minHeight: '30px', marginBottom: '8px'}}></div>
                   </div>
-                  <div style={{textAlign: 'center', flex: 1, padding: '0 15px'}}>
-                    <div style={{marginBottom: '15px'}}>
+                  <div style={{textAlign: 'center', flex: 1, padding: '0 10px'}}>
+                    <div style={{marginBottom: '8px'}}>
                       <strong style={{fontSize: '16px', fontWeight: '900', color: '#000000'}}>S</strong> <span style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (बिक्रेता)</span>
                     </div>
-                    <div style={{borderBottom: '2px dotted #000', minHeight: '40px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', minHeight: '30px'}}></div>
                   </div>
-                  <div style={{width: '120px', height: '110px', border: '2px solid #000', padding: '10px', textAlign: 'center', display: 'flex', alignItems: 'flex-end', justifyContent: 'center'}}>
-                    <strong style={{fontWeight: '900', color: '#000000'}}>Seller Photo</strong>
+                  <div style={{width: '100px', height: '90px', border: '2px solid #000', padding: '8px', textAlign: 'center', display: 'flex', alignItems: 'flex-end', justifyContent: 'center'}}>
+                    <strong style={{fontWeight: '900', color: '#000000', fontSize: '12px'}}>Seller Photo</strong>
                   </div>
                 </div>
-                <div style={{textAlign: 'center', width: '100%', marginTop: '1x', marginBottom: '1px'}}>
-                  <h2 style={{fontSize: '25px', fontWeight: '900', color: '#000000', letterSpacing: '2px', margin: '0'}}>सत्यापन</h2>
+                <div style={{textAlign: 'center', width: '100%', marginTop: '1px', marginBottom: '1px'}}>
+                  <h2 style={{fontSize: '22px', fontWeight: '900', color: '#000000', letterSpacing: '2px', margin: '0'}}>सत्यापन</h2>
                 </div>
               </div>
 
               {/* Verification Section */}
-              <div style={{marginTop: '2px'}}>
-                <div style={{marginBottom: '2px', display: 'flex', alignItems: 'baseline'}}>
+              <div style={{marginTop: '1px'}}>
+                <div style={{marginBottom: '1px', display: 'flex', alignItems: 'baseline'}}>
                   <span>मैं</span>
-                  <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                  <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.8'}}>
                     <input
                       ref={(el) => inputRefs.current[12] = el}
                       type="text"
@@ -435,11 +436,11 @@ const SapathPatraModal = ({ onClose }) => {
                       value={formData.verificationName}
                       onChange={handleChange}
                       onKeyDown={(e) => handleKeyDown(e, 12)}
-                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                     />
                   </div>
-                  <span style={{marginLeft: '8px'}}>पिता/पति</span>
-                  <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
+                  <span style={{marginLeft: '8px',marginBottom:'0px'}}>पिता/पति</span>
+                  <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.8'}}>
                     <input
                       ref={(el) => inputRefs.current[13] = el}
                       type="text"
@@ -447,31 +448,31 @@ const SapathPatraModal = ({ onClose }) => {
                       value={formData.verificationFather}
                       onChange={handleChange}
                       onKeyDown={(e) => handleKeyDown(e, 13)}
-                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0', lineHeight: '1.75', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                     />
                   </div>
                 </div>
-                <p style={{marginBottom: '2px', fontWeight: '700', color: '#000000'}}>पता <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '350px'}}></span> यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</p>
-                <p style={{marginBottom: '2px', fontWeight: '700', color: '#000000'}}>की गई सभी जानकारी क्रेता एवं बिक्रेता को स्वीकार्य है। हम दोनों ने अपने होशो–हवाश में पढ़कर व समझकर</p>
+                <p style={{marginBottom: '1px', fontWeight: '700', color: '#000000'}}>पता <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '350px'}}></span> यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</p>
+                <p style={{marginBottom: '1px', fontWeight: '700', color: '#000000'}}>की गई सभी जानकारी क्रेता एवं बिक्रेता को स्वीकार्य है। हम दोनों ने अपने होशो–हवाश में पढ़कर व समझकर</p>
                 <p style={{marginBottom: '0px', fontWeight: '700', color: '#000000'}}>आज दिनांक <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '200px'}}></span> को हस्ताक्षर किया।</p>
               </div>
 
               {/* Final Signatures */}
-              <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '-15px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '-10px'}}>
                 <div style={{textAlign: 'center'}}>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '0px'}}></div>
+                  <div style={{borderBottom: '2px dotted #000', minHeight: '35px', width: '200px', marginBottom: '0px'}}></div>
                   <p style={{fontWeight: '700', color: '#000000', marginBottom: '0px', marginTop: '0px'}}>शपथकर्ता (क्रेता)</p>
                   <div style={{display: 'flex', alignItems: 'center', marginTop: '0px'}}>
                     <span style={{fontWeight: '700', color: '#000000'}}>मो.नं.</span>
-                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', flex: 1, marginLeft: '8px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', lineHeight: '1.8', flex: 1, marginLeft: '8px'}}></div>
                   </div>
                 </div>
                 <div style={{textAlign: 'center'}}>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '0px'}}></div>
+                  <div style={{borderBottom: '2px dotted #000', minHeight: '35px', width: '200px', marginBottom: '0px'}}></div>
                   <p style={{fontWeight: '700', color: '#000000', marginBottom: '0px', marginTop: '0px'}}>शपथकर्ता (बिक्रेता)</p>
                   <div style={{display: 'flex', alignItems: 'center', marginTop: '0px'}}>
                     <span style={{fontWeight: '700', color: '#000000'}}>मो.नं.</span>
-                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', flex: 1, marginLeft: '8px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', lineHeight: '1.8', flex: 1, marginLeft: '8px'}}></div>
                   </div>
                 </div>
               </div>

@@ -431,6 +431,8 @@ const TemporaryPermit = () => {
     if (permit.status === 'expiring_soon' || permit.status === 'expired') {
       const statusText = permit.status === 'expired' ? 'has expired' : 'is going to expire';
       message += `Your temporary permit ${statusText} on ${permit.validTill}.\n`;
+      message += `Permit Number: ${permit.permitNumber}\n`;
+      message += `Vehicle Number: ${permit.vehicleNo}\n`;
       message += `Please renew your permit at the earliest.\n\n`;
     }
 
@@ -443,7 +445,7 @@ const TemporaryPermit = () => {
 
   // Determine if WhatsApp button should be shown
   const shouldShowWhatsAppButton = (permit) => {
-    return (permit.status === 'expiring_soon' || (permit.balance || 0) > 0);
+    return (permit.status === 'expiring_soon' || permit.status === 'expired' || (permit.balance || 0) > 0);
   };
 
   const handleIssuePermit = async (formData) => {

@@ -394,6 +394,7 @@ const Fitness = () => {
     if (record.status === 'expiring_soon' || record.status === 'expired') {
       const statusText = record.status === 'expired' ? 'has expired' : 'is going to expire';
       message += `Your fitness certificate ${statusText} on ${record.validTo}.\n`;
+      message += `Vehicle Number: ${record.vehicleNumber}\n`;
       message += `Please renew your fitness certificate at the earliest.\n\n`;
     }
 
@@ -406,7 +407,7 @@ const Fitness = () => {
 
   // Determine if WhatsApp button should be shown
   const shouldShowWhatsAppButton = (record) => {
-    return (record.status === 'expiring_soon' || (record.balance || 0) > 0);
+    return (record.status === 'expiring_soon' || record.status === 'expired' || (record.balance || 0) > 0);
   };
 
   // Statistics are now fetched from backend, removed useMemo calculation

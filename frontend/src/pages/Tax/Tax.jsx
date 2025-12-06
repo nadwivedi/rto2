@@ -327,6 +327,7 @@ const Tax = () => {
     if (record.status === 'expiring_soon' || record.status === 'expired') {
       const statusText = record.status === 'expired' ? 'has expired' : 'is going to expire';
       message += `Your tax ${statusText} on ${record.taxTo}.\n`;
+      message += `Vehicle Number: ${record.vehicleNumber}\n`;
       message += `Please renew your tax at the earliest.\n\n`;
     }
 
@@ -339,7 +340,7 @@ const Tax = () => {
 
   // Determine if WhatsApp button should be shown
   const shouldShowWhatsAppButton = (record) => {
-    return (record.status === 'expiring_soon' || (record.balanceAmount || 0) > 0);
+    return (record.status === 'expiring_soon' || record.status === 'expired' || (record.balanceAmount || 0) > 0);
   };
 
   const handleDeleteTax = async (id) => {
