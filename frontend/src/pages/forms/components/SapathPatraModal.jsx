@@ -145,7 +145,7 @@ const SapathPatraModal = ({ onClose }) => {
           >
             <div className="form-container">
               {/* Title */}
-              <div style={{textAlign: 'center', marginBottom: '2px'}}>
+              <div style={{textAlign: 'center'}}>
                 <h1 style={{fontSize: '36px', fontWeight: '900', letterSpacing: '4px', color: '#000000'}}>शपथ-पत्र</h1>
                 <p style={{fontSize: '15px', marginTop: '0px', fontWeight: '700', color: '#000000'}}>समक्ष नोटरी जिला सिविल कार्यालय</p>
                 <p style={{fontSize: '14px', marginTop: '0px', fontWeight: '700', color: '#000000', marginBottom: '2px'}}>(आर.टी.ओ. कार्यालय में पेश करने हेतु)</p>
@@ -369,27 +369,27 @@ const SapathPatraModal = ({ onClose }) => {
                 </div>
               </div>
 
-              <div style={{marginBottom: '2px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '1px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>4.</span>
                 <span>यह है कि बिक्री पत्र फार्म नं. 29 एवं 30 में रजिस्टर्ड ओनर द्वारा मेरे समक्ष हस्ताक्षर किया है।</span>
               </div>
 
-              <div style={{marginBottom: '2px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '1px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>5.</span>
                 <span>यह है कि मैंने बिकेता रजिस्टर्ड ओनर को वाहन का बिक्रय मूल्य पूरी तौर से भुगतान कर दिया है।</span>
               </div>
 
-              <div style={{marginBottom: '2px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '1px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>6.</span>
                 <span>यह है कि उक्त वाहन के बिक्रय में किसी भी भी प्रकार का विवाद नहीं है।</span>
               </div>
 
-              <div style={{marginBottom: '2px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '1px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>7.</span>
                 <span>यह है कि उक्त वाहन के बिक्री राशि संबंधी, स्वामित्व अन्तरण संबंधी या अन्य किसी बाबत कोई विवाद होता है तो उसकी पूरी जवाबदारी व्यक्तिगत रूप से बिकेता एवं हम दोनों की होगी।</span>
               </div>
 
-              <div style={{marginBottom: '3px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '2px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>8.</span>
                 <div style={{flex: 1}}>
                   <span>यह है कि उक्त वर्णित वाहन का कब्जा बिकेता द्वारा क्रेता को चाबी एवं दस्तावेज की मूल प्रति आज दिनांक को दे दिया गया है। उक्त वाहन के संबंध में आज से पूर्व हुई किसी भी प्रकार के मामलों की जिम्मेदारी बिकेता की होगी तथा आज दिनांक के बाद की समस्त जवाबदारी क्रेता की होगी।</span>
@@ -398,7 +398,7 @@ const SapathPatraModal = ({ onClose }) => {
 
               {/* Buyer and Seller Section */}
               <div>
-                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '10px'}}>
+                <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '5px'}}>
                   <div style={{width: '120px', height: '110px', border: '2px solid #000', padding: '10px', textAlign: 'center', display: 'flex', alignItems: 'flex-end', justifyContent: 'center'}}>
                     <strong style={{fontWeight: '900', color: '#000000'}}>Buyer Photo</strong>
                   </div>
