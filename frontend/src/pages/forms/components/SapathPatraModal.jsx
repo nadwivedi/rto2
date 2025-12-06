@@ -90,7 +90,7 @@ const SapathPatraModal = ({ onClose }) => {
             }
             .no-print { display: none !important; }
             @media print {
-              body { padding: 10mm; margin: 0; }
+              body { padding: 5mm; margin: 0; }
               @page {
                 margin: 0;
                 size: A4;
@@ -135,7 +135,7 @@ const SapathPatraModal = ({ onClose }) => {
             style={{
               width: '210mm',
               minHeight: '297mm',
-              padding: '20mm',
+              padding: '5mm',
               fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif",
               fontSize: '15px',
               lineHeight: '1.8',
@@ -165,7 +165,7 @@ const SapathPatraModal = ({ onClose }) => {
                     style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
-                <span style={{marginLeft: '8px'}}>पिता/पति</span>
+                <span style={{marginLeft: '10px'}}>पिता/पति</span>
                 <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
                   <input
                     ref={(el) => inputRefs.current[1] = el}
@@ -312,29 +312,31 @@ const SapathPatraModal = ({ onClose }) => {
               <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>2.</span>
                 <div style={{flex: 1}}>
-                  <span>यह है कि मैं वाहन क्रमांक</span>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '200px', marginLeft: '8px'}}>
-                    <input
-                      ref={(el) => inputRefs.current[11] = el}
-                      type="text"
-                      name="vehicleNumber2"
-                      value={formData.vehicleNumber}
-                      onChange={handleChange}
-                      onKeyDown={(e) => handleKeyDown(e, 11)}
-                      style={{border:'none', background: 'transparent', outline: 'none', width: '200px', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
-                    />
+                  <div style={{display: 'flex', alignItems: 'baseline', flexWrap: 'wrap'}}>
+                    <span>यह है कि मैं वाहन क्रमांक</span>
+                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}>
+                      <input
+                        ref={(el) => inputRefs.current[11] = el}
+                        type="text"
+                        name="vehicleNumber2"
+                        value={formData.vehicleNumber}
+                        onChange={handleChange}
+                        onKeyDown={(e) => handleKeyDown(e, 11)}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '150px', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
+                      />
+                    </div>
+                    <span style={{marginLeft: '8px'}}>जो कि</span>
+                    <div style={{flex: '1 1 300px', borderBottom: '2px dotted #000', minHeight: '20px', marginLeft: '8px'}}></div>
                   </div>
-                  <span style={{marginLeft: '8px'}}>जो कि</span>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '350px', marginLeft: '8px'}}></div>
-                  <div style={{marginTop: '4px'}}>
+                  <div style={{marginTop: '4px', display: 'flex', alignItems: 'baseline'}}>
                     <span>पिता/पति श्री</span>
-                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '500px', marginLeft: '8px'}}></div>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', minHeight: '20px', marginLeft: '8px'}}></div>
                   </div>
-                  <div style={{marginTop: '4px'}}>
+                  <div style={{marginTop: '4px', display: 'flex', alignItems: 'baseline'}}>
                     <span>निवासी</span>
-                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '550px', marginLeft: '8px'}}></div>
+                    <div style={{flex: '1 1 350px', borderBottom: '2px dotted #000', minHeight: '20px', marginLeft: '8px'}}></div>
                     <span style={{marginLeft: '8px'}}>तहसील</span>
-                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '200px', marginLeft: '8px'}}></div>
+                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', minHeight: '20px', marginLeft: '8px'}}></div>
                   </div>
                   <div style={{marginTop: '4px'}}>
                     <span>जिला</span>
@@ -347,16 +349,17 @@ const SapathPatraModal = ({ onClose }) => {
               <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>3.</span>
                 <div style={{flex: 1}}>
-                  <span>यह है कि वाहन क्रमांक</span>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '200px', marginLeft: '8px'}}></div>
-                  <span style={{marginLeft: '8px'}}>को श्री</span>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '200px', marginLeft: '8px'}}></div>
+                  <div style={{display: 'flex', alignItems: 'baseline', flexWrap: 'wrap'}}>
+                    <span>यह है कि वाहन क्रमांक</span>
+                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
+                    <span style={{marginLeft: '8px'}}>को श्री</span>
+                    <div style={{flex: '1 1 200px', borderBottom: '2px dotted #000', minHeight: '20px', marginLeft: '8px'}}></div>
+                  </div>
                   <div style={{marginTop: '4px'}}>
                     <span>पिता</span>
-                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '550px', marginLeft: '8px'}}></div>
-                    <span style={{marginLeft: '8px'}}>के नाम से स्वामित्व अन्तरण किया जाता है तो उसमें</span>
+                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', display: 'inline-block', minWidth: '200px', marginLeft: '8px'}}></div>
+                    <span style={{marginLeft: '8px'}}>के नाम से स्वामित्व अन्तरण किया जाता है तो उसमें मुझे एवं वारिसों को कोई आपत्ति नहीं है।</span>
                   </div>
-                  <div style={{marginTop: '4px'}}>मुझे एवं वारिसों को कोई आपत्ति नहीं है।</div>
                 </div>
               </div>
 
@@ -389,10 +392,10 @@ const SapathPatraModal = ({ onClose }) => {
 
               {/* Buyer and Seller Section */}
               <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '30px', marginBottom: '30px'}}>
-                <div style={{width: '150px', border: '2px solid #000', padding: '60px 10px 10px', textAlign: 'center', minHeight: '120px'}}>
-                  <strong style={{fontWeight: '900', color: '#000000'}}>Buyer</strong>
+                <div style={{width: '120px', border: '2px solid #000', padding: '60px 10px 10px', textAlign: 'center', minHeight: '120px'}}>
+                  <strong style={{fontWeight: '900', color: '#000000'}}>Buyer Photo</strong>
                 </div>
-                <div style={{textAlign: 'center', flex: 1, padding: '0 20px'}}>
+                <div style={{textAlign: 'center', flex: 1, padding: '0 15px'}}>
                   <div style={{marginBottom: '15px'}}>
                     <strong style={{fontSize: '16px', fontWeight: '900', color: '#000000'}}>P</strong> <span style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (क्रेता)</span>
                   </div>
@@ -401,14 +404,14 @@ const SapathPatraModal = ({ onClose }) => {
                     <h2 style={{fontSize: '20px', fontWeight: '900', color: '#000000'}}>सत्यापन</h2>
                   </div>
                 </div>
-                <div style={{width: '150px', border: '2px solid #000', padding: '60px 10px 10px', textAlign: 'center', minHeight: '120px'}}>
-                  <strong style={{fontWeight: '900', color: '#000000'}}>Seller</strong>
-                </div>
-                <div style={{textAlign: 'center', flex: 1, padding: '0 20px'}}>
+                <div style={{textAlign: 'center', flex: 1, padding: '0 15px'}}>
                   <div style={{marginBottom: '15px'}}>
                     <strong style={{fontSize: '16px', fontWeight: '900', color: '#000000'}}>S</strong> <span style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (बिक्रेता)</span>
                   </div>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '40px'}}></div>
+                </div>
+                <div style={{width: '120px', border: '2px solid #000', padding: '60px 10px 10px', textAlign: 'center', minHeight: '120px'}}>
+                  <strong style={{fontWeight: '900', color: '#000000'}}>Seller Photo</strong>
                 </div>
               </div>
 
@@ -440,7 +443,7 @@ const SapathPatraModal = ({ onClose }) => {
                     />
                   </div>
                 </div>
-                <p style={{marginBottom: '10px', fontWeight: '700', color: '#000000'}}>पता <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '500px'}}></span> यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</p>
+                <p style={{marginBottom: '10px', fontWeight: '700', color: '#000000'}}>पता <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '350px'}}></span> यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</p>
                 <p style={{marginBottom: '10px', fontWeight: '700', color: '#000000'}}>की गई सभी जानकारी क्रेता एवं बिक्रेता को स्वीकार्य है। हम दोनों ने अपने होशो–हवाश में पढ़कर व समझकर</p>
                 <p style={{marginBottom: '20px', fontWeight: '700', color: '#000000'}}>आज दिनांक <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '200px'}}></span> को हस्ताक्षर किया।</p>
               </div>
@@ -450,14 +453,18 @@ const SapathPatraModal = ({ onClose }) => {
                 <div style={{textAlign: 'center'}}>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '8px'}}></div>
                   <p style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (क्रेता)</p>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '20px', width: '200px', marginTop: '15px'}}></div>
-                  <p style={{fontWeight: '700', color: '#000000'}}>मो.नं.</p>
+                  <div style={{display: 'flex', alignItems: 'center', marginTop: '15px'}}>
+                    <span style={{fontWeight: '700', color: '#000000'}}>मो.नं.</span>
+                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', flex: 1, marginLeft: '8px'}}></div>
+                  </div>
                 </div>
                 <div style={{textAlign: 'center'}}>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '8px'}}></div>
                   <p style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (बिक्रेता)</p>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '20px', width: '200px', marginTop: '15px'}}></div>
-                  <p style={{fontWeight: '700', color: '#000000'}}>मो.नं.</p>
+                  <div style={{display: 'flex', alignItems: 'center', marginTop: '15px'}}>
+                    <span style={{fontWeight: '700', color: '#000000'}}>मो.नं.</span>
+                    <div style={{borderBottom: '2px dotted #000', minHeight: '20px', flex: 1, marginLeft: '8px'}}></div>
+                  </div>
                 </div>
               </div>
             </div>
