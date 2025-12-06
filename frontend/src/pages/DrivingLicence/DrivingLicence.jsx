@@ -785,9 +785,9 @@ const DrivingLicence = () => {
                         </span>
                       </div>
                       <div className='text-right'>
-                        <p className='text-[10px] text-gray-500 font-semibold uppercase'>DL Number</p>
+                        <p className='text-[10px] text-gray-500 font-semibold uppercase'>LL Number</p>
                         <div className='text-xs font-mono font-semibold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg border border-gray-200 mt-1'>
-                          {record.licenseNumber}
+                          {record.fullData?.learningLicenseNumber || '-'}
                         </div>
                       </div>
                     </div>
@@ -843,18 +843,46 @@ const DrivingLicence = () => {
                           <svg className='w-3 h-3 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
                           </svg>
-                          Issue Date
+                          LL Issue Date
                         </p>
-                        <p className='text-xs font-semibold text-gray-700'>{record.issueDate || '-'}</p>
+                        <p className='text-xs font-semibold text-gray-700'>
+                          {(() => {
+                            const llIssueDate = record.fullData?.learningLicenseIssueDate;
+                            if (!llIssueDate) return '-';
+                            try {
+                              const d = new Date(llIssueDate);
+                              const day = String(d.getDate()).padStart(2, '0');
+                              const month = String(d.getMonth() + 1).padStart(2, '0');
+                              const year = d.getFullYear();
+                              return `${day}-${month}-${year}`;
+                            } catch (e) {
+                              return '-';
+                            }
+                          })()}
+                        </p>
                       </div>
                       <div>
                         <p className='text-[10px] text-gray-500 font-semibold uppercase flex items-center gap-1'>
                           <svg className='w-3 h-3 text-red-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
                           </svg>
-                          Expiry Date
+                          LL Expiry Date
                         </p>
-                        <p className='text-xs font-semibold text-gray-700'>{record.expiryDate || '-'}</p>
+                        <p className='text-xs font-semibold text-gray-700'>
+                          {(() => {
+                            const llExpiryDate = record.fullData?.learningLicenseExpiryDate;
+                            if (!llExpiryDate) return '-';
+                            try {
+                              const d = new Date(llExpiryDate);
+                              const day = String(d.getDate()).padStart(2, '0');
+                              const month = String(d.getMonth() + 1).padStart(2, '0');
+                              const year = d.getFullYear();
+                              return `${day}-${month}-${year}`;
+                            } catch (e) {
+                              return '-';
+                            }
+                          })()}
+                        </p>
                       </div>
                     </div>
                   ),
@@ -935,10 +963,10 @@ const DrivingLicence = () => {
             <thead className={theme.tableHeader}>
               <tr>
                 <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Applicant Details</th>
-                <th className='px-4 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Class</th>
-                <th className='px-2 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>License Number</th>
-                <th className='px-1 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Issue Date</th>
-                <th className='px-1 py-4 text-left text-xs font-bold text-white uppercase tracking-wide'>Expiry Date</th>
+                <th className='px-4 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>License Class</th>
+                <th className='px-2 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>Learning Licence No.</th>
+                <th className='px-0.5 2xl:px-1 py-4 text-center text-xs font-bold text-white uppercase tracking-wide pl-8 2xl:pl-12'>LL Issue Date</th>
+                <th className='px-0.5 2xl:px-1 py-4 text-center text-xs font-bold text-white uppercase tracking-wide'>LL Expiry Date</th>
                 <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10 pl-6 2xl:pl-8'>Total Amount</th>
                 <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Paid</th>
                 <th className='px-4 py-4 text-right text-xs font-bold text-white uppercase tracking-wide bg-white/10'>Balance</th>
@@ -948,7 +976,7 @@ const DrivingLicence = () => {
             <tbody className='divide-y divide-gray-200'>
               {loading ? (
                 <tr>
-                  <td colSpan='10' className='px-4 py-8 text-center'>
+                  <td colSpan='9' className='px-4 py-8 text-center'>
                     <div className='text-gray-400'>
                       <svg className='animate-spin mx-auto h-8 w-8 mb-3 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
@@ -976,63 +1004,100 @@ const DrivingLicence = () => {
                         </div>
                       </div>
                     </td>
+                    {/* License Class */}
                     <td className='px-4 py-4'>
-                      <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
-                        <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
-                          <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
-                          <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
-                        </svg>
-                        {app.type}
-                      </span>
+                      <div className='flex items-center justify-center'>
+                        <span className='inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200'>
+                          <svg className='w-3 h-3 mr-1.5' fill='currentColor' viewBox='0 0 20 20'>
+                            <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                            <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                          </svg>
+                          {app.type}
+                        </span>
+                      </div>
                     </td>
-                    {/* License Number */}
+                    {/* Learning Licence Number */}
                     <td className='px-2 py-4'>
-                      <div className='text-[11px] 2xl:text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-2.5 py-1.5 rounded-lg inline-block border border-gray-200'>
-                        {app.licenseNumber}
+                      <div className='text-[11px] 2xl:text-sm font-mono font-semibold text-gray-900 text-center'>
+                        {app.fullData?.learningLicenseNumber || '-'}
                       </div>
                     </td>
 
-                    {/* Issue Date */}
-                    <td className='px-1 py-3 2xl:py-5'>
-                      <div className='flex items-center text-[11px] 2xl:text-[13.8px]'>
-                        <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200 whitespace-nowrap'>
-                          <svg
-                            className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2'
-                            fill='none'
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'
-                          >
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-                            />
-                          </svg>
-                          {app.issueDate || '-'}
-                        </span>
+                    {/* LL Issue Date */}
+                    <td className='px-0.5 2xl:px-1 py-3 2xl:py-5 pl-8 2xl:pl-12'>
+                      <div className='flex items-center justify-center text-[11px] 2xl:text-[13.8px]'>
+                        {(() => {
+                          const llIssueDate = app.fullData?.learningLicenseIssueDate;
+                          if (!llIssueDate) {
+                            return <span className='text-gray-900 font-semibold'>-</span>;
+                          }
+                          try {
+                            const d = new Date(llIssueDate);
+                            const day = String(d.getDate()).padStart(2, '0');
+                            const month = String(d.getMonth() + 1).padStart(2, '0');
+                            const year = d.getFullYear();
+                            const formattedDate = `${day}-${month}-${year}`;
+                            return (
+                              <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-green-100 text-green-700 font-semibold border border-green-200 whitespace-nowrap'>
+                                <svg
+                                  className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2'
+                                  fill='none'
+                                  stroke='currentColor'
+                                  viewBox='0 0 24 24'
+                                >
+                                  <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                                  />
+                                </svg>
+                                {formattedDate}
+                              </span>
+                            );
+                          } catch (e) {
+                            return <span className='text-gray-900 font-semibold'>-</span>;
+                          }
+                        })()}
                       </div>
                     </td>
 
-                    {/* Expiry Date */}
-                    <td className='px-1 py-3 2xl:py-5'>
-                      <div className='flex items-center text-[11px] 2xl:text-[13.8px]'>
-                        <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200 whitespace-nowrap'>
-                          <svg
-                            className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2'
-                            fill='none'
-                            stroke='currentColor'
-                            viewBox='0 0 24 24'
-                          >
-                            <path
-                              strokeLinecap='round'
-                              strokeLinejoin='round'
-                              strokeWidth={2}
-                              d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-                            />
-                          </svg>
-                          {app.expiryDate || '-'}
-                        </span>
+                    {/* LL Expiry Date */}
+                    <td className='px-0.5 2xl:px-1 py-3 2xl:py-5'>
+                      <div className='flex items-center justify-center text-[11px] 2xl:text-[13.8px]'>
+                        {(() => {
+                          const llExpiryDate = app.fullData?.learningLicenseExpiryDate;
+                          if (!llExpiryDate) {
+                            return <span className='text-gray-900 font-semibold'>-</span>;
+                          }
+                          try {
+                            const d = new Date(llExpiryDate);
+                            const day = String(d.getDate()).padStart(2, '0');
+                            const month = String(d.getMonth() + 1).padStart(2, '0');
+                            const year = d.getFullYear();
+                            const formattedDate = `${day}-${month}-${year}`;
+                            return (
+                              <span className='inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg bg-red-100 text-red-700 font-semibold border border-red-200 whitespace-nowrap'>
+                                <svg
+                                  className='w-3 h-3 2xl:w-4 2xl:h-4 mr-1 2xl:mr-2'
+                                  fill='none'
+                                  stroke='currentColor'
+                                  viewBox='0 0 24 24'
+                                >
+                                  <path
+                                    strokeLinecap='round'
+                                    strokeLinejoin='round'
+                                    strokeWidth={2}
+                                    d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
+                                  />
+                                </svg>
+                                {formattedDate}
+                              </span>
+                            );
+                          } catch (e) {
+                            return <span className='text-gray-900 font-semibold'>-</span>;
+                          }
+                        })()}
                       </div>
                     </td>
 
@@ -1113,7 +1178,7 @@ const DrivingLicence = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan='10' className='px-4 py-8 text-center'>
+                  <td colSpan='9' className='px-4 py-8 text-center'>
                     <div className='text-gray-400'>
                       <svg className='mx-auto h-8 w-8 mb-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                         <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
