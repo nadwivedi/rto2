@@ -145,10 +145,10 @@ const SapathPatraModal = ({ onClose }) => {
           >
             <div className="form-container">
               {/* Title */}
-              <div style={{textAlign: 'center', marginBottom: '25px'}}>
-                <h1 style={{fontSize: '36px', fontWeight: '900', letterSpacing: '4px', marginBottom: '12px', color: '#000000'}}>शपथ-पत्र</h1>
-                <p style={{fontSize: '15px', marginTop: '8px', fontWeight: '700', color: '#000000'}}>समक्ष नोटरी जिला सिविल कार्यालय</p>
-                <p style={{fontSize: '14px', marginTop: '5px', fontWeight: '700', color: '#000000'}}>(आर.टी.ओ. कार्यालय में पेश करने हेतु)</p>
+              <div style={{textAlign: 'center', marginBottom: '15px'}}>
+                <h1 style={{fontSize: '36px', fontWeight: '900', letterSpacing: '4px', color: '#000000'}}>शपथ-पत्र</h1>
+                <p style={{fontSize: '15px', marginTop: '0px', fontWeight: '700', color: '#000000'}}>समक्ष नोटरी जिला सिविल कार्यालय</p>
+                <p style={{fontSize: '14px', marginTop: '0px', fontWeight: '700', color: '#000000', marginBottom: '2px'}}>(आर.टी.ओ. कार्यालय में पेश करने हेतु)</p>
               </div>
 
               {/* Opening Section */}
