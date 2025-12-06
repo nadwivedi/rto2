@@ -457,19 +457,19 @@ const SapathPatraModal = ({ onClose }) => {
               </div>
 
               {/* Final Signatures */}
-              <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '0px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '-15px'}}>
                 <div style={{textAlign: 'center'}}>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '2px'}}></div>
-                  <p style={{fontWeight: '700', color: '#000000', marginBottom: '2px'}}>शपथकर्ता (क्रेता)</p>
-                  <div style={{display: 'flex', alignItems: 'center', marginTop: '2px'}}>
+                  <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '0px'}}></div>
+                  <p style={{fontWeight: '700', color: '#000000', marginBottom: '0px', marginTop: '0px'}}>शपथकर्ता (क्रेता)</p>
+                  <div style={{display: 'flex', alignItems: 'center', marginTop: '0px'}}>
                     <span style={{fontWeight: '700', color: '#000000'}}>मो.नं.</span>
                     <div style={{borderBottom: '2px dotted #000', minHeight: '20px', flex: 1, marginLeft: '8px'}}></div>
                   </div>
                 </div>
                 <div style={{textAlign: 'center'}}>
-                  <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '2px'}}></div>
-                  <p style={{fontWeight: '700', color: '#000000', marginBottom: '2px'}}>शपथकर्ता (बिक्रेता)</p>
-                  <div style={{display: 'flex', alignItems: 'center', marginTop: '2px'}}>
+                  <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '0px'}}></div>
+                  <p style={{fontWeight: '700', color: '#000000', marginBottom: '0px', marginTop: '0px'}}>शपथकर्ता (बिक्रेता)</p>
+                  <div style={{display: 'flex', alignItems: 'center', marginTop: '0px'}}>
                     <span style={{fontWeight: '700', color: '#000000'}}>मो.नं.</span>
                     <div style={{borderBottom: '2px dotted #000', minHeight: '20px', flex: 1, marginLeft: '8px'}}></div>
                   </div>
