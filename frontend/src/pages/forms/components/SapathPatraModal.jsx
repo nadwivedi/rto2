@@ -145,14 +145,14 @@ const SapathPatraModal = ({ onClose }) => {
           >
             <div className="form-container">
               {/* Title */}
-              <div style={{textAlign: 'center', marginBottom: '15px'}}>
+              <div style={{textAlign: 'center', marginBottom: '10px'}}>
                 <h1 style={{fontSize: '36px', fontWeight: '900', letterSpacing: '4px', color: '#000000'}}>शपथ-पत्र</h1>
                 <p style={{fontSize: '15px', marginTop: '0px', fontWeight: '700', color: '#000000'}}>समक्ष नोटरी जिला सिविल कार्यालय</p>
                 <p style={{fontSize: '14px', marginTop: '0px', fontWeight: '700', color: '#000000', marginBottom: '2px'}}>(आर.टी.ओ. कार्यालय में पेश करने हेतु)</p>
               </div>
 
               {/* Opening Section */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'baseline'}}>
+              <div style={{marginBottom: '8px', display: 'flex', alignItems: 'baseline'}}>
                 <span>मैं</span>
                 <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
                   <input
@@ -179,7 +179,7 @@ const SapathPatraModal = ({ onClose }) => {
                 </div>
               </div>
 
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'baseline'}}>
+              <div style={{marginBottom: '8px', display: 'flex', alignItems: 'baseline'}}>
                 <span>उम्र</span>
                 <div style={{width: '100px', borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
                   <input
@@ -218,7 +218,7 @@ const SapathPatraModal = ({ onClose }) => {
                 </div>
               </div>
 
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'baseline'}}>
+              <div style={{marginBottom: '8px', display: 'flex', alignItems: 'baseline'}}>
                 <span>जिला</span>
                 <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
                   <input
@@ -235,7 +235,7 @@ const SapathPatraModal = ({ onClose }) => {
               </div>
 
               {/* Declaration Points */}
-              <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '6px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>1.</span>
                 <div style={{flex: 1}}>
                   <div style={{display: 'flex', alignItems: 'baseline', flexWrap: 'wrap'}}>
@@ -309,7 +309,7 @@ const SapathPatraModal = ({ onClose }) => {
                 </div>
               </div>
 
-              <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '6px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>2.</span>
                 <div style={{flex: 1}}>
                   <div style={{display: 'flex', alignItems: 'baseline', flexWrap: 'wrap'}}>
@@ -346,7 +346,7 @@ const SapathPatraModal = ({ onClose }) => {
                 </div>
               </div>
 
-              <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '6px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>3.</span>
                 <div style={{flex: 1}}>
                   <div style={{display: 'flex', alignItems: 'baseline', flexWrap: 'wrap'}}>
@@ -363,27 +363,27 @@ const SapathPatraModal = ({ onClose }) => {
                 </div>
               </div>
 
-              <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '6px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>4.</span>
                 <span>यह है कि बिक्री पत्र फार्म नं. 29 एवं 30 में रजिस्टर्ड ओनर द्वारा मेरे समक्ष हस्ताक्षर किया है।</span>
               </div>
 
-              <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '6px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>5.</span>
                 <span>यह है कि मैंने बिकेता रजिस्टर्ड ओनर को वाहन का बिक्रय मूल्य पूरी तौर से भुगतान कर दिया है।</span>
               </div>
 
-              <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '6px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>6.</span>
                 <span>यह है कि उक्त वाहन के बिक्रय में किसी भी भी प्रकार का विवाद नहीं है।</span>
               </div>
 
-              <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '6px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>7.</span>
                 <span>यह है कि उक्त वाहन के बिक्री राशि संबंधी, स्वामित्व अन्तरण संबंधी या अन्य किसी बाबत कोई विवाद होता है तो उसकी पूरी जवाबदारी व्यक्तिगत रूप से बिकेता एवं हम दोनों की होगी।</span>
               </div>
 
-              <div style={{marginBottom: '15px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '10px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{marginRight: '8px'}}>8.</span>
                 <div style={{flex: 1}}>
                   <span>यह है कि उक्त वर्णित वाहन का कब्जा बिकेता द्वारा क्रेता को चाबी एवं दस्तावेज की मूल प्रति आज दिनांक को दे दिया गया है। उक्त वाहन के संबंध में आज से पूर्व हुई किसी भी प्रकार के मामलों की जिम्मेदारी बिकेता की होगी तथा आज दिनांक के बाद की समस्त जवाबदारी क्रेता की होगी।</span>
@@ -391,8 +391,8 @@ const SapathPatraModal = ({ onClose }) => {
               </div>
 
               {/* Buyer and Seller Section */}
-              <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '30px', marginBottom: '30px'}}>
-                <div style={{width: '120px', border: '2px solid #000', padding: '60px 10px 10px', textAlign: 'center', minHeight: '120px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '20px', marginBottom: '20px'}}>
+                <div style={{width: '120px', height: '110px', border: '2px solid #000', padding: '10px', textAlign: 'center', display: 'flex', alignItems: 'flex-end', justifyContent: 'center'}}>
                   <strong style={{fontWeight: '900', color: '#000000'}}>Buyer Photo</strong>
                 </div>
                 <div style={{textAlign: 'center', flex: 1, padding: '0 15px'}}>
@@ -400,8 +400,8 @@ const SapathPatraModal = ({ onClose }) => {
                     <strong style={{fontSize: '16px', fontWeight: '900', color: '#000000'}}>P</strong> <span style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (क्रेता)</span>
                   </div>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '40px', marginBottom: '15px'}}></div>
-                  <div style={{marginTop: '30px'}}>
-                    <h2 style={{fontSize: '20px', fontWeight: '900', color: '#000000'}}>सत्यापन</h2>
+                  <div style={{marginTop: '30px', textAlign: 'center', width: '100%'}}>
+                    <h2 style={{fontSize: '22px', fontWeight: '900', color: '#000000', letterSpacing: '2px', textAlign: 'center', margin: '0 auto'}}>सत्यापन</h2>
                   </div>
                 </div>
                 <div style={{textAlign: 'center', flex: 1, padding: '0 15px'}}>
@@ -410,14 +410,14 @@ const SapathPatraModal = ({ onClose }) => {
                   </div>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '40px'}}></div>
                 </div>
-                <div style={{width: '120px', border: '2px solid #000', padding: '60px 10px 10px', textAlign: 'center', minHeight: '120px'}}>
+                <div style={{width: '120px', height: '110px', border: '2px solid #000', padding: '10px', textAlign: 'center', display: 'flex', alignItems: 'flex-end', justifyContent: 'center'}}>
                   <strong style={{fontWeight: '900', color: '#000000'}}>Seller Photo</strong>
                 </div>
               </div>
 
               {/* Verification Section */}
-              <div style={{marginTop: '20px'}}>
-                <div style={{marginBottom: '10px', display: 'flex', alignItems: 'baseline'}}>
+              <div style={{marginTop: '12px'}}>
+                <div style={{marginBottom: '6px', display: 'flex', alignItems: 'baseline'}}>
                   <span>मैं</span>
                   <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', minHeight: '20px'}}>
                     <input
@@ -443,13 +443,13 @@ const SapathPatraModal = ({ onClose }) => {
                     />
                   </div>
                 </div>
-                <p style={{marginBottom: '10px', fontWeight: '700', color: '#000000'}}>पता <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '350px'}}></span> यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</p>
-                <p style={{marginBottom: '10px', fontWeight: '700', color: '#000000'}}>की गई सभी जानकारी क्रेता एवं बिक्रेता को स्वीकार्य है। हम दोनों ने अपने होशो–हवाश में पढ़कर व समझकर</p>
-                <p style={{marginBottom: '20px', fontWeight: '700', color: '#000000'}}>आज दिनांक <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '200px'}}></span> को हस्ताक्षर किया।</p>
+                <p style={{marginBottom: '6px', fontWeight: '700', color: '#000000'}}>पता <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '350px'}}></span> यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</p>
+                <p style={{marginBottom: '6px', fontWeight: '700', color: '#000000'}}>की गई सभी जानकारी क्रेता एवं बिक्रेता को स्वीकार्य है। हम दोनों ने अपने होशो–हवाश में पढ़कर व समझकर</p>
+                <p style={{marginBottom: '5px', fontWeight: '700', color: '#000000'}}>आज दिनांक <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '200px'}}></span> को हस्ताक्षर किया।</p>
               </div>
 
               {/* Final Signatures */}
-              <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '30px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '2px'}}>
                 <div style={{textAlign: 'center'}}>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '8px'}}></div>
                   <p style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (क्रेता)</p>
