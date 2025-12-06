@@ -63,18 +63,30 @@ const SapathPatraModal = ({ onClose }) => {
       <html>
         <head>
           <title>शपथ-पत्र (Sapath Patra)</title>
+          <link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Laila:wght@400;500;600;700&display=swap" rel="stylesheet">
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif; font-size: 14px; line-height: 1.6; padding: 20px; }
+            body {
+              font-family: Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif;
+              font-size: 15px;
+              line-height: 1.8;
+              padding: 20px;
+              font-weight: 700;
+              color: #000000;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
             .form-container { width: 100%; max-width: 800px; margin: 0 auto; }
             input {
               border: none !important;
               background: transparent;
               outline: none;
               width: 100%;
-              font-family: 'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif;
-              font-size: 14px;
+              font-family: Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif;
+              font-size: 15px;
               padding: 0 2px;
+              font-weight: bold;
+              color: #000000;
             }
             .no-print { display: none !important; }
             @media print {
@@ -115,7 +127,7 @@ const SapathPatraModal = ({ onClose }) => {
             @media print {
               .no-print { display: none !important; }
             }
-            @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600;700&family=Laila:wght@400;500;600;700&display=swap');
           `}</style>
           <div
             ref={printRef}
@@ -124,17 +136,19 @@ const SapathPatraModal = ({ onClose }) => {
               width: '210mm',
               minHeight: '297mm',
               padding: '20mm',
-              fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif",
-              fontSize: '14px',
-              lineHeight: '1.6'
+              fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif",
+              fontSize: '15px',
+              lineHeight: '1.8',
+              fontWeight: '700',
+              color: '#000000'
             }}
           >
             <div className="form-container">
               {/* Title */}
-              <div style={{textAlign: 'center', marginBottom: '15px'}}>
-                <h1 style={{fontSize: '28px', fontWeight: 'bold', letterSpacing: '2px'}}>शपथ–पत्र</h1>
-                <p style={{fontSize: '14px', marginTop: '5px'}}>समक्ष नोटरी जिला सिविल कार्यालय</p>
-                <p style={{fontSize: '13px', marginTop: '2px'}}>(आर.टी.ओ. कार्यालय में पेश करने हेतु)</p>
+              <div style={{textAlign: 'center', marginBottom: '25px'}}>
+                <h1 style={{fontSize: '36px', fontWeight: '900', letterSpacing: '4px', marginBottom: '12px', color: '#000000'}}>शपथ-पत्र</h1>
+                <p style={{fontSize: '15px', marginTop: '8px', fontWeight: '700', color: '#000000'}}>समक्ष नोटरी जिला सिविल कार्यालय</p>
+                <p style={{fontSize: '14px', marginTop: '5px', fontWeight: '700', color: '#000000'}}>(आर.टी.ओ. कार्यालय में पेश करने हेतु)</p>
               </div>
 
               {/* Opening Section */}
@@ -148,7 +162,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.name}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 0)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
                 <span style={{marginLeft: '8px'}}>पिता/पति</span>
@@ -160,7 +174,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.buyerFather}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 1)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
               </div>
@@ -175,7 +189,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.age}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 2)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
                 <span style={{marginLeft: '8px'}}>वर्ष, निवासी</span>
@@ -187,7 +201,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.resident}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 3)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
                 <span style={{marginLeft: '8px'}}>तहसील</span>
@@ -199,7 +213,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.district}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 4)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
               </div>
@@ -214,7 +228,7 @@ const SapathPatraModal = ({ onClose }) => {
                     value={formData.buyerDistrict}
                     onChange={handleChange}
                     onKeyDown={(e) => handleKeyDown(e, 5)}
-                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                    style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                   />
                 </div>
                 <span style={{marginLeft: '8px'}}>का रहने वाला हूं, जो कि निम्नलिखित कथन पूर्वक कहता हूं –</span>
@@ -234,7 +248,7 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.vehicleNumber}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 6)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>का पंजीकृत स्वामी हूं, जिसका</span>
@@ -249,7 +263,7 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.chassisNumber}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 7)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>इंजन नंबर</span>
@@ -261,7 +275,7 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.mobileNumber}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 8)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                   </div>
@@ -275,7 +289,7 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.model}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 9)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>है। जिसका मार्क कर</span>
@@ -287,7 +301,7 @@ const SapathPatraModal = ({ onClose }) => {
                         value={formData.make}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 10)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>तक जमा है।</span>
@@ -307,7 +321,7 @@ const SapathPatraModal = ({ onClose }) => {
                       value={formData.vehicleNumber}
                       onChange={handleChange}
                       onKeyDown={(e) => handleKeyDown(e, 11)}
-                      style={{border:'none', background: 'transparent', outline: 'none', width: '200px', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                      style={{border:'none', background: 'transparent', outline: 'none', width: '200px', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                     />
                   </div>
                   <span style={{marginLeft: '8px'}}>जो कि</span>
@@ -376,23 +390,23 @@ const SapathPatraModal = ({ onClose }) => {
               {/* Buyer and Seller Section */}
               <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '30px', marginBottom: '30px'}}>
                 <div style={{width: '150px', border: '2px solid #000', padding: '60px 10px 10px', textAlign: 'center', minHeight: '120px'}}>
-                  <strong>Buyer</strong>
+                  <strong style={{fontWeight: '900', color: '#000000'}}>Buyer</strong>
                 </div>
                 <div style={{textAlign: 'center', flex: 1, padding: '0 20px'}}>
                   <div style={{marginBottom: '15px'}}>
-                    <strong style={{fontSize: '16px'}}>P</strong> <span>शपथकर्ता (क्रेता)</span>
+                    <strong style={{fontSize: '16px', fontWeight: '900', color: '#000000'}}>P</strong> <span style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (क्रेता)</span>
                   </div>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '40px', marginBottom: '15px'}}></div>
                   <div style={{marginTop: '30px'}}>
-                    <h2 style={{fontSize: '20px', fontWeight: 'bold'}}>सत्यापन</h2>
+                    <h2 style={{fontSize: '20px', fontWeight: '900', color: '#000000'}}>सत्यापन</h2>
                   </div>
                 </div>
                 <div style={{width: '150px', border: '2px solid #000', padding: '60px 10px 10px', textAlign: 'center', minHeight: '120px'}}>
-                  <strong>Seller</strong>
+                  <strong style={{fontWeight: '900', color: '#000000'}}>Seller</strong>
                 </div>
                 <div style={{textAlign: 'center', flex: 1, padding: '0 20px'}}>
                   <div style={{marginBottom: '15px'}}>
-                    <strong style={{fontSize: '16px'}}>S</strong> <span>शपथकर्ता (बिक्रेता)</span>
+                    <strong style={{fontSize: '16px', fontWeight: '900', color: '#000000'}}>S</strong> <span style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (बिक्रेता)</span>
                   </div>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '40px'}}></div>
                 </div>
@@ -410,7 +424,7 @@ const SapathPatraModal = ({ onClose }) => {
                       value={formData.verificationName}
                       onChange={handleChange}
                       onKeyDown={(e) => handleKeyDown(e, 12)}
-                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                     />
                   </div>
                   <span style={{marginLeft: '8px'}}>पिता/पति</span>
@@ -422,28 +436,28 @@ const SapathPatraModal = ({ onClose }) => {
                       value={formData.verificationFather}
                       onChange={handleChange}
                       onKeyDown={(e) => handleKeyDown(e, 13)}
-                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Noto Sans Devanagari', 'Mangal', 'Arial Unicode MS', sans-serif", fontSize: '14px', padding: '0 2px', textTransform: 'uppercase'}}
+                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '15px', padding: '0 2px', textTransform: 'uppercase', fontWeight: 'bold', color: '#000000'}}
                     />
                   </div>
                 </div>
-                <p style={{marginBottom: '10px'}}>पता <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '500px'}}>यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</span></p>
-                <p style={{marginBottom: '10px'}}>की गई सभी जानकारी क्रेता एवं बिक्रेता को स्वीकार्य है। हम दोनों ने अपने होशो–हवाश में पढ़कर व समझकर</p>
-                <p style={{marginBottom: '20px'}}>आज दिनांक <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '200px'}}></span> को हस्ताक्षर किया।</p>
+                <p style={{marginBottom: '10px', fontWeight: '700', color: '#000000'}}>पता <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '500px'}}></span> यह सत्यापित करता हूं कि उपरोक्त कंडिका 1 से 7 तक</p>
+                <p style={{marginBottom: '10px', fontWeight: '700', color: '#000000'}}>की गई सभी जानकारी क्रेता एवं बिक्रेता को स्वीकार्य है। हम दोनों ने अपने होशो–हवाश में पढ़कर व समझकर</p>
+                <p style={{marginBottom: '20px', fontWeight: '700', color: '#000000'}}>आज दिनांक <span style={{marginLeft: '8px', borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '200px'}}></span> को हस्ताक्षर किया।</p>
               </div>
 
               {/* Final Signatures */}
               <div style={{display: 'flex', justifyContent: 'space-between', marginTop: '30px'}}>
                 <div style={{textAlign: 'center'}}>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '8px'}}></div>
-                  <p>शपथकर्ता (क्रेता)</p>
+                  <p style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (क्रेता)</p>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '20px', width: '200px', marginTop: '15px'}}></div>
-                  <p>मो.नं.</p>
+                  <p style={{fontWeight: '700', color: '#000000'}}>मो.नं.</p>
                 </div>
                 <div style={{textAlign: 'center'}}>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '50px', width: '200px', marginBottom: '8px'}}></div>
-                  <p>शपथकर्ता (बिक्रेता)</p>
+                  <p style={{fontWeight: '700', color: '#000000'}}>शपथकर्ता (बिक्रेता)</p>
                   <div style={{borderBottom: '2px dotted #000', minHeight: '20px', width: '200px', marginTop: '15px'}}></div>
-                  <p>मो.नं.</p>
+                  <p style={{fontWeight: '700', color: '#000000'}}>मो.नं.</p>
                 </div>
               </div>
             </div>
