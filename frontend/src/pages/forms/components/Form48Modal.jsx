@@ -278,7 +278,7 @@ const Form48Modal = ({ onClose }) => {
               </div>
 
               {/* Field 5 (b) (i) */}
-              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline', marginLeft: '30px'}}>
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'end', marginLeft: '30px'}}>
                 <div style={{width: '360px', flexShrink: 0, marginRight: '10px'}}>
                   <div>(b) (i) If so, whether the applicant holds heavy</div>
                   <div style={{marginLeft: '48px'}}>passenger motor vehicle driving licence</div>
@@ -423,7 +423,7 @@ const Form48Modal = ({ onClose }) => {
               </div>
 
               {/* Field 11 */}
-              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'baseline'}}>
+              <div style={{display: 'flex', marginBottom: '8px', alignItems: 'center'}}>
                 <span style={{width: '30px', flexShrink: 0}}>11.</span>
                 <div style={{width: '360px', flexShrink: 0, marginRight: '10px'}}>
                   <div>Particulars of convictions/suspensions/cancellation, if any,</div>
