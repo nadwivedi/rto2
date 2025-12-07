@@ -63,16 +63,17 @@ const Form48Modal = ({ onClose }) => {
           <title>FORM 48 - Application for National Permit</title>
           <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Times New Roman', serif; font-size: 12px; line-height: 1.4; padding: 20px; }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; line-height: 1.4; padding: 20px; font-weight: 500; }
             .form-container { width: 100%; max-width: 800px; margin: 0 auto; }
             input {
               border: none !important;
               background: transparent;
               outline: none;
               width: 100%;
-              font-family: 'Times New Roman', serif;
+              font-family: Arial, Helvetica, sans-serif;
               font-size: 12px;
               padding: 0 2px;
+              font-weight: 500;
             }
             .no-print { display: none !important; }
             @media print {
@@ -121,9 +122,10 @@ const Form48Modal = ({ onClose }) => {
               width: '210mm',
               minHeight: '297mm',
               padding: '20mm',
-              fontFamily: "'Times New Roman', serif",
+              fontFamily: "Arial, Helvetica, sans-serif",
               fontSize: '12px',
-              lineHeight: '1.4'
+              lineHeight: '1.4',
+              fontWeight: '500'
             }}
           >
             <div className="form-container">
@@ -138,7 +140,7 @@ const Form48Modal = ({ onClose }) => {
               <div style={{marginBottom: '15px'}}>
                 <p>To</p>
                 <div style={{display: 'flex', marginTop: '4px', marginLeft: '48px'}}>
-                  <div style={{flex: 1}}>
+                  <div style={{width: '43%'}}>
                     <p style={{marginBottom: '4px'}}>The Regional/State Transport Authority,</p>
                     <div style={{borderBottom: '2px dotted #000', minHeight: '16px', width: '100%'}}>
                       <input
@@ -148,7 +150,7 @@ const Form48Modal = ({ onClose }) => {
                         value={formData.transportAuthorityLocation}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 0)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Arial, Helvetica, sans-serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase', fontWeight: '500'}}
                       />
                     </div>
                   </div>
@@ -168,7 +170,7 @@ const Form48Modal = ({ onClose }) => {
                       value={formData.stateName}
                       onChange={handleChange}
                       onKeyDown={(e) => handleKeyDown(e, 1)}
-                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                      style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Arial, Helvetica, sans-serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase', fontWeight: '500'}}
                     />
                   </div>
                 </div>
@@ -500,11 +502,8 @@ const Form48Modal = ({ onClose }) => {
                 </div>
               </div>
 
-              {/* Dotted line separator */}
-              <div style={{borderBottom: '2px dotted #000', margin: '15px 0'}}></div>
-
               {/* Footer */}
-              <div style={{marginTop: '20px'}}>
+              <div style={{marginTop: '10px'}}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'end'}}>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
                     <span>Date</span>
@@ -516,7 +515,7 @@ const Form48Modal = ({ onClose }) => {
                         value={formData.date}
                         onChange={handleChange}
                         onKeyDown={(e) => handleKeyDown(e, 19)}
-                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "'Times New Roman', serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase'}}
+                        style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Arial, Helvetica, sans-serif", fontSize: '12px', padding: '0 2px', textTransform: 'uppercase', fontWeight: '500'}}
                       />
                     </div>
                   </div>
