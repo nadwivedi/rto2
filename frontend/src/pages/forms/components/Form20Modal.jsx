@@ -1,9 +1,15 @@
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
+import axios from 'axios'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
 const Form20Modal = ({ onClose }) => {
   const printRef = useRef()
   const inputRefs = useRef([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [vehicleSearchNumber, setVehicleSearchNumber] = useState('')
+  const [fetchingVehicle, setFetchingVehicle] = useState(false)
+  const [vehicleError, setVehicleError] = useState('')
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -87,6 +93,63 @@ const Form20Modal = ({ onClose }) => {
       }
     }
   }
+
+  // Auto-fill vehicle details
+  useEffect(() => {
+    const fetchVehicleDetails = async () => {
+      const searchInput = vehicleSearchNumber.trim()
+
+      if (searchInput.length < 4) {
+        setVehicleError('')
+        return
+      }
+
+      setFetchingVehicle(true)
+      setVehicleError('')
+
+      try {
+        const response = await axios.get(`${API_URL}/api/vehicle-registrations/search/${searchInput}`, {
+          withCredentials: true
+        })
+
+        if (response.data.success) {
+          const vehicleData = response.data.multiple ? response.data.data[0] : response.data.data
+
+          setFormData(prev => ({
+            ...prev,
+            fullName: vehicleData.ownerName || prev.fullName,
+            relation: vehicleData.sonWifeDaughterOf || prev.relation,
+            permanentAddress: vehicleData.address || prev.permanentAddress,
+            chassisNumber: vehicleData.chassisNumber || prev.chassisNumber,
+            engineNumber: vehicleData.engineNumber || prev.engineNumber,
+            makerName: vehicleData.makerModel || prev.makerName,
+            unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
+            colour: vehicleData.colour || prev.colour,
+            seatingCapacity: vehicleData.seatingCapacity || prev.seatingCapacity,
+            fuelUsed: vehicleData.fuelType || prev.fuelUsed
+          }))
+          setVehicleError('')
+        }
+      } catch (error) {
+        console.error('Error fetching vehicle details:', error)
+        if (error.response && error.response.status === 404) {
+          setVehicleError('No vehicles found')
+        } else {
+          setVehicleError('Error fetching vehicle details')
+        }
+      } finally {
+        setFetchingVehicle(false)
+      }
+    }
+
+    const timer = setTimeout(() => {
+      if (vehicleSearchNumber.trim().length >= 4) {
+        fetchVehicleDetails()
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [vehicleSearchNumber])
 
   const handlePrint = (printEmpty = false) => {
     const printContent = printRef.current
@@ -1396,6 +1459,29 @@ const Form20Modal = ({ onClose }) => {
             >
               ✕
             </button>
+            <div className="border-t border-gray-200 my-2"></div>
+
+            {/* Auto-fill Vehicle Section */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-gray-700 uppercase">Auto-Fill</label>
+              <input
+                type="text"
+                placeholder="Vehicle Number"
+                value={vehicleSearchNumber}
+                onChange={(e) => setVehicleSearchNumber(e.target.value.toUpperCase())}
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 font-semibold uppercase"
+              />
+              {fetchingVehicle && (
+                <p className="text-xs text-blue-600">Searching...</p>
+              )}
+              {vehicleError && (
+                <p className="text-xs text-red-600">{vehicleError}</p>
+              )}
+              {!fetchingVehicle && !vehicleError && vehicleSearchNumber.trim().length >= 4 && formData.chassisNumber && (
+                <p className="text-xs text-green-600">✓ Data loaded</p>
+              )}
+            </div>
+
             <div className="border-t border-gray-200 my-2"></div>
             <button
               onClick={() => handlePrint(true)}
