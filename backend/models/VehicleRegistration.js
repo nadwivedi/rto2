@@ -93,6 +93,16 @@ const vehicleRegistrationSchema = new mongoose.Schema({
   rcImage: {
     type: String,
     trim: true
+  },
+  numberOfCylinders: {
+    type: Number
+  },
+  cubicCapacity: {
+    type: Number
+  },
+  fuelType: {
+    type: String,
+    trim: true
   }
 }, {
   timestamps: true

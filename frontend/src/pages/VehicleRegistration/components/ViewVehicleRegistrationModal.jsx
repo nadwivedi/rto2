@@ -230,6 +230,24 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
                     <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.manufactureYear}</div>
                   </div>
                 )}
+                {(selectedRegistration.numberOfCylinders !== undefined && selectedRegistration.numberOfCylinders !== null) && (
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <div className='text-[10px] md:text-xs font-semibold text-gray-600'>No. of Cylinders</div>
+                    <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.numberOfCylinders}</div>
+                  </div>
+                )}
+                {(selectedRegistration.cubicCapacity !== undefined && selectedRegistration.cubicCapacity !== null) && (
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Cubic Capacity (CC)</div>
+                    <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.cubicCapacity} CC</div>
+                  </div>
+                )}
+                {selectedRegistration.fuelType && (
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Fuel Type</div>
+                    <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.fuelType}</div>
+                  </div>
+                )}
                 {(selectedRegistration.ladenWeight !== undefined && selectedRegistration.ladenWeight !== null) && (
                   <div className='bg-white/80 p-2 rounded-lg'>
                     <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Laden Weight</div>

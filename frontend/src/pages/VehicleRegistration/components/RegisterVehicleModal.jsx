@@ -31,7 +31,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     vehicleCategory: '',
     purchaseDeliveryDate: '',
     saleAmount: '',
-    rcImage: ''
+    rcImage: '',
+    numberOfCylinders: '',
+    cubicCapacity: '',
+    fuelType: ''
   })
 
   const [loading, setLoading] = useState(false)
@@ -59,6 +62,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         'ladenWeight',
         'unladenWeight',
         'manufactureYear',
+        'numberOfCylinders',
+        'cubicCapacity',
+        'fuelType',
         'purchaseDeliveryDate',
         'saleAmount',
         'ownerName',
@@ -128,7 +134,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         vehicleCategory: '',
         purchaseDeliveryDate: '',
         saleAmount: '',
-        rcImage: ''
+        rcImage: '',
+        numberOfCylinders: '',
+        cubicCapacity: '',
+        fuelType: ''
       })
       setVehicleValidation({ isValid: false, message: '' })
       setRcImagePreview(null)
@@ -799,6 +808,88 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         {Array.from({ length: 60 }, (_, i) => new Date().getFullYear() - i).map(year => (
                           <option key={year} value={year}>{year}</option>
                         ))}
+                      </select>
+                      <div className='absolute inset-y-0 right-0 pr-2.5 md:pr-4 flex items-center pointer-events-none'>
+                        <svg className='w-4 h-4 md:w-5 md:h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Number of Cylinders */}
+                  <div className='group'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
+                      No. of Cylinders
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-4 h-4 md:w-5 md:h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' />
+                        </svg>
+                      </div>
+                      <input
+                        type='number'
+                        name='numberOfCylinders'
+                        value={formData.numberOfCylinders}
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder='e.g., 4, 6, 8'
+                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cubic Capacity (CC) */}
+                  <div className='group'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
+                      Cubic Capacity (CC)
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-4 h-4 md:w-5 md:h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='number'
+                        name='cubicCapacity'
+                        value={formData.cubicCapacity}
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder='e.g., 1200, 1500, 2000'
+                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Fuel Type */}
+                  <div className='group'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
+                      Fuel Type
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-4 h-4 md:w-5 md:h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
+                        </svg>
+                      </div>
+                      <select
+                        name='fuelType'
+                        value={formData.fuelType}
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        className='w-full pl-9 md:pl-12 pr-8 md:pr-10 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 appearance-none cursor-pointer'
+                      >
+                        <option value=''>Select Fuel Type</option>
+                        <option value='Petrol'>Petrol</option>
+                        <option value='Diesel'>Diesel</option>
+                        <option value='CNG'>CNG</option>
+                        <option value='LPG'>LPG</option>
+                        <option value='Electric'>Electric</option>
+                        <option value='Hybrid'>Hybrid</option>
+                        <option value='Petrol+CNG'>Petrol+CNG</option>
+                        <option value='Petrol+LPG'>Petrol+LPG</option>
                       </select>
                       <div className='absolute inset-y-0 right-0 pr-2.5 md:pr-4 flex items-center pointer-events-none'>
                         <svg className='w-4 h-4 md:w-5 md:h-5 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
