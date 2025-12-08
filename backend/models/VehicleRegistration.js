@@ -84,12 +84,6 @@ const vehicleRegistrationSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  purchaseDeliveryDate: {
-    type: String
-  },
-  saleAmount: {
-    type: Number
-  },
   rcImage: {
     type: String,
     trim: true

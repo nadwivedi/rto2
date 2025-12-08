@@ -10,6 +10,8 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [showImageViewer, setShowImageViewer] = useState(false)
+  const [vehicleAlreadyExists, setVehicleAlreadyExists] = useState(false)
+  const [checkingVehicle, setCheckingVehicle] = useState(false)
   const [formData, setFormData] = useState({
     registrationNumber: '',
     dateOfRegistration: '',
@@ -29,8 +31,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     unladenWeight: '',
     manufactureYear: '',
     vehicleCategory: '',
-    purchaseDeliveryDate: '',
-    saleAmount: '',
     rcImage: '',
     numberOfCylinders: '',
     cubicCapacity: '',
@@ -69,8 +69,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         'fuelType',
         'bodyType',
         'wheelBase',
-        'purchaseDeliveryDate',
-        'saleAmount',
         'ownerName',
         'sonWifeDaughterOf',
         'address',
@@ -136,8 +134,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         unladenWeight: '',
         manufactureYear: '',
         vehicleCategory: '',
-        purchaseDeliveryDate: '',
-        saleAmount: '',
         rcImage: '',
         numberOfCylinders: '',
         cubicCapacity: '',
@@ -149,7 +145,49 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       setRcImagePreview(null)
     }
     setError('')
+    setVehicleAlreadyExists(false)
   }, [editData, isOpen])
+
+  // Check if vehicle already exists when registration number is complete
+  useEffect(() => {
+    const checkVehicleExists = async () => {
+      const regNumber = formData.registrationNumber.trim()
+
+      // Only check if:
+      // 1. Registration number is 9 or 10 characters (complete)
+      // 2. Vehicle validation is valid
+      // 3. Not in edit mode (editData is null)
+      if ((regNumber.length === 9 || regNumber.length === 10) && vehicleValidation.isValid && !editData) {
+        setCheckingVehicle(true)
+        setVehicleAlreadyExists(false)
+
+        try {
+          const response = await axios.get(`${API_URL}/api/vehicle-registrations/check-exists/${regNumber}`, {
+            withCredentials: true
+          })
+
+          if (response.data.success) {
+            // Set exists status from response
+            setVehicleAlreadyExists(response.data.exists)
+          }
+        } catch (error) {
+          console.error('Error checking vehicle:', error)
+          setVehicleAlreadyExists(false)
+        } finally {
+          setCheckingVehicle(false)
+        }
+      } else {
+        setVehicleAlreadyExists(false)
+      }
+    }
+
+    // Debounce the check
+    const timer = setTimeout(() => {
+      checkVehicleExists()
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [formData.registrationNumber, vehicleValidation.isValid, editData])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -343,6 +381,12 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       return
     }
 
+    // Check if vehicle already exists (only for new registrations)
+    if (vehicleAlreadyExists && !editData) {
+      toast.error('This vehicle is already registered. Please use a different registration number.')
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -490,7 +534,24 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         {vehicleValidation.message}
                       </p>
                     )}
-                    
+                    {checkingVehicle && (
+                      <p className='text-xs mt-1 text-blue-600 flex items-center gap-1'>
+                        <svg className='animate-spin h-3 w-3' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                        </svg>
+                        Checking vehicle...
+                      </p>
+                    )}
+                    {vehicleAlreadyExists && !checkingVehicle && (
+                      <p className='text-xs mt-1 text-red-600 font-semibold flex items-center gap-1'>
+                        <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 20 20'>
+                          <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z' clipRule='evenodd' />
+                        </svg>
+                        Vehicle already registered
+                      </p>
+                    )}
+
                   </div>
 
                   {/* Date of Registration */}
@@ -951,51 +1012,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                     </div>
                   </div>
 
-                  {/* Purchase/Delivery Date */}
-                  <div className='group'>
-                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
-                      Purchase/Delivery Date
-                    </label>
-                    <div className='relative'>
-                      <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
-                        <svg className='w-4 h-4 md:w-5 md:h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' />
-                        </svg>
-                      </div>
-                      <input
-                        type='text'
-                        name='purchaseDeliveryDate'
-                        value={formData.purchaseDeliveryDate}
-                        onChange={handleDateChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder='22-12-2023'
-                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
-                      />
-                    </div>
-                  </div>
-
-                  {/* Sale Amount */}
-                  <div className='group'>
-                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
-                      Sale Amount
-                    </label>
-                    <div className='relative'>
-                      <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
-                        <svg className='w-4 h-4 md:w-5 md:h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
-                        </svg>
-                      </div>
-                      <input
-                        type='number'
-                        name='saleAmount'
-                        value={formData.saleAmount}
-                        onChange={handleChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder='e.g., 500000'
-                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

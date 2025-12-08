@@ -225,8 +225,6 @@ exports.createRegistration = async (req, res) => {
       unladenWeight,
       manufactureYear,
       vehicleCategory,
-      purchaseDeliveryDate,
-      saleAmount,
       numberOfCylinders,
       cubicCapacity,
       fuelType,
@@ -275,8 +273,6 @@ exports.createRegistration = async (req, res) => {
       unladenWeight,
       manufactureYear,
       vehicleCategory,
-      purchaseDeliveryDate,
-      saleAmount,
       numberOfCylinders,
       cubicCapacity,
       fuelType,
@@ -332,8 +328,6 @@ exports.updateRegistration = async (req, res) => {
       unladenWeight,
       manufactureYear,
       vehicleCategory,
-      purchaseDeliveryDate,
-      saleAmount,
       numberOfCylinders,
       cubicCapacity,
       fuelType,
@@ -376,8 +370,6 @@ exports.updateRegistration = async (req, res) => {
     if (unladenWeight !== undefined) registration.unladenWeight = unladenWeight
     if (manufactureYear !== undefined) registration.manufactureYear = manufactureYear
     if (vehicleCategory !== undefined) registration.vehicleCategory = vehicleCategory
-    if (purchaseDeliveryDate !== undefined) registration.purchaseDeliveryDate = purchaseDeliveryDate
-    if (saleAmount !== undefined) registration.saleAmount = saleAmount
     if (numberOfCylinders !== undefined) registration.numberOfCylinders = numberOfCylinders
     if (cubicCapacity !== undefined) registration.cubicCapacity = cubicCapacity
     if (fuelType !== undefined) registration.fuelType = fuelType
@@ -516,6 +508,35 @@ exports.getStatistics = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    })
+  }
+}
+
+// Check if vehicle exists (lightweight endpoint)
+exports.checkVehicleExists = async (req, res) => {
+  try {
+    const registrationNumber = req.params.registrationNumber.toUpperCase()
+
+    // Only check if vehicle exists for this user
+    const exists = await VehicleRegistration.exists({
+      registrationNumber: registrationNumber,
+      userId: req.user.id
+    })
+
+    res.json({
+      success: true,
+      exists: !!exists,
+      message: exists ? 'Vehicle already registered' : 'Vehicle not found'
+    })
+  } catch (error) {
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
     })
   }
 }

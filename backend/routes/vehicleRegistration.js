@@ -11,6 +11,9 @@ router.get('/', vehicleRegistrationController.getAllRegistrations)
 // GET statistics
 router.get('/statistics', vehicleRegistrationController.getStatistics)
 
+// GET check if vehicle exists (must be before other routes)
+router.get('/check-exists/:registrationNumber', vehicleRegistrationController.checkVehicleExists)
+
 // POST share registration via WhatsApp (must be before /:id route)
 router.post('/:id/share', vehicleRegistrationController.shareRegistration)
 
