@@ -2,12 +2,14 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Form46Modal from './components/Form46Modal'
 import Form20Modal from './components/Form20Modal'
+import Form45Modal from './components/Form45Modal'
 import Form48Modal from './components/Form48Modal'
 import SapathPatraModal from './components/SapathPatraModal'
 
 const Forms = () => {
   const [isForm46Open, setIsForm46Open] = useState(false)
   const [isForm20Open, setIsForm20Open] = useState(false)
+  const [isForm45Open, setIsForm45Open] = useState(false)
   const [isForm48Open, setIsForm48Open] = useState(false)
   const [isSapathPatraOpen, setIsSapathPatraOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -20,6 +22,14 @@ const Forms = () => {
       icon: '📋',
       isModal: true,
       category: 'Registration'
+    },
+    {
+      id: 'form-45',
+      name: 'Form 45',
+      description: 'Application in Respect of a Temporary Permit (M.P.M.V.R.-45)',
+      icon: '🎫',
+      isModal: true,
+      category: 'Permit'
     },
     {
       id: 'form-46',
@@ -53,6 +63,8 @@ const Forms = () => {
         setIsForm46Open(true)
       } else if (form.id === 'form-20') {
         setIsForm20Open(true)
+      } else if (form.id === 'form-45') {
+        setIsForm45Open(true)
       } else if (form.id === 'form-48') {
         setIsForm48Open(true)
       } else if (form.id === 'sapath-patra') {
@@ -152,6 +164,47 @@ const Forms = () => {
           </body>
         </html>
       `)
+    } else if (formId === 'form-45') {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>FORM M.P.M.V.R.-45 (T.P.A.) - Temporary Permit Application</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: 'Times New Roman', Times, serif; font-size: 13px; line-height: 1.5; padding: 20px; font-weight: 600; color: #000; }
+              .form-container { width: 100%; max-width: 800px; margin: 0 auto; }
+              input {
+                border: none !important;
+                background: transparent;
+                outline: none;
+                width: 100%;
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 13px;
+                padding: 0 2px;
+                font-weight: 600;
+                color: #000;
+              }
+              @media print {
+                body { padding: 10mm; margin: 0; }
+                @page {
+                  margin: 0;
+                  size: A4;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="form-container">
+              <div style="text-align: center; margin-bottom: 15px;">
+                <h1 style="font-size: 18px; font-weight: bold; letter-spacing: 2px;">FORM M.P.M.V.R.-45 (T.P.A.)</h1>
+                <p style="font-size: 11px; margin-top: 3px;">(See Rule 72 (1) (D)</p>
+                <h2 style="font-size: 13px; font-weight: bold; margin-top: 8px;">APPLICATION IN RESPECT OF A TEMPORARY PERMIT</h2>
+              </div>
+              ${generateForm45Fields()}
+            </div>
+          </body>
+        </html>
+      `)
     } else if (formId === 'form-48') {
       printWindow.document.write(`
         <html>
@@ -246,41 +299,41 @@ const Forms = () => {
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">1.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Full name of person to be registered as registered owner</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">son / wife / daughter of</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">2.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Age of the person to be registered as Registered owner (Proof of age to be attached)</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">3.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Permanent address of the person to be registered as registered owner (Evidence to be produced)</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">4.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Temporary address of the person to be registered as registered owner</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">5.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Name & address of the Dealer or Manufacturer from whoms the vehicle was Purchased</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">6.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">If ex-army vehicle or imported vehicle enclosed proof</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">7.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Class of vehicle (if motor cycle, Whether with or without gear)</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">8.</span>
@@ -288,90 +341,90 @@ const Forms = () => {
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">a) A new vehicle</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">b) Ex - Army vehicle :</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">c) Imported vehicle</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">9.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Type of body</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">10.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Type of vehicle</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">11.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Maker's Name</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">12.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Month and year of manufacturer</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">13.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Number of cylinders</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">14.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Horse Power</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">15.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Cubic capacity</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">16.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Maker's classification or if not known wheel base</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">17.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Chassis Number (Affix pencil print)</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">18.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Engine Number</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">19.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Seating Capacity (including driver)</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">20.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Fuel used in the engine</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">21.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Unloaded weight</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">22.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Particular of previous registration and registered number (if any)</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">23.</span>
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Colour or colours of body wings and front end</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <p style="font-size: 10px; font-style: italic; margin-left: 30px; margin-bottom: 8px;">I hereby declare that the vehicle has not been registered in any state in india</p>
       <p style="font-size: 10px; font-style: italic; margin-left: 30px; margin-bottom: 8px;">Additional particulars to be completed only in the case of transport vehicle other than motor car</p>
@@ -381,19 +434,19 @@ const Forms = () => {
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">(a) Front axle</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">(b) Rear axle</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">(c) Any other axle</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">(d) Tandem axle</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline;">
         <span style="width: 30px; flex-shrink: 0;">25.</span>
@@ -401,19 +454,19 @@ const Forms = () => {
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">a) As certified by the Manufacture</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
         <span style="margin-left: 8px;">Kgms</span>
       </div>
       <div style="display: flex; margin-bottom: 8px; align-items: baseline; margin-left: 30px;">
         <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">b) To be registered</span>
-        <div style="flex: 1; border-bottom: 1px solid #000; min-height: 13px;"></div>
+        <div style="flex: 1; border-bottom: 2px solid #000; min-height: 13px;"></div>
         <span style="margin-left: 8px;">Kgms</span>
       </div>
       <div style="margin-top: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: end;">
           <div style="display: flex; align-items: baseline;">
             <span>Date</span>
-            <div style="border-bottom: 1px solid #000; margin-left: 16px; width: 150px; min-height: 13px;"></div>
+            <div style="border-bottom: 2px solid #000; margin-left: 16px; width: 150px; min-height: 13px;"></div>
           </div>
           <div style="text-align: center;">
             <div>Signature of the person to be registered</div>
@@ -744,6 +797,163 @@ const Forms = () => {
     `
   }
 
+  const generateForm45Fields = () => {
+    return `
+      <div style="margin-bottom: 12px;">
+        <p>To,</p>
+        <div style="margin-left: 24px; margin-top: 4px;">
+          <p style="margin-bottom: 4px;">The Regional /State Transport Authority</p>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="border-bottom: 1.5px solid #000; width: 286px; min-height: 16px;"></div>
+            <span>(C.G.)</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom: 12px; text-align: justify;">
+        <p>In accordance with the provision of Section 69 and 87 of the Motor Vehicle Act. 1988 the undersigned hereby apply for a temporary permit under section 87 of the Act. as hereunder Setour.</p>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">1.</span>
+        <span style="width: 80px; flex-shrink: 0; margin-right: 10px;">Full Name</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center; margin-left: 30px;">
+        <span style="width: 260px; flex-shrink: 0; margin-right: 10px;">(Surname) Name Father's / Husband's Name</span>
+        <div style="width: 320px; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">2.</span>
+        <span style="width: 80px; flex-shrink: 0; margin-right: 10px;">Age</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">3.</span>
+        <span style="width: 120px; flex-shrink: 0; margin-right: 10px;">Full Address H.No.</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center; margin-left: 30px;">
+        <span style="width: 80px; flex-shrink: 0; margin-right: 10px;">Road Lane</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+        <span style="margin-left: 10px; width: 120px; flex-shrink: 0; margin-right: 10px;">Name of the Locilty</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center; margin-left: 30px;">
+        <span style="width: 80px; flex-shrink: 0; margin-right: 10px;">City / Town</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">4.</span>
+        <span style="width: 220px; flex-shrink: 0; margin-right: 10px;">Purpose for which permit is required</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">5.</span>
+        <span style="width: 180px; flex-shrink: 0; margin-right: 10px;">Route or reputes or area</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">6.</span>
+        <span style="width: 320px; flex-shrink: 0; margin-right: 10px;">Period duration of permit from (both day inclusive)</span>
+        <div style="width: 280px; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center; margin-left: 30px;">
+        <span style="width: 40px; flex-shrink: 0; margin-right: 10px;">To</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center; margin-left: 30px;">
+        <span style="width: 100px; flex-shrink: 0; margin-right: 10px;">(Laden weight)</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">7.</span>
+        <span style="width: 180px; flex-shrink: 0; margin-right: 10px;">Type and Seating capacity</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center; margin-left: 30px;">
+        <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">of the vehicle for which the permit is required</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">8.</span>
+        <span style="width: 200px; flex-shrink: 0; margin-right: 10px;">Registration mark of the vehicle</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <div style="display: flex; align-items: flex-start;">
+          <span style="width: 30px; flex-shrink: 0;">9.</span>
+          <p style="flex: 1;">I hereby declare that the above Statement are true and agree that they shall be condition of any permit issued to me.</p>
+        </div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">10.</span>
+        <span style="width: 140px; flex-shrink: 0; margin-right: 10px;">I deposted fee Rs.</span>
+        <div style="width: 200px; border-bottom: 1.5px solid #000; min-height: 16px; margin-right: 10px;"></div>
+        <span style="width: 60px; flex-shrink: 0; margin-right: 10px;">R.No.</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 12px; align-items: center; margin-left: 30px;">
+        <span style="width: 80px; flex-shrink: 0; margin-right: 10px;">Book No.</span>
+        <div style="width: 200px; border-bottom: 1.5px solid #000; min-height: 16px; margin-right: 20px;"></div>
+        <span style="width: 60px; flex-shrink: 0; margin-right: 10px;">dated</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; margin-left: 30px;">
+        <div style="display: flex; align-items: center;">
+          <span style="margin-right: 10px;">Date</span>
+          <div style="border-bottom: 1.5px solid #000; width: 150px; min-height: 16px;"></div>
+        </div>
+        <div style="text-align: center;">
+          <div style="border-bottom: 1.5px solid #000; width: 250px; height: 40px; margin-bottom: 4px;"></div>
+          <p style="font-size: 11px;">Signature thumb impression of the</p>
+          <p style="font-size: 11px;">Applicant</p>
+        </div>
+      </div>
+      <div style="border-top: 2px solid #000; margin: 20px 0;"></div>
+      <div style="margin-top: 15px;">
+        <p style="font-weight: bold; margin-bottom: 10px;">(To be filled in the office of the transport Authority)</p>
+        <div style="display: flex; margin-bottom: 8px; align-items: center;">
+          <span style="width: 30px; flex-shrink: 0;">1.</span>
+          <span style="width: 120px; flex-shrink: 0; margin-right: 10px;">Date of receipt</span>
+          <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+        </div>
+        <div style="display: flex; margin-bottom: 8px; align-items: center;">
+          <span style="width: 30px; flex-shrink: 0;">2.</span>
+          <span style="width: 140px; flex-shrink: 0; margin-right: 10px;">Amount of Rupees</span>
+          <div style="width: 100px; border-bottom: 1.5px solid #000; min-height: 16px; margin-right: 10px;"></div>
+          <span style="margin-right: 10px;">received vide receipt number</span>
+          <div style="width: 100px; border-bottom: 1.5px solid #000; min-height: 16px; margin-right: 10px;"></div>
+          <span style="margin-right: 10px;">dated</span>
+          <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+          <span style="margin-left: 10px;">202</span>
+        </div>
+        <div style="display: flex; margin-bottom: 8px; align-items: center;">
+          <span style="width: 30px; flex-shrink: 0;">3.</span>
+          <span style="width: 240px; flex-shrink: 0; margin-right: 10px;">Granted/ Granted in modified from rejected on</span>
+          <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+        </div>
+        <div style="display: flex; margin-bottom: 8px; align-items: center;">
+          <span style="width: 30px; flex-shrink: 0;">4.</span>
+          <span style="width: 160px; flex-shrink: 0; margin-right: 10px;">Permit number issued</span>
+          <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+        </div>
+        <div style="display: flex; margin-bottom: 12px; align-items: center;">
+          <span style="width: 30px; flex-shrink: 0;">5.</span>
+          <span style="width: 280px; flex-shrink: 0; margin-right: 10px;">Registration mark of vehicle if intimated after issued</span>
+          <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+        </div>
+        <div style="text-align: right; margin-top: 10px;">
+          <div style="border-bottom: 1.5px solid #000; width: 250px; height: 40px; margin-left: auto; margin-bottom: 4px;"></div>
+          <p style="font-size: 12px;">Secretary</p>
+          <p style="font-size: 12px; margin-top: 4px;">Transport Authority</p>
+          <p style="font-size: 12px; margin-top: 4px;">(C.G.)</p>
+        </div>
+      </div>
+    `
+  }
+
   const generateSapathPatraFields = () => {
     return `
       <div style="margin-bottom: 12px; display: flex; align-items: baseline;">
@@ -1041,6 +1251,11 @@ const Forms = () => {
       {/* Form 20 Modal */}
       {isForm20Open && (
         <Form20Modal onClose={() => setIsForm20Open(false)} />
+      )}
+
+      {/* Form 45 Modal */}
+      {isForm45Open && (
+        <Form45Modal onClose={() => setIsForm45Open(false)} />
       )}
 
       {/* Form 46 Modal */}
