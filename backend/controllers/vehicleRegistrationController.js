@@ -229,7 +229,9 @@ exports.createRegistration = async (req, res) => {
       saleAmount,
       numberOfCylinders,
       cubicCapacity,
-      fuelType
+      fuelType,
+      bodyType,
+      wheelBase
     } = req.body
 
     // RC image is optional
@@ -277,7 +279,9 @@ exports.createRegistration = async (req, res) => {
       saleAmount,
       numberOfCylinders,
       cubicCapacity,
-      fuelType
+      fuelType,
+      bodyType,
+      wheelBase
     }
 
     // Only add rcImage if it's provided (optional field)
@@ -332,7 +336,9 @@ exports.updateRegistration = async (req, res) => {
       saleAmount,
       numberOfCylinders,
       cubicCapacity,
-      fuelType
+      fuelType,
+      bodyType,
+      wheelBase
     } = req.body
 
     // RC image is optional
@@ -375,6 +381,8 @@ exports.updateRegistration = async (req, res) => {
     if (numberOfCylinders !== undefined) registration.numberOfCylinders = numberOfCylinders
     if (cubicCapacity !== undefined) registration.cubicCapacity = cubicCapacity
     if (fuelType !== undefined) registration.fuelType = fuelType
+    if (bodyType !== undefined) registration.bodyType = bodyType
+    if (wheelBase !== undefined) registration.wheelBase = wheelBase
     // Handle optional rcImage field - can be empty string to remove image
     if (rcImage !== undefined) {
       registration.rcImage = rcImage || undefined

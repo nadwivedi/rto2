@@ -103,6 +103,13 @@ const vehicleRegistrationSchema = new mongoose.Schema({
   fuelType: {
     type: String,
     trim: true
+  },
+  bodyType: {
+    type: String,
+    trim: true
+  },
+  wheelBase: {
+    type: Number
   }
 }, {
   timestamps: true

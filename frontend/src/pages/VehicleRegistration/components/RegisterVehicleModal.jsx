@@ -34,7 +34,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     rcImage: '',
     numberOfCylinders: '',
     cubicCapacity: '',
-    fuelType: ''
+    fuelType: '',
+    bodyType: '',
+    wheelBase: ''
   })
 
   const [loading, setLoading] = useState(false)
@@ -65,6 +67,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         'numberOfCylinders',
         'cubicCapacity',
         'fuelType',
+        'bodyType',
+        'wheelBase',
         'purchaseDeliveryDate',
         'saleAmount',
         'ownerName',
@@ -137,7 +141,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         rcImage: '',
         numberOfCylinders: '',
         cubicCapacity: '',
-        fuelType: ''
+        fuelType: '',
+        bodyType: '',
+        wheelBase: ''
       })
       setVehicleValidation({ isValid: false, message: '' })
       setRcImagePreview(null)
@@ -896,6 +902,52 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
                         </svg>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Body Type */}
+                  <div className='group'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
+                      Body Type
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-4 h-4 md:w-5 md:h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4' />
+                        </svg>
+                      </div>
+                      <input
+                        type='text'
+                        name='bodyType'
+                        value={formData.bodyType}
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder='e.g., Sedan, SUV, Truck'
+                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                      />
+                    </div>
+                  </div>
+
+                  {/* Wheel Base */}
+                  <div className='group'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
+                      Wheel Base (mm)
+                    </label>
+                    <div className='relative'>
+                      <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
+                        <svg className='w-4 h-4 md:w-5 md:h-5 text-indigo-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                        </svg>
+                      </div>
+                      <input
+                        type='number'
+                        name='wheelBase'
+                        value={formData.wheelBase}
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder='e.g., 2400, 2600'
+                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                      />
                     </div>
                   </div>
 
