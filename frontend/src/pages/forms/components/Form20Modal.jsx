@@ -123,12 +123,13 @@ const Form20Modal = ({ onClose }) => {
             chassisNumber: vehicleData.chassisNumber || prev.chassisNumber,
             engineNumber: vehicleData.engineNumber || prev.engineNumber,
             makerName: vehicleData.makerModel || prev.makerName,
+            manufactureDate: vehicleData.manufactureYear || prev.manufactureDate,
             unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
             colour: vehicleData.colour || prev.colour,
             seatingCapacity: vehicleData.seatingCapacity || prev.seatingCapacity,
             fuelUsed: vehicleData.fuelType || prev.fuelUsed,
-            horsePower: vehicleData.cubicCapacity || prev.horsePower,
-            numberOfCylinders: vehicleData.numberOfCylinders || prev.numberOfCylinders
+            cylinders: vehicleData.numberOfCylinders || prev.cylinders,
+            cubicCapacity: vehicleData.cubicCapacity || prev.cubicCapacity
           }))
           setVehicleError('')
         }
