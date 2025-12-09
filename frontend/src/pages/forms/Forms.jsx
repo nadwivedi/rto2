@@ -5,6 +5,8 @@ import Form20Modal from './components/Form20Modal'
 import Form45Modal from './components/Form45Modal'
 import Form48Modal from './components/Form48Modal'
 import SapathPatraModal from './components/SapathPatraModal'
+import KaryalayFormModal from './components/KaryalayFormModal'
+import KaryalayForm2Modal from './components/KaryalayForm2Modal'
 
 const Forms = () => {
   const [isForm46Open, setIsForm46Open] = useState(false)
@@ -12,6 +14,8 @@ const Forms = () => {
   const [isForm45Open, setIsForm45Open] = useState(false)
   const [isForm48Open, setIsForm48Open] = useState(false)
   const [isSapathPatraOpen, setIsSapathPatraOpen] = useState(false)
+  const [isKaryalayFormOpen, setIsKaryalayFormOpen] = useState(false)
+  const [isKaryalayForm2Open, setIsKaryalayForm2Open] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
   const forms = [
@@ -54,6 +58,22 @@ const Forms = () => {
       icon: '📜',
       isModal: true,
       category: 'Affidavit'
+    },
+    {
+      id: 'karyalay-form',
+      name: 'Karyalay Form (कार्यालय फॉर्म)',
+      description: 'Office Secretary Form - Regional Transport Authority Division, Raipur (C.G.)',
+      icon: '📋',
+      isModal: true,
+      category: 'Office'
+    },
+    {
+      id: 'karyalay-form-2',
+      name: 'Karyalay Form 2 (कार्यालय फॉर्म 2)',
+      description: 'Office Secretary Form - National Permit Authorization Certificate',
+      icon: '📝',
+      isModal: true,
+      category: 'Office'
     }
   ]
 
@@ -69,6 +89,10 @@ const Forms = () => {
         setIsForm48Open(true)
       } else if (form.id === 'sapath-patra') {
         setIsSapathPatraOpen(true)
+      } else if (form.id === 'karyalay-form') {
+        setIsKaryalayFormOpen(true)
+      } else if (form.id === 'karyalay-form-2') {
+        setIsKaryalayForm2Open(true)
       }
     }
   }
@@ -1271,6 +1295,16 @@ const Forms = () => {
       {/* Sapath Patra Modal */}
       {isSapathPatraOpen && (
         <SapathPatraModal onClose={() => setIsSapathPatraOpen(false)} />
+      )}
+
+      {/* Karyalay Form Modal */}
+      {isKaryalayFormOpen && (
+        <KaryalayFormModal onClose={() => setIsKaryalayFormOpen(false)} />
+      )}
+
+      {/* Karyalay Form 2 Modal */}
+      {isKaryalayForm2Open && (
+        <KaryalayForm2Modal onClose={() => setIsKaryalayForm2Open(false)} />
       )}
     </div>
   )
