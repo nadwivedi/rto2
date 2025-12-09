@@ -432,8 +432,8 @@ const KaryalayFormModal = ({ onClose }) => {
                   </div>
                   {/* Row 1 */}
                   <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '8px'}}>
-                    <span style={{width: '150px', flexShrink: 0}}>आवेदक का नाम श्री</span>
-                    <div style={{width: '280px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
+                    <span style={{width: '220px', flexShrink: 0}}>आवेदक का नाम श्री</span>
+                    <div style={{width: '240px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[12] = el}
                         type="text"
@@ -445,7 +445,7 @@ const KaryalayFormModal = ({ onClose }) => {
                       />
                     </div>
                     <span style={{marginLeft: '15px'}}>मोबाईल नं.</span>
-                    <div style={{width: '180px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
+                    <div style={{width: '153px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[13] = el}
                         type="text"
@@ -459,10 +459,10 @@ const KaryalayFormModal = ({ onClose }) => {
                   </div>
                   {/* Row 2 */}
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
-                    <span style={{width: '150px', flexShrink: 0, lineHeight: '1.4'}}>वाहन स्वामी के प्रतिनिधि का नाम</span>
-                    <div style={{width: '280px', borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
+                    <span style={{width: '220px', flexShrink: 0, whiteSpace: 'nowrap'}}>वाहन स्वामी के प्रतिनिधि का नाम</span>
+                    <div style={{width: '240px', borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                     <span style={{marginLeft: '15px'}}>मोबाईल नं.</span>
-                    <div style={{width: '180px', borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
+                    <div style={{width: '153px', borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                   </div>
                 </div>
               </div>
