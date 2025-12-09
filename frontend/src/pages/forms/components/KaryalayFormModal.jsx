@@ -83,6 +83,7 @@ const KaryalayFormModal = ({ onClose }) => {
             }
             @media print {
               body { padding: 5mm; margin: 0; }
+              .header-section { margin-top: 1rem; }
               @page {
                 margin: 0;
                 size: A4;
@@ -133,15 +134,15 @@ const KaryalayFormModal = ({ onClose }) => {
           >
             <div className="form-container">
               {/* Header */}
-              <div style={{textAlign: 'center', marginBottom: '15px'}}>
-                <h1 style={{fontSize: '20px', fontWeight: 'bold', color: '#000000'}}>कार्यालय सचिव, क्षेत्रीय परिवहन प्राधिकार संभाग, रायपुर (छ.ग.)</h1>
+              <div className="header-section" style={{textAlign: 'center', marginBottom: '25px'}}>
+                <h1 style={{fontSize: '24px', fontWeight: '900', color: '#000000'}}>कार्यालय सचिव, क्षेत्रीय परिवहन प्राधिकार संभाग, रायपुर (छ.ग.)</h1>
               </div>
 
               {/* File Numbers */}
-              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '15px'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '22px'}}>
                 <div style={{display: 'flex', alignItems: 'baseline'}}>
                   <span>नस्ती क्रमांक</span>
-                  <div style={{borderBottom: '1.5px dotted #000', width: '150px', marginLeft: '8px'}}>
+                  <div style={{borderBottom: '2px dotted #000', width: '150px', marginLeft: '8px'}}>
                     <input
                       ref={(el) => inputRefs.current[0] = el}
                       type="text"
@@ -155,7 +156,7 @@ const KaryalayFormModal = ({ onClose }) => {
                 </div>
                 <div style={{display: 'flex', alignItems: 'baseline'}}>
                   <span>पृष्ठ क्रमांक</span>
-                  <div style={{borderBottom: '1.5px dotted #000', width: '150px', marginLeft: '8px'}}>
+                  <div style={{borderBottom: '2px dotted #000', width: '150px', marginLeft: '8px'}}>
                     <input
                       ref={(el) => inputRefs.current[1] = el}
                       type="text"
@@ -170,10 +171,10 @@ const KaryalayFormModal = ({ onClose }) => {
               </div>
 
               {/* Subject */}
-              <div style={{marginBottom: '15px'}}>
+              <div style={{marginBottom: '22px'}}>
                 <div style={{display: 'flex', alignItems: 'baseline'}}>
                   <span>विषय :- मालयान क्रमांक</span>
-                  <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                  <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                     <input
                       ref={(el) => inputRefs.current[2] = el}
                       type="text"
@@ -189,17 +190,17 @@ const KaryalayFormModal = ({ onClose }) => {
               </div>
 
               {/* Reference */}
-              <div style={{marginBottom: '20px'}}>
+              <div style={{marginBottom: '28px'}}>
                 <p style={{fontWeight: '600'}}>1988 की धारा 79/ 87 (बी) में विहित प्रावधानों के अंतर्गत स्थायी / अस्थायी अनुज्ञापत्र स्वीकृति बाबत ।</p>
               </div>
 
               {/* Field 1 */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '20px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{width: '30px', flexShrink: 0}}>1.</span>
                 <div style={{flex: 1}}>
-                  <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '5px'}}>
+                  <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '8px'}}>
                     <span>आवेदक श्री</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[3] = el}
                         type="text"
@@ -214,7 +215,7 @@ const KaryalayFormModal = ({ onClose }) => {
                   </div>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
                     <span>क्रमांक</span>
-                    <div style={{width: '200px', borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <div style={{width: '200px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[4] = el}
                         type="text"
@@ -226,7 +227,7 @@ const KaryalayFormModal = ({ onClose }) => {
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>अवश</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[5] = el}
                         type="text"
@@ -239,32 +240,32 @@ const KaryalayFormModal = ({ onClose }) => {
                     </div>
                     <span style={{marginLeft: '8px'}}>से</span>
                   </div>
-                  <div style={{marginTop: '5px'}}>
+                  <div style={{marginTop: '8px'}}>
                     <span>के लिये स्थायी / अस्थायी अनुज्ञापत्र स्वीकृत किये जाने बाबत आवेदन पत्र निधारित प्रारूप में विहित शुल्क की राशि</span>
                   </div>
-                  <div style={{display: 'flex', alignItems: 'baseline', marginTop: '5px'}}>
+                  <div style={{display: 'flex', alignItems: 'baseline', marginTop: '8px'}}>
                     <span>रू.</span>
-                    <div style={{width: '200px', borderBottom: '1.5px dotted #000', marginLeft: '8px'}}></div>
+                    <div style={{width: '200px', borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                     <span style={{marginLeft: '8px'}}>मालवान क्रमांक</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}></div>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                     <span style={{marginLeft: '8px'}}>दिनांक</span>
-                    <div style={{width: '150px', borderBottom: '1.5px dotted #000', marginLeft: '8px'}}></div>
+                    <div style={{width: '150px', borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                   </div>
-                  <div style={{marginTop: '5px'}}>
+                  <div style={{marginTop: '8px'}}>
                     <span>को जमा कर प्रस्तुत किया गया है । जिसका चालान रिकनसाईल दिनांक</span>
-                    <div style={{borderBottom: '1.5px dotted #000', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
                     <span style={{marginLeft: '8px'}}>को किया गया ।</span>
                   </div>
                 </div>
               </div>
 
               {/* Field 2 */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '20px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{width: '30px', flexShrink: 0}}>2.</span>
                 <div style={{flex: 1}}>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
                     <span>पंजीयन पुस्तिका के अनुसार वाहन का मॉडल</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[6] = el}
                         type="text"
@@ -276,27 +277,27 @@ const KaryalayFormModal = ({ onClose }) => {
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>है, तथा भार वहन क्षमता</span>
-                    <div style={{width: '150px', borderBottom: '1.5px dotted #000', marginLeft: '8px'}}></div>
+                    <div style={{width: '150px', borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                   </div>
-                  <div style={{marginTop: '5px'}}>
+                  <div style={{marginTop: '8px'}}>
                     <span>कि.ग्रा. है । वाहन का सकलयन भार</span>
-                    <div style={{borderBottom: '1.5px dotted #000', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
                     <span style={{marginLeft: '8px'}}>कि.ग्रा. लदान रहित भार</span>
-                    <div style={{borderBottom: '1.5px dotted #000', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
                   </div>
-                  <div style={{marginTop: '5px'}}>
+                  <div style={{marginTop: '8px'}}>
                     <span>कि.ग्रा. है ।</span>
                   </div>
                 </div>
               </div>
 
               {/* Field 3 */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '20px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{width: '30px', flexShrink: 0}}>3.</span>
                 <div style={{flex: 1}}>
-                  <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '5px'}}>
-                    <span>वाहन का चेसिस क्रमांक</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                  <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '8px'}}>
+                    <span style={{width: '180px', flexShrink: 0}}>वाहन का चेसिस क्रमांक</span>
+                    <div style={{width: '350px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[7] = el}
                         type="text"
@@ -310,8 +311,8 @@ const KaryalayFormModal = ({ onClose }) => {
                     <span style={{marginLeft: '8px'}}>एवं चाहन का</span>
                   </div>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
-                    <span>इंजन क्रमांक</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <span style={{width: '180px', flexShrink: 0}}>इंजन क्रमांक</span>
+                    <div style={{width: '350px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[8] = el}
                         type="text"
@@ -328,12 +329,12 @@ const KaryalayFormModal = ({ onClose }) => {
               </div>
 
               {/* Field 4 */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'baseline'}}>
+              <div style={{marginBottom: '18px', display: 'flex', alignItems: 'baseline'}}>
                 <span style={{width: '30px', flexShrink: 0}}>4.</span>
                 <div style={{flex: 1}}>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
-                    <span>वाहन की पंजीयन तिथि</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <span style={{width: '180px', flexShrink: 0}}>वाहन की पंजीयन तिथि</span>
+                    <div style={{width: '350px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[9] = el}
                         type="text"
@@ -350,12 +351,12 @@ const KaryalayFormModal = ({ onClose }) => {
               </div>
 
               {/* Field 5 */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'baseline'}}>
+              <div style={{marginBottom: '18px', display: 'flex', alignItems: 'baseline'}}>
                 <span style={{width: '30px', flexShrink: 0}}>5.</span>
                 <div style={{flex: 1}}>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
-                    <span>बीमा की वैद्यता</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <span style={{width: '180px', flexShrink: 0}}>बीमा की वैद्यता</span>
+                    <div style={{width: '350px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[10] = el}
                         type="text"
@@ -372,12 +373,12 @@ const KaryalayFormModal = ({ onClose }) => {
               </div>
 
               {/* Field 6 */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'baseline'}}>
+              <div style={{marginBottom: '18px', display: 'flex', alignItems: 'baseline'}}>
                 <span style={{width: '30px', flexShrink: 0}}>6.</span>
                 <div style={{flex: 1}}>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
-                    <span>फिटनेस की वैद्यता</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <span style={{width: '180px', flexShrink: 0}}>फिटनेस की वैद्यता</span>
+                    <div style={{width: '350px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[11] = el}
                         type="text"
@@ -394,12 +395,12 @@ const KaryalayFormModal = ({ onClose }) => {
               </div>
 
               {/* Field 7 */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '20px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{width: '30px', flexShrink: 0}}>7.</span>
                 <div style={{flex: 1}}>
-                  <div style={{marginBottom: '5px'}}>
+                  <div style={{marginBottom: '8px'}}>
                     <span>इस पंजीकृत वाहन पर पंजीयन तिथि से किसी भी प्रकार का कर बकाया नहीं है, एवं त्रैमासिक कर दिनांक</span>
-                    <div style={{borderBottom: '1.5px dotted #000', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '150px', marginLeft: '8px'}}></div>
                   </div>
                   <div>
                     <span>तक जमा है ।</span>
@@ -408,30 +409,30 @@ const KaryalayFormModal = ({ onClose }) => {
               </div>
 
               {/* Field 8 */}
-              <div style={{marginBottom: '12px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '20px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{width: '30px', flexShrink: 0}}>8.</span>
                 <div style={{flex: 1}}>
-                  <div style={{marginBottom: '5px'}}>
+                  <div style={{marginBottom: '8px'}}>
                     <span>वाहन स्वामी के स्वामित्व के पूर्व मालयान परमिट की जानकारी</span>
-                    <div style={{borderBottom: '1.5px dotted #000', display: 'inline-block', minWidth: '300px', marginLeft: '8px'}}></div>
+                    <div style={{borderBottom: '2px dotted #000', display: 'inline-block', minWidth: '300px', marginLeft: '8px'}}></div>
                   </div>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
                     <span>एवं वाहन की संख्या</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}></div>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                   </div>
                 </div>
               </div>
 
               {/* Field 9 */}
-              <div style={{marginBottom: '15px', display: 'flex', alignItems: 'flex-start'}}>
+              <div style={{marginBottom: '20px', display: 'flex', alignItems: 'flex-start'}}>
                 <span style={{width: '30px', flexShrink: 0}}>9.</span>
                 <div style={{flex: 1}}>
-                  <div style={{marginBottom: '5px'}}>
+                  <div style={{marginBottom: '8px'}}>
                     <span>प्रस्तुतकर्ता :-</span>
                   </div>
-                  <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '5px'}}>
+                  <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '8px'}}>
                     <span>आवेदक का नाम श्री</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[12] = el}
                         type="text"
@@ -443,7 +444,7 @@ const KaryalayFormModal = ({ onClose }) => {
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>मोबाईल नं.</span>
-                    <div style={{width: '200px', borderBottom: '1.5px dotted #000', marginLeft: '8px'}}>
+                    <div style={{width: '200px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
                         ref={(el) => inputRefs.current[13] = el}
                         type="text"
@@ -457,15 +458,15 @@ const KaryalayFormModal = ({ onClose }) => {
                   </div>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
                     <span>वाहन स्वामी के प्रतिनिधि का नाम</span>
-                    <div style={{flex: 1, borderBottom: '1.5px dotted #000', marginLeft: '8px'}}></div>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                     <span style={{marginLeft: '8px'}}>मोबाईल नं.</span>
-                    <div style={{width: '200px', borderBottom: '1.5px dotted #000', marginLeft: '8px'}}></div>
+                    <div style={{width: '200px', borderBottom: '2px dotted #000', marginLeft: '8px'}}></div>
                   </div>
                 </div>
               </div>
 
               {/* Footer */}
-              <div style={{textAlign: 'center', marginTop: '30px', paddingTop: '15px', borderTop: '2px solid #000'}}>
+              <div style={{textAlign: 'center', marginTop: '50px', paddingTop: '20px', borderTop: '2px solid #000'}}>
                 <p style={{fontWeight: 'bold'}}>प्रकरण अवलोकनार्थ एवं आदेशार्थ प्रस्तुत है ।</p>
               </div>
             </div>
