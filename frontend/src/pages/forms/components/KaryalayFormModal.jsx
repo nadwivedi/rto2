@@ -215,7 +215,7 @@ const KaryalayFormModal = ({ onClose }) => {
                   </div>
                   <div style={{display: 'flex', alignItems: 'baseline'}}>
                     <span>क्रमांक</span>
-                    <div style={{width: '200px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
+                    <div style={{width: '200px', borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.6'}}>
                       <input
                         ref={(el) => inputRefs.current[4] = el}
                         type="text"
@@ -226,8 +226,8 @@ const KaryalayFormModal = ({ onClose }) => {
                         style={{border:'none', background: 'transparent', outline: 'none', width: '100%', fontFamily: "Mangal, Kokila, Aparajita, 'Laila', 'Hind', sans-serif", fontSize: '14px', padding: '0', fontWeight: 'bold', color: '#000000'}}
                       />
                     </div>
-                    <span style={{marginLeft: '8px'}}>अवश</span>
-                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px'}}>
+                    <span style={{marginLeft: '8px'}}>अवधि</span>
+                    <div style={{width: '250px', borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.6'}}>
                       <input
                         ref={(el) => inputRefs.current[5] = el}
                         type="text"
@@ -239,6 +239,7 @@ const KaryalayFormModal = ({ onClose }) => {
                       />
                     </div>
                     <span style={{marginLeft: '8px'}}>से</span>
+                    <div style={{flex: 1, borderBottom: '2px dotted #000', marginLeft: '8px', lineHeight: '1.6'}}></div>
                   </div>
                   <div style={{marginTop: '8px'}}>
                     <span>के लिये स्थायी / अस्थायी अनुज्ञापत्र स्वीकृत किये जाने बाबत आवेदन पत्र निधारित प्रारूप में विहित शुल्क की राशि</span>
@@ -431,7 +432,7 @@ const KaryalayFormModal = ({ onClose }) => {
                     <span>प्रस्तुतकर्ता :-</span>
                   </div>
                   {/* Row 1 */}
-                  <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '8px'}}>
+                  <div style={{display: 'flex', alignItems: 'baseline', marginBottom: '16px'}}>
                     <span style={{width: '220px', flexShrink: 0}}>आवेदक का नाम श्री</span>
                     <div style={{width: '240px', borderBottom: '2px dotted #000', marginLeft: '8px'}}>
                       <input
