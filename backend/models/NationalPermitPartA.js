@@ -55,18 +55,18 @@ const NationalPermitPartASchema = new mongoose.Schema({
     trim: true
   },
 
-  // Fees (ALWAYS required - either combined or Part A only)
+  // Fees (Optional - payment tracking now done in Part B)
   totalFee: {
     type: Number,
-    required: true
+    default: 0
   },
   paid: {
     type: Number,
-    required: true
+    default: 0
   },
   balance: {
     type: Number,
-    required: true
+    default: 0
   },
 
   // Status (managed by cron job)

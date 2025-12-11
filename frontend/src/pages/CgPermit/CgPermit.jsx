@@ -164,28 +164,6 @@ const CgPermit = () => {
     }
   }
 
-  // Helper to convert DD-MM-YYYY to Date object
-  const parseDate = (dateStr) => {
-    if (!dateStr) return null
-
-    // If it's already a valid date string (YYYY-MM-DD or ISO format)
-    const standardDate = new Date(dateStr)
-    if (!isNaN(standardDate.getTime())) {
-      return standardDate
-    }
-
-    // Try DD-MM-YYYY format
-    const parts = dateStr.split(/[/-]/)
-    if (parts.length === 3) {
-      const [day, month, year] = parts
-      const parsedDate = new Date(year, month - 1, day)
-      if (!isNaN(parsedDate.getTime())) {
-        return parsedDate
-      }
-    }
-
-    return null
-  }
 
   // Use permits directly since filtering is done on backend
   const filteredPermits = permits

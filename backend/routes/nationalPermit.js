@@ -8,15 +8,38 @@ router.get('/export', nationalPermitController.exportAllPermits)
 // GET all national permits
 router.get('/', nationalPermitController.getAllPermits)
 
-// GET Part A expiring in next 30 days
-router.get('/part-a-expiring-soon', nationalPermitController.getPartAExpiringSoon)
+// GET statistics
+router.get('/statistics', nationalPermitController.getStatistics)
 
-// GET Part B expiring in next 35 days
-router.get('/part-b-expiring-soon', nationalPermitController.getPartBExpiringSoon)
+// GET pending payment permits
+router.get('/pending', nationalPermitController.getPendingPermits)
 
+// GET Part A expiring soon
+router.get('/part-a-expiring', nationalPermitController.getPartAExpiringSoon)
+
+// GET Part B expiring soon
+router.get('/part-b-expiring', nationalPermitController.getPartBExpiringSoon)
+
+// GET Part A expired
+router.get('/part-a-expired', nationalPermitController.getPartAExpired)
+
+// GET Part B expired
+router.get('/part-b-expired', nationalPermitController.getPartBExpired)
+
+// GET Part A renewal history
+router.get('/:id/part-a-history', nationalPermitController.getPartARenewalHistory)
+
+// GET Part B renewal history
+router.get('/:id/part-b-history', nationalPermitController.getPartBRenewalHistory)
+
+// GET check existing permit by vehicle number
+router.get('/check-existing/:vehicleNumber', nationalPermitController.checkExistingPermit)
 
 // POST create new national permit
 router.post('/', nationalPermitController.createPermit)
+
+// POST smart renew (renew Part A, Part B, or both)
+router.post('/:id/smart-renew', nationalPermitController.smartRenewPermit)
 
 // PUT update national permit
 router.put('/:id', nationalPermitController.updatePermit)
@@ -26,21 +49,5 @@ router.patch('/:id/mark-as-paid', nationalPermitController.markAsPaid)
 
 // DELETE national permit
 router.delete('/:id', nationalPermitController.deletePermit)
-
-// POST renew Part A (National Permit)
-router.post('/:id/renew-part-a', nationalPermitController.renewPartA)
-
-// GET Part A renewal history
-router.get('/:id/part-a-history', nationalPermitController.getPartARenewalHistory)
-
-
-// ========== Part B Renewal Routes ==========
-
-// POST renew Part B authorization
-router.post('/:id/renew-part-b', nationalPermitController.renewPartB)
-
-// GET Part B renewal history
-router.get('/:id/part-b-history', nationalPermitController.getPartBRenewalHistory)
-
 
 module.exports = router

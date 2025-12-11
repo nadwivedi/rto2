@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
@@ -36,11 +37,8 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     issueDate: '',
     status: 'Active',
 
-    // Optional fields
-    fatherName: '',
-    address: '',
+    // Contact
     mobileNumber: '',
-    email: '',
 
     // Vehicle details
     vehicleNumber: '',
@@ -53,7 +51,10 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     // Fees
     totalFee: '',
     paid: '',
-    balance: ''
+    balance: '',
+
+    // Notes
+    notes: ''
   })
 
   // Populate form when permit changes
@@ -66,17 +67,15 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         validTo: permit.partA.permitValidUpto || '',
         issueDate: permit.partA.issueDate || '',
         status: permit.status || 'Active',
-        fatherName: permit.partA.fatherName || '',
-        address: permit.partA.ownerAddress || '',
         mobileNumber: permit.partA.ownerMobile?.replace('+91 ', '') || '',
-        email: permit.partA.email || '',
         vehicleNumber: permit.vehicleNo || '',
         authorizationNumber: permit.partB?.authorizationNumber || '',
         typeBValidFrom: permit.partB?.validFrom || '',
         typeBValidTo: permit.partB?.validTo || '',
         totalFee: permit.totalFee?.toString() || '',
         paid: permit.paid?.toString() || '',
-        balance: permit.balance?.toString() || ''
+        balance: permit.balance?.toString() || '',
+        notes: permit.notes || ''
       })
     }
   }, [permit])
@@ -251,7 +250,10 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
 
     // Validate paid amount doesn't exceed total fee
     if (paidExceedsTotal) {
-      alert('Paid amount cannot be more than the total fee!')
+      toast.error('Paid amount cannot be more than the total fee!', {
+        position: 'top-right',
+        autoClose: 3000
+      })
       return
     }
 
@@ -268,17 +270,17 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       permitHolderName: '',
       validFrom: '',
       validTo: '',
-      fatherName: '',
-      address: '',
+      issueDate: '',
+      status: 'Active',
       mobileNumber: '',
-      email: '',
       vehicleNumber: '',
       authorizationNumber: '',
-      typeBValidFrom: '', // Reset to empty
-      typeBValidTo: '', // Reset to empty
+      typeBValidFrom: '',
+      typeBValidTo: '',
       totalFee: '',
       paid: '',
-      balance: ''
+      balance: '',
+      notes: ''
     })
     setPartAImage(null)
     setPartBImage(null)
@@ -442,16 +444,13 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
               </div>
             </div>
 
-            {/* Authorization & Route Section - READ ONLY */}
+            {/* Authorization & Route Section - NOW EDITABLE */}
             <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <div className='flex items-center justify-between mb-3 md:mb-4'>
                 <h3 className='text-base md:text-lg font-bold text-gray-800 flex items-center gap-2'>
                   <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                  <span className='text-sm md:text-base'>Type B Authorization (Reference Only)</span>
+                  <span className='text-sm md:text-base'>Type B Authorization</span>
                 </h3>
-                <span className='bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full'>
-                  Use "Renew Part B" to update
-                </span>
               </div>
 
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
@@ -463,10 +462,9 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     type='text'
                     name='authorizationNumber'
                     value={formData.authorizationNumber}
-                    placeholder='N/A'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 font-mono cursor-not-allowed'
-                    readOnly
-                    disabled
+                    onChange={handleChange}
+                    placeholder='Enter Authorization Number'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono'
                   />
                 </div>
 
@@ -478,31 +476,26 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     type='text'
                     name='typeBValidFrom'
                     value={formData.typeBValidFrom}
-                    placeholder='N/A'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed'
-                    readOnly
-                    disabled
+                    onChange={handleChange}
+                    placeholder='Type: 240125 or 24012025'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                   />
                 </div>
 
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Valid To
+                    Valid To (Auto-calculated - 1 Year)
                   </label>
                   <input
                     type='text'
                     name='typeBValidTo'
                     value={formData.typeBValidTo}
-                    placeholder='N/A'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed'
-                    readOnly
-                    disabled
+                    onChange={handleChange}
+                    placeholder='Will be calculated automatically'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50'
                   />
                 </div>
               </div>
-              <p className='text-xs text-purple-700 mt-3 font-semibold'>
-                ℹ️ Part B cannot be edited here. Use the "Renew Part B" button to create a new Part B authorization.
-              </p>
             </div>
 
             {/* Fees Section */}
@@ -587,55 +580,9 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
               </button>
 
               {showOptionalFields && (
-                <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
-                  {/* Personal Information */}
-                  <div>
-                    <h4 className='text-xs md:text-sm font-bold  mb-3 uppercase text-indigo-600'>Personal Information</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Father's Name
-                        </label>
-                        <input
-                          type='text'
-                          name='fatherName'
-                          value={formData.fatherName}
-                          onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Email
-                        </label>
-                        <input
-                          type='email'
-                          name='email'
-                          value={formData.email}
-                          onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div className='md:col-span-2'>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Address
-                        </label>
-                        <textarea
-                          name='address'
-                          value={formData.address}
-                          onChange={handleChange}
-                          rows='2'
-                          placeholder='Complete address with street, area, landmark'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-                    </div>
-                  </div>
-
+                <div className='mt-4 md:mt-6'>
                   {/* Document Uploads */}
-                  <div className='border-t border-gray-200 pt-4'>
+                  <div>
                     <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-blue-600'>Document Uploads</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       {/* Part A Image Upload */}

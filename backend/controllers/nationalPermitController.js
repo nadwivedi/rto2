@@ -1,5 +1,4 @@
-const NationalPermitPartA = require('../models/NationalPermitPartA')
-const NationalPermitPartB = require('../models/NationalPermitPartB')
+const NationalPermit = require('../models/NationalPermit')
 
 // Helper function to parse date from string (DD-MM-YYYY or DD/MM/YYYY format)
 function parsePermitDate(dateString) {
@@ -18,17 +17,63 @@ function parsePermitDate(dateString) {
   return new Date(year, month, day)
 }
 
-// Create new national permit (Part A + Part B together with combined bill)
+// Helper function to calculate Part A status (30-day threshold)
+const getPartAStatus = (validTo) => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const thirtyDaysFromNow = new Date()
+  thirtyDaysFromNow.setDate(today.getDate() + 30)
+  thirtyDaysFromNow.setHours(23, 59, 59, 999)
+
+  const validToDate = parsePermitDate(validTo)
+
+  if (!validToDate) {
+    return 'active' // Default status if date parsing fails
+  }
+
+  if (validToDate < today) {
+    return 'expired'
+  } else if (validToDate <= thirtyDaysFromNow) {
+    return 'expiring_soon'
+  } else {
+    return 'active'
+  }
+}
+
+// Helper function to calculate Part B status (30-day threshold)
+const getPartBStatus = (validTo) => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const thirtyDaysFromNow = new Date()
+  thirtyDaysFromNow.setDate(today.getDate() + 30)
+  thirtyDaysFromNow.setHours(23, 59, 59, 999)
+
+  const validToDate = parsePermitDate(validTo)
+
+  if (!validToDate) {
+    return 'active' // Default status if date parsing fails
+  }
+
+  if (validToDate < today) {
+    return 'expired'
+  } else if (validToDate <= thirtyDaysFromNow) {
+    return 'expiring_soon'
+  } else {
+    return 'active'
+  }
+}
+
+// ========== CREATE PERMIT ==========
+
 exports.createPermit = async (req, res) => {
   try {
     const {
       vehicleNumber,
       permitNumber,
       permitHolder,
-      fatherName,
-      address,
       mobileNumber,
-      email,
       partAValidFrom,
       partAValidTo,
       partBNumber,
@@ -37,126 +82,81 @@ exports.createPermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      partAImage,
-      partBImage,
       notes
     } = req.body
 
     // Validate required fields
-    if (!vehicleNumber) {
+    if (!vehicleNumber || !permitNumber || !permitHolder || !partBNumber) {
       return res.status(400).json({
         success: false,
-        message: 'Vehicle number is required'
+        message: 'Vehicle number, permit number, permit holder, and authorization number are required'
       })
     }
 
-    if (!permitNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit number is required'
-      })
-    }
-
-    if (!permitHolder) {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit holder name is required'
-      })
-    }
-
-    if (!partAValidFrom || !partAValidTo) {
-      return res.status(400).json({
-        success: false,
-        message: 'Part A valid from and valid to dates are required'
-      })
-    }
-
-    if (!partBNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Part B number is required'
-      })
-    }
-
-    if (!partBValidFrom || !partBValidTo) {
-      return res.status(400).json({
-        success: false,
-        message: 'Part B valid from and valid to dates are required'
-      })
-    }
-
-    // Validate payment fields
-    if (totalFee === undefined || totalFee === null || paid === undefined || paid === null || balance === undefined || balance === null) {
-      return res.status(400).json({
-        success: false,
-        message: 'Total fee, paid amount, and balance are required'
-      })
-    }
-
-    // Validate that paid amount can't be greater than total fee
-    if (paid > totalFee) {
-      return res.status(400).json({
-        success: false,
-        message: 'Paid amount cannot be greater than total fee'
-      })
-    }
-
-    // Validate that balance amount can't be negative
-    if (balance < 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Balance amount cannot be negative'
-      })
-    }
-
-    // Create Part A
-    const newPartA = new NationalPermitPartA({
+    // Check if active permit already exists (only block if BOTH are strictly 'active')
+    const existingPermit = await NationalPermit.findOne({
       vehicleNumber,
-      permitNumber,
-      permitHolder,
-      fatherName,
-      address,
+      userId: req.user.id,
+      isRenewed: false
+    }).sort({ createdAt: -1 })
+
+    if (existingPermit) {
+      const partAActive = existingPermit.partAStatus === 'active'
+      const partBActive = existingPermit.partBStatus === 'active'
+
+      if (partAActive && partBActive) {
+        return res.status(400).json({
+          success: false,
+          message: `Both Part A and Part B are already active for vehicle ${vehicleNumber}. Part A expires: ${existingPermit.partAValidTo}, Part B expires: ${existingPermit.partBValidTo}. Please use "Renew" button.`,
+          existingPermit
+        })
+      }
+    }
+
+    // Calculate statuses
+    const partAStatus = getPartAStatus(partAValidTo)
+    const partBStatus = getPartBStatus(partBValidTo)
+
+    // Create new permit
+    const newPermit = new NationalPermit({
+      userId: req.user.id,
+      vehicleNumber,
       mobileNumber,
-      email,
-      validFrom: partAValidFrom,
-      validTo: partAValidTo,
-      totalFee,
-      paid,
-      balance,
-      documents: {
-        partAImage: partAImage || ''
-      },
-      notes: notes || '',
-      userId: req.user.id
-    })
-    await newPartA.save()
 
-    // Create Part B
-    const newPartB = new NationalPermitPartB({
-      vehicleNumber,
+      // Part A fields
       permitNumber,
-      partBNumber,
       permitHolder,
-      validFrom: partBValidFrom,
-      validTo: partBValidTo,
-      documents: {
-        partBImage: partBImage || ''
-      },
-      userId: req.user.id
+      partAValidFrom,
+      partAValidTo,
+      partAStatus,
+      partADocument: req.files?.partAImage?.[0]?.path || '',
+
+      // Part B fields
+      authNumber: partBNumber,
+      partBValidFrom,
+      partBValidTo,
+      partBStatus,
+      partBDocument: req.files?.partBImage?.[0]?.path || '',
+
+      // Payment
+      totalFee: parseFloat(totalFee) || 0,
+      paid: parseFloat(paid) || 0,
+      balance: parseFloat(balance) || 0,
+
+      isRenewed: false,
+      notes
     })
-    await newPartB.save()
+
+    await newPermit.save()
 
     res.status(201).json({
       success: true,
       message: 'National permit created successfully',
-      data: {
-        partA: newPartA,
-        partB: newPartB
-      }
+      data: newPermit
     })
   } catch (error) {
     console.error('Error creating permit:', error)
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: 'Failed to create permit',
       error: error.message
@@ -164,110 +164,145 @@ exports.createPermit = async (req, res) => {
   }
 }
 
-// Get all national permits (returns combined Part A and Part B data)
+// ========== GET ALL PERMITS ==========
+
 exports.getAllPermits = async (req, res) => {
   try {
+    const mongoose = require('mongoose')
     const {
+      search,
       page = 1,
       limit = 20,
-      search,
       status,
-      dateFilter,
-      sortBy = 'createdAt',
-      sortOrder = 'desc'
+      showHistory = 'false',
+      vehicleNumber
     } = req.query
 
-    // Build query
+    // Special handling for expired/expiring status filters - use aggregation to show only latest per vehicle
+    if (status && ['partAExpiring', 'partBExpiring', 'partAExpired', 'partBExpired'].includes(status)) {
+      let matchQuery = {
+        userId: new mongoose.Types.ObjectId(req.user.id),
+        isRenewed: false
+      }
+
+      // Get exclusion lists based on status
+      let excludeVehicles = []
+
+      if (status === 'partAExpiring') {
+        matchQuery.partAStatus = 'expiring_soon'
+        // Exclude vehicles with active Part A
+        excludeVehicles = await NationalPermit.find({
+          userId: req.user.id,
+          isRenewed: false,
+          partAStatus: 'active'
+        }).distinct('vehicleNumber')
+      } else if (status === 'partBExpiring') {
+        matchQuery.partBStatus = 'expiring_soon'
+        // Exclude vehicles with active Part B
+        excludeVehicles = await NationalPermit.find({
+          userId: req.user.id,
+          isRenewed: false,
+          partBStatus: 'active'
+        }).distinct('vehicleNumber')
+      } else if (status === 'partAExpired') {
+        matchQuery.partAStatus = 'expired'
+        // Exclude vehicles with active OR expiring_soon Part A
+        excludeVehicles = await NationalPermit.find({
+          userId: req.user.id,
+          isRenewed: false,
+          partAStatus: { $in: ['active', 'expiring_soon'] }
+        }).distinct('vehicleNumber')
+      } else if (status === 'partBExpired') {
+        matchQuery.partBStatus = 'expired'
+        // Exclude vehicles with active OR expiring_soon Part B
+        excludeVehicles = await NationalPermit.find({
+          userId: req.user.id,
+          isRenewed: false,
+          partBStatus: { $in: ['active', 'expiring_soon'] }
+        }).distinct('vehicleNumber')
+      }
+
+      if (excludeVehicles.length > 0) {
+        matchQuery.vehicleNumber = { $nin: excludeVehicles }
+      }
+
+      // Use aggregation to get only latest per vehicle
+      const permits = await NationalPermit.aggregate([
+        { $match: matchQuery },
+        { $sort: { createdAt: -1 } },
+        {
+          $group: {
+            _id: '$vehicleNumber',
+            latestPermit: { $first: '$$ROOT' }
+          }
+        },
+        { $replaceRoot: { newRoot: '$latestPermit' } },
+        { $sort: { createdAt: -1 } },
+        { $skip: (parseInt(page) - 1) * parseInt(limit) },
+        { $limit: parseInt(limit) }
+      ])
+
+      // Count unique vehicles for total
+      const uniqueVehicles = await NationalPermit.find(matchQuery).distinct('vehicleNumber')
+      const total = uniqueVehicles.length
+
+      return res.status(200).json({
+        success: true,
+        data: permits,
+        pagination: {
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(total / parseInt(limit)),
+          totalRecords: total,
+          limit: parseInt(limit)
+        }
+      })
+    }
+
+    // Regular query for other cases (all, pending, search, etc.)
     const query = { userId: req.user.id }
 
-    // Search by permit number, permit holder, vehicle number
+    // Filter by history
+    if (showHistory === 'false') {
+      query.isRenewed = false
+    }
+
+    // Search filter (vehicle number and permit holder name only)
     if (search) {
       query.$or = [
-        { permitNumber: { $regex: search, $options: 'i' } },
-        { permitHolder: { $regex: search, $options: 'i' } },
         { vehicleNumber: { $regex: search, $options: 'i' } },
-        { mobileNumber: { $regex: search, $options: 'i' } }
+        { permitHolder: { $regex: search, $options: 'i' } }
       ]
     }
 
-    // Filter by status or pending payment
-    if (status) {
+    // Vehicle number filter (for showing history of specific vehicle)
+    if (vehicleNumber) {
+      query.vehicleNumber = { $regex: vehicleNumber, $options: 'i' }
+    }
+
+    // Status filter for other statuses
+    if (status && status !== 'all') {
       if (status === 'pending') {
         query.balance = { $gt: 0 }
-      } else {
-        query.status = status
+        query.isRenewed = false
       }
     }
 
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit)
-    const sortOptions = {}
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+    // Execute query with pagination
+    const permits = await NationalPermit.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
 
-    // Execute query to get all Part A records
-    let partARecords = await NationalPermitPartA.find(query)
-      .sort(sortOptions)
-
-    // Apply date filtering if specified
-    if (dateFilter) {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      partARecords = partARecords.filter(partA => {
-        const validToDate = parsePermitDate(partA.validTo)
-        if (!validToDate) return false
-
-        const diffTime = validToDate - today
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-        switch (dateFilter) {
-          case 'Expiring30Days':
-            return diffDays >= 0 && diffDays <= 30
-          case 'Expiring60Days':
-            return diffDays >= 0 && diffDays <= 60
-          case 'Expired':
-            return diffDays < 0
-          default:
-            return true
-        }
-      })
-    }
-
-    // For each Part A, get the active Part B
-    const permits = await Promise.all(
-      partARecords.map(async (partA) => {
-        const activePartB = await NationalPermitPartB.findOne({
-          userId: req.user.id,
-          vehicleNumber: partA.vehicleNumber,
-          permitNumber: partA.permitNumber,
-          status: 'active'
-        })
-        .sort({ createdAt: -1 })
-
-        return {
-          _id: partA._id,
-          partA: partA,
-          partB: activePartB,
-          vehicleNumber: partA.vehicleNumber,
-          permitNumber: partA.permitNumber,
-          permitHolder: partA.permitHolder,
-          createdAt: partA.createdAt
-        }
-      })
-    )
-
-    // Apply pagination after filtering
-    const total = permits.length
-    const paginatedPermits = permits.slice(skip, skip + parseInt(limit))
+    const total = await NationalPermit.countDocuments(query)
 
     res.status(200).json({
       success: true,
-      data: paginatedPermits,
+      data: permits,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
+        totalRecords: total,
+        limit: parseInt(limit)
       }
     })
   } catch (error) {
@@ -280,111 +315,219 @@ exports.getAllPermits = async (req, res) => {
   }
 }
 
-// Export all national permits without pagination (for data export functionality)
-exports.exportAllPermits = async (req, res) => {
-  try {
-    // Execute query to get all Part A records without pagination
-    const partARecords = await NationalPermitPartA.find({ userId: req.user.id })
-      .sort({ createdAt: -1 })
+// ========== SMART RENEW PERMIT ==========
 
-    // For each Part A, get the active Part B
-    const permits = await Promise.all(
-      partARecords.map(async (partA) => {
-        const activePartB = await NationalPermitPartB.findOne({
-          userId: req.user.id,
-          vehicleNumber: partA.vehicleNumber,
-          permitNumber: partA.permitNumber,
-          status: 'active'
-        })
-        .sort({ createdAt: -1 })
-
-        return {
-          _id: partA._id,
-          vehicleNumber: partA.vehicleNumber,
-          permitNumber: partA.permitNumber,
-          permitHolder: partA.permitHolder,
-          fatherName: partA.fatherName,
-          address: partA.address,
-          mobileNumber: partA.mobileNumber,
-          email: partA.email,
-          partAValidFrom: partA.validFrom,
-          partAValidTo: partA.validTo,
-          partAImage: partA.partAImage,
-          partBNumber: activePartB?.number || '',
-          partBValidFrom: activePartB?.validFrom || '',
-          partBValidTo: activePartB?.validTo || '',
-          partBImage: activePartB?.partBImage || '',
-          totalFee: partA.totalFee,
-          paid: partA.paid,
-          balance: partA.balance,
-          status: partA.status,
-          notes: partA.notes,
-          createdAt: partA.createdAt,
-          updatedAt: partA.updatedAt
-        }
-      })
-    )
-
-    res.status(200).json({
-      success: true,
-      data: permits,
-      total: permits.length
-    })
-  } catch (error) {
-    console.error('Error exporting permits:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to export permits',
-      error: error.message
-    })
-  }
-}
-
-// Delete national permit (deletes all Part A and Part B records and bills)
-exports.deletePermit = async (req, res) => {
+exports.smartRenewPermit = async (req, res) => {
   try {
     const { id } = req.params
+    const {
+      renewType, // 'partA', 'partB', or 'both'
+      partAPermitNumber, // New permit number if renewing Part A
+      partAValidFrom,
+      partAValidTo,
+      partBNumber,
+      partBValidFrom,
+      partBValidTo,
+      totalFee,
+      paid,
+      balance,
+      notes
+    } = req.body
 
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit ID is required'
-      })
-    }
+    // Find original permit
+    const originalPermit = await NationalPermit.findOne({
+      _id: id,
+      userId: req.user.id
+    })
 
-    // Find the Part A record to get vehicle number and permit number
-    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
-
-    if (!partA) {
+    if (!originalPermit) {
       return res.status(404).json({
         success: false,
         message: 'Permit not found'
       })
     }
 
-    const { vehicleNumber, permitNumber } = partA
+    // Mark original as renewed
+    originalPermit.isRenewed = true
+    await originalPermit.save()
 
-    // Find all Part A records
-    const partARecords = await NationalPermitPartA.find({ vehicleNumber, permitNumber, userId: req.user.id })
+    // Prepare new permit data
+    const newPermitData = {
+      userId: req.user.id,
+      vehicleNumber: originalPermit.vehicleNumber,
+      mobileNumber: originalPermit.mobileNumber,
+      totalFee: parseFloat(totalFee) || 0,
+      paid: parseFloat(paid) || 0,
+      balance: parseFloat(balance) || 0,
+      isRenewed: false,
+      notes: notes || ''
+    }
 
-    // Find all Part B records
-    const partBRecords = await NationalPermitPartB.find({ vehicleNumber, permitNumber, userId: req.user.id })
+    // CASE 1: Renew Part A (new 5-year permit)
+    if (renewType === 'partA' || renewType === 'both') {
+      newPermitData.permitNumber = partAPermitNumber
+      newPermitData.permitHolder = originalPermit.permitHolder
+      newPermitData.partAValidFrom = partAValidFrom
+      newPermitData.partAValidTo = partAValidTo
+      newPermitData.partAStatus = getPartAStatus(partAValidTo)
+      newPermitData.partADocument = originalPermit.partADocument
 
-    // Delete all Part A records
-    await NationalPermitPartA.deleteMany({ vehicleNumber, permitNumber, userId: req.user.id })
+      // If renewing Part A, also create new Part B
+      newPermitData.authNumber = partBNumber
+      newPermitData.partBValidFrom = partBValidFrom
+      newPermitData.partBValidTo = partBValidTo
+      newPermitData.partBStatus = getPartBStatus(partBValidTo)
+      newPermitData.partBDocument = originalPermit.partBDocument
+    }
+    // CASE 2: Renew Part B only (Part A still active)
+    else if (renewType === 'partB') {
+      // Copy Part A data from original
+      newPermitData.permitNumber = originalPermit.permitNumber
+      newPermitData.permitHolder = originalPermit.permitHolder
+      newPermitData.partAValidFrom = originalPermit.partAValidFrom
+      newPermitData.partAValidTo = originalPermit.partAValidTo
+      newPermitData.partAStatus = originalPermit.partAStatus
+      newPermitData.partADocument = originalPermit.partADocument
 
-    // Delete all Part B records
-    await NationalPermitPartB.deleteMany({ vehicleNumber, permitNumber, userId: req.user.id })
+      // New Part B data
+      newPermitData.authNumber = partBNumber
+      newPermitData.partBValidFrom = partBValidFrom
+      newPermitData.partBValidTo = partBValidTo
+      newPermitData.partBStatus = getPartBStatus(partBValidTo)
+      newPermitData.partBDocument = originalPermit.partBDocument
+    }
+
+    // Create new permit document
+    const newPermit = new NationalPermit(newPermitData)
+    await newPermit.save()
 
     res.status(200).json({
       success: true,
-      message: 'Permit and all associated records deleted successfully',
-      data: {
-        permitNumber,
-        vehicleNumber,
-        partADeleted: partARecords.length,
-        partBDeleted: partBRecords.length
-      }
+      message: `Permit renewed successfully (${renewType})`,
+      data: newPermit
+    })
+  } catch (error) {
+    console.error('Error renewing permit:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to renew permit',
+      error: error.message
+    })
+  }
+}
+
+// ========== UPDATE PERMIT ==========
+
+exports.updatePermit = async (req, res) => {
+  try {
+    const { id } = req.params
+    const updateData = req.body
+
+    const permit = await NationalPermit.findOne({ _id: id, userId: req.user.id })
+
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    // Update basic fields
+    if (updateData.mobileNumber !== undefined) permit.mobileNumber = updateData.mobileNumber
+
+    // Update Part A
+    if (updateData.permitHolder) permit.permitHolder = updateData.permitHolder
+    if (updateData.partAValidFrom) permit.partAValidFrom = updateData.partAValidFrom
+    if (updateData.partAValidTo) {
+      permit.partAValidTo = updateData.partAValidTo
+      permit.partAStatus = getPartAStatus(updateData.partAValidTo)
+    }
+
+    // Update Part B
+    if (updateData.partBNumber) permit.authNumber = updateData.partBNumber
+    if (updateData.partBValidFrom) permit.partBValidFrom = updateData.partBValidFrom
+    if (updateData.partBValidTo) {
+      permit.partBValidTo = updateData.partBValidTo
+      permit.partBStatus = getPartBStatus(updateData.partBValidTo)
+    }
+
+    // Update payment
+    if (updateData.totalFee !== undefined) permit.totalFee = parseFloat(updateData.totalFee)
+    if (updateData.paid !== undefined) permit.paid = parseFloat(updateData.paid)
+    if (updateData.balance !== undefined) permit.balance = parseFloat(updateData.balance)
+
+    // Update notes
+    if (updateData.notes !== undefined) permit.notes = updateData.notes
+
+    await permit.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Permit updated successfully',
+      data: permit
+    })
+  } catch (error) {
+    console.error('Error updating permit:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update permit',
+      error: error.message
+    })
+  }
+}
+
+// ========== MARK AS PAID ==========
+
+exports.markAsPaid = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const permit = await NationalPermit.findOne({ _id: id, userId: req.user.id })
+
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    permit.paid = permit.totalFee
+    permit.balance = 0
+    await permit.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment marked as complete',
+      data: permit
+    })
+  } catch (error) {
+    console.error('Error marking as paid:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to mark as paid',
+      error: error.message
+    })
+  }
+}
+
+// ========== DELETE PERMIT ==========
+
+exports.deletePermit = async (req, res) => {
+  try {
+    const { id } = req.params
+
+    const permit = await NationalPermit.findOneAndDelete({ _id: id, userId: req.user.id })
+
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Permit deleted successfully'
     })
   } catch (error) {
     console.error('Error deleting permit:', error)
@@ -396,265 +539,262 @@ exports.deletePermit = async (req, res) => {
   }
 }
 
-// Renew Part A (creates new Part A document)
-exports.renewPartA = async (req, res) => {
+// ========== EXPORT ALL PERMITS ==========
+
+exports.exportAllPermits = async (req, res) => {
   try {
-    const { id } = req.params
-    const {
-      validFrom,
-      validTo,
-      totalFee,
-      paid,
-      balance,
-      notes,
-      partBNumber,
-      partBValidFrom,
-      partBValidTo
-    } = req.body
+    const permits = await NationalPermit.find({ userId: req.user.id })
+      .sort({ createdAt: -1 })
 
-    // Validate required fields
-    if (!validFrom || !validTo) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid From and Valid To dates are required'
-      })
-    }
+    res.status(200).json({
+      success: true,
+      data: permits
+    })
+  } catch (error) {
+    console.error('Error exporting permits:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export permits',
+      error: error.message
+    })
+  }
+}
 
-    if (totalFee === undefined || paid === undefined || balance === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'Total fee, paid, and balance are required'
-      })
-    }
+// ========== CHECK EXISTING PERMIT ==========
 
-    // Get the original Part A for reference
-    const originalPartA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
+exports.checkExistingPermit = async (req, res) => {
+  try {
+    const { vehicleNumber } = req.params
 
-    if (!originalPartA) {
-      return res.status(404).json({
-        success: false,
-        message: 'Original permit not found'
-      })
-    }
-
-    const { vehicleNumber, permitNumber } = originalPartA
-
-    // Mark old Part A as expired
-    await NationalPermitPartA.updateMany(
-      { vehicleNumber, permitNumber, status: 'active' },
-      { status: 'expired' }
-    )
-
-    // Check if there's an active Part B
-    const activePartB = await NationalPermitPartB.findOne({
+    // Find latest (non-renewed) permit for this vehicle
+    const existingPermit = await NationalPermit.findOne({
       vehicleNumber,
-      permitNumber,
-      status: 'active'
+      userId: req.user.id,
+      isRenewed: false
     }).sort({ createdAt: -1 })
 
-    let newPartB = null
-
-    if (!activePartB) {
-      // Scenario 2: No active Part B - Create Part A + Part B together
-      console.log('No active Part B, creating Part A + Part B')
-
-      if (!partBNumber || !partBValidFrom || !partBValidTo) {
-        return res.status(400).json({
-          success: false,
-          message: 'Part B details (partBNumber, partBValidFrom, partBValidTo) are required when no active Part B exists'
-        })
-      }
+    if (!existingPermit) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          hasActivePermit: false,
+          message: 'No existing permit found. You can create a new permit.'
+        }
+      })
     }
 
-    // Create new Part A
-    const newPartA = new NationalPermitPartA({
-      vehicleNumber,
-      permitNumber,
-      permitHolder: originalPartA.permitHolder,
-      fatherName: originalPartA.fatherName,
-      address: originalPartA.address,
-      mobileNumber: originalPartA.mobileNumber,
-      email: originalPartA.email,
-      validFrom,
-      validTo,
-      totalFee,
-      paid,
-      balance,
-      status: 'active',
-      notes: notes || 'Part A renewal'
-    })
-    await newPartA.save()
+    // Check if strictly active (for blocking creation and autofill)
+    const partAStrictlyActive = existingPermit.partAStatus === 'active'
+    const partBStrictlyActive = existingPermit.partBStatus === 'active'
 
-    // Create new Part B ONLY if no active Part B exists
-    if (!activePartB) {
-      // Mark old Part B as expired if exists
-      await NationalPermitPartB.updateMany(
-        { vehicleNumber, permitNumber, status: 'active' },
-        { status: 'expired' }
-      )
+    // Prepare Part A data - only autofill if strictly active
+    const activePartA = partAStrictlyActive ? {
+      permitNumber: existingPermit.permitNumber,
+      permitHolder: existingPermit.permitHolder,
+      validFrom: existingPermit.partAValidFrom,
+      validTo: existingPermit.partAValidTo,
+      mobileNumber: existingPermit.mobileNumber
+    } : null
 
-      newPartB = new NationalPermitPartB({
-        vehicleNumber,
-        permitNumber,
-        partBNumber,
-        permitHolder: originalPartA.permitHolder,
-        validFrom: partBValidFrom,
-        validTo: partBValidTo,
-        status: 'active'
+    // Prepare Part B data - only autofill if strictly active
+    const activePartB = partBStrictlyActive ? {
+      partBNumber: existingPermit.authNumber,
+      validFrom: existingPermit.partBValidFrom,
+      validTo: existingPermit.partBValidTo
+    } : null
+
+    // Prepare old permit details for display (not autofill)
+    const oldPartADetails = !partAStrictlyActive ? {
+      permitNumber: existingPermit.permitNumber,
+      permitHolder: existingPermit.permitHolder,
+      validFrom: existingPermit.partAValidFrom,
+      validTo: existingPermit.partAValidTo,
+      status: existingPermit.partAStatus
+    } : null
+
+    const oldPartBDetails = !partBStrictlyActive ? {
+      authNumber: existingPermit.authNumber,
+      validFrom: existingPermit.partBValidFrom,
+      validTo: existingPermit.partBValidTo,
+      status: existingPermit.partBStatus
+    } : null
+
+    // Only block creation if BOTH are strictly active
+    if (partAStrictlyActive && partBStrictlyActive) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          hasActivePermit: true,
+          hasActivePartA: true,
+          hasActivePartB: true,
+          message: 'Both Part A and Part B are active. Cannot create new permit.',
+          activePartA,
+          activePartB
+        }
       })
-      await newPartB.save()
+    }
+
+    // Build appropriate message
+    let message = 'Ready to create new permit.'
+    if (partAStrictlyActive && !partBStrictlyActive) {
+      message = 'Part A is active (will be auto-filled). Please add new Part B details.'
+    } else if (!partAStrictlyActive && partBStrictlyActive) {
+      message = 'Part B is active (will be auto-filled). Please add new Part A details.'
+    } else if (!partAStrictlyActive && !partBStrictlyActive) {
+      message = 'Please add both Part A and Part B details (both need renewal).'
     }
 
     res.status(200).json({
       success: true,
-      message: activePartB
-        ? 'Part A renewed successfully. Active Part B continues.'
-        : 'Part A renewed successfully with new Part B',
       data: {
-        partA: newPartA,
-        partB: newPartB || activePartB,
-        usedExistingPartB: !!activePartB
+        hasActivePermit: false,
+        hasActivePartA: partAStrictlyActive,
+        hasActivePartB: partBStrictlyActive,
+        message,
+        activePartA,
+        activePartB,
+        oldPartADetails,
+        oldPartBDetails
       }
     })
   } catch (error) {
-    console.error('Error renewing Part A:', error)
+    console.error('Error checking existing permit:', error)
     res.status(500).json({
       success: false,
-      message: 'Failed to renew Part A',
+      message: 'Failed to check existing permit',
       error: error.message
     })
   }
 }
 
-// Renew Part B (creates new Part B document with its own bill)
-exports.renewPartB = async (req, res) => {
+// ========== GET PENDING PAYMENT PERMITS ==========
+
+exports.getPendingPermits = async (req, res) => {
   try {
-    const { id } = req.params
-    const {
-      partBNumber,
-      validFrom,
-      validTo,
-      totalFee = 5000,
-      paid,
-      balance,
-      notes
-    } = req.body
+    const { search, page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = req.query
 
-    // Validate required fields
-    if (!partBNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Part B number is required'
-      })
+    // Build query for pending payments
+    const query = {
+      userId: req.user.id,
+      isRenewed: false,
+      balance: { $gt: 0 }
     }
 
-    if (!validFrom || !validTo) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid From and Valid To dates are required'
-      })
+    // Search filter (vehicle number and permit holder name only)
+    if (search) {
+      query.$or = [
+        { vehicleNumber: { $regex: search, $options: 'i' } },
+        { permitHolder: { $regex: search, $options: 'i' } }
+      ]
     }
 
-    if (paid === undefined || balance === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'Paid and balance are required'
-      })
-    }
+    // Sort options
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
 
-    // Get the original Part A for reference
-    const originalPartA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
+    // Execute query with pagination
+    const permits = await NationalPermit.find(query)
+      .sort(sortOptions)
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
 
-    if (!originalPartA) {
-      return res.status(404).json({
-        success: false,
-        message: 'Original permit not found'
-      })
-    }
-
-    const { vehicleNumber, permitNumber } = originalPartA
-
-    // Mark old Part B as expired
-    await NationalPermitPartB.updateMany(
-      { vehicleNumber, permitNumber, status: 'active' },
-      { status: 'expired' }
-    )
-
-    // Create new Part B
-    const newPartB = new NationalPermitPartB({
-      vehicleNumber,
-      permitNumber,
-      partBNumber,
-      permitHolder: originalPartA.permitHolder,
-      validFrom,
-      validTo,
-      totalFee,
-      paid,
-      balance,
-      status: 'active',
-      notes: notes || 'Part B renewal'
-    })
-    await newPartB.save()
+    const total = await NationalPermit.countDocuments(query)
 
     res.status(200).json({
       success: true,
-      message: 'Part B renewed successfully',
-      data: {
-        partB: newPartB
-      }
-    })
-  } catch (error) {
-    console.error('Error renewing Part B:', error)
-    res.status(500).json({
-      success: false,
-      message: 'Failed to renew Part B',
-      error: error.message
-    })
-  }
-}
-
-// Get Part A expiring soon
-exports.getPartAExpiringSoon = async (req, res) => {
-  try {
-    const { page = 1, limit = 20 } = req.query
-
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    // Get all active Part A records for the logged-in user
-    const allPartA = await NationalPermitPartA.find({ status: 'active', userId: req.user.id })
-
-    // Filter Part A expiring in next 30 days
-    const expiringPartA = allPartA.filter(partA => {
-      const validToDate = parsePermitDate(partA.validTo)
-      if (!validToDate) return false
-
-      const diffTime = validToDate - today
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-      return diffDays >= 0 && diffDays <= 30
-    })
-
-    // Sort by expiry date
-    expiringPartA.sort((a, b) => {
-      const dateA = parsePermitDate(a.validTo)
-      const dateB = parsePermitDate(b.validTo)
-      return dateA - dateB
-    })
-
-    // Apply pagination
-    const total = expiringPartA.length
-    const skip = (parseInt(page) - 1) * parseInt(limit)
-    const paginatedPartA = expiringPartA.slice(skip, skip + parseInt(limit))
-
-    res.status(200).json({
-      success: true,
-      data: paginatedPartA,
+      data: permits,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
+        totalRecords: total,
+        limit: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching pending payment permits:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch pending payment permits',
+      error: error.message
+    })
+  }
+}
+
+// ========== GET PART A EXPIRING SOON ==========
+
+exports.getPartAExpiringSoon = async (req, res) => {
+  try {
+    const mongoose = require('mongoose')
+    const { search, page = 1, limit = 20, sortBy = 'partAValidTo', sortOrder = 'asc' } = req.query
+
+    // Get vehicle numbers with active Part A (to exclude from expiring list)
+    const vehiclesWithActivePartA = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partAStatus: 'active'
+    }).distinct('vehicleNumber')
+
+    // Build aggregation pipeline
+    const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.user.id),
+          isRenewed: false,
+          partAStatus: 'expiring_soon',
+          vehicleNumber: { $nin: vehiclesWithActivePartA }
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $group: {
+          _id: '$vehicleNumber',
+          latestPermit: { $first: '$$ROOT' }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: '$latestPermit' }
+      }
+    ]
+
+    // Add search filter if provided (vehicle number and permit holder name only)
+    if (search) {
+      pipeline.splice(1, 0, {
+        $match: {
+          $or: [
+            { vehicleNumber: { $regex: search, $options: 'i' } },
+            { permitHolder: { $regex: search, $options: 'i' } }
+          ]
+        }
+      })
+    }
+
+    // Add sorting
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+    pipeline.push({ $sort: sortOptions })
+
+    // Get total count before pagination
+    const countPipeline = [...pipeline]
+    countPipeline.push({ $count: 'total' })
+    const countResult = await NationalPermit.aggregate(countPipeline)
+    const total = countResult.length > 0 ? countResult[0].total : 0
+
+    // Add pagination
+    pipeline.push({ $skip: (parseInt(page) - 1) * parseInt(limit) })
+    pipeline.push({ $limit: parseInt(limit) })
+
+    const permits = await NationalPermit.aggregate(pipeline)
+
+    res.status(200).json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        limit: parseInt(limit)
       }
     })
   } catch (error) {
@@ -667,48 +807,81 @@ exports.getPartAExpiringSoon = async (req, res) => {
   }
 }
 
-// Get Part B expiring soon
+// ========== GET PART B EXPIRING SOON ==========
+
 exports.getPartBExpiringSoon = async (req, res) => {
   try {
-    const { page = 1, limit = 20 } = req.query
+    const mongoose = require('mongoose')
+    const { search, page = 1, limit = 20, sortBy = 'partBValidTo', sortOrder = 'asc' } = req.query
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // Get vehicle numbers with active Part B (to exclude from expiring list)
+    const vehiclesWithActivePartB = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partBStatus: 'active'
+    }).distinct('vehicleNumber')
 
-    // Get all active Part B records for the logged-in user
-    const allPartB = await NationalPermitPartB.find({ status: 'active', userId: req.user.id })
+    // Build aggregation pipeline
+    const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.user.id),
+          isRenewed: false,
+          partBStatus: 'expiring_soon',
+          vehicleNumber: { $nin: vehiclesWithActivePartB }
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $group: {
+          _id: '$vehicleNumber',
+          latestPermit: { $first: '$$ROOT' }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: '$latestPermit' }
+      }
+    ]
 
-    // Filter Part B expiring in next 30 days
-    const expiringPartB = allPartB.filter(partB => {
-      const validToDate = parsePermitDate(partB.validTo)
-      if (!validToDate) return false
+    // Add search filter if provided (vehicle number and permit holder name only)
+    if (search) {
+      pipeline.splice(1, 0, {
+        $match: {
+          $or: [
+            { vehicleNumber: { $regex: search, $options: 'i' } },
+            { permitHolder: { $regex: search, $options: 'i' } }
+          ]
+        }
+      })
+    }
 
-      const diffTime = validToDate - today
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    // Add sorting
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+    pipeline.push({ $sort: sortOptions })
 
-      return diffDays >= 0 && diffDays <= 30
-    })
+    // Get total count before pagination
+    const countPipeline = [...pipeline]
+    countPipeline.push({ $count: 'total' })
+    const countResult = await NationalPermit.aggregate(countPipeline)
+    const total = countResult.length > 0 ? countResult[0].total : 0
 
-    // Sort by expiry date
-    expiringPartB.sort((a, b) => {
-      const dateA = parsePermitDate(a.validTo)
-      const dateB = parsePermitDate(b.validTo)
-      return dateA - dateB
-    })
+    // Add pagination
+    pipeline.push({ $skip: (parseInt(page) - 1) * parseInt(limit) })
+    pipeline.push({ $limit: parseInt(limit) })
 
-    // Apply pagination
-    const total = expiringPartB.length
-    const skip = (parseInt(page) - 1) * parseInt(limit)
-    const paginatedPartB = expiringPartB.slice(skip, skip + parseInt(limit))
+    const permits = await NationalPermit.aggregate(pipeline)
 
     res.status(200).json({
       success: true,
-      data: paginatedPartB,
+      data: permits,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
-        totalItems: total,
-        itemsPerPage: parseInt(limit)
+        totalRecords: total,
+        limit: parseInt(limit)
       }
     })
   } catch (error) {
@@ -721,178 +894,378 @@ exports.getPartBExpiringSoon = async (req, res) => {
   }
 }
 
-// Get Part A renewal history
+// ========== GET PART A EXPIRED ==========
+
+exports.getPartAExpired = async (req, res) => {
+  try {
+    const mongoose = require('mongoose')
+    const { search, page = 1, limit = 20, sortBy = 'partAValidTo', sortOrder = 'desc' } = req.query
+
+    // Get vehicle numbers with active OR expiring_soon Part A (to exclude from expired list)
+    const vehiclesWithActiveOrExpiringSoonPartA = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partAStatus: { $in: ['active', 'expiring_soon'] }
+    }).distinct('vehicleNumber')
+
+    // Build aggregation pipeline
+    const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.user.id),
+          isRenewed: false,
+          partAStatus: 'expired',
+          vehicleNumber: { $nin: vehiclesWithActiveOrExpiringSoonPartA }
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $group: {
+          _id: '$vehicleNumber',
+          latestPermit: { $first: '$$ROOT' }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: '$latestPermit' }
+      }
+    ]
+
+    // Add search filter if provided (vehicle number and permit holder name only)
+    if (search) {
+      pipeline.splice(1, 0, {
+        $match: {
+          $or: [
+            { vehicleNumber: { $regex: search, $options: 'i' } },
+            { permitHolder: { $regex: search, $options: 'i' } }
+          ]
+        }
+      })
+    }
+
+    // Add sorting
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+    pipeline.push({ $sort: sortOptions })
+
+    // Get total count before pagination
+    const countPipeline = [...pipeline]
+    countPipeline.push({ $count: 'total' })
+    const countResult = await NationalPermit.aggregate(countPipeline)
+    const total = countResult.length > 0 ? countResult[0].total : 0
+
+    // Add pagination
+    pipeline.push({ $skip: (parseInt(page) - 1) * parseInt(limit) })
+    pipeline.push({ $limit: parseInt(limit) })
+
+    const permits = await NationalPermit.aggregate(pipeline)
+
+    res.status(200).json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        limit: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching Part A expired:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Part A expired',
+      error: error.message
+    })
+  }
+}
+
+// ========== GET PART B EXPIRED ==========
+
+exports.getPartBExpired = async (req, res) => {
+  try {
+    const mongoose = require('mongoose')
+    const { search, page = 1, limit = 20, sortBy = 'partBValidTo', sortOrder = 'desc' } = req.query
+
+    // Get vehicle numbers with active OR expiring_soon Part B (to exclude from expired list)
+    const vehiclesWithActiveOrExpiringSoonPartB = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partBStatus: { $in: ['active', 'expiring_soon'] }
+    }).distinct('vehicleNumber')
+
+    // Build aggregation pipeline
+    const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.user.id),
+          isRenewed: false,
+          partBStatus: 'expired',
+          vehicleNumber: { $nin: vehiclesWithActiveOrExpiringSoonPartB }
+        }
+      },
+      {
+        $sort: { createdAt: -1 }
+      },
+      {
+        $group: {
+          _id: '$vehicleNumber',
+          latestPermit: { $first: '$$ROOT' }
+        }
+      },
+      {
+        $replaceRoot: { newRoot: '$latestPermit' }
+      }
+    ]
+
+    // Add search filter if provided (vehicle number and permit holder name only)
+    if (search) {
+      pipeline.splice(1, 0, {
+        $match: {
+          $or: [
+            { vehicleNumber: { $regex: search, $options: 'i' } },
+            { permitHolder: { $regex: search, $options: 'i' } }
+          ]
+        }
+      })
+    }
+
+    // Add sorting
+    const sortOptions = {}
+    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
+    pipeline.push({ $sort: sortOptions })
+
+    // Get total count before pagination
+    const countPipeline = [...pipeline]
+    countPipeline.push({ $count: 'total' })
+    const countResult = await NationalPermit.aggregate(countPipeline)
+    const total = countResult.length > 0 ? countResult[0].total : 0
+
+    // Add pagination
+    pipeline.push({ $skip: (parseInt(page) - 1) * parseInt(limit) })
+    pipeline.push({ $limit: parseInt(limit) })
+
+    const permits = await NationalPermit.aggregate(pipeline)
+
+    res.status(200).json({
+      success: true,
+      data: permits,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalRecords: total,
+        limit: parseInt(limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching Part B expired:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Part B expired',
+      error: error.message
+    })
+  }
+}
+
+// ========== GET PART A RENEWAL HISTORY ==========
+
 exports.getPartARenewalHistory = async (req, res) => {
   try {
     const { id } = req.params
 
-    // Get the Part A record to find vehicle number and permit number
-    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
+    // Get the current permit
+    const permit = await NationalPermit.findById(id)
 
-    if (!partA) {
+    if (!permit) {
       return res.status(404).json({
         success: false,
         message: 'Permit not found'
       })
     }
 
-    const { vehicleNumber, permitNumber } = partA
-
-    const partAHistory = await NationalPermitPartA.find({
-      vehicleNumber,
-      permitNumber,
+    // Find all permits for this vehicle (history)
+    const history = await NationalPermit.find({
+      vehicleNumber: permit.vehicleNumber,
       userId: req.user.id
-    })
-    .sort({ createdAt: -1 })
+    }).sort({ createdAt: -1 })
 
     res.status(200).json({
       success: true,
-      data: partAHistory,
-      count: partAHistory.length
+      data: history
     })
   } catch (error) {
     console.error('Error fetching Part A renewal history:', error)
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch Part A renewal history',
+      message: 'Failed to fetch renewal history',
       error: error.message
     })
   }
 }
 
-// Get Part B renewal history
+// ========== GET PART B RENEWAL HISTORY ==========
+
 exports.getPartBRenewalHistory = async (req, res) => {
   try {
     const { id } = req.params
 
-    // Get the Part A record to find vehicle number and permit number
-    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
+    // Get the current permit
+    const permit = await NationalPermit.findById(id)
 
-    if (!partA) {
+    if (!permit) {
       return res.status(404).json({
         success: false,
         message: 'Permit not found'
       })
     }
 
-    const { vehicleNumber, permitNumber } = partA
-
-    const partBHistory = await NationalPermitPartB.find({
-      vehicleNumber,
-      permitNumber,
+    // Find all permits for this vehicle (history)
+    const history = await NationalPermit.find({
+      vehicleNumber: permit.vehicleNumber,
       userId: req.user.id
-    })
-    .sort({ createdAt: -1 })
+    }).sort({ createdAt: -1 })
 
     res.status(200).json({
       success: true,
-      data: partBHistory,
-      count: partBHistory.length
+      data: history
     })
   } catch (error) {
     console.error('Error fetching Part B renewal history:', error)
     res.status(500).json({
       success: false,
-      message: 'Failed to fetch Part B renewal history',
+      message: 'Failed to fetch renewal history',
       error: error.message
     })
   }
 }
 
-// Update permit (updates Part A)
-exports.updatePermit = async (req, res) => {
+// ========== GET STATISTICS ==========
+
+exports.getStatistics = async (req, res) => {
   try {
-    const { id } = req.params
-    const updateData = req.body
+    const mongoose = require('mongoose')
 
-    const partA = await NationalPermitPartA.findOne({ _id: id, userId: req.user.id })
-    if (!partA) {
-      return res.status(404).json({
-        success: false,
-        message: 'Permit not found'
-      })
-    }
+    // Total permits (only non-renewed)
+    const total = await NationalPermit.countDocuments({
+      userId: req.user.id,
+      isRenewed: false
+    })
 
-    // Validate payment fields if provided
-    const updatedTotalFee = updateData.totalFee !== undefined ? updateData.totalFee : partA.totalFee
-    const updatedPaid = updateData.paid !== undefined ? updateData.paid : partA.paid
-    const updatedBalance = updateData.balance !== undefined ? updateData.balance : partA.balance
+    // Get vehicle numbers with active OR expiring_soon Part A (to exclude from expired counts)
+    const vehiclesWithActiveOrExpiringSoonPartA = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partAStatus: { $in: ['active', 'expiring_soon'] }
+    }).distinct('vehicleNumber')
 
-    if (updatedPaid > updatedTotalFee) {
-      return res.status(400).json({
-        success: false,
-        message: 'Paid amount cannot be greater than total fee'
-      })
-    }
+    // Get vehicle numbers with active OR expiring_soon Part B (to exclude from expired counts)
+    const vehiclesWithActiveOrExpiringSoonPartB = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partBStatus: { $in: ['active', 'expiring_soon'] }
+    }).distinct('vehicleNumber')
 
-    if (updatedBalance < 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Balance amount cannot be negative'
-      })
-    }
+    // Get vehicle numbers with only active Part A (to exclude from expiring_soon counts)
+    const vehiclesWithActivePartA = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partAStatus: 'active'
+    }).distinct('vehicleNumber')
 
-    // Update fields
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key] !== undefined) {
-        partA[key] = updateData[key]
+    // Get vehicle numbers with only active Part B (to exclude from expiring_soon counts)
+    const vehiclesWithActivePartB = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partBStatus: 'active'
+    }).distinct('vehicleNumber')
+
+    // Part A expiring soon - count unique vehicles (only latest expiring per vehicle)
+    const partAExpiringSoonVehicles = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partAStatus: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActivePartA }
+    }).distinct('vehicleNumber')
+    const partAExpiringSoon = partAExpiringSoonVehicles.length
+
+    // Part B expiring soon - count unique vehicles (only latest expiring per vehicle)
+    const partBExpiringSoonVehicles = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partBStatus: 'expiring_soon',
+      vehicleNumber: { $nin: vehiclesWithActivePartB }
+    }).distinct('vehicleNumber')
+    const partBExpiringSoon = partBExpiringSoonVehicles.length
+
+    // Part A expired - count unique vehicles (only latest expired per vehicle)
+    const partAExpiredVehicles = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partAStatus: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActiveOrExpiringSoonPartA }
+    }).distinct('vehicleNumber')
+    const partAExpired = partAExpiredVehicles.length
+
+    // Part B expired - count unique vehicles (only latest expired per vehicle)
+    const partBExpiredVehicles = await NationalPermit.find({
+      userId: req.user.id,
+      isRenewed: false,
+      partBStatus: 'expired',
+      vehicleNumber: { $nin: vehiclesWithActiveOrExpiringSoonPartB }
+    }).distinct('vehicleNumber')
+    const partBExpired = partBExpiredVehicles.length
+
+    // Active permits (both Part A and Part B are active)
+    const activePermits = await NationalPermit.countDocuments({
+      userId: req.user.id,
+      isRenewed: false,
+      partAStatus: 'active',
+      partBStatus: 'active'
+    })
+
+    // Pending payment aggregation
+    const pendingPaymentPipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(req.user.id),
+          isRenewed: false,
+          balance: { $gt: 0 }
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          count: { $sum: 1 },
+          totalAmount: { $sum: '$balance' }
+        }
+      }
+    ]
+
+    const pendingPaymentResults = await NationalPermit.aggregate(pendingPaymentPipeline)
+    const pendingPaymentCount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].count : 0
+    const pendingPaymentAmount = pendingPaymentResults.length > 0 ? pendingPaymentResults[0].totalAmount : 0
+
+    res.status(200).json({
+      success: true,
+      data: {
+        total,
+        active: activePermits,
+        partAExpiringSoon,
+        partBExpiringSoon,
+        partAExpired,
+        partBExpired,
+        pendingPaymentCount,
+        pendingPaymentAmount
       }
     })
-
-    await partA.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Permit updated successfully',
-      data: partA
-    })
   } catch (error) {
-    console.error('Error updating permit:', error)
-    res.status(400).json({
-      success: false,
-      message: 'Failed to update permit',
-      error: error.message
-    })
-  }
-}
-
-// Mark national permit as paid
-exports.markAsPaid = async (req, res) => {
-  try {
-    const permit = await NationalPermitPartA.findOne({ _id: req.params.id, userId: req.user.id })
-
-    if (!permit) {
-      return res.status(404).json({
-        success: false,
-        message: 'National permit not found'
-      })
-    }
-
-    // Check if there's a balance to pay
-    if (!permit.balance || permit.balance === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'No pending payment for this national permit'
-      })
-    }
-
-    // Update payment details
-    permit.paid = permit.totalFee || 0
-    permit.balance = 0
-
-    await permit.save()
-
-    res.status(200).json({
-      success: true,
-      message: 'Payment marked as paid successfully',
-      data: permit
-    })
-  } catch (error) {
-    console.error('Error marking payment as paid:', error)
+    console.error('Error fetching National Permit statistics:', error)
     res.status(500).json({
       success: false,
-      message: 'Error marking payment as paid',
+      message: 'Failed to fetch statistics',
       error: error.message
     })
   }
 }
+

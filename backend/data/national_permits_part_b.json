@@ -1,0 +1,1168 @@
+[
+  {
+    "_id": "691fdc84aac3758f75e0fbfe",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "158223",
+    "partBNumber": "80027",
+    "permitHolder": "SHAILENDRA BELME",
+    "vehicleNumber": "CG04HY7470",
+    "validFrom": "16-11-2025",
+    "validTo": "15-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-21T03:29:08.461Z",
+    "updatedAt": "2025-11-21T03:29:08.461Z",
+    "__v": 0
+  },
+  {
+    "_id": "691fdad6aac3758f75e0f9d4",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-0353B",
+    "partBNumber": "131011",
+    "permitHolder": "VANDANA KACHHI",
+    "vehicleNumber": "CG04QP5560",
+    "validFrom": "31-10-2025",
+    "validTo": "30-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-21T03:21:58.317Z",
+    "updatedAt": "2025-11-21T03:21:58.317Z",
+    "__v": 0
+  },
+  {
+    "_id": "691cbcdce8deac0e7e54b923",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "563223",
+    "partBNumber": "822228",
+    "permitHolder": "NAINA BAI MISHRA",
+    "vehicleNumber": "CG04LL7473",
+    "validFrom": "11-12-2025",
+    "validTo": "10-12-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-18T18:37:16.104Z",
+    "updatedAt": "2025-11-18T18:37:16.104Z",
+    "__v": 0
+  },
+  {
+    "_id": "691cbc88e8deac0e7e54b8f5",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "8596325",
+    "partBNumber": "84897",
+    "permitHolder": "SIMRAN FARMS LTD",
+    "vehicleNumber": "CG04HY6726",
+    "validFrom": "22-11-2025",
+    "validTo": "21-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-18T18:35:52.017Z",
+    "updatedAt": "2025-11-18T18:35:52.017Z",
+    "__v": 0
+  },
+  {
+    "_id": "691cbc4ae8deac0e7e54b8c8",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "52223",
+    "partBNumber": "84912",
+    "permitHolder": "SIMRAN FARMS LTD",
+    "vehicleNumber": "CG04HY6726",
+    "validFrom": "22-11-2025",
+    "validTo": "21-11-2026",
+    "status": "expired",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-18T18:34:50.076Z",
+    "updatedAt": "2025-11-18T18:34:50.076Z",
+    "__v": 0
+  },
+  {
+    "_id": "691cbbe5e8deac0e7e54b89b",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "525222",
+    "partBNumber": "82914",
+    "permitHolder": "AJEET KUMAR PATEL",
+    "vehicleNumber": "CG04NX8413",
+    "validFrom": "16-11-2025",
+    "validTo": "15-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-18T18:33:09.955Z",
+    "updatedAt": "2025-11-18T18:33:09.955Z",
+    "__v": 0
+  },
+  {
+    "_id": "691cba00e8deac0e7e54b76c",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "525632",
+    "partBNumber": "84939",
+    "permitHolder": "PRAHLLAD AGRAWAL",
+    "vehicleNumber": "CG04HZ5389",
+    "validFrom": "21-11-2025",
+    "validTo": "20-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-18T18:25:04.361Z",
+    "updatedAt": "2025-11-18T18:25:04.361Z",
+    "__v": 0
+  },
+  {
+    "_id": "691b6355da41c7ed112827b8",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2022-NP-0152B",
+    "partBNumber": "69350",
+    "permitHolder": "BABU LAL JASWAL",
+    "vehicleNumber": "CG04NX0724",
+    "validFrom": "15-11-2025",
+    "validTo": "14-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-17T18:03:01.102Z",
+    "updatedAt": "2025-11-17T18:03:01.102Z",
+    "__v": 0
+  },
+  {
+    "_id": "691a198b0e58ca4d055b5b1c",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-9466A",
+    "partBNumber": "20760",
+    "permitHolder": "SHABNAM AGRAWAL",
+    "vehicleNumber": "CG06GS8871",
+    "validFrom": "07-10-2025",
+    "validTo": "06-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-16T18:35:55.740Z",
+    "updatedAt": "2025-11-16T18:35:55.740Z",
+    "__v": 0
+  },
+  {
+    "_id": "69194d7d0e58ca4d055b4c48",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "586358",
+    "partBNumber": "12586",
+    "permitHolder": "ABDUL WAHEED",
+    "vehicleNumber": "CG04NT4667",
+    "validFrom": "01-07-2025",
+    "validTo": "30-06-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-16T04:05:17.494Z",
+    "updatedAt": "2025-11-16T04:05:17.494Z",
+    "__v": 0
+  },
+  {
+    "_id": "69194aed0e58ca4d055b4afa",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "45252",
+    "partBNumber": "21457",
+    "permitHolder": "GANESH PRASAD SAHU",
+    "vehicleNumber": "CG04NP9236",
+    "validFrom": "09-01-2025",
+    "validTo": "08-01-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-16T03:54:21.164Z",
+    "updatedAt": "2025-11-16T03:54:21.164Z",
+    "__v": 0
+  },
+  {
+    "_id": "69173f5511f11bb1a24e637f",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "458625",
+    "partBNumber": "69350",
+    "permitHolder": "BABU LAL JASWAL",
+    "vehicleNumber": "CG04NX0724",
+    "validFrom": "15-11-2025",
+    "validTo": "14-11-2026",
+    "status": "expired",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-14T14:40:21.851Z",
+    "updatedAt": "2025-11-14T14:40:21.851Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e33fb0",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "58585",
+    "partBNumber": "42875",
+    "permitHolder": "SANDEEP KUMAR PATEL",
+    "vehicleNumber": "CG10BF8426",
+    "validFrom": "12-11-2025",
+    "validTo": "11-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-14T03:19:14.699Z",
+    "updatedAt": "2025-11-14T03:19:14.699Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e33fc1",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "15252",
+    "partBNumber": "42800",
+    "permitHolder": "MOOL CHAND",
+    "vehicleNumber": "CG10BF8438",
+    "validFrom": "12-11-2025",
+    "validTo": "11-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-14T03:14:40.715Z",
+    "updatedAt": "2025-11-14T03:14:40.715Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e33fd2",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "45252",
+    "partBNumber": "95117",
+    "permitHolder": "SIMRAN FARMS",
+    "vehicleNumber": "CG04HY6725",
+    "validFrom": "22-11-2024",
+    "validTo": "21-11-2025",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-14T03:08:01.348Z",
+    "updatedAt": "2025-11-14T03:08:01.348Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e33fdd",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2225 -NP-9448A",
+    "partBNumber": "19936",
+    "permitHolder": "RANJEET GUMASTA",
+    "vehicleNumber": "CG04QN6092",
+    "validFrom": "06-10-2025",
+    "validTo": "05-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-14T02:37:00.242Z",
+    "updatedAt": "2025-11-14T02:37:00.242Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e33fe6",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "15252",
+    "partBNumber": "53784",
+    "permitHolder": "PAWAN SINGH BAGHEL",
+    "vehicleNumber": "CG04HY7290",
+    "validFrom": "13-11-2025",
+    "validTo": "12-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-13T18:01:28.450Z",
+    "updatedAt": "2025-11-13T18:01:28.450Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e33fed",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "452222",
+    "partBNumber": "46110",
+    "permitHolder": "ARVIND KUMAR CHOUDHARY",
+    "vehicleNumber": "CG04LZ7398",
+    "validFrom": "06-11-2025",
+    "validTo": "05-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T18:05:49.783Z",
+    "updatedAt": "2025-11-11T18:05:49.783Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e33ff4",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "152522",
+    "partBNumber": "42942",
+    "permitHolder": "DILEEP KUMAR PATEL",
+    "vehicleNumber": "CG04PK6095",
+    "validFrom": "06-11-2025",
+    "validTo": "05-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T18:04:46.885Z",
+    "updatedAt": "2025-11-11T18:04:46.885Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e33ffb",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "586925",
+    "partBNumber": "5896285",
+    "permitHolder": "ANIL KU AGRAWAL",
+    "vehicleNumber": "CG04MC8822",
+    "validFrom": "11-1-2025",
+    "validTo": "10-01-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T02:46:05.317Z",
+    "updatedAt": "2025-11-11T02:46:05.317Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34002",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "1856952",
+    "partBNumber": "31996",
+    "permitHolder": "ANIL KU AGRAWAL",
+    "vehicleNumber": "CG04MC5588",
+    "validFrom": "11-1-2025",
+    "validTo": "10-01-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T02:37:31.511Z",
+    "updatedAt": "2025-11-11T02:37:31.511Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34009",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-0705B",
+    "partBNumber": "31932",
+    "permitHolder": "HASAN RAJA",
+    "vehicleNumber": "CG04MR1038",
+    "validFrom": "10-11-2025",
+    "validTo": "09-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T02:27:24.030Z",
+    "updatedAt": "2025-11-11T02:27:24.030Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34010",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "1569325",
+    "partBNumber": "31758",
+    "permitHolder": "SUKHDEV PATEL",
+    "vehicleNumber": "CG04LJ6877",
+    "validFrom": "09-11-2025",
+    "validTo": "08-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T02:16:38.118Z",
+    "updatedAt": "2025-11-11T02:16:38.118Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34017",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "5896258",
+    "partBNumber": "31803",
+    "permitHolder": "JAI MAHAVEER  ROAD CARRIER",
+    "vehicleNumber": "CG04PK8421",
+    "validFrom": "10-11-2025",
+    "validTo": "09-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T02:12:25.750Z",
+    "updatedAt": "2025-11-11T02:12:25.750Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e3401e",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "586256",
+    "partBNumber": "31853",
+    "permitHolder": "JAI MAHAVEER  ROAD CARRIER",
+    "vehicleNumber": "CG04PK8422",
+    "validFrom": "10-11-2025",
+    "validTo": "09-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T02:07:32.249Z",
+    "updatedAt": "2025-11-11T02:07:32.249Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34025",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "452233",
+    "partBNumber": "31976",
+    "permitHolder": "JAI MAHAVEER  ROAD CARRIER",
+    "vehicleNumber": "CG04PK8420",
+    "validFrom": "10-11-2025",
+    "validTo": "09-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-11T02:03:04.703Z",
+    "updatedAt": "2025-11-11T02:03:04.703Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e3402c",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "112025",
+    "partBNumber": "30547",
+    "permitHolder": "SHIV SAGAR MISHRA",
+    "vehicleNumber": "CG04LK9273",
+    "validFrom": "8-11-2025",
+    "validTo": "07-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-10T18:18:05.892Z",
+    "updatedAt": "2025-11-10T18:18:05.892Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34033",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-0353B",
+    "partBNumber": "131044",
+    "permitHolder": "VANDANA KACHHI",
+    "vehicleNumber": "CG04QP5560",
+    "validFrom": "31-10-2025",
+    "validTo": "30-10-2026",
+    "status": "expired",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-10T02:44:43.840Z",
+    "updatedAt": "2025-11-10T02:44:43.840Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e3403a",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "52222",
+    "partBNumber": "58256",
+    "permitHolder": "RAJKUMAR HALDKAR",
+    "vehicleNumber": "CG04NR6460",
+    "validFrom": "07-02-2025",
+    "validTo": "06-02-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-10T02:35:20.568Z",
+    "updatedAt": "2025-11-10T02:35:20.568Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34041",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "582222",
+    "partBNumber": "70131",
+    "permitHolder": "RAJKUMAR HALDKAR",
+    "vehicleNumber": "CG04NW7460",
+    "validFrom": "19-09-2025",
+    "validTo": "18-09-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-10T02:25:40.682Z",
+    "updatedAt": "2025-11-10T02:25:40.682Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34048",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "16180",
+    "partBNumber": "NP/CG/4/102025/19927",
+    "permitHolder": "DUSHYANT ENTER PRISES",
+    "vehicleNumber": "CG04PJ9530",
+    "validFrom": "10-10-2025",
+    "validTo": "09-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-09T13:31:51.449Z",
+    "updatedAt": "2025-11-09T13:31:51.449Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e3404d",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "20",
+    "partBNumber": "15011",
+    "permitHolder": "SUNIL KUMAR TIWARI",
+    "vehicleNumber": "CG04NX7732",
+    "validFrom": "02-11-2025",
+    "validTo": "01-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-07T19:43:51.763Z",
+    "updatedAt": "2025-11-07T19:43:51.763Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34052",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "19",
+    "partBNumber": "11917",
+    "permitHolder": "KRISHNA KUMAR SHUKLA",
+    "vehicleNumber": "CG04NX5530",
+    "validFrom": "02-11-2025",
+    "validTo": "01-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-07T19:32:21.546Z",
+    "updatedAt": "2025-11-07T19:32:21.546Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34057",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-0555B",
+    "partBNumber": "16587",
+    "permitHolder": "MUKESH SINGH",
+    "vehicleNumber": "CG04QP4626",
+    "validFrom": "06-11-2025",
+    "validTo": "05-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-07T19:24:54.485Z",
+    "updatedAt": "2025-11-07T19:24:54.485Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e3405c",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "19",
+    "partBNumber": "29579",
+    "permitHolder": "GYANILAL GADHEWAL",
+    "vehicleNumber": "CG04PK9421",
+    "validFrom": "10-11-2025",
+    "validTo": "09-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-07T18:50:07.383Z",
+    "updatedAt": "2025-11-07T18:50:07.383Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34061",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "18",
+    "partBNumber": "121211",
+    "permitHolder": "RAJ KUMAR GUPTA",
+    "vehicleNumber": "CG10BF4759",
+    "validFrom": "24-10-2025",
+    "validTo": "23-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-07T18:41:33.009Z",
+    "updatedAt": "2025-11-07T18:41:33.009Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34066",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "17",
+    "partBNumber": "27989/2025",
+    "permitHolder": "SHIV KUMAR AGRAWAL",
+    "vehicleNumber": "CG04PK2255",
+    "validFrom": "08-11-2025",
+    "validTo": "07-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-07T18:34:53.212Z",
+    "updatedAt": "2025-11-07T18:34:53.212Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e3406b",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "16",
+    "partBNumber": "27981/2025",
+    "permitHolder": "SHIV KUMAR AGRAWAL",
+    "vehicleNumber": "CG04PK3355",
+    "validFrom": "08-11-2025",
+    "validTo": "07-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-07T18:30:35.803Z",
+    "updatedAt": "2025-11-07T18:30:35.803Z",
+    "__v": 0
+  },
+  {
+    "_id": "6916c5ce42263695a7e34070",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "NP 7205",
+    "partBNumber": "NP/CG/4/072025/45528",
+    "permitHolder": "ANJU LATA",
+    "vehicleNumber": "CG04NT7606",
+    "validFrom": "11-7-2025",
+    "validTo": "10-07-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "notes": "Migrated from old schema - Created with Part A",
+    "createdAt": "2025-11-07T14:42:08.210Z",
+    "updatedAt": "2025-11-07T14:42:08.210Z",
+    "__v": 0
+  },
+  {
+    "_id": "69206e077df067acddc5a116",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-1190B",
+    "partBNumber": "97714",
+    "permitHolder": "VINOD KUMAR RAJAK",
+    "vehicleNumber": "CG04QR5027",
+    "validFrom": "20-11-2025",
+    "validTo": "19-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-21T13:49:59.080Z",
+    "updatedAt": "2025-11-21T13:49:59.080Z",
+    "__v": 0
+  },
+  {
+    "_id": "6920770e7df067acddc5a1f2",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-1189B",
+    "partBNumber": "97749",
+    "permitHolder": "AMAN PATHAK",
+    "vehicleNumber": "CG04QR5842",
+    "validFrom": "20-11-2025",
+    "validTo": "19-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-21T14:28:30.184Z",
+    "updatedAt": "2025-11-21T14:28:30.184Z",
+    "__v": 0
+  },
+  {
+    "_id": "69230a6c71b8c9981fe956f0",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-9848A",
+    "partBNumber": "62216",
+    "permitHolder": "UJJWAL AALWANI",
+    "vehicleNumber": "CG04QN9965",
+    "validFrom": "15-10-2025",
+    "validTo": "14-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-23T13:21:48.045Z",
+    "updatedAt": "2025-11-23T13:21:48.045Z",
+    "__v": 0
+  },
+  {
+    "_id": "69285fd4e0ef2a97ce52f9f9",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2022-NP-9284A",
+    "partBNumber": "126532",
+    "permitHolder": "AYUSH DIGASKAR",
+    "vehicleNumber": "CG04NX9927",
+    "validFrom": "20-10-2025",
+    "validTo": "19-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-27T14:27:32.905Z",
+    "updatedAt": "2025-11-27T14:27:32.905Z",
+    "__v": 0
+  },
+  {
+    "_id": "69286324e0ef2a97ce52fbdd",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "15252",
+    "partBNumber": "120552",
+    "permitHolder": "SHIV SAGAR MISHRA",
+    "vehicleNumber": "CG04MN7473",
+    "validFrom": "23-11-2025",
+    "validTo": "22-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-27T14:41:40.510Z",
+    "updatedAt": "2025-11-27T14:41:40.510Z",
+    "__v": 0
+  },
+  {
+    "_id": "692ac958f28ff45f07316d53",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "4582533",
+    "partBNumber": "111157",
+    "permitHolder": "GULSHER AHMED",
+    "vehicleNumber": "CG04NX7737",
+    "validFrom": "21-11-2025",
+    "validTo": "20-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-29T10:22:16.523Z",
+    "updatedAt": "2025-11-29T10:22:16.523Z",
+    "__v": 0
+  },
+  {
+    "_id": "692ac9f1f28ff45f07316de5",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "582369",
+    "partBNumber": "101392",
+    "permitHolder": "NARSH KUMAR PATHAK",
+    "vehicleNumber": "CG07CQ1980",
+    "validFrom": "24-11-2025",
+    "validTo": "23-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-29T10:24:49.010Z",
+    "updatedAt": "2025-11-29T10:24:49.010Z",
+    "__v": 0
+  },
+  {
+    "_id": "692acc8bf28ff45f07316ef7",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "582363",
+    "partBNumber": "93517",
+    "permitHolder": "BAL GOVIND SHRIPAL",
+    "vehicleNumber": "CG04NZ8872",
+    "validFrom": "18-11-2025",
+    "validTo": "17-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-29T10:35:55.598Z",
+    "updatedAt": "2025-11-29T10:35:55.598Z",
+    "__v": 0
+  },
+  {
+    "_id": "692b24f6f28ff45f07317798",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-9448A",
+    "partBNumber": "19936",
+    "permitHolder": "RANJEET GUMASTA",
+    "vehicleNumber": "CG04QN6092",
+    "validFrom": "07-10-2025",
+    "validTo": "06-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-29T16:53:10.278Z",
+    "updatedAt": "2025-11-29T16:53:10.278Z",
+    "__v": 0
+  },
+  {
+    "_id": "692b275ff28ff45f07317901",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP9447A",
+    "partBNumber": "19948",
+    "permitHolder": "ASHEESH PATEL",
+    "vehicleNumber": "CG04QN6093",
+    "validFrom": "07-10-2025",
+    "validTo": "06-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-29T17:03:27.890Z",
+    "updatedAt": "2025-11-29T17:03:27.890Z",
+    "__v": 0
+  },
+  {
+    "_id": "692bfd45f28ff45f07317f27",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-8482A",
+    "partBNumber": "9720",
+    "permitHolder": "ASHISH FRIUT CO",
+    "vehicleNumber": "CG04QM7719",
+    "validFrom": "03-09-2025",
+    "validTo": "02-09-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-11-30T08:16:05.093Z",
+    "updatedAt": "2025-11-30T08:16:05.093Z",
+    "__v": 0
+  },
+  {
+    "_id": "692d11e0f28ff45f07318818",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "458215",
+    "partBNumber": "44030",
+    "permitHolder": "DHIRENDRA KUMAR VERMA",
+    "vehicleNumber": "CG04LP3100",
+    "validFrom": "12-06-2025",
+    "validTo": "11-06-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-01T03:56:16.372Z",
+    "updatedAt": "2025-12-01T03:56:16.372Z",
+    "__v": 0
+  },
+  {
+    "_id": "692da6085c2f952a27adb518",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "158632",
+    "partBNumber": "136660",
+    "permitHolder": "PRAHLAAD AGRAWAL",
+    "vehicleNumber": "CG06GM8614",
+    "validFrom": "29-11-2025",
+    "validTo": "28-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-01T14:28:24.072Z",
+    "updatedAt": "2025-12-01T14:28:24.072Z",
+    "__v": 0
+  },
+  {
+    "_id": "692da6425c2f952a27adb555",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "52582",
+    "partBNumber": "142361",
+    "permitHolder": "RISHI KUMAR MISHRA",
+    "vehicleNumber": "CG04MH7473",
+    "validFrom": "27-11-2025",
+    "validTo": "26-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-01T14:29:22.632Z",
+    "updatedAt": "2025-12-01T14:29:22.632Z",
+    "__v": 0
+  },
+  {
+    "_id": "692dd2e45c2f952a27adb6c0",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "152636",
+    "partBNumber": "140329",
+    "permitHolder": "DURGESH GARG",
+    "vehicleNumber": "CG04NW7665",
+    "validFrom": "15-11-2025",
+    "validTo": "14-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-01T17:39:48.919Z",
+    "updatedAt": "2025-12-01T17:39:48.919Z",
+    "__v": 0
+  },
+  {
+    "_id": "692e51765c2f952a27adbb83",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "582693",
+    "partBNumber": "52522",
+    "permitHolder": "DHIRENDRA KUMAR VERMA",
+    "vehicleNumber": "CG04QF4599",
+    "validFrom": "06-05-2025",
+    "validTo": "05-05-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-02T02:39:50.642Z",
+    "updatedAt": "2025-12-02T02:39:50.642Z",
+    "__v": 0
+  },
+  {
+    "_id": "692e59235c2f952a27adbf62",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "582522",
+    "partBNumber": "70924",
+    "permitHolder": "ASHA VERMA",
+    "vehicleNumber": "CG04PN6999",
+    "validFrom": "10-01-2025",
+    "validTo": "09-01-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-02T03:12:35.294Z",
+    "updatedAt": "2025-12-02T03:12:35.294Z",
+    "__v": 0
+  },
+  {
+    "_id": "692e5b365c2f952a27adc0c4",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "58555",
+    "partBNumber": "42530",
+    "permitHolder": "ASHA VERMA",
+    "vehicleNumber": "CG04PN3999",
+    "validFrom": "08-01-2025",
+    "validTo": "07-01-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-02T03:21:26.279Z",
+    "updatedAt": "2025-12-02T03:21:26.279Z",
+    "__v": 0
+  },
+  {
+    "_id": "692f06485c2f952a27adc827",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "582636",
+    "partBNumber": "42875",
+    "permitHolder": "SANDEEP KUMAR PATEL",
+    "vehicleNumber": "CG10BF8426",
+    "validFrom": "12-11-2025",
+    "validTo": "11-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-02T15:31:20.638Z",
+    "updatedAt": "2025-12-02T15:31:20.638Z",
+    "__v": 0
+  },
+  {
+    "_id": "692f321d5c2f952a27adc9e6",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "45252",
+    "partBNumber": "42800",
+    "permitHolder": "MOOL CHAND",
+    "vehicleNumber": "CG10BF8438",
+    "validFrom": "12-11-2025",
+    "validTo": "11-11-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-02T18:38:21.722Z",
+    "updatedAt": "2025-12-02T18:38:21.722Z",
+    "__v": 0
+  },
+  {
+    "_id": "692f38195c2f952a27adcb7e",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "58222",
+    "partBNumber": "55309",
+    "permitHolder": "SUNEEL KUMAR DAHARWAL C/O ALOK NEMA",
+    "vehicleNumber": "CG04NU3488",
+    "validFrom": "15-06-2025",
+    "validTo": "14-06-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-02T19:03:53.862Z",
+    "updatedAt": "2025-12-02T19:03:53.862Z",
+    "__v": 0
+  },
+  {
+    "_id": "6931d008fa05ffdbee21acf8",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "525325",
+    "partBNumber": "2870",
+    "permitHolder": "ASHA VERMA",
+    "vehicleNumber": "CG04JE0813",
+    "validFrom": "17-10-2025",
+    "validTo": "16-10-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-04T18:16:40.796Z",
+    "updatedAt": "2025-12-04T18:16:40.796Z",
+    "__v": 0
+  },
+  {
+    "_id": "6931d133fa05ffdbee21ada9",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "58233",
+    "partBNumber": "122025/5010",
+    "permitHolder": "RAJ KUMAR SAHU",
+    "vehicleNumber": "CG04PY7150",
+    "validFrom": "04-12-2025",
+    "validTo": "03-12-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-04T18:21:39.577Z",
+    "updatedAt": "2025-12-04T18:21:39.577Z",
+    "__v": 0
+  },
+  {
+    "_id": "69339cb06438c112302c7fcd",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-1672B",
+    "partBNumber": "7989",
+    "permitHolder": "NEERAJ AGRAWAL",
+    "vehicleNumber": "CG06GR8171",
+    "validFrom": "05-12-2025",
+    "validTo": "04-12-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-06T03:02:08.066Z",
+    "updatedAt": "2025-12-06T03:02:08.066Z",
+    "__v": 0
+  },
+  {
+    "_id": "69339cfd6438c112302c8016",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP1691B",
+    "partBNumber": "7971",
+    "permitHolder": "SAJAN KUMAR AGRAWAL",
+    "vehicleNumber": "CG06GP8071",
+    "validFrom": "05-12-2025",
+    "validTo": "04-12-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-06T03:03:25.472Z",
+    "updatedAt": "2025-12-06T03:03:25.472Z",
+    "__v": 0
+  },
+  {
+    "_id": "6933a1d16438c112302c82a6",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "CG2025-NP-1690B",
+    "partBNumber": "8715",
+    "permitHolder": "MAHAVIR PRASAD AGRAWAL",
+    "vehicleNumber": "CG06GR8071",
+    "validFrom": "05-12-2025",
+    "validTo": "04-12-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-06T03:24:01.431Z",
+    "updatedAt": "2025-12-06T03:24:01.431Z",
+    "__v": 0
+  },
+  {
+    "_id": "6936aa0322626bc1ff71d8bc",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "4536826",
+    "partBNumber": "56547",
+    "permitHolder": "ASHOK SINGH",
+    "vehicleNumber": "CG04PW6092",
+    "validFrom": "17-09-2025",
+    "validTo": "16-09-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-08T10:35:47.904Z",
+    "updatedAt": "2025-12-08T10:35:47.904Z",
+    "__v": 0
+  },
+  {
+    "_id": "693786477857f5a3726a4e32",
+    "userId": "691f2e2df6760d2263f575f3",
+    "permitNumber": "589625",
+    "partBNumber": "9667",
+    "permitHolder": "RAUSHAAN KUMAR",
+    "vehicleNumber": "CG04LQ5527",
+    "validFrom": "05-12-2025",
+    "validTo": "04-12-2026",
+    "status": "active",
+    "documents": {
+      "partBImage": ""
+    },
+    "createdAt": "2025-12-09T02:15:35.293Z",
+    "updatedAt": "2025-12-09T02:15:35.293Z",
+    "__v": 0
+  }
+]

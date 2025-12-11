@@ -1,12 +1,11 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { getDaysRemaining, parseFormattedDate } from '../../utils/dateHelpers'
 import Pagination from '../../components/Pagination'
 import IssueNewPermitModal from './components/IssueNewPermitModal'
 import EditNationalPermitModal from './components/EditNationalPermitModal'
-import RenewPartBModal from './components/RenewPartBModal'
-import RenewPartAModal from './components/RenewPartAModal'
+import SmartRenewModal from './components/SmartRenewModal'
 import NationalPermitDetailsModal from './components/NationalPermitDetailsModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
@@ -28,15 +27,22 @@ const NationalPermit = () => {
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
-  const [showRenewPartBModal, setShowRenewPartBModal] = useState(false)
-  const [showRenewPartAModal, setShowRenewPartAModal] = useState(false)
+  const [showSmartRenewModal, setShowSmartRenewModal] = useState(false)
   const [renewingPermit, setRenewingPermit] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [dateFilter, setDateFilter] = useState('All')
-  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'partAExpiring', 'partBExpiring', 'pending'
-  const [partAExpiringCount, setPartAExpiringCount] = useState(0)
-  const [partBExpiringCount, setPartBExpiringCount] = useState(0)
+  const [statusFilter, setStatusFilter] = useState('all') // 'all', 'partAExpiring', 'partBExpiring', 'partAExpired', 'partBExpired', 'pending'
+  const [statistics, setStatistics] = useState({
+    total: 0,
+    active: 0,
+    partAExpiringSoon: 0,
+    partBExpiringSoon: 0,
+    partAExpired: 0,
+    partBExpired: 0,
+    pendingPaymentCount: 0,
+    pendingPaymentAmount: 0
+  })
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -60,7 +66,7 @@ const NationalPermit = () => {
   }
 
   // Helper function to check if Part A is expiring soon or expired
-  const isPartAExpiringSoon = (expiryDate, daysThreshold = 60) => {
+  const isPartAExpiringSoon = (expiryDate, daysThreshold = 30) => {
     if (!expiryDate || expiryDate === 'N/A') return false
 
     const expiry = parseFormattedDate(expiryDate)
@@ -74,64 +80,59 @@ const NationalPermit = () => {
     return daysRemaining <= daysThreshold
   }
 
+  const fetchStatistics = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/national-permits/statistics`, { withCredentials: true })
+      if (response.data.success) {
+        setStatistics({
+          total: response.data.data.total,
+          active: response.data.data.active,
+          partAExpiringSoon: response.data.data.partAExpiringSoon,
+          partBExpiringSoon: response.data.data.partBExpiringSoon,
+          partAExpired: response.data.data.partAExpired,
+          partBExpired: response.data.data.partBExpired,
+          pendingPaymentCount: response.data.data.pendingPaymentCount,
+          pendingPaymentAmount: response.data.data.pendingPaymentAmount
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching National Permit statistics:', error)
+    }
+  }
+
   // Fetch permits from backend on component mount and when filters change
   useEffect(() => {
     fetchPermits(1)
-  }, [dateFilter]) // Re-fetch when filters change
-
-  // Fetch expiring counts on component mount
-  useEffect(() => {
-    fetchExpiringCounts()
-  }, [])
-
-  const fetchExpiringCounts = async () => {
-    try {
-      console.log('Fetching National Permit expiring counts...')
-
-      // Fetch Part A expiring count
-      const partAResponse = await axios.get(`${API_URL}/api/national-permits/part-a-expiring-soon`, {
-        params: { page: 1, limit: 1 },
-        withCredentials: true
-      })
-      console.log('Part A Response:', partAResponse.data)
-      const partACount = partAResponse.data.pagination?.totalItems || 0
-      console.log('Part A Count:', partACount)
-      setPartAExpiringCount(partACount)
-
-      // Fetch Part B expiring count
-      const partBResponse = await axios.get(`${API_URL}/api/national-permits/part-b-expiring-soon`, {
-        params: { page: 1, limit: 1 },
-        withCredentials: true
-      })
-      console.log('Part B Response:', partBResponse.data)
-      const partBCount = partBResponse.data.pagination?.totalItems || 0
-      console.log('Part B Count:', partBCount)
-      setPartBExpiringCount(partBCount)
-
-      console.log('National Permit expiring counts updated - Part A:', partACount, 'Part B:', partBCount)
-    } catch (error) {
-      console.error('Error fetching National Permit expiring counts:', error)
-      setPartAExpiringCount(0)
-      setPartBExpiringCount(0)
-    }
-  }
+    fetchStatistics()
+  }, [searchQuery, dateFilter, statusFilter]) // Re-fetch when filters change
 
   const fetchPermits = async (page = pagination.currentPage) => {
     try {
       setLoading(true)
       setError(null)
 
-      // Build query parameters
-      const params = new URLSearchParams()
-      params.append('page', page.toString())
-      params.append('limit', pagination.limit.toString())
+      // Build URL based on status filter (like CG Permit)
+      let url = `${API_URL}/api/national-permits`
 
-      if (dateFilter && dateFilter !== 'All') {
-        params.append('dateFilter', dateFilter)
+      // Map status filter to endpoint path
+      if (statusFilter !== 'all') {
+        const filterPath = statusFilter.replace(/([A-Z])/g, '-$1').toLowerCase() // Convert camelCase to kebab-case
+        url = `${API_URL}/api/national-permits/${filterPath}`
       }
 
-      const response = await axios.get(`${API_URL}/api/national-permits`, {
-        params: Object.fromEntries(params),
+      // Build query parameters
+      const params = {
+        page: page.toString(),
+        limit: pagination.limit.toString(),
+        search: searchQuery
+      }
+
+      if (dateFilter && dateFilter !== 'All') {
+        params.dateFilter = dateFilter
+      }
+
+      const response = await axios.get(url, {
+        params,
         withCredentials: true
       })
 
@@ -140,61 +141,58 @@ const NationalPermit = () => {
         setPagination({
           currentPage: response.data.pagination.currentPage,
           totalPages: response.data.pagination.totalPages,
-          totalRecords: response.data.pagination.totalItems,
+          totalRecords: response.data.pagination.totalRecords,
           limit: pagination.limit
         })
       }
 
       // Transform backend data to match frontend structure
-      const transformedPermits = response.data.data.map(permitObj => {
-        // New structure: response contains { partA, partB, vehicleNumber, permitNumber }
-        const partA = permitObj.partA
-        const partB = permitObj.partB
-        const billData = partA?.bill
+      // Flat model - direct field access
+      const transformedPermits = response.data.data.map(record => ({
+        id: record._id,
+        permitNumber: record.permitNumber,
+        permitHolder: record.permitHolder,
+        vehicleNo: record.vehicleNumber,
+        issueDate: record.createdAt,
+        validTill: record.partAValidTo,
+        status: record.partBStatus,
+        totalFee: record.totalFee || 0,
+        paid: record.paid || 0,
+        balance: record.balance || 0,
+        isRenewed: record.isRenewed,
 
-        return {
-          id: partA?._id || permitObj._id,
-          permitNumber: partA?.permitNumber || permitObj.permitNumber,
-          permitHolder: partA?.permitHolder,
-          vehicleNo: partA?.vehicleNumber || permitObj.vehicleNumber || 'N/A',
-          issueDate: partA?.createdAt,
-          validTill: partA?.validTo,
-          status: partA?.status,
-          totalFee: partA?.totalFee || 0,
-          paid: partA?.paid || 0,
-          balance: partA?.balance || 0,
-          partA: {
-            permitNumber: partA?.permitNumber,
-            billNumber: billData?.billNumber || 'N/A',
-            billPdfPath: billData?.billPdfPath || null,
-            permitType: 'National Permit',
-            ownerName: partA?.permitHolder,
-            ownerAddress: partA?.address || 'N/A',
-            ownerMobile: partA?.mobileNumber || 'N/A',
-            vehicleNumber: partA?.vehicleNumber || 'N/A',
-            permitValidFrom: partA?.validFrom,
-            permitValidUpto: partA?.validTo,
-            fatherName: partA?.fatherName || '',
-            email: partA?.email || '',
-            issueDate: partA?.createdAt,
-            fees: partA?.totalFee ? `₹${partA.totalFee}` : 'N/A',
-            balance: partA?.balance || 0
-          },
-          partB: {
-            permitNumber: partA?.permitNumber,
-            authorizationNumber: partB?.partBNumber || 'N/A',
-            validFrom: partB?.validFrom || 'N/A',
-            validTo: partB?.validTo || 'N/A',
-            authorization: partB?.partBNumber || 'N/A',
-            billNumber: partB?.bill?.billNumber || 'N/A',
-            billPdfPath: partB?.bill?.billPdfPath || null,
-            totalFee: partB?.totalFee || 0,
-            paid: partB?.paid || 0,
-            balance: partB?.balance || 0
-          },
-          partARenewalHistory: []
-        }
-      })
+        partA: {
+          _id: record._id,
+          permitNumber: record.permitNumber,
+          permitType: 'National Permit',
+          ownerName: record.permitHolder,
+          ownerMobile: record.mobileNumber || 'N/A',
+          vehicleNumber: record.vehicleNumber,
+          permitValidFrom: record.partAValidFrom,
+          permitValidUpto: record.partAValidTo,
+          issueDate: record.createdAt,
+          status: record.partAStatus,
+          partADocument: record.partADocument
+        },
+
+        partB: {
+          _id: record._id,
+          permitNumber: record.permitNumber,
+          authorizationNumber: record.authNumber || 'N/A',
+          validFrom: record.partBValidFrom || 'N/A',
+          validTo: record.partBValidTo || 'N/A',
+          authorization: record.authNumber || 'N/A',
+          totalFee: record.totalFee || 0,
+          paid: record.paid || 0,
+          balance: record.balance || 0,
+          status: record.partBStatus,
+          createdAt: record.createdAt,
+          isRenewed: record.isRenewed,
+          partBDocument: record.partBDocument
+        },
+
+        notes: record.notes || ''
+      }))
 
       setPermits(transformedPermits)
     } catch (error) {
@@ -228,85 +226,19 @@ const NationalPermit = () => {
     return null
   }
 
-  // Filter permits based on status and search query
-  const filteredPermits = useMemo(() => {
-    let filtered = permits
+  // Use permits directly since filtering is done on backend
+  const filteredPermits = permits
 
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((permit) => {
-        if (statusFilter === 'partAExpiring') {
-          // Part A expiry date is in permit.validTill or permit.partA.permitValidUpto
-          const partAExpiryDate = permit.validTill || permit.partA?.permitValidUpto
-          if (!partAExpiryDate) return false
-
-          const expiryDate = parseDate(partAExpiryDate)
-          if (!expiryDate) return false
-
-          const today = new Date()
-          const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
-          return daysRemaining >= 0 && daysRemaining <= 60
-        }
-        if (statusFilter === 'partBExpiring') {
-          // Part B expiry date is in permit.partB.validTo
-          const partBExpiryDate = permit.partB?.validTo
-          if (!partBExpiryDate) return false
-
-          const expiryDate = parseDate(partBExpiryDate)
-          if (!expiryDate) return false
-
-          const today = new Date()
-          const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
-          return daysRemaining >= 0 && daysRemaining <= 30
-        }
-        if (statusFilter === 'pending') {
-          // Check if there's a balance/pending amount
-          const balance = permit.balance || permit.partA?.balance || 0
-          return balance > 0
-        }
-        return true
-      })
-    }
-
-    // Apply search filter (client-side for better UX)
-    if (searchQuery.trim()) {
-      const searchLower = searchQuery.toLowerCase()
-      filtered = filtered.filter((permit) =>
-        permit.permitNumber.toLowerCase().includes(searchLower) ||
-        permit.permitHolder.toLowerCase().includes(searchLower) ||
-        permit.vehicleNo.toLowerCase().includes(searchLower)
-      )
-    }
-
-    return filtered
-  }, [permits, searchQuery, statusFilter])
-
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const total = pagination.totalRecords
-
-    // Use the fetched counts instead of calculating from current page
-    const expiring = partAExpiringCount
-    const partBExpiring = partBExpiringCount
-
-    // Calculate pending payment statistics
-    const pendingPaymentCount = permits.filter(p => {
-      const balance = p.balance || p.partA?.balance || 0
-      return balance > 0
-    }).length
-    const pendingPaymentAmount = permits.reduce((sum, permit) => {
-      const balance = permit.balance || permit.partA?.balance || 0
-      return sum + balance
-    }, 0)
-
-    return {
-      total,
-      expiring,
-      partBExpiring,
-      pendingPaymentCount,
-      pendingPaymentAmount
-    }
-  }, [permits, pagination.totalRecords, partAExpiringCount, partBExpiringCount])
+  // Use statistics from backend (no local calculation needed)
+  const stats = {
+    total: statistics.total,
+    expiring: statistics.partAExpiringSoon,
+    partBExpiring: statistics.partBExpiringSoon,
+    partAExpired: statistics.partAExpired,
+    partBExpired: statistics.partBExpired,
+    pendingPaymentCount: statistics.pendingPaymentCount,
+    pendingPaymentAmount: statistics.pendingPaymentAmount
+  }
 
   const handleViewDetails = (permit) => {
     setSelectedPermit(permit)
@@ -314,13 +246,14 @@ const NationalPermit = () => {
   }
 
   const handleEditPermit = (permit) => {
+    // Permit already has the correct id from flat model transformation
     setEditingPermit(permit)
     setShowEditPermitModal(true)
   }
 
   const handleDeletePermit = async (id) => {
     // Show confirmation dialog
-    if (!window.confirm('Are you sure you want to delete this national permit? This will also delete all associated bills and renewal records.')) {
+    if (!window.confirm('Are you sure you want to delete this Part B record? This will only delete this specific Part B renewal, not the entire permit.')) {
       return
     }
 
@@ -328,22 +261,23 @@ const NationalPermit = () => {
       const response = await axios.delete(`${API_URL}/api/national-permits/${id}`, { withCredentials: true })
 
       if (response.data.success) {
-        toast.success('National permit deleted successfully!', { position: 'top-right', autoClose: 3000 })
+        toast.success('Part B record deleted successfully!', { position: 'top-right', autoClose: 3000 })
         fetchPermits()
-        fetchExpiringCounts()
+        fetchStatistics()
       } else {
-        toast.error(response.data.message || 'Failed to delete permit', { position: 'top-right', autoClose: 3000 })
+        toast.error(response.data.message || 'Failed to delete Part B record', { position: 'top-right', autoClose: 3000 })
       }
     } catch (error) {
-      toast.error('Error deleting permit. Please try again.', { position: 'top-right', autoClose: 3000 })
+      toast.error('Error deleting Part B record. Please try again.', { position: 'top-right', autoClose: 3000 })
       console.error('Error:', error)
     }
   }
 
-  // Mark national permit as paid
+  // Mark Part B as paid
   const handleMarkAsPaid = async (permit) => {
     const confirmPaid = window.confirm(
-      `Are you sure you want to mark this payment as PAID?\n\n` +
+      `Are you sure you want to mark this Part B payment as PAID?\n\n` +
+      `Part B Number: ${permit.partB?.authorizationNumber || 'N/A'}\n` +
       `Permit Number: ${permit.permitNumber}\n` +
       `Vehicle Number: ${permit.vehicleNo}\n` +
       `Total Fee: ₹${(permit.totalFee || 0).toLocaleString('en-IN')}\n` +
@@ -357,28 +291,25 @@ const NationalPermit = () => {
       const response = await axios.patch(`${API_URL}/api/national-permits/${permit.id}/mark-as-paid`, {}, { withCredentials: true });
       if (!response.data.success) throw new Error(response.data.message || 'Failed to mark payment as paid');
 
-      toast.success('Payment marked as paid successfully!', { position: 'top-right', autoClose: 3000 });
+      toast.success('Part B payment marked as paid successfully!', { position: 'top-right', autoClose: 3000 });
       fetchPermits();
-      fetchExpiringCounts();
+      fetchStatistics();
     } catch (error) {
-      console.error('Error marking payment as paid:', error);
-      toast.error(`Failed to mark payment as paid: ${error.message}`, { position: 'top-right', autoClose: 3000 });
+      console.error('Error marking Part B payment as paid:', error);
+      toast.error(`Failed to mark Part B payment as paid: ${error.message}`, { position: 'top-right', autoClose: 3000 });
     }
   };
 
-  const handleRenewPartB = (permit) => {
+  const handleRenew = (permit) => {
+    // Pass permit for smart renewal endpoint
     setRenewingPermit(permit)
-    setShowRenewPartBModal(true)
-  }
-
-  const handleRenewPartA = (permit) => {
-    setRenewingPermit(permit)
-    setShowRenewPartAModal(true)
+    setShowSmartRenewModal(true)
   }
 
   const handleRenewalSuccess = (data) => {
-    // Refresh permits list after successful renewal
+    // Refresh permits list and statistics after successful renewal
     fetchPermits()
+    fetchStatistics()
   }
 
   // Page change handler
@@ -395,15 +326,12 @@ const NationalPermit = () => {
 
   const handleIssuePermit = async (formData) => {
     try {
-      // Prepare data to match backend controller expectations
+      // Prepare data to match backend controller expectations (flat model)
       const permitData = {
         vehicleNumber: formData.vehicleNumber,
         permitNumber: formData.permitNumber,
         permitHolder: formData.permitHolderName,
-        fatherName: formData.fatherName || '',
-        address: formData.address || '',
         mobileNumber: formData.mobileNumber || '',
-        email: formData.email || '',
         partAValidFrom: formData.validFrom,
         partAValidTo: formData.validTo,
         partBNumber: formData.authorizationNumber,
@@ -412,8 +340,6 @@ const NationalPermit = () => {
         totalFee: Number(formData.totalFee) || 0,
         paid: Number(formData.paid) || 0,
         balance: Number(formData.balance) || 0,
-        partAImage: formData.partAImage || '',
-        partBImage: formData.partBImage || '',
         notes: formData.notes || ''
       }
 
@@ -425,37 +351,36 @@ const NationalPermit = () => {
       }
 
       // Show success message
-      alert('Permit added successfully!')
+      toast.success('National Permit added successfully!', { position: 'top-right', autoClose: 3000 })
 
-      // Refresh the permits list and expiring counts
+      // Refresh the permits list and statistics
       await fetchPermits()
-      await fetchExpiringCounts()
+      await fetchStatistics()
     } catch (error) {
       console.error('Error creating permit:', error)
-      alert(`Failed to create permit: ${error.message}`)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to create permit'
+      toast.error(errorMessage, { position: 'top-right', autoClose: 4000 })
     }
   }
 
   const handleUpdatePermit = async (formData) => {
     try {
-      // Prepare data to match backend controller expectations for updatePermit (Part A)
+      // Prepare data to match backend controller expectations (flat model)
       const permitData = {
-        vehicleNumber: formData.vehicleNumber,
-        permitNumber: formData.permitNumber,
-        permitHolder: formData.permitHolderName,
-        fatherName: formData.fatherName || '',
-        address: formData.address || '',
         mobileNumber: formData.mobileNumber || '',
-        email: formData.email || '',
-        validFrom: formData.validFrom,  // Part A validFrom
-        validTo: formData.validTo,      // Part A validTo
+        permitHolder: formData.permitHolderName,
+        partAValidFrom: formData.validFrom,
+        partAValidTo: formData.validTo,
+        partBNumber: formData.authorizationNumber || '',
+        partBValidFrom: formData.typeBValidFrom || '',
+        partBValidTo: formData.typeBValidTo || '',
         totalFee: Number(formData.totalFee) || 0,
         paid: Number(formData.paid) || 0,
         balance: Number(formData.balance) || 0,
         notes: formData.notes || ''
       }
 
-      // Make PUT request to backend (updates Part A)
+      // Make PUT request to backend
       const response = await axios.put(`${API_URL}/api/national-permits/${editingPermit.id}`, permitData, { withCredentials: true })
 
       if (!response.data.success) {
@@ -463,18 +388,19 @@ const NationalPermit = () => {
       }
 
       // Show success message
-      alert('Permit updated successfully!')
+      toast.success('National Permit updated successfully!', { position: 'top-right', autoClose: 3000 })
 
-      // Refresh the permits list and expiring counts
+      // Refresh the permits list and statistics
       await fetchPermits()
-      await fetchExpiringCounts()
+      await fetchStatistics()
 
       // Close modal
       setShowEditPermitModal(false)
       setEditingPermit(null)
     } catch (error) {
       console.error('Error updating permit:', error)
-      alert(`Failed to update permit: ${error.message}`)
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update permit'
+      toast.error(errorMessage, { position: 'top-right', autoClose: 4000 })
     }
   }
 
@@ -486,7 +412,7 @@ const NationalPermit = () => {
 
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
-            <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>
+            <div className='grid grid-cols-2 lg:grid-cols-6 gap-2 lg:gap-3 mb-5'>
               <StatisticsCard
                 title='Total Permits'
                 value={stats.total}
@@ -524,6 +450,30 @@ const NationalPermit = () => {
                 }
               />
               <StatisticsCard
+                title='Part A - Expired'
+                value={stats.partAExpired}
+                color='red'
+                isActive={statusFilter === 'partAExpired'}
+                onClick={() => setStatusFilter(statusFilter === 'partAExpired' ? 'all' : 'partAExpired')}
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
+                title='Part B - Expired'
+                value={stats.partBExpired}
+                color='gray'
+                isActive={statusFilter === 'partBExpired'}
+                onClick={() => setStatusFilter(statusFilter === 'partBExpired' ? 'all' : 'partBExpired')}
+                icon={
+                  <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                }
+              />
+              <StatisticsCard
                 title='Pending Payment'
                 value={stats.pendingPaymentCount}
                 color='yellow'
@@ -538,24 +488,6 @@ const NationalPermit = () => {
             </div>
           </div>
 
-      {/* Loading State */}
-      {loading && (
-        <div className='flex flex-col justify-center items-center py-20'>
-          <div className='relative'>
-            <div className='w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
-            <div className='absolute inset-0 w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-2xl animate-spin'></div>
-          </div>
-          <div className='mt-6 text-center'>
-            <p className='text-xl font-black bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-1'>
-              Loading Permits
-            </p>
-            <p className='text-sm text-gray-600'>Please wait while we fetch your data...</p>
-          </div>
-        </div>
-      )}
-
-      {!loading && (
-      <>
       {/* Permits Table */}
       <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
         {/* Search and Filters Header */}
@@ -565,7 +497,8 @@ const NationalPermit = () => {
             <SearchBar
               value={searchQuery}
               onChange={(value) => setSearchQuery(value)}
-              placeholder='Search by permit number, holder, or vehicle...'
+              placeholder='Search by vehicle number or holder name...'
+              toUpperCase={true}
             />
 
             {/* Filters Group */}
@@ -600,10 +533,11 @@ const NationalPermit = () => {
 
         {/* Mobile Card View */}
         <MobileCardView
+          loading={loading}
           records={filteredPermits}
           emptyMessage={{
             title: 'No permits found',
-            description: 'Click "New Permit" to add your first permit',
+            description: searchQuery ? 'Try searching by vehicle number or holder name' : 'Click "New Permit" to add your first permit',
           }}
           loadingMessage='Loading permits...'
           headerGradient='from-indigo-50 via-purple-50 to-pink-50'
@@ -675,25 +609,28 @@ const NationalPermit = () => {
               ),
             },
             {
-              title: (record) => `Renew Part A (${getDaysRemaining(record.validTill)} days left)`,
-              condition: (record) => record.validTill && record.validTill !== 'N/A' && isPartAExpiringSoon(record.validTill, 90),
-              onClick: handleRenewPartA,
-              bgColor: 'bg-purple-100',
-              textColor: 'text-purple-600',
-              hoverBgColor: 'bg-purple-200',
-              icon: (
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                </svg>
-              ),
-            },
-            {
-              title: (record) => `Renew Part B (${getDaysRemaining(record.partB?.validTo)} days left)`,
-              condition: (record) => record.partB?.validTo && record.partB.validTo !== 'N/A' && isPartBExpiringSoon(record.partB.validTo, 30),
-              onClick: handleRenewPartB,
-              bgColor: 'bg-rose-100',
-              textColor: 'text-rose-600',
-              hoverBgColor: 'bg-rose-200',
+              title: (record) => {
+                const partANeedsRenewal = record.partA?.status && ['expiring_soon', 'expired'].includes(record.partA.status)
+                const partBNeedsRenewal = record.partB?.status && ['expiring_soon', 'expired'].includes(record.partB.status)
+
+                if (partANeedsRenewal && partBNeedsRenewal) {
+                  return 'Renew Permit (Both Parts)'
+                } else if (partANeedsRenewal) {
+                  return `Renew Part A (${getDaysRemaining(record.validTill)} days left)`
+                } else if (partBNeedsRenewal) {
+                  return `Renew Part B (${getDaysRemaining(record.partB?.validTo)} days left)`
+                }
+                return 'Renew Permit'
+              },
+              condition: (record) => {
+                const partANeedsRenewal = record.partA?.status && ['expiring_soon', 'expired'].includes(record.partA.status)
+                const partBNeedsRenewal = record.partB?.status && ['expiring_soon', 'expired'].includes(record.partB.status)
+                return partANeedsRenewal || partBNeedsRenewal
+              },
+              onClick: handleRenew,
+              bgColor: 'bg-emerald-100',
+              textColor: 'text-emerald-600',
+              hoverBgColor: 'bg-emerald-200',
               icon: (
                 <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
@@ -732,7 +669,19 @@ const NationalPermit = () => {
               </tr>
             </thead>
             <tbody className='divide-y divide-gray-200 bg-white'>
-              {filteredPermits.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan='9' className='px-5 py-16 text-center'>
+                    <div className='flex flex-col items-center justify-center space-y-4'>
+                      <div className='relative'>
+                        <div className='w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl animate-pulse shadow-lg'></div>
+                        <div className='absolute inset-0 w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-2xl animate-spin'></div>
+                      </div>
+                      <p className='text-lg font-semibold text-gray-700'>Loading permits...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredPermits.length > 0 ? (
                 filteredPermits.map((permit, index) => (
                   <tr key={permit.id} className='hover:bg-gradient-to-r hover:from-blue-50/70 hover:via-indigo-50/70 hover:to-purple-50/70 transition-all duration-200 group border-b border-gray-100'>
                     <td className='px-5 py-4'>
@@ -901,38 +850,48 @@ const NationalPermit = () => {
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                           </svg>
                         </button>
-                        {/* Renew Part B Button - Show only when expiring within 30 days or expired */}
-                        {permit.partB?.validTo && permit.partB.validTo !== 'N/A' && isPartBExpiringSoon(permit.partB.validTo, 30) && (
-                          <button
-                            onClick={() => handleRenewPartB(permit)}
+                        {/* Smart Renew Button - Show when Part A or Part B needs renewal */}
+                        {(() => {
+                          const partANeedsRenewal = permit.partA?.status && ['expiring_soon', 'expired'].includes(permit.partA.status)
+                          const partBNeedsRenewal = permit.partB?.status && ['expiring_soon', 'expired'].includes(permit.partB.status)
 
-                            className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105'
-                            title={`Renew Part B (${getDaysRemaining(permit.partB.validTo)} days left)`}
-                          >
-                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                            </svg>
-                            {getDaysRemaining(permit.partB.validTo) <= 7 && (
-                              <span className='absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse'></span>
-                            )}
-                          </button>
-                        )}
-                        {/* Renew Part A Button - Show only when expiring within 90 days or expired */}
-                        {permit.validTill && permit.validTill !== 'N/A' && isPartAExpiringSoon(permit.validTill, 90) && (
-                          <button
-                            onClick={() => handleRenewPartA(permit)}
+                          if (!partANeedsRenewal && !partBNeedsRenewal) return null
 
-                            className='p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105'
-                            title={`Renew Part A (${getDaysRemaining(permit.validTill)} days left)`}
-                          >
-                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                            </svg>
-                            {getDaysRemaining(permit.validTill) <= 7 && (
-                              <span className='absolute -top-1 -right-1 w-3 h-3 bg-purple-500 rounded-full animate-pulse'></span>
-                            )}
-                          </button>
-                        )}
+                          let title = 'Renew Permit'
+                          let daysLeft = null
+                          let isUrgent = false
+
+                          if (partANeedsRenewal && partBNeedsRenewal) {
+                            title = 'Renew Permit (Both Parts)'
+                            const partADays = getDaysRemaining(permit.validTill)
+                            const partBDays = getDaysRemaining(permit.partB.validTo)
+                            daysLeft = Math.min(partADays, partBDays)
+                            isUrgent = partADays <= 7 || partBDays <= 7
+                          } else if (partANeedsRenewal) {
+                            daysLeft = getDaysRemaining(permit.validTill)
+                            title = `Renew Part A (${daysLeft} days left)`
+                            isUrgent = daysLeft <= 7
+                          } else if (partBNeedsRenewal) {
+                            daysLeft = getDaysRemaining(permit.partB.validTo)
+                            title = `Renew Part B (${daysLeft} days left)`
+                            isUrgent = daysLeft <= 7
+                          }
+
+                          return (
+                            <button
+                              onClick={() => handleRenew(permit)}
+                              className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105'
+                              title={title}
+                            >
+                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                              </svg>
+                              {isUrgent && (
+                                <span className='absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse'></span>
+                              )}
+                            </button>
+                          )
+                        })()}
                       </div>
                     </td>
                   </tr>
@@ -948,7 +907,7 @@ const NationalPermit = () => {
                       </div>
                       <h3 className='text-xl font-black text-gray-700 mb-2'>No Permits Found</h3>
                       <p className='text-sm text-gray-500 mb-6 max-w-md text-center'>
-                        {searchQuery ? 'No permits match your search criteria. Try adjusting your search terms.' : 'Get started by adding your first national permit.'}
+                        {searchQuery ? 'No permits match your search. Try searching by vehicle number or holder name.' : 'Get started by adding your first national permit.'}
                       </p>
                       {!searchQuery && (
                         <button
@@ -970,7 +929,7 @@ const NationalPermit = () => {
         </div>
 
         {/* Pagination */}
-        {!loading && filteredPermits.length > 0 && (
+        {filteredPermits.length > 0 && (
           <Pagination
             currentPage={pagination.currentPage}
             totalPages={pagination.totalPages}
@@ -980,8 +939,6 @@ const NationalPermit = () => {
           />
         )}
       </div>
-      </>
-      )}
 
       {/* Permit Details Modal - Lazy Loaded */}
       {showDetailsModal && (
@@ -1017,24 +974,12 @@ const NationalPermit = () => {
           />
       )}
 
-      {/* Renew Part B Modal - Lazy Loaded */}
-      {showRenewPartBModal && renewingPermit && (
-                  <RenewPartBModal
+      {/* Smart Renew Modal - Lazy Loaded */}
+      {showSmartRenewModal && renewingPermit && (
+                  <SmartRenewModal
             permit={renewingPermit}
             onClose={() => {
-              setShowRenewPartBModal(false)
-              setRenewingPermit(null)
-            }}
-            onRenewalSuccess={handleRenewalSuccess}
-          />
-      )}
-
-      {/* Renew Part A Modal - Lazy Loaded */}
-      {showRenewPartAModal && renewingPermit && (
-                  <RenewPartAModal
-            permit={renewingPermit}
-            onClose={() => {
-              setShowRenewPartAModal(false)
+              setShowSmartRenewModal(false)
               setRenewingPermit(null)
             }}
             onRenewalSuccess={handleRenewalSuccess}

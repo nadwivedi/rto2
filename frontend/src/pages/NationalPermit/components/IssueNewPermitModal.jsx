@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, cleanVehicleNumber } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
@@ -18,6 +19,8 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
   const dropdownItemRefs = useRef([])
+  const [existingPermitStatus, setExistingPermitStatus] = useState(null)
+  const [permitCheckError, setPermitCheckError] = useState('')
 
   // Helper function to format date as DD-MM-YYYY
   const formatDate = (date) => {
@@ -43,18 +46,11 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     validFrom: '',
     validTo: '',
 
-    // Optional fields
-    fatherName: '',
-    address: '',
+    // Contact
     mobileNumber: '',
-    email: '',
 
     // Vehicle details
     vehicleNumber: '',
-    chassisNumber: '',
-    engineNumber: '',
-    ladenWeight: '',
-    unladenWeight: '',
 
     // Type B Authorization details
     authorizationNumber: '',
@@ -64,7 +60,10 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     // Fees
     totalFee: '',
     paid: '',
-    balance: ''
+    balance: '',
+
+    // Notes
+    notes: ''
   })
 
   // Fetch vehicle details when registration number is entered
@@ -78,6 +77,8 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
         setVehicleMatches([])
         setShowVehicleDropdown(false)
         setSelectedDropdownIndex(0)
+        setExistingPermitStatus(null)
+        setPermitCheckError('')
         return
       }
 
@@ -104,13 +105,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
               ...prev,
               vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
               permitHolderName: vehicleData.ownerName || prev.permitHolderName,
-              address: vehicleData.address || prev.address,
-              chassisNumber: vehicleData.chassisNumber || prev.chassisNumber,
-              engineNumber: vehicleData.engineNumber || prev.engineNumber,
-              ladenWeight: vehicleData.ladenWeight || prev.ladenWeight,
-              unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
-              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
-              email: vehicleData.email || prev.email
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -145,6 +140,70 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     return () => clearTimeout(timeoutId)
   }, [formData.vehicleNumber])
 
+  // Check for existing permits when vehicle number is complete (10 characters)
+  useEffect(() => {
+    const checkExistingPermit = async () => {
+      const vehicleNumber = formData.vehicleNumber.trim()
+
+      // Only check if vehicle number is exactly 10 characters and valid
+      if (vehicleNumber.length !== 10 || !vehicleValidation.isValid) {
+        setExistingPermitStatus(null)
+        setPermitCheckError('')
+        return
+      }
+
+      try {
+        const response = await axios.get(`${API_URL}/api/national-permits/check-existing/${vehicleNumber}`, {
+          withCredentials: true
+        })
+
+        if (response.data.success) {
+          const permitStatus = response.data.data
+          setExistingPermitStatus(permitStatus)
+
+          // If there's an active Part A, prefill Part A data
+          if (permitStatus.hasActivePartA && permitStatus.activePartA) {
+            const partA = permitStatus.activePartA
+            setFormData(prev => ({
+              ...prev,
+              permitNumber: partA.permitNumber || prev.permitNumber,
+              permitHolderName: partA.permitHolder || prev.permitHolderName,
+              mobileNumber: partA.mobileNumber || prev.mobileNumber,
+              validFrom: partA.validFrom || prev.validFrom,
+              validTo: partA.validTo || prev.validTo
+            }))
+          }
+
+          // If there's an active Part B, prefill Part B data
+          if (permitStatus.hasActivePartB && permitStatus.activePartB) {
+            const partB = permitStatus.activePartB
+            setFormData(prev => ({
+              ...prev,
+              authorizationNumber: partB.partBNumber || prev.authorizationNumber,
+              typeBValidFrom: partB.validFrom || prev.typeBValidFrom,
+              typeBValidTo: partB.validTo || prev.typeBValidTo
+            }))
+          }
+
+          setPermitCheckError('')
+        }
+      } catch (error) {
+        console.error('Error checking existing permit:', error)
+        setPermitCheckError('Error checking existing permit')
+        setExistingPermitStatus(null)
+      }
+    }
+
+    // Debounce the check - wait 300ms after vehicle number is complete
+    const timeoutId = setTimeout(() => {
+      if (formData.vehicleNumber.length === 10 && vehicleValidation.isValid) {
+        checkExistingPermit()
+      }
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [formData.vehicleNumber, vehicleValidation.isValid])
+
   // Auto-scroll to selected dropdown item
   useEffect(() => {
     if (showVehicleDropdown && dropdownItemRefs.current[selectedDropdownIndex]) {
@@ -156,18 +215,12 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
   }, [selectedDropdownIndex, showVehicleDropdown])
 
   // Handle vehicle selection from dropdown
-  const handleVehicleSelect = (vehicle) => {
+  const handleVehicleSelect = async (vehicle) => {
     setFormData(prev => ({
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
       permitHolderName: vehicle.ownerName || prev.permitHolderName,
-      address: vehicle.address || prev.address,
-      chassisNumber: vehicle.chassisNumber || prev.chassisNumber,
-      engineNumber: vehicle.engineNumber || prev.engineNumber,
-      ladenWeight: vehicle.ladenWeight || prev.ladenWeight,
-      unladenWeight: vehicle.unladenWeight || prev.unladenWeight,
-      mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
-      email: vehicle.email || prev.email
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])
@@ -177,6 +230,50 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     // Validate the selected vehicle number
     const validation = validateVehicleNumberRealtime(vehicle.registrationNumber)
     setVehicleValidation(validation)
+
+    // Check for existing permits for this vehicle
+    if (validation.isValid && vehicle.registrationNumber.length === 10) {
+      try {
+        const response = await axios.get(`${API_URL}/api/national-permits/check-existing/${vehicle.registrationNumber}`, {
+          withCredentials: true
+        })
+
+        if (response.data.success) {
+          const permitStatus = response.data.data
+          setExistingPermitStatus(permitStatus)
+
+          // If there's an active Part A, prefill Part A data
+          if (permitStatus.hasActivePartA && permitStatus.activePartA) {
+            const partA = permitStatus.activePartA
+            setFormData(prev => ({
+              ...prev,
+              permitNumber: partA.permitNumber || prev.permitNumber,
+              permitHolderName: partA.permitHolder || prev.permitHolderName,
+              mobileNumber: partA.mobileNumber || prev.mobileNumber,
+              validFrom: partA.validFrom || prev.validFrom,
+              validTo: partA.validTo || prev.validTo
+            }))
+          }
+
+          // If there's an active Part B, prefill Part B data
+          if (permitStatus.hasActivePartB && permitStatus.activePartB) {
+            const partB = permitStatus.activePartB
+            setFormData(prev => ({
+              ...prev,
+              authorizationNumber: partB.partBNumber || prev.authorizationNumber,
+              typeBValidFrom: partB.validFrom || prev.typeBValidFrom,
+              typeBValidTo: partB.validTo || prev.typeBValidTo
+            }))
+          }
+
+          setPermitCheckError('')
+        }
+      } catch (error) {
+        console.error('Error checking existing permit:', error)
+        setPermitCheckError('Error checking existing permit')
+        setExistingPermitStatus(null)
+      }
+    }
   }
 
   // Calculate valid to date (5 years minus 1 day from valid from) for Type A
@@ -381,19 +478,37 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
     // Validate vehicle number before submitting (must be exactly 10 characters and valid format)
     if (formData.vehicleNumber.length === 10 && !vehicleValidation.isValid) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)')
+      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)', {
+        position: 'top-right',
+        autoClose: 4000
+      })
       return
     }
 
     // Ensure vehicle number is exactly 10 characters for submission
     if (formData.vehicleNumber && formData.vehicleNumber.length !== 10) {
-      alert('Vehicle number must be exactly 10 characters')
+      toast.error('Vehicle number must be exactly 10 characters', {
+        position: 'top-right',
+        autoClose: 3000
+      })
+      return
+    }
+
+    // Check if both Part A and Part B are active - don't allow creating new permit
+    if (existingPermitStatus && existingPermitStatus.hasActivePermit) {
+      toast.error(existingPermitStatus.message || 'This vehicle already has an active national permit. You cannot create another permit until one of the parts expires or is expiring soon.', {
+        position: 'top-right',
+        autoClose: 5000
+      })
       return
     }
 
     // Validate paid amount doesn't exceed total fee
     if (paidExceedsTotal) {
-      alert('Paid amount cannot be more than the total fee!')
+      toast.error('Paid amount cannot be more than the total fee!', {
+        position: 'top-right',
+        autoClose: 3000
+      })
       return
     }
 
@@ -410,21 +525,15 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
       permitHolderName: '',
       validFrom: '',
       validTo: '',
-      fatherName: '',
-      address: '',
       mobileNumber: '',
-      email: '',
       vehicleNumber: '',
-      chassisNumber: '',
-      engineNumber: '',
-      ladenWeight: '',
-      unladenWeight: '',
       authorizationNumber: '',
       typeBValidFrom: '', // Reset to empty
       typeBValidTo: '', // Reset to empty
       totalFee: '',
       paid: '',
-      balance: ''
+      balance: '',
+      notes: ''
     })
     setPartAImage(null)
     setPartBImage(null)
@@ -460,11 +569,11 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
         {/* Form Content */}
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
-            {/* Essential Fields Section */}
-            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            {/* Vehicle & Contact Info Section */}
+            <div className='bg-gradient-to-r from-slate-50 to-gray-50 border-2 border-slate-300 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
-                Type A
+                <span className='bg-slate-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
+                Vehicle & Contact Information
               </h3>
 
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
@@ -567,9 +676,135 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                   {!vehicleError && !fetchingVehicle && formData.vehicleNumber && formData.permitHolderName && vehicleValidation.isValid && !showVehicleDropdown && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Owner details auto-filled</p>
                   )}
-                 
+
                 </div>
 
+                {/* Mobile Number */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Mobile Number
+                  </label>
+                  <input
+                    type='tel'
+                    name='mobileNumber'
+                    value={formData.mobileNumber}
+                    onChange={handleChange}
+                    placeholder='10-digit number'
+                    maxLength='10'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent'
+                  />
+                </div>
+
+                {/* Existing Permit Status Info */}
+                {existingPermitStatus && vehicleValidation.isValid && formData.vehicleNumber.length === 10 && (
+                  <div className='md:col-span-2'>
+                    {existingPermitStatus.hasActivePermit ? (
+                      <div className='bg-red-100 border border-red-300 rounded-lg p-3'>
+                        <div className='flex items-start gap-2'>
+                          <svg className='w-5 h-5 text-red-600 mt-0.5 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                            <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clipRule='evenodd' />
+                          </svg>
+                          <div>
+                            <p className='text-sm font-bold text-red-800'>Active Permit Exists</p>
+                            <p className='text-xs text-red-700 mt-1'>{existingPermitStatus.message}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : existingPermitStatus.hasActivePartA && !existingPermitStatus.hasActivePartB ? (
+                      <div className='bg-blue-100 border border-blue-300 rounded-lg p-3'>
+                        <div className='flex items-start gap-2'>
+                          <svg className='w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                            <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
+                          </svg>
+                          <div>
+                            <p className='text-sm font-bold text-blue-800'>Part A is Active</p>
+                            <p className='text-xs text-blue-700 mt-1'>{existingPermitStatus.message}</p>
+                            <p className='text-xs text-blue-600 mt-1'>✓ Part A data has been auto-filled. Please add Part B details below.</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : existingPermitStatus.hasActivePartB && !existingPermitStatus.hasActivePartA ? (
+                      <div className='bg-purple-100 border border-purple-300 rounded-lg p-3'>
+                        <div className='flex items-start gap-2'>
+                          <svg className='w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                            <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
+                          </svg>
+                          <div>
+                            <p className='text-sm font-bold text-purple-800'>Part B is Active</p>
+                            <p className='text-xs text-purple-700 mt-1'>{existingPermitStatus.message}</p>
+                            <p className='text-xs text-purple-600 mt-1'>✓ Part B data has been auto-filled. Please add Part A details above.</p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className='bg-green-100 border border-green-300 rounded-lg p-3'>
+                        <div className='flex items-start gap-2'>
+                          <svg className='w-5 h-5 text-green-600 mt-0.5 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                            <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z' clipRule='evenodd' />
+                          </svg>
+                          <div>
+                            <p className='text-sm font-bold text-green-800'>Ready to Create</p>
+                            <p className='text-xs text-green-700 mt-1'>{existingPermitStatus.message}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Part A Section */}
+            <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-indigo-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
+                Part A - Permit Details (5 Years Validity)
+              </h3>
+
+              {/* Show old Part A details if not active */}
+              {existingPermitStatus && existingPermitStatus.oldPartADetails && (
+                <div className='mb-4 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-lg p-4 shadow-sm'>
+                  <div className='flex items-center gap-2 mb-3'>
+                    <svg className='w-5 h-5 text-amber-600' fill='currentColor' viewBox='0 0 20 20'>
+                      <path fillRule='evenodd' d='M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z' clipRule='evenodd' />
+                    </svg>
+                    <p className='text-sm font-bold text-amber-800'>
+                      Previous Part A
+                      <span className={`ml-2 px-2 py-0.5 rounded text-xs ${
+                        existingPermitStatus.oldPartADetails.status === 'expired'
+                          ? 'bg-red-100 text-red-700 border border-red-300'
+                          : 'bg-orange-100 text-orange-700 border border-orange-300'
+                      }`}>
+                        {existingPermitStatus.oldPartADetails.status === 'expired' ? 'Expired' : 'Expiring Soon'}
+                      </span>
+                    </p>
+                  </div>
+                  <div className='grid grid-cols-1 md:grid-cols-2 gap-3 bg-white rounded-md p-3 border border-amber-200'>
+                    <div className='flex flex-col'>
+                      <span className='text-xs text-gray-500 font-medium mb-1'>Permit Number</span>
+                      <span className='text-sm font-semibold text-gray-800'>{existingPermitStatus.oldPartADetails.permitNumber}</span>
+                    </div>
+                    <div className='flex flex-col'>
+                      <span className='text-xs text-gray-500 font-medium mb-1'>Permit Holder</span>
+                      <span className='text-sm font-semibold text-gray-800'>{existingPermitStatus.oldPartADetails.permitHolder}</span>
+                    </div>
+                    <div className='flex flex-col'>
+                      <span className='text-xs text-gray-500 font-medium mb-1'>Valid From</span>
+                      <span className='text-sm font-semibold text-green-600'>{existingPermitStatus.oldPartADetails.validFrom}</span>
+                    </div>
+                    <div className='flex flex-col'>
+                      <span className='text-xs text-gray-500 font-medium mb-1'>Valid To</span>
+                      <span className={`text-sm font-semibold ${
+                        existingPermitStatus.oldPartADetails.status === 'expired' ? 'text-red-600' : 'text-orange-600'
+                      }`}>
+                        {existingPermitStatus.oldPartADetails.validTo}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
                 {/* Permit Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -599,22 +834,6 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder='Rajesh Transport Services'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
-                  />
-                </div>
-
-                {/* Mobile Number */}
-                <div>
-                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Mobile Number
-                  </label>
-                  <input
-                    type='tel'
-                    name='mobileNumber'
-                    value={formData.mobileNumber}
-                    onChange={handleChange}
-                    placeholder='10-digit number'
-                    maxLength='10'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                 </div>
 
@@ -652,12 +871,24 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
               </div>
             </div>
 
-            {/* Authorization & Route Section */}
+            {/* Part B Authorization Section */}
             <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>2</span>
-                <span className='text-sm md:text-base'>Type B Authorization (1 Year Validity)</span>
+                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
+                <span className='text-sm md:text-base'>Part B - Authorization (1 Year Validity)</span>
               </h3>
+
+              {/* Show old Part B details if not active */}
+              {existingPermitStatus && existingPermitStatus.oldPartBDetails && (
+                <div className='mb-4 bg-amber-50 border border-amber-300 rounded-lg p-3'>
+                  <p className='text-xs font-bold text-amber-800 mb-2'>Previous Part B ({existingPermitStatus.oldPartBDetails.status}):</p>
+                  <div className='grid grid-cols-3 gap-2 text-xs text-amber-700'>
+                    <div><strong>Auth No:</strong> {existingPermitStatus.oldPartBDetails.authNumber}</div>
+                    <div><strong>Valid From:</strong> {existingPermitStatus.oldPartBDetails.validFrom}</div>
+                    <div><strong>Valid To:</strong> {existingPermitStatus.oldPartBDetails.validTo}</div>
+                  </div>
+                </div>
+              )}
 
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <div>
@@ -711,7 +942,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
             {/* Fees Section */}
             <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
-                <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>3</span>
+                <span className='bg-green-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>4</span>
                 Permit Fees
               </h3>
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
@@ -790,117 +1021,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
               </button>
 
               {showOptionalFields && (
-                <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
-                  {/* Personal Information */}
-                  <div>
-                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-indigo-600'>Personal Information</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Father's Name
-                        </label>
-                        <input
-                          type='text'
-                          name='fatherName'
-                          value={formData.fatherName}
-                          onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Email
-                        </label>
-                        <input
-                          type='email'
-                          name='email'
-                          value={formData.email}
-                          onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div className='md:col-span-2'>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Address
-                        </label>
-                        <textarea
-                          name='address'
-                          value={formData.address}
-                          onChange={handleChange}
-                          rows='2'
-                          placeholder='Complete address with street, area, landmark'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vehicle Details */}
-                  <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-blue-600'>Vehicle Details</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Chassis Number
-                        </label>
-                        <input
-                          type='text'
-                          name='chassisNumber'
-                          value={formData.chassisNumber}
-                          onChange={handleChange}
-                          placeholder='Enter chassis number'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Engine Number
-                        </label>
-                        <input
-                          type='text'
-                          name='engineNumber'
-                          value={formData.engineNumber}
-                          onChange={handleChange}
-                          placeholder='Enter engine number'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Laden Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='ladenWeight'
-                          value={formData.ladenWeight}
-                          onChange={handleChange}
-                          placeholder='Enter laden weight'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Unladen Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='unladenWeight'
-                          value={formData.unladenWeight}
-                          onChange={handleChange}
-                          placeholder='Enter unladen weight'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-                    </div>
-                  </div>
-
+                <div className='mt-4 md:mt-6'>
                   {/* Document Uploads */}
-                  <div className='border-t border-gray-200 pt-4'>
+                  <div>
                     <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-blue-600'>Document Uploads</h4>
                     <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                       {/* Part A Image Upload */}

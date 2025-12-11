@@ -7,7 +7,14 @@ const NationalPermitPartBSchema = new mongoose.Schema({
     required: true,
     index: true
   },
-  // Link to Part A
+  // Link to Part A (ObjectId reference for population)
+  partAId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'NationalPermitPartA',
+    index: true
+  },
+
+  // Link to Part A (String for backward compatibility and quick lookups)
   permitNumber: {
     type: String,
     required: true,
