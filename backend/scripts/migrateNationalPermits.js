@@ -6,12 +6,6 @@ require('dotenv').config();
 // Import the new NationalPermit model
 const NationalPermit = require('../models/NationalPermit');
 
-// ==================== CONFIGURATION ====================
-// For local testing: Set this to your local test user ID
-// For production: Comment this out to use userId from JSON data
-// const LOCAL_TEST_USER_ID = '69194e960cb5afd352fb96cb';
-// =======================================================
-
 // Helper function to format dates (DD-MM-YYYY format)
 const formatDate = (dateStr) => {
   if (!dateStr) return null;
@@ -156,7 +150,7 @@ async function migrateNationalPermits() {
 
         // Create the unified permit document
         const permitData = {
-          userId: LOCAL_TEST_USER_ID || partA.userId,
+          userId: partA.userId,
           vehicleNumber: partA.vehicleNumber.toUpperCase(),
           mobileNumber: partA.mobileNumber || '',
 
