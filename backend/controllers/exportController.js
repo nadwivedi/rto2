@@ -1,8 +1,7 @@
 const User = require('../models/User')
 const VehicleRegistration = require('../models/VehicleRegistration')
 const DrivingLicense = require('../models/Driving')
-const NationalPermitPartA = require('../models/NationalPermitPartA')
-const NationalPermitPartB = require('../models/NationalPermitPartB')
+const NationalPermit = require('../models/NationalPermit')
 const CgPermit = require('../models/CgPermit')
 const TemporaryPermit = require('../models/TemporaryPermit')
 const TemporaryPermitOtherState = require('../models/TemporaryPermitOtherState')
@@ -21,8 +20,7 @@ exports.getExportStatistics = async (req, res) => {
       users: await User.countDocuments(),
       vehicleRegistrations: await VehicleRegistration.countDocuments(),
       drivingLicenses: await DrivingLicense.countDocuments(),
-      nationalPermitsPartA: await NationalPermitPartA.countDocuments(),
-      nationalPermitsPartB: await NationalPermitPartB.countDocuments(),
+      nationalPermits: await NationalPermit.countDocuments(),
       cgPermits: await CgPermit.countDocuments(),
       temporaryPermits: await TemporaryPermit.countDocuments(),
       temporaryPermitsOtherState: await TemporaryPermitOtherState.countDocuments(),
@@ -63,8 +61,7 @@ exports.exportAllDataCombined = async (req, res) => {
     console.log(`Found ${vehicleRegistrations.length} vehicle registrations`)
 
     const drivingLicenses = await DrivingLicense.find({}).populate('userId', 'name mobile1').lean()
-    const nationalPermitsPartA = await NationalPermitPartA.find({}).populate('userId', 'name mobile1').lean()
-    const nationalPermitsPartB = await NationalPermitPartB.find({}).populate('userId', 'name mobile1').lean()
+    const nationalPermits = await NationalPermit.find({}).populate('userId', 'name mobile1').lean()
     const cgPermits = await CgPermit.find({}).populate('userId', 'name mobile1').lean()
     const temporaryPermits = await TemporaryPermit.find({}).populate('userId', 'name mobile1').lean()
     const temporaryPermitsOtherState = await TemporaryPermitOtherState.find({}).populate('userId', 'name mobile1').lean()
@@ -110,8 +107,7 @@ exports.exportAllDataCombined = async (req, res) => {
     archive.append(JSON.stringify(users, null, 2), { name: 'users.json' })
     archive.append(JSON.stringify(vehicleRegistrations, null, 2), { name: 'vehicle_registrations.json' })
     archive.append(JSON.stringify(drivingLicenses, null, 2), { name: 'driving_licenses.json' })
-    archive.append(JSON.stringify(nationalPermitsPartA, null, 2), { name: 'national_permits_part_a.json' })
-    archive.append(JSON.stringify(nationalPermitsPartB, null, 2), { name: 'national_permits_part_b.json' })
+    archive.append(JSON.stringify(nationalPermits, null, 2), { name: 'national_permits.json' })
     archive.append(JSON.stringify(cgPermits, null, 2), { name: 'cg_permits.json' })
     archive.append(JSON.stringify(temporaryPermits, null, 2), { name: 'temporary_permits.json' })
     archive.append(JSON.stringify(temporaryPermitsOtherState, null, 2), { name: 'temporary_permits_other_state.json' })
@@ -186,8 +182,7 @@ exports.exportAllDataUserWise = async (req, res) => {
       // Fetch all data for this user
       const vehicleRegistrations = await VehicleRegistration.find({ userId }).lean()
       const drivingLicenses = await DrivingLicense.find({ userId }).lean()
-      const nationalPermitsPartA = await NationalPermitPartA.find({ userId }).lean()
-      const nationalPermitsPartB = await NationalPermitPartB.find({ userId }).lean()
+      const nationalPermits = await NationalPermit.find({ userId }).lean()
       const cgPermits = await CgPermit.find({ userId }).lean()
       const temporaryPermits = await TemporaryPermit.find({ userId }).lean()
       const temporaryPermitsOtherState = await TemporaryPermitOtherState.find({ userId }).lean()
@@ -208,11 +203,8 @@ exports.exportAllDataUserWise = async (req, res) => {
       if (drivingLicenses.length > 0) {
         archive.append(JSON.stringify(drivingLicenses, null, 2), { name: `${folderName}/driving_licenses.json` })
       }
-      if (nationalPermitsPartA.length > 0) {
-        archive.append(JSON.stringify(nationalPermitsPartA, null, 2), { name: `${folderName}/national_permits_part_a.json` })
-      }
-      if (nationalPermitsPartB.length > 0) {
-        archive.append(JSON.stringify(nationalPermitsPartB, null, 2), { name: `${folderName}/national_permits_part_b.json` })
+      if (nationalPermits.length > 0) {
+        archive.append(JSON.stringify(nationalPermits, null, 2), { name: `${folderName}/national_permits.json` })
       }
       if (cgPermits.length > 0) {
         archive.append(JSON.stringify(cgPermits, null, 2), { name: `${folderName}/cg_permits.json` })
