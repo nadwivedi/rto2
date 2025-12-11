@@ -9,7 +9,7 @@ const NationalPermit = require('../models/NationalPermit');
 // ==================== CONFIGURATION ====================
 // For local testing: Set this to your local test user ID
 // For production: Comment this out to use userId from JSON data
-const LOCAL_TEST_USER_ID = '69194e960cb5afd352fb96cb';
+// const LOCAL_TEST_USER_ID = '69194e960cb5afd352fb96cb';
 // =======================================================
 
 // Helper function to format dates (DD-MM-YYYY format)
