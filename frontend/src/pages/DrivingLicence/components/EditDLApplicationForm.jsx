@@ -264,6 +264,42 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
     }
   }, [dobMonth, dobYear])
 
+  // Auto-calculate Learning License Expiry Date (6 months from issue date, minus 1 day)
+  useEffect(() => {
+    if (formData.learningLicenseIssueDate) {
+      // Parse DD-MM-YYYY format
+      const parts = formData.learningLicenseIssueDate.split('-')
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10)
+        const month = parseInt(parts[1], 10) - 1 // Month is 0-indexed
+        const year = parseInt(parts[2], 10)
+
+        // Check if date is valid
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900) {
+          const issueDate = new Date(year, month, day)
+
+          // Check if the date object is valid
+          if (!isNaN(issueDate.getTime())) {
+            const expiryDate = new Date(issueDate)
+            expiryDate.setMonth(expiryDate.getMonth() + 6)
+            // Subtract 1 day because issue date counts as day 1
+            expiryDate.setDate(expiryDate.getDate() - 1)
+
+            // Format date to DD-MM-YYYY
+            const expiryDay = String(expiryDate.getDate()).padStart(2, '0')
+            const expiryMonth = String(expiryDate.getMonth() + 1).padStart(2, '0')
+            const expiryYear = expiryDate.getFullYear()
+
+            setFormData(prev => ({
+              ...prev,
+              learningLicenseExpiryDate: `${expiryDay}-${expiryMonth}-${expiryYear}`
+            }))
+          }
+        }
+      }
+    }
+  }, [formData.learningLicenseIssueDate])
+
   const handleChange = (e) => {
     const { name, value } = e.target
 
@@ -691,7 +727,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
 
                         <div>
                           <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                            LL Expiry Date
+                            LL Expiry Date <span className='text-xs text-blue-500'>(Auto - 6 months)</span>
                           </label>
                           <input
                             type='text'
@@ -699,7 +735,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                             value={formData.learningLicenseExpiryDate}
                             onChange={handleChange}
                             placeholder='DD-MM-YYYY'
-                            className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-red-600 font-semibold'
+                            className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent text-red-600 font-semibold bg-yellow-50/50'
                           />
                         </div>
                       </div>

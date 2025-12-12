@@ -347,6 +347,17 @@ exports.smartRenewPermit = async (req, res) => {
       })
     }
 
+    // VALIDATION: Check if both Part A and Part B are ACTIVE
+    const partAActive = originalPermit.partAStatus === 'active'
+    const partBActive = originalPermit.partBStatus === 'active'
+
+    if (partAActive && partBActive) {
+      return res.status(400).json({
+        success: false,
+        message: `Both Part A and Part B are already active for this permit. Part A expires: ${originalPermit.partAValidTo}, Part B expires: ${originalPermit.partBValidTo}. Cannot renew an active permit.`
+      })
+    }
+
     // Mark original as renewed
     originalPermit.isRenewed = true
     await originalPermit.save()

@@ -183,12 +183,12 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
     }
   }
 
-  const handleTextareaKeyDown = (e) => {
+  const handleFieldKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.preventDefault() // Prevent new line in textarea
+      e.preventDefault() // Prevent form submission and new line in textarea
       // Move to next input field
       const form = e.target.form
-      const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]):not([disabled]), textarea'))
+      const inputs = Array.from(form.querySelectorAll('input:not([type="hidden"]):not([disabled]):not([readonly]), textarea'))
       const index = inputs.indexOf(e.target)
       if (index > -1 && index < inputs.length - 1) {
         inputs[index + 1].focus()
@@ -252,6 +252,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                     name='vehicleNumber'
                     value={formData.vehicleNumber}
                     onChange={handleChange}
+                    onKeyDown={handleFieldKeyDown}
                     required
                     placeholder='CG01AB1234'
                     maxLength='10'
@@ -289,6 +290,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='transferDate'
                   value={formData.transferDate}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   placeholder='22-12-2023'
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent'
@@ -315,6 +317,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='currentOwnerName'
                   value={formData.currentOwnerName}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   placeholder='Enter current owner full name'
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
@@ -331,6 +334,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='currentOwnerFatherName'
                   value={formData.currentOwnerFatherName}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   placeholder='Father/Husband/Parent name'
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
@@ -347,6 +351,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='currentOwnerMobile'
                   value={formData.currentOwnerMobile}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   placeholder='10-digit mobile number'
                   pattern='[0-9]{10}'
@@ -364,7 +369,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='currentOwnerAddress'
                   value={formData.currentOwnerAddress}
                   onChange={handleChange}
-                  onKeyDown={handleTextareaKeyDown}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   rows='2'
                   placeholder='Enter complete address'
@@ -392,6 +397,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='newOwnerName'
                   value={formData.newOwnerName}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   placeholder='Enter new owner full name'
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
@@ -408,6 +414,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='newOwnerFatherName'
                   value={formData.newOwnerFatherName}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   placeholder='Father/Husband/Parent name'
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
@@ -424,6 +431,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='newOwnerMobile'
                   value={formData.newOwnerMobile}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   placeholder='10-digit mobile number'
                   pattern='[0-9]{10}'
@@ -441,7 +449,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='newOwnerAddress'
                   value={formData.newOwnerAddress}
                   onChange={handleChange}
-                  onKeyDown={handleTextareaKeyDown}
+                  onKeyDown={handleFieldKeyDown}
                   required
                   rows='2'
                   placeholder='Enter complete address'
@@ -469,6 +477,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='byName'
                   value={formData.byName}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   placeholder='Enter name'
                   className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent'
                 />
@@ -484,6 +493,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='byMobile'
                   value={formData.byMobile}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   placeholder='10-digit mobile number'
                   pattern='[0-9]{10}'
                   maxLength='10'
@@ -520,6 +530,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='totalFee'
                   value={formData.totalFee}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   placeholder='0'
                   required
                   min='0'
@@ -537,6 +548,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   name='paid'
                   value={formData.paid}
                   onChange={handleChange}
+                  onKeyDown={handleFieldKeyDown}
                   placeholder='0'
                   required
                   min='0'

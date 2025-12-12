@@ -84,10 +84,11 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
     setError('')
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/national-permits/${permit.id}/renew-part-b`, {
+      const response = await axios.post(`${API_BASE_URL}/api/national-permits/${permit.id}/smart-renew`, {
+        renewType: 'partB',
         partBNumber: formData.partBNumber.trim(),
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
+        partBValidFrom: formData.validFrom,
+        partBValidTo: formData.validTo,
         totalFee: parseFloat(formData.totalFee),
         paid: parseFloat(formData.paid),
         balance: parseFloat(formData.balance),
@@ -102,7 +103,7 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
         throw new Error(data.message || 'Failed to renew Part B')
       }
 
-      alert('Part B renewed successfully! New bill has been generated.')
+      alert('Part B renewed successfully! A new permit document has been created and a new bill has been generated.')
       onRenewalSuccess && onRenewalSuccess(data.data)
       onClose()
     } catch (err) {
@@ -304,8 +305,8 @@ const RenewPartBModal = ({ permit, onClose, onRenewalSuccess }) => {
           {/* Info Box */}
           <div className='mt-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded'>
             <p className='text-xs text-blue-700 font-semibold'>
-              ℹ️ Upon renewal, a new bill will be generated with the authorization number you provide.
-              The old Part B will be moved to renewal history.
+              ℹ️ Upon renewal, a NEW permit document will be created with a new bill.
+              The old permit will be marked as renewed and moved to renewal history.
             </p>
           </div>
           </div>
