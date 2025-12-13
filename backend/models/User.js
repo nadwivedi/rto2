@@ -47,6 +47,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  state: {
+    type: String,
+    required: true,
+    trim: true,
+    uppercase: true
+  },
+  rto: {
+    type: String,
+    required: true,
+    trim: true,
+    uppercase: true
+  },
   billName: {
     type: String,
     trim: true

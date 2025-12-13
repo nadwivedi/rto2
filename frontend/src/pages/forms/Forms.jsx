@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Form46Modal from './components/Form46Modal'
 import Form20Modal from './components/Form20Modal'
+import Form44Modal from './components/Form44Modal'
 import Form45Modal from './components/Form45Modal'
 import Form48Modal from './components/Form48Modal'
 import SapathPatraModal from './components/SapathPatraModal'
@@ -11,6 +12,7 @@ import KaryalayForm2Modal from './components/KaryalayForm2Modal'
 const Forms = () => {
   const [isForm46Open, setIsForm46Open] = useState(false)
   const [isForm20Open, setIsForm20Open] = useState(false)
+  const [isForm44Open, setIsForm44Open] = useState(false)
   const [isForm45Open, setIsForm45Open] = useState(false)
   const [isForm48Open, setIsForm48Open] = useState(false)
   const [isSapathPatraOpen, setIsSapathPatraOpen] = useState(false)
@@ -26,6 +28,14 @@ const Forms = () => {
       icon: '📋',
       isModal: true,
       category: 'Registration'
+    },
+    {
+      id: 'form-44',
+      name: 'Form 44',
+      description: 'Application for Grant of Goods Carriage Permits (M.P.M.V.R.-44)',
+      icon: '🚛',
+      isModal: true,
+      category: 'Permit'
     },
     {
       id: 'form-45',
@@ -83,6 +93,8 @@ const Forms = () => {
         setIsForm46Open(true)
       } else if (form.id === 'form-20') {
         setIsForm20Open(true)
+      } else if (form.id === 'form-44') {
+        setIsForm44Open(true)
       } else if (form.id === 'form-45') {
         setIsForm45Open(true)
       } else if (form.id === 'form-48') {
@@ -184,6 +196,61 @@ const Forms = () => {
                 <h2 style="font-size: 13px; font-weight: bold;">tourist Permit or National Permit</h2>
               </div>
               ${generateForm46Fields()}
+            </div>
+          </body>
+        </html>
+      `)
+    } else if (formId === 'form-44') {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>FORM M.P.M.V.R.-44 (GCPA) - Goods Carriage Permits</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: 'Times New Roman', Times, serif; font-size: 13px; line-height: 1.5; padding: 20px; font-weight: 600; color: #000; }
+              .form-container { width: 100%; max-width: 800px; margin: 0 auto; }
+              input {
+                border: none !important;
+                background: transparent;
+                outline: none;
+                width: 100%;
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 13px;
+                padding: 0 2px;
+                font-weight: 600;
+                color: #000;
+              }
+              table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 8px 0;
+              }
+              th, td {
+                border: 1.5px solid #000;
+                padding: 6px;
+                text-align: center;
+              }
+              th {
+                font-weight: bold;
+                font-size: 12px;
+              }
+              @media print {
+                body { padding: 10mm; margin: 0; }
+                @page {
+                  margin: 0;
+                  size: A4;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="form-container">
+              <div style="text-align: center; margin-bottom: 15px;">
+                <h1 style="font-size: 18px; font-weight: bold; letter-spacing: 2px;">FORM M.P.M.V.R.- 44 (GCPA)</h1>
+                <p style="font-size: 11px; margin-top: 3px;">[See Rule 72 (1), (C)]</p>
+                <h2 style="font-size: 13px; font-weight: bold; margin-top: 8px;">An application in respect of Grant of goods Carriage permits</h2>
+              </div>
+              ${generateForm44Fields()}
             </div>
           </body>
         </html>
@@ -821,6 +888,121 @@ const Forms = () => {
     `
   }
 
+  const generateForm44Fields = () => {
+    return `
+      <div style="margin-bottom: 10px;">
+        <p>To,</p>
+        <p style="margin-left: 24px; margin-top: 4px;">The Regional Transport Authority</p>
+        <div style="border-bottom: 1.5px solid #000; width: 280px; min-height: 16px; margin-left: 24px; margin-top: 4px;"></div>
+      </div>
+      <div style="margin-bottom: 8px; text-align: justify;">
+        <p>In accordance with the provisions of Section 69,77,78,79 and 80 of the Motor Vehicles Act. 1998 of the undersigned hereby apply for a goods carriers permits under section 66 of the M.V. Act. as here under set out of</p>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">1.</span>
+        <span style="width: 220px; flex-shrink: 0; margin-right: 10px;">Full name of the Applicant Company</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center; justify-content: flex-end;">
+        <span style="margin-right: 10px;">Age</span>
+        <div style="width: 100px; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">2.</span>
+        <span style="width: 220px; flex-shrink: 0; margin-right: 10px;">(Name) (Father's / Husband's Name)</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">3.</span>
+        <span style="width: 180px; flex-shrink: 0; margin-right: 10px;">Full Address H.No. / Road /Lane</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="margin-left: 30px; margin-bottom: 8px;">
+        <div style="border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center; margin-left: 30px;">
+        <span style="width: 200px; flex-shrink: 0; margin-right: 10px;">Name of locality/ City/ Form/ Pin Code</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="margin-left: 30px; margin-bottom: 8px;">
+        <div style="border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 8px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">4.</span>
+        <span style="width: 260px; flex-shrink: 0; margin-right: 10px;">Route or Area for which the permit is desied</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="display: flex; margin-bottom: 10px; align-items: center;">
+        <span style="width: 30px; flex-shrink: 0;">5.</span>
+        <span style="width: 260px; flex-shrink: 0; margin-right: 10px;">The nature of goods proposut to be carried</span>
+        <div style="flex: 1; border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+      </div>
+      <div style="margin-bottom: 10px;">
+        <div style="display: flex; align-items: flex-start; margin-bottom: 6px;">
+          <span style="width: 30px; flex-shrink: 0;">6.</span>
+          <p style="flex: 1;">Type and capacity of vehcile (including trailer alternative trailers of articulated vehicle)</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin: 8px 0;">
+          <thead>
+            <tr>
+              <th style="border: 1.5px solid #000; padding: 6px; text-align: center; width: 18%;">Registration<br/>Marks</th>
+              <th style="border: 1.5px solid #000; padding: 6px; text-align: center; width: 18%;">Make Type<br/>and No of<br/>vehicle</th>
+              <th style="border: 1.5px solid #000; padding: 6px; text-align: center; width: 16%;">Load<br/>Capacity</th>
+              <th style="border: 1.5px solid #000; padding: 6px; text-align: center; width: 16%;">Laden<br/>weight<br/>kg.</th>
+              <th style="border: 1.5px solid #000; padding: 6px; text-align: center; width: 16%;">Overrail<br/>length</th>
+              <th style="border: 1.5px solid #000; padding: 6px; text-align: center; width: 16%;">Width</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1.5px solid #000; padding: 6px; height: 40px;"></td>
+              <td style="border: 1.5px solid #000; padding: 6px;"></td>
+              <td style="border: 1.5px solid #000; padding: 6px;"></td>
+              <td style="border: 1.5px solid #000; padding: 6px;"></td>
+              <td style="border: 1.5px solid #000; padding: 6px;"></td>
+              <td style="border: 1.5px solid #000; padding: 6px;"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <div style="display: flex; align-items: flex-start;">
+          <span style="width: 30px; flex-shrink: 0;">7.</span>
+          <div style="flex: 1;">
+            <p style="text-align: justify;">I have not yet obtained possession on the vehicle and I understand that the permit will not be issued until have done. I have produced the certificate of registration and further declare that I proposet out cases vehicle manufactured in the year</p>
+            <div style="border-bottom: 1.5px solid #000; min-height: 16px; margin-top: 4px; width: 150px;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom: 8px;">
+        <div style="display: flex; align-items: flex-start;">
+          <span style="width: 30px; flex-shrink: 0;">8.</span>
+          <div style="flex: 1;">
+            <p style="margin-bottom: 4px;">Particulars of any goods carriage permit valid in any State and hold by the applicant which has been the subject of any order of suspension or cancellation</p>
+            <div style="border-bottom: 1.5px solid #000; min-height: 16px;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div style="display: flex; align-items: flex-start;">
+          <span style="width: 30px; flex-shrink: 0;">9.</span>
+          <p style="flex: 1; text-align: justify;">I forward herewith the certificate of registration of the vehicle or I will produce the certificate of registration of the vehicle before permit issued.</p>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+        <div style="display: flex; align-items: center;">
+          <span style="margin-right: 10px;">Date</span>
+          <div style="border-bottom: 1.5px solid #000; width: 150px; min-height: 16px;"></div>
+        </div>
+        <div style="text-align: center;">
+          <div style="border-bottom: 1.5px solid #000; width: 250px; height: 40px; margin-bottom: 4px;"></div>
+          <p style="font-size: 11px;">Signature/thumb impression of the</p>
+          <p style="font-size: 11px;">Applicant</p>
+        </div>
+      </div>
+    `
+  }
+
   const generateForm45Fields = () => {
     return `
       <div style="margin-bottom: 12px;">
@@ -1183,38 +1365,38 @@ const Forms = () => {
 
         {/* Forms Grid */}
         {filteredForms.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredForms.map((form) => (
               form.isModal ? (
                 <div
                   key={form.id}
                   onClick={() => handleFormClick(form)}
-                  className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 cursor-pointer hover:scale-105 hover:-translate-y-1"
+                  className="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 border border-gray-200 cursor-pointer hover:scale-105 hover:-translate-y-1"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="text-5xl transform group-hover:scale-110 transition-transform duration-300">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="text-4xl transform group-hover:scale-110 transition-transform duration-300">
                       {form.icon}
                     </div>
-                    <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-full">
+                    <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-full">
                       {form.category}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-indigo-600 transition-colors">
+                  <h3 className="text-lg font-bold text-gray-800 mb-1.5 group-hover:text-indigo-600 transition-colors">
                     {form.name}
                   </h3>
-                  <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                  <p className="text-gray-600 text-xs leading-relaxed mb-3">
                     {form.description}
                   </p>
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                    <span className="text-indigo-600 text-sm font-semibold group-hover:underline">
+                  <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <span className="text-indigo-600 text-xs font-semibold group-hover:underline">
                       Click to Edit →
                     </span>
                     <button
                       onClick={(e) => handleDirectPrint(form.id, e)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-medium text-sm"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-medium text-xs"
                       title="Print Empty Form"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                       </svg>
                       Print
@@ -1224,36 +1406,36 @@ const Forms = () => {
               ) : (
                 <div
                   key={form.id}
-                  className="group bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-gray-200 hover:scale-105 hover:-translate-y-1"
+                  className="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 border border-gray-200 hover:scale-105 hover:-translate-y-1"
                 >
                   <Link to={form.path}>
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="text-5xl transform group-hover:scale-110 transition-transform duration-300">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="text-4xl transform group-hover:scale-110 transition-transform duration-300">
                         {form.icon}
                       </div>
-                      <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-full">
+                      <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-full">
                         {form.category}
                       </span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-indigo-600 transition-colors">
+                    <h3 className="text-lg font-bold text-gray-800 mb-1.5 group-hover:text-indigo-600 transition-colors">
                       {form.name}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                    <p className="text-gray-600 text-xs leading-relaxed mb-3">
                       {form.description}
                     </p>
                   </Link>
-                  <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                  <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                     <Link to={form.path}>
-                      <span className="text-indigo-600 text-sm font-semibold group-hover:underline">
+                      <span className="text-indigo-600 text-xs font-semibold group-hover:underline">
                         Click to Edit →
                       </span>
                     </Link>
                     <button
                       onClick={(e) => handleDirectPrint(form.id, e)}
-                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-medium text-sm"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-lg hover:from-indigo-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-medium text-xs"
                       title="Print Empty Form"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                       </svg>
                       Print
@@ -1275,6 +1457,11 @@ const Forms = () => {
       {/* Form 20 Modal */}
       {isForm20Open && (
         <Form20Modal onClose={() => setIsForm20Open(false)} />
+      )}
+
+      {/* Form 44 Modal */}
+      {isForm44Open && (
+        <Form44Modal onClose={() => setIsForm44Open(false)} />
       )}
 
       {/* Form 45 Modal */}

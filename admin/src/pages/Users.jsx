@@ -3,6 +3,44 @@ import { useState, useEffect } from 'react'
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://api.rtosarthi.com'
 console.log(BACKEND_URL);
 
+const INDIAN_STATES = [
+  'Andaman and Nicobar Islands',
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chandigarh',
+  'Chhattisgarh',
+  'Dadra and Nagar Haveli and Daman and Diu',
+  'Delhi',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jammu and Kashmir',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Ladakh',
+  'Lakshadweep',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Puducherry',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal'
+]
 
 const Users = () => {
   const [users, setUsers] = useState([])
@@ -16,6 +54,8 @@ const Users = () => {
     mobile2: '',
     email: '',
     address: '',
+    state: '',
+    rto: '',
     billName: '',
     billDescription: '',
     password: ''
@@ -66,6 +106,11 @@ const Users = () => {
       return
     }
 
+    if (!formData.state || !formData.rto) {
+      setError('State and RTO are required')
+      return
+    }
+
     if (!isEditMode && !formData.password) {
       setError('Password is required for new users')
       return
@@ -97,7 +142,7 @@ const Users = () => {
         setShowModal(false)
         setIsEditMode(false)
         setEditingUserId(null)
-        setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', billName: '', billDescription: '', password: '' })
+        setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', state: '', rto: '', billName: '', billDescription: '', password: '' })
         fetchUsers()
       } else {
         setError(data.message || `Failed to ${isEditMode ? 'update' : 'create'} user`)
@@ -116,6 +161,8 @@ const Users = () => {
       mobile2: user.mobile2 || '',
       email: user.email || '',
       address: user.address || '',
+      state: user.state || '',
+      rto: user.rto || '',
       billName: user.billName || '',
       billDescription: user.billDescription || '',
       password: '' // Don't populate password for security
@@ -129,7 +176,7 @@ const Users = () => {
     setIsEditMode(false)
     setEditingUserId(null)
     setError('')
-    setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', billName: '', billDescription: '', password: '' })
+    setFormData({ name: '', mobile1: '', mobile2: '', email: '', address: '', state: '', rto: '', billName: '', billDescription: '', password: '' })
   }
 
   const handleDelete = async (id) => {
@@ -390,6 +437,41 @@ const Users = () => {
                   placeholder='Enter full address'
                   rows={3}
                   className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none'
+                />
+              </div>
+
+              <div>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
+                  State <span className='text-red-500'>*</span>
+                </label>
+                <select
+                  name='state'
+                  value={formData.state}
+                  onChange={handleChange}
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
+                  required
+                >
+                  <option value=''>Select State</option>
+                  {INDIAN_STATES.map((state) => (
+                    <option key={state} value={state}>
+                      {state.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className='block text-xs sm:text-sm font-semibold text-gray-700 mb-1'>
+                  RTO <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='text'
+                  name='rto'
+                  value={formData.rto}
+                  onChange={handleChange}
+                  placeholder='Enter RTO code'
+                  className='w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
+                  required
                 />
               </div>
 

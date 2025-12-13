@@ -94,7 +94,7 @@ exports.getUserById = async (req, res) => {
 // Create new user
 exports.createUser = async (req, res) => {
   try {
-    const { name, mobile1, mobile2, email, address, billName, billDescription, password } = req.body
+    const { name, mobile1, mobile2, email, address, state, rto, billName, billDescription, password } = req.body
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -134,6 +134,26 @@ exports.createUser = async (req, res) => {
         success: false,
         message: 'Mobile 2 must be 10 digits',
         errors: ['Mobile 2 must be 10 digits'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (!state || !state.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'State is required',
+        errors: ['State is required'],
+        errorCount: 1,
+        timestamp: getSimplifiedTimestamp()
+      })
+    }
+
+    if (!rto || !rto.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'RTO is required',
+        errors: ['RTO is required'],
         errorCount: 1,
         timestamp: getSimplifiedTimestamp()
       })
@@ -199,6 +219,8 @@ exports.createUser = async (req, res) => {
       mobile2: mobile2 && mobile2.trim() ? mobile2.trim() : undefined,
       email: email && email.trim() ? email.trim().toLowerCase() : undefined,
       address: address && address.trim() ? address.trim() : undefined,
+      state: state.trim(),
+      rto: rto.trim(),
       billName: billName && billName.trim() ? billName.trim() : undefined,
       billDescription: billDescription && billDescription.trim() ? billDescription.trim() : undefined,
       password: hashedPassword,
@@ -215,6 +237,8 @@ exports.createUser = async (req, res) => {
       mobile2: newUser.mobile2,
       email: newUser.email,
       address: newUser.address,
+      state: newUser.state,
+      rto: newUser.rto,
       billName: newUser.billName,
       billDescription: newUser.billDescription,
       isActive: newUser.isActive,
@@ -242,7 +266,7 @@ exports.createUser = async (req, res) => {
 // Update user
 exports.updateUser = async (req, res) => {
   try {
-    const { name, mobile1, mobile2, email, address, billName, billDescription, isActive, password } = req.body
+    const { name, mobile1, mobile2, email, address, state, rto, billName, billDescription, isActive, password } = req.body
 
     const user = await User.findById(req.params.id)
 
@@ -296,6 +320,24 @@ exports.updateUser = async (req, res) => {
     if (address !== undefined) {
       user.address = address.trim() ? address.trim() : undefined
     }
+    if (state !== undefined) {
+      if (!state || !state.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'State is required'
+        })
+      }
+      user.state = state.trim()
+    }
+    if (rto !== undefined) {
+      if (!rto || !rto.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: 'RTO is required'
+        })
+      }
+      user.rto = rto.trim()
+    }
     if (billName !== undefined) {
       user.billName = billName.trim() ? billName.trim() : undefined
     }
@@ -327,6 +369,8 @@ exports.updateUser = async (req, res) => {
         mobile2: user.mobile2,
         email: user.email,
         address: user.address,
+        state: user.state,
+        rto: user.rto,
         billName: user.billName,
         billDescription: user.billDescription,
         isActive: user.isActive

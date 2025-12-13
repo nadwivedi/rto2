@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react'
 import axios from 'axios'
+import { useAuth } from '../../../context/AuthContext'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
 const Form48Modal = ({ onClose }) => {
+  const { user } = useAuth()
   const printRef = useRef()
   const inputRefs = useRef([])
   const [vehicleSearchNumber, setVehicleSearchNumber] = useState('')
@@ -34,6 +36,17 @@ const Form48Modal = ({ onClose }) => {
     feePaid: '',
     date: ''
   })
+
+  // Prefill RTO and State from logged-in user data
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        transportAuthorityLocation: user.rto || '',
+        stateName: user.state || ''
+      }))
+    }
+  }, [user])
 
   const handleChange = (e) => {
     const { name, value } = e.target
