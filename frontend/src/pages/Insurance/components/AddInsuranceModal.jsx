@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { getTodayDate as utilGetTodayDate, handleSmartDateInput } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
@@ -20,13 +21,18 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     validTo: '',
     totalFee: '',
     paid: '',
-    balance: ''
+    balance: '',
+    insuranceDocument: ''
   })
 
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
+
+  // Insurance document upload states
+  const [insuranceDocPreview, setInsuranceDocPreview] = useState(null)
+  const [uploadingInsuranceDoc, setUploadingInsuranceDoc] = useState(false)
 
   // Vehicle search dropdown states
   const [vehicleMatches, setVehicleMatches] = useState([])
@@ -52,8 +58,16 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
         policyType: initialData.policyType || '',
         mobileNumber: initialData.mobileNumber || '',
         agentName: initialData.agentName || '',
-        agentContact: initialData.agentContact || ''
+        agentContact: initialData.agentContact || '',
+        insuranceDocument: initialData.insuranceDocument || ''
       })
+
+      // Set insurance document preview if exists
+      if (initialData.insuranceDocument) {
+        setInsuranceDocPreview(`${API_URL}${initialData.insuranceDocument}`)
+      } else {
+        setInsuranceDocPreview(null)
+      }
 
       // Validate pre-filled vehicle number
       if (vehicleNum) {
@@ -70,10 +84,12 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
         validTo: '',
         totalFee: '',
         paid: '',
-        balance: ''
+        balance: '',
+        insuranceDocument: ''
       })
       setFetchingVehicle(false)
       setVehicleValidation({ isValid: false, message: '' })
+      setInsuranceDocPreview(null)
     }
   }, [initialData, isOpen])
 
@@ -323,6 +339,130 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       ...prev,
       [name]: value
     }))
+  }
+
+  // Handle insurance document upload
+  const handleInsuranceDocUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!formData.vehicleNumber) {
+      toast.error('Please enter vehicle number first', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    const isImage = file.type.startsWith('image/')
+    const isPDF = file.type === 'application/pdf'
+
+    if (!isImage && !isPDF) {
+      toast.error('Please select a valid image or PDF file', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error('File size should be less than 12MB', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    setUploadingInsuranceDoc(true)
+
+    try {
+      if (isPDF) {
+        const reader = new FileReader()
+        reader.onloadend = async () => {
+          try {
+            const base64String = reader.result
+            const response = await axios.post(
+              `${API_URL}/api/upload/insurance-document`,
+              {
+                imageData: base64String,
+                insuranceId: initialData?._id || null,
+                vehicleNumber: formData.vehicleNumber
+              },
+              { withCredentials: true }
+            )
+
+            if (response.data.success) {
+              setFormData(prev => ({ ...prev, insuranceDocument: response.data.data.path }))
+              setInsuranceDocPreview(base64String)
+              setUploadingInsuranceDoc(false)
+              toast.success(`Insurance PDF uploaded successfully!`, { position: 'top-right', autoClose: 2000 })
+            }
+          } catch (uploadError) {
+            setUploadingInsuranceDoc(false)
+            toast.error('Failed to upload insurance PDF', { position: 'top-right', autoClose: 3000 })
+          }
+        }
+        reader.readAsDataURL(file)
+        return
+      }
+
+      const img = new Image()
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        img.onload = async () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          const maxWidth = 1920, maxHeight = 1920
+          let width = img.width, height = img.height
+
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height)
+            width *= ratio
+            height *= ratio
+          }
+
+          canvas.width = width
+          canvas.height = height
+          ctx.drawImage(img, 0, 0, width, height)
+
+          canvas.toBlob(async (blob) => {
+            if (blob) {
+              const webpReader = new FileReader()
+              webpReader.onloadend = async () => {
+                try {
+                  const response = await axios.post(
+                    `${API_URL}/api/upload/insurance-document`,
+                    {
+                      imageData: webpReader.result,
+                      insuranceId: initialData?._id || null,
+                      vehicleNumber: formData.vehicleNumber
+                    },
+                    { withCredentials: true }
+                  )
+
+                  if (response.data.success) {
+                    setFormData(prev => ({ ...prev, insuranceDocument: response.data.data.path }))
+                    setInsuranceDocPreview(URL.createObjectURL(blob))
+                    setUploadingInsuranceDoc(false)
+                    toast.success(`Insurance document uploaded successfully!`, { position: 'top-right', autoClose: 2000 })
+                  }
+                } catch (uploadError) {
+                  setUploadingInsuranceDoc(false)
+                  toast.error('Failed to upload insurance document', { position: 'top-right', autoClose: 3000 })
+                }
+              }
+              webpReader.readAsDataURL(blob)
+            }
+          }, 'image/webp', 0.8)
+        }
+        img.src = event.target.result
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      setUploadingInsuranceDoc(false)
+      toast.error('Error uploading insurance document', { position: 'top-right', autoClose: 3000 })
+    }
+  }
+
+  // Remove insurance document
+  const handleRemoveInsuranceDoc = () => {
+    setInsuranceDocPreview(null)
+    setFormData(prev => ({
+      ...prev,
+      insuranceDocument: ''
+    }))
+    toast.info('Insurance document removed', { position: 'top-right', autoClose: 2000 })
   }
 
   const handleSubmit = (e) => {
@@ -653,6 +793,96 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     </svg>
                     Fully Paid
                   </p>
+                </div>
+              )}
+            </div>
+
+            {/* Section 4: Insurance Document Upload */}
+            <div className='bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+              <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                <span className='bg-purple-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>4</span>
+                Insurance Document
+              </h3>
+
+              {!insuranceDocPreview ? (
+                <>
+                  <input
+                    type='file'
+                    accept='image/*,application/pdf'
+                    onChange={handleInsuranceDocUpload}
+                    disabled={uploadingInsuranceDoc || !formData.vehicleNumber}
+                    className='hidden'
+                    id='insuranceDocInput'
+                  />
+                  <label
+                    htmlFor='insuranceDocInput'
+                    className={`flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                      uploadingInsuranceDoc || !formData.vehicleNumber
+                        ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                        : 'border-purple-300 bg-white hover:bg-purple-50 hover:border-purple-400'
+                    }`}
+                  >
+                    {uploadingInsuranceDoc ? (
+                      <div className='flex flex-col items-center'>
+                        <svg className='animate-spin h-8 w-8 text-purple-600 mb-2' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                        </svg>
+                        <p className='text-sm text-gray-600 font-semibold'>Uploading...</p>
+                      </div>
+                    ) : !formData.vehicleNumber ? (
+                      <div className='flex flex-col items-center'>
+                        <svg className='w-10 h-10 md:w-12 md:h-12 text-gray-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z' />
+                        </svg>
+                        <p className='text-xs md:text-sm text-gray-500 font-semibold mb-1'>Enter vehicle number first</p>
+                      </div>
+                    ) : (
+                      <>
+                        <svg className='w-10 h-10 md:w-12 md:h-12 text-purple-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
+                        </svg>
+                        <p className='text-xs md:text-sm text-gray-600 font-semibold mb-1'>Upload Insurance Document</p>
+                        <p className='text-[10px] md:text-xs text-gray-500'>Image or PDF (Optional)</p>
+                        <p className='text-[10px] text-purple-600 font-semibold mt-1'>Max 12MB</p>
+                      </>
+                    )}
+                  </label>
+                </>
+              ) : (
+                <div className='relative'>
+                  {insuranceDocPreview.startsWith('data:application/pdf') || insuranceDocPreview.includes('.pdf') ? (
+                    <div className='w-full h-32 md:h-40 flex flex-col items-center justify-center bg-white rounded-lg border-2 border-purple-300'>
+                      <svg className='w-12 h-12 md:w-16 md:h-16 text-red-500 mb-2' fill='currentColor' viewBox='0 0 20 20'>
+                        <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
+                      </svg>
+                      <p className='text-xs md:text-sm font-semibold text-gray-600'>Insurance PDF</p>
+                      <a
+                        href={insuranceDocPreview}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-xs text-blue-600 hover:underline mt-1'
+                      >
+                        View PDF
+                      </a>
+                    </div>
+                  ) : (
+                    <img
+                      src={insuranceDocPreview}
+                      alt='Insurance Document Preview'
+                      className='w-full h-32 md:h-40 object-contain bg-white rounded-lg border-2 border-purple-300'
+                    />
+                  )}
+                  <button
+                    type='button'
+                    onClick={handleRemoveInsuranceDoc}
+                    className='absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg'
+                    title='Delete insurance document'
+                  >
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                    </svg>
+                  </button>
                 </div>
               )}
             </div>

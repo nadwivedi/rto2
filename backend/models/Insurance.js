@@ -70,6 +70,12 @@ const InsuranceSchema = new mongoose.Schema({
     default: false
   },
 
+  // Insurance Document
+  insuranceDocument: {
+    type: String,
+    trim: true
+  },
+
   // Additional Information
   remarks: {
     type: String,

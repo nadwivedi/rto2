@@ -3,10 +3,23 @@ const path = require('path')
 const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 const VehicleRegistration = require('../models/VehicleRegistration')
 
-// Ensure uploads directory exists
+// Ensure uploads directories exist
 const uploadsDir = path.join(__dirname, '..', 'uploads', 'rc-images')
+const aadharUploadsDir = path.join(__dirname, '..', 'uploads', 'aadhar-images')
+const panUploadsDir = path.join(__dirname, '..', 'uploads', 'pan-images')
+const insuranceUploadsDir = path.join(__dirname, '..', 'uploads', 'insurance-documents')
+
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true })
+}
+if (!fs.existsSync(aadharUploadsDir)) {
+  fs.mkdirSync(aadharUploadsDir, { recursive: true })
+}
+if (!fs.existsSync(panUploadsDir)) {
+  fs.mkdirSync(panUploadsDir, { recursive: true })
+}
+if (!fs.existsSync(insuranceUploadsDir)) {
+  fs.mkdirSync(insuranceUploadsDir, { recursive: true })
 }
 
 // Helper function to delete old RC image file
@@ -31,12 +44,19 @@ const deleteOldRCImage = (imagePath) => {
 // Only 1 image per vehicle registration - replaces old image if exists
 exports.uploadRCImage = async (req, res) => {
   try {
-    const { imageData, vehicleRegistrationId } = req.body
+    const { imageData, vehicleRegistrationId, vehicleNumber } = req.body
 
     if (!imageData) {
       return res.status(400).json({
         success: false,
         message: 'Image data is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle registration number is required'
       })
     }
 
@@ -53,21 +73,31 @@ exports.uploadRCImage = async (req, res) => {
       }
     }
 
-    // Validate base64 format - accept multiple image formats
+    // Validate base64 format - accept multiple image formats and PDF
     const imageFormatRegex = /^data:image\/(jpeg|jpg|png|webp);base64,/
-    const match = imageData.match(imageFormatRegex)
+    const pdfFormatRegex = /^data:application\/pdf;base64,/
 
-    if (!match) {
+    let fileFormat = null
+    let fileExtension = null
+
+    const imageMatch = imageData.match(imageFormatRegex)
+    const pdfMatch = imageData.match(pdfFormatRegex)
+
+    if (imageMatch) {
+      fileFormat = imageMatch[1]
+      fileExtension = fileFormat === 'jpeg' ? 'jpg' : fileFormat
+    } else if (pdfMatch) {
+      fileFormat = 'pdf'
+      fileExtension = 'pdf'
+    } else {
       return res.status(400).json({
         success: false,
-        message: 'Only JPG, JPEG, PNG, and WebP formats are accepted'
+        message: 'Only JPG, JPEG, PNG, WebP, and PDF formats are accepted'
       })
     }
 
-    const imageFormat = match[1]
-
     // Extract base64 data
-    const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, '')
+    const base64Data = imageData.replace(/^data:(image\/[a-z]+|application\/pdf);base64,/, '')
     const buffer = Buffer.from(base64Data, 'base64')
 
     // Check file size (12MB limit)
@@ -79,12 +109,10 @@ exports.uploadRCImage = async (req, res) => {
       })
     }
 
-    // Generate unique filename with appropriate extension
-    // Only 1 image per user-vehicle, so include vehicleId if provided
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(2, 15)
-    const extension = imageFormat === 'jpeg' ? 'jpg' : imageFormat
-    const filename = `rc-${req.user.id}-${timestamp}-${randomString}.${extension}`
+    // Generate filename with vehicle number
+    // Format: rc-VEHICLENUMBER.extension
+    const sanitizedVehicleNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '')
+    const filename = `rc-${sanitizedVehicleNumber}.${fileExtension}`
     const filePath = path.join(uploadsDir, filename)
 
     // Save file to disk
@@ -95,13 +123,13 @@ exports.uploadRCImage = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'RC image uploaded successfully (only 1 image allowed per vehicle)',
+      message: 'RC document uploaded successfully (only 1 document allowed per vehicle)',
       data: {
         filename,
         path: relativePath,
         size: buffer.length,
         sizeInMB: fileSizeInMB.toFixed(2),
-        format: imageFormat.toUpperCase()
+        format: fileFormat.toUpperCase()
       }
     })
   } catch (error) {
@@ -155,6 +183,331 @@ exports.deleteRCImage = async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'RC image deleted successfully'
+    })
+  } catch (error) {
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+// Upload Aadhar Image/PDF
+exports.uploadAadharImage = async (req, res) => {
+  try {
+    const { imageData, vehicleRegistrationId, vehicleNumber } = req.body
+
+    if (!imageData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Document data is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle registration number is required'
+      })
+    }
+
+    // If vehicleRegistrationId provided, check for existing document and delete it
+    if (vehicleRegistrationId) {
+      const existingVehicle = await VehicleRegistration.findOne({
+        _id: vehicleRegistrationId,
+        userId: req.user.id
+      })
+
+      if (existingVehicle && existingVehicle.aadharImage) {
+        // Delete old Aadhar document
+        try {
+          const filename = path.basename(existingVehicle.aadharImage)
+          const filePath = path.join(aadharUploadsDir, filename)
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath)
+          }
+        } catch (err) {
+          console.error('Error deleting old Aadhar:', err)
+        }
+      }
+    }
+
+    // Validate base64 format
+    const imageFormatRegex = /^data:image\/(jpeg|jpg|png|webp);base64,/
+    const pdfFormatRegex = /^data:application\/pdf;base64,/
+
+    let fileFormat = null
+    let fileExtension = null
+
+    const imageMatch = imageData.match(imageFormatRegex)
+    const pdfMatch = imageData.match(pdfFormatRegex)
+
+    if (imageMatch) {
+      fileFormat = imageMatch[1]
+      fileExtension = fileFormat === 'jpeg' ? 'jpg' : fileFormat
+    } else if (pdfMatch) {
+      fileFormat = 'pdf'
+      fileExtension = 'pdf'
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Only JPG, JPEG, PNG, WebP, and PDF formats are accepted'
+      })
+    }
+
+    const base64Data = imageData.replace(/^data:(image\/[a-z]+|application\/pdf);base64,/, '')
+    const buffer = Buffer.from(base64Data, 'base64')
+
+    const fileSizeInMB = buffer.length / (1024 * 1024)
+    if (fileSizeInMB > 12) {
+      return res.status(400).json({
+        success: false,
+        message: `File size (${fileSizeInMB.toFixed(2)}MB) exceeds the 12MB limit`
+      })
+    }
+
+    // Generate filename with vehicle number
+    // Format: aadhar-VEHICLENUMBER.extension
+    const sanitizedVehicleNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '')
+    const filename = `aadhar-${sanitizedVehicleNumber}.${fileExtension}`
+    const filePath = path.join(aadharUploadsDir, filename)
+
+    fs.writeFileSync(filePath, buffer)
+
+    const relativePath = `/uploads/aadhar-images/${filename}`
+
+    res.status(200).json({
+      success: true,
+      message: 'Aadhar document uploaded successfully',
+      data: {
+        filename,
+        path: relativePath,
+        size: buffer.length,
+        sizeInMB: fileSizeInMB.toFixed(2),
+        format: fileFormat.toUpperCase()
+      }
+    })
+  } catch (error) {
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+// Upload PAN Image/PDF
+exports.uploadPanImage = async (req, res) => {
+  try {
+    const { imageData, vehicleRegistrationId, vehicleNumber } = req.body
+
+    if (!imageData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Document data is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle registration number is required'
+      })
+    }
+
+    // If vehicleRegistrationId provided, check for existing document and delete it
+    if (vehicleRegistrationId) {
+      const existingVehicle = await VehicleRegistration.findOne({
+        _id: vehicleRegistrationId,
+        userId: req.user.id
+      })
+
+      if (existingVehicle && existingVehicle.panImage) {
+        // Delete old PAN document
+        try {
+          const filename = path.basename(existingVehicle.panImage)
+          const filePath = path.join(panUploadsDir, filename)
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath)
+          }
+        } catch (err) {
+          console.error('Error deleting old PAN:', err)
+        }
+      }
+    }
+
+    // Validate base64 format
+    const imageFormatRegex = /^data:image\/(jpeg|jpg|png|webp);base64,/
+    const pdfFormatRegex = /^data:application\/pdf;base64,/
+
+    let fileFormat = null
+    let fileExtension = null
+
+    const imageMatch = imageData.match(imageFormatRegex)
+    const pdfMatch = imageData.match(pdfFormatRegex)
+
+    if (imageMatch) {
+      fileFormat = imageMatch[1]
+      fileExtension = fileFormat === 'jpeg' ? 'jpg' : fileFormat
+    } else if (pdfMatch) {
+      fileFormat = 'pdf'
+      fileExtension = 'pdf'
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Only JPG, JPEG, PNG, WebP, and PDF formats are accepted'
+      })
+    }
+
+    const base64Data = imageData.replace(/^data:(image\/[a-z]+|application\/pdf);base64,/, '')
+    const buffer = Buffer.from(base64Data, 'base64')
+
+    const fileSizeInMB = buffer.length / (1024 * 1024)
+    if (fileSizeInMB > 12) {
+      return res.status(400).json({
+        success: false,
+        message: `File size (${fileSizeInMB.toFixed(2)}MB) exceeds the 12MB limit`
+      })
+    }
+
+    // Generate filename with vehicle number
+    // Format: pan-VEHICLENUMBER.extension
+    const sanitizedVehicleNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '')
+    const filename = `pan-${sanitizedVehicleNumber}.${fileExtension}`
+    const filePath = path.join(panUploadsDir, filename)
+
+    fs.writeFileSync(filePath, buffer)
+
+    const relativePath = `/uploads/pan-images/${filename}`
+
+    res.status(200).json({
+      success: true,
+      message: 'PAN document uploaded successfully',
+      data: {
+        filename,
+        path: relativePath,
+        size: buffer.length,
+        sizeInMB: fileSizeInMB.toFixed(2),
+        format: fileFormat.toUpperCase()
+      }
+    })
+  } catch (error) {
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+// Upload Insurance Document Image/PDF
+exports.uploadInsuranceDocument = async (req, res) => {
+  try {
+    const { imageData, insuranceId, vehicleNumber } = req.body
+
+    if (!imageData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Document data is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle registration number is required'
+      })
+    }
+
+    // If insuranceId provided, check for existing document and delete it
+    if (insuranceId) {
+      const Insurance = require('../models/Insurance')
+      const existingInsurance = await Insurance.findOne({
+        _id: insuranceId,
+        userId: req.user.id
+      })
+
+      if (existingInsurance && existingInsurance.insuranceDocument) {
+        // Delete old insurance document
+        try {
+          const filename = path.basename(existingInsurance.insuranceDocument)
+          const filePath = path.join(insuranceUploadsDir, filename)
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath)
+          }
+        } catch (err) {
+          console.error('Error deleting old insurance document:', err)
+        }
+      }
+    }
+
+    // Validate base64 format
+    const imageFormatRegex = /^data:image\/(jpeg|jpg|png|webp);base64,/
+    const pdfFormatRegex = /^data:application\/pdf;base64,/
+
+    let fileFormat = null
+    let fileExtension = null
+
+    const imageMatch = imageData.match(imageFormatRegex)
+    const pdfMatch = imageData.match(pdfFormatRegex)
+
+    if (imageMatch) {
+      fileFormat = imageMatch[1]
+      fileExtension = fileFormat === 'jpeg' ? 'jpg' : fileFormat
+    } else if (pdfMatch) {
+      fileFormat = 'pdf'
+      fileExtension = 'pdf'
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Only JPG, JPEG, PNG, WebP, and PDF formats are accepted'
+      })
+    }
+
+    const base64Data = imageData.replace(/^data:(image\/[a-z]+|application\/pdf);base64,/, '')
+    const buffer = Buffer.from(base64Data, 'base64')
+
+    const fileSizeInMB = buffer.length / (1024 * 1024)
+    if (fileSizeInMB > 12) {
+      return res.status(400).json({
+        success: false,
+        message: `File size (${fileSizeInMB.toFixed(2)}MB) exceeds the 12MB limit`
+      })
+    }
+
+    // Generate filename with vehicle number
+    // Format: insurance-VEHICLENUMBER.extension
+    const sanitizedVehicleNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '')
+    const filename = `insurance-${sanitizedVehicleNumber}.${fileExtension}`
+    const filePath = path.join(insuranceUploadsDir, filename)
+
+    fs.writeFileSync(filePath, buffer)
+
+    const relativePath = `/uploads/insurance-documents/${filename}`
+
+    res.status(200).json({
+      success: true,
+      message: 'Insurance document uploaded successfully',
+      data: {
+        filename,
+        path: relativePath,
+        size: buffer.length,
+        sizeInMB: fileSizeInMB.toFixed(2),
+        format: fileFormat.toUpperCase()
+      }
     })
   } catch (error) {
     logError(error, req)

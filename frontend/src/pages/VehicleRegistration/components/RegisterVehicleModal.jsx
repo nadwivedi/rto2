@@ -32,6 +32,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     manufactureYear: '',
     vehicleCategory: '',
     rcImage: '',
+    aadharImage: '',
+    panImage: '',
     numberOfCylinders: '',
     cubicCapacity: '',
     fuelType: '',
@@ -42,7 +44,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [rcImagePreview, setRcImagePreview] = useState(null)
+  const [aadharImagePreview, setAadharImagePreview] = useState(null)
+  const [panImagePreview, setPanImagePreview] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingAadhar, setUploadingAadhar] = useState(false)
+  const [uploadingPan, setUploadingPan] = useState(false)
 
   // Handle Enter key to move to next field in order
   const handleKeyDown = (e) => {
@@ -114,6 +120,20 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       } else {
         setRcImagePreview(null)
       }
+
+      // Set Aadhar image preview if exists
+      if (editData.aadharImage) {
+        setAadharImagePreview(`${API_URL}${editData.aadharImage}`)
+      } else {
+        setAadharImagePreview(null)
+      }
+
+      // Set PAN image preview if exists
+      if (editData.panImage) {
+        setPanImagePreview(`${API_URL}${editData.panImage}`)
+      } else {
+        setPanImagePreview(null)
+      }
     } else {
       setFormData({
         registrationNumber: '',
@@ -135,6 +155,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         manufactureYear: '',
         vehicleCategory: '',
         rcImage: '',
+        aadharImage: '',
+        panImage: '',
         numberOfCylinders: '',
         cubicCapacity: '',
         fuelType: '',
@@ -143,6 +165,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       })
       setVehicleValidation({ isValid: false, message: '' })
       setRcImagePreview(null)
+      setAadharImagePreview(null)
+      setPanImagePreview(null)
     }
     setError('')
     setVehicleAlreadyExists(false)
@@ -230,27 +254,86 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     }
   }
 
-  // Handle RC image upload and convert to WebP
+  // Handle RC image/PDF upload and convert images to WebP
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please select a valid image file', { position: 'top-right', autoClose: 3000 })
+    // Validate file type (images or PDF)
+    const isImage = file.type.startsWith('image/')
+    const isPDF = file.type === 'application/pdf'
+
+    if (!isImage && !isPDF) {
+      toast.error('Please select a valid image or PDF file', { position: 'top-right', autoClose: 3000 })
       return
     }
 
     // Validate file size (max 12MB)
     if (file.size > 12 * 1024 * 1024) {
-      toast.error('Image size should be less than 12MB', { position: 'top-right', autoClose: 3000 })
+      toast.error('File size should be less than 12MB', { position: 'top-right', autoClose: 3000 })
       return
     }
 
     setUploadingImage(true)
 
     try {
-      // Create canvas to convert image to WebP
+      // If PDF, upload directly without conversion
+      if (isPDF) {
+        const reader = new FileReader()
+        reader.onloadend = async () => {
+          try {
+            const base64String = reader.result
+
+            // Upload to server
+            const response = await axios.post(
+              `${API_URL}/api/upload/rc-image`,
+              {
+                imageData: base64String,
+                vehicleRegistrationId: editData?._id || null,
+                vehicleNumber: formData.registrationNumber
+              },
+              { withCredentials: true }
+            )
+
+            if (response.data.success) {
+              setFormData(prev => ({
+                ...prev,
+                rcImage: response.data.data.path
+              }))
+
+              setRcImagePreview(base64String)
+              setUploadingImage(false)
+              toast.success(`RC PDF uploaded successfully! (${response.data.data.sizeInMB}MB)`, {
+                position: 'top-right',
+                autoClose: 2000
+              })
+            } else {
+              setUploadingImage(false)
+              toast.error(response.data.message || 'Failed to upload PDF', {
+                position: 'top-right',
+                autoClose: 3000
+              })
+            }
+          } catch (uploadError) {
+            console.error('Error uploading PDF:', uploadError)
+            setUploadingImage(false)
+            toast.error(uploadError.response?.data?.message || 'Failed to upload PDF to server', {
+              position: 'top-right',
+              autoClose: 3000
+            })
+          }
+        }
+
+        reader.onerror = () => {
+          setUploadingImage(false)
+          toast.error('Failed to read PDF file', { position: 'top-right', autoClose: 3000 })
+        }
+
+        reader.readAsDataURL(file)
+        return
+      }
+
+      // For images, create canvas to convert to WebP
       const img = new Image()
       const reader = new FileReader()
 
@@ -293,7 +376,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                       `${API_URL}/api/upload/rc-image`,
                       {
                         imageData: base64String,
-                        vehicleRegistrationId: editData?._id || null
+                        vehicleRegistrationId: editData?._id || null,
+                        vehicleNumber: formData.registrationNumber
                       },
                       { withCredentials: true }
                     )
@@ -310,13 +394,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                       setRcImagePreview(previewUrl)
 
                       setUploadingImage(false)
-                      toast.success(`RC image uploaded successfully! (${response.data.data.sizeInMB}MB, ${response.data.data.format})`, {
+                      toast.success(`RC document uploaded successfully! (${response.data.data.sizeInMB}MB, ${response.data.data.format})`, {
                         position: 'top-right',
                         autoClose: 2000
                       })
                     } else {
                       setUploadingImage(false)
-                      toast.error(response.data.message || 'Failed to upload image', {
+                      toast.error(response.data.message || 'Failed to upload document', {
                         position: 'top-right',
                         autoClose: 3000
                       })
@@ -324,7 +408,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   } catch (uploadError) {
                     console.error('Error uploading to server:', uploadError)
                     setUploadingImage(false)
-                    toast.error(uploadError.response?.data?.message || 'Failed to upload image to server', {
+                    toast.error(uploadError.response?.data?.message || 'Failed to upload document to server', {
                       position: 'top-right',
                       autoClose: 3000
                     })
@@ -356,9 +440,227 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
       reader.readAsDataURL(file)
     } catch (error) {
-      console.error('Error uploading image:', error)
+      console.error('Error uploading document:', error)
       setUploadingImage(false)
-      toast.error('Error uploading image', { position: 'top-right', autoClose: 3000 })
+      toast.error('Error uploading document', { position: 'top-right', autoClose: 3000 })
+    }
+  }
+
+  // Handle Aadhar upload
+  const handleAadharUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const isImage = file.type.startsWith('image/')
+    const isPDF = file.type === 'application/pdf'
+
+    if (!isImage && !isPDF) {
+      toast.error('Please select a valid image or PDF file', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error('File size should be less than 12MB', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    setUploadingAadhar(true)
+
+    try {
+      if (isPDF) {
+        const reader = new FileReader()
+        reader.onloadend = async () => {
+          try {
+            const base64String = reader.result
+            const response = await axios.post(
+              `${API_URL}/api/upload/aadhar-image`,
+              {
+                imageData: base64String,
+                vehicleRegistrationId: editData?._id || null,
+                vehicleNumber: formData.registrationNumber
+              },
+              { withCredentials: true }
+            )
+
+            if (response.data.success) {
+              setFormData(prev => ({ ...prev, aadharImage: response.data.data.path }))
+              setAadharImagePreview(base64String)
+              setUploadingAadhar(false)
+              toast.success(`Aadhar PDF uploaded successfully!`, { position: 'top-right', autoClose: 2000 })
+            }
+          } catch (uploadError) {
+            setUploadingAadhar(false)
+            toast.error('Failed to upload Aadhar PDF', { position: 'top-right', autoClose: 3000 })
+          }
+        }
+        reader.readAsDataURL(file)
+        return
+      }
+
+      const img = new Image()
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        img.onload = async () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          const maxWidth = 1920, maxHeight = 1920
+          let width = img.width, height = img.height
+
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height)
+            width *= ratio
+            height *= ratio
+          }
+
+          canvas.width = width
+          canvas.height = height
+          ctx.drawImage(img, 0, 0, width, height)
+
+          canvas.toBlob(async (blob) => {
+            if (blob) {
+              const webpReader = new FileReader()
+              webpReader.onloadend = async () => {
+                try {
+                  const response = await axios.post(
+                    `${API_URL}/api/upload/aadhar-image`,
+                    {
+                      imageData: webpReader.result,
+                      vehicleRegistrationId: editData?._id || null,
+                      vehicleNumber: formData.registrationNumber
+                    },
+                    { withCredentials: true }
+                  )
+
+                  if (response.data.success) {
+                    setFormData(prev => ({ ...prev, aadharImage: response.data.data.path }))
+                    setAadharImagePreview(URL.createObjectURL(blob))
+                    setUploadingAadhar(false)
+                    toast.success(`Aadhar uploaded successfully!`, { position: 'top-right', autoClose: 2000 })
+                  }
+                } catch (uploadError) {
+                  setUploadingAadhar(false)
+                  toast.error('Failed to upload Aadhar', { position: 'top-right', autoClose: 3000 })
+                }
+              }
+              webpReader.readAsDataURL(blob)
+            }
+          }, 'image/webp', 0.8)
+        }
+        img.src = event.target.result
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      setUploadingAadhar(false)
+      toast.error('Error uploading Aadhar', { position: 'top-right', autoClose: 3000 })
+    }
+  }
+
+  // Handle PAN upload
+  const handlePanUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const isImage = file.type.startsWith('image/')
+    const isPDF = file.type === 'application/pdf'
+
+    if (!isImage && !isPDF) {
+      toast.error('Please select a valid image or PDF file', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error('File size should be less than 12MB', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    setUploadingPan(true)
+
+    try {
+      if (isPDF) {
+        const reader = new FileReader()
+        reader.onloadend = async () => {
+          try {
+            const base64String = reader.result
+            const response = await axios.post(
+              `${API_URL}/api/upload/pan-image`,
+              {
+                imageData: base64String,
+                vehicleRegistrationId: editData?._id || null,
+                vehicleNumber: formData.registrationNumber
+              },
+              { withCredentials: true }
+            )
+
+            if (response.data.success) {
+              setFormData(prev => ({ ...prev, panImage: response.data.data.path }))
+              setPanImagePreview(base64String)
+              setUploadingPan(false)
+              toast.success(`PAN PDF uploaded successfully!`, { position: 'top-right', autoClose: 2000 })
+            }
+          } catch (uploadError) {
+            setUploadingPan(false)
+            toast.error('Failed to upload PAN PDF', { position: 'top-right', autoClose: 3000 })
+          }
+        }
+        reader.readAsDataURL(file)
+        return
+      }
+
+      const img = new Image()
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        img.onload = async () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          const maxWidth = 1920, maxHeight = 1920
+          let width = img.width, height = img.height
+
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height)
+            width *= ratio
+            height *= ratio
+          }
+
+          canvas.width = width
+          canvas.height = height
+          ctx.drawImage(img, 0, 0, width, height)
+
+          canvas.toBlob(async (blob) => {
+            if (blob) {
+              const webpReader = new FileReader()
+              webpReader.onloadend = async () => {
+                try {
+                  const response = await axios.post(
+                    `${API_URL}/api/upload/pan-image`,
+                    {
+                      imageData: webpReader.result,
+                      vehicleRegistrationId: editData?._id || null,
+                      vehicleNumber: formData.registrationNumber
+                    },
+                    { withCredentials: true }
+                  )
+
+                  if (response.data.success) {
+                    setFormData(prev => ({ ...prev, panImage: response.data.data.path }))
+                    setPanImagePreview(URL.createObjectURL(blob))
+                    setUploadingPan(false)
+                    toast.success(`PAN uploaded successfully!`, { position: 'top-right', autoClose: 2000 })
+                  }
+                } catch (uploadError) {
+                  setUploadingPan(false)
+                  toast.error('Failed to upload PAN', { position: 'top-right', autoClose: 3000 })
+                }
+              }
+              webpReader.readAsDataURL(blob)
+            }
+          }, 'image/webp', 0.8)
+        }
+        img.src = event.target.result
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      setUploadingPan(false)
+      toast.error('Error uploading PAN', { position: 'top-right', autoClose: 3000 })
     }
   }
 
@@ -369,7 +671,27 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       ...prev,
       rcImage: ''
     }))
-    toast.info('RC image removed', { position: 'top-right', autoClose: 2000 })
+    toast.info('RC document removed', { position: 'top-right', autoClose: 2000 })
+  }
+
+  // Remove Aadhar image
+  const handleRemoveAadhar = () => {
+    setAadharImagePreview(null)
+    setFormData(prev => ({
+      ...prev,
+      aadharImage: ''
+    }))
+    toast.info('Aadhar document removed', { position: 'top-right', autoClose: 2000 })
+  }
+
+  // Remove PAN image
+  const handleRemovePan = () => {
+    setPanImagePreview(null)
+    setFormData(prev => ({
+      ...prev,
+      panImage: ''
+    }))
+    toast.info('PAN document removed', { position: 'top-right', autoClose: 2000 })
   }
 
   const handleSubmit = async (e) => {
@@ -1155,7 +1477,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               </div>
             </div>
 
-            {/* RC Image Upload Section */}
+            {/* Document Upload Section */}
             <div className='mb-4 md:mb-8'>
               <div className='flex items-center gap-2 md:gap-3 mb-3 md:mb-6'>
                 <div className='bg-gradient-to-br from-green-500 to-emerald-600 p-1.5 md:p-2.5 rounded-lg md:rounded-xl shadow-lg'>
@@ -1164,92 +1486,261 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   </svg>
                 </div>
                 <div>
-                  <h3 className='text-sm md:text-xl font-bold text-gray-800'>RC Document Image</h3>
-                  <p className='text-[10px] md:text-sm text-gray-500 hidden md:block'>Upload RC image (Optional - Only 1 image allowed, auto-converts to WebP)</p>
+                  <h3 className='text-sm md:text-xl font-bold text-gray-800'>Document Upload</h3>
+                  <p className='text-[10px] md:text-sm text-gray-500 hidden md:block'>Upload RC, Aadhar, and PAN documents (Optional - Images auto-convert to WebP, PDFs supported)</p>
                 </div>
               </div>
               <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-3 md:p-6 rounded-xl md:rounded-2xl border border-green-100'>
-                <div className='flex flex-col md:flex-row gap-4'>
-                  {/* Upload Area */}
-                  <div className='flex-1'>
+                <div className='grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6'>
+                  {/* RC Document Upload */}
+                  <div className='flex flex-col'>
                     <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
-                      Upload RC Image {rcImagePreview && <span className='text-green-600'>(Replaces existing)</span>}
+                      RC Document {rcImagePreview && <span className='text-green-600'>(Uploaded)</span>}
                     </label>
-                    <div className='relative'>
-                      <input
-                        type='file'
-                        accept='image/*'
-                        onChange={handleImageUpload}
-                        disabled={uploadingImage}
-                        className='hidden'
-                        id='rcImageInput'
-                      />
-                      <label
-                        htmlFor='rcImageInput'
-                        className={`flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                          uploadingImage
-                            ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                            : 'border-green-300 bg-white hover:bg-green-50 hover:border-green-400'
-                        }`}
-                      >
-                        {uploadingImage ? (
-                          <div className='flex flex-col items-center'>
-                            <svg className='animate-spin h-8 w-8 text-green-600 mb-2' fill='none' viewBox='0 0 24 24'>
-                              <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-                              <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                    <div className='relative flex-1'>
+                      {!rcImagePreview ? (
+                        <>
+                          <input
+                            type='file'
+                            accept='image/*,application/pdf'
+                            onChange={handleImageUpload}
+                            disabled={uploadingImage}
+                            className='hidden'
+                            id='rcImageInput'
+                          />
+                          <label
+                            htmlFor='rcImageInput'
+                            className={`flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                              uploadingImage
+                                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                                : 'border-green-300 bg-white hover:bg-green-50 hover:border-green-400'
+                            }`}
+                          >
+                            {uploadingImage ? (
+                              <div className='flex flex-col items-center'>
+                                <svg className='animate-spin h-8 w-8 text-green-600 mb-2' fill='none' viewBox='0 0 24 24'>
+                                  <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                                  <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                                </svg>
+                                <p className='text-sm text-gray-600 font-semibold'>Uploading...</p>
+                              </div>
+                            ) : (
+                              <>
+                                <svg className='w-10 h-10 md:w-12 md:h-12 text-green-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
+                                </svg>
+                                <p className='text-xs md:text-sm text-gray-600 font-semibold mb-1'>Upload RC</p>
+                                <p className='text-[10px] md:text-xs text-gray-500'>Image or PDF</p>
+                                <p className='text-[10px] text-green-600 font-semibold mt-1'>Max 12MB</p>
+                              </>
+                            )}
+                          </label>
+                        </>
+                      ) : (
+                        <div className='relative'>
+                          {rcImagePreview.startsWith('data:application/pdf') || rcImagePreview.includes('.pdf') ? (
+                            <div className='w-full h-32 md:h-40 flex flex-col items-center justify-center bg-white rounded-lg border-2 border-green-300'>
+                              <svg className='w-12 h-12 md:w-16 md:h-16 text-red-500 mb-2' fill='currentColor' viewBox='0 0 20 20'>
+                                <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
+                              </svg>
+                              <p className='text-xs md:text-sm font-semibold text-gray-600'>RC PDF</p>
+                              <a
+                                href={rcImagePreview}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='text-xs text-blue-600 hover:underline mt-1'
+                              >
+                                View PDF
+                              </a>
+                            </div>
+                          ) : (
+                            <img
+                              src={rcImagePreview}
+                              alt='RC Preview'
+                              onClick={() => setShowImageViewer(true)}
+                              className='w-full h-32 md:h-40 object-contain bg-white rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-500 transition-all'
+                            />
+                          )}
+                          <button
+                            type='button'
+                            onClick={handleRemoveImage}
+                            className='absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg'
+                            title='Delete RC document'
+                          >
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                             </svg>
-                            <p className='text-sm text-gray-600 font-semibold'>Converting to WebP...</p>
-                          </div>
-                        ) : (
-                          <>
-                            <svg className='w-10 h-10 md:w-12 md:h-12 text-green-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
-                            </svg>
-                            <p className='text-xs md:text-sm text-gray-600 font-semibold mb-1'>Click to upload RC image</p>
-                            <p className='text-[10px] md:text-xs text-gray-500'>PNG, JPG, JPEG, WebP (Max 12MB)</p>
-                            <p className='text-[10px] text-green-600 font-semibold mt-1'>Only 1 image • Auto-converts to WebP</p>
-                          </>
-                        )}
-                      </label>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Image Preview */}
-                  {rcImagePreview && (
-                    <div className='flex-1'>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
-                        Preview
-                      </label>
-                      <div className='relative group'>
-                        <img
-                          src={rcImagePreview}
-                          alt='RC Preview'
-                          onClick={() => setShowImageViewer(true)}
-                          className='w-full h-32 md:h-40 object-contain bg-white rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-500 transition-all'
-                          title='Click to view full image'
-                        />
-                        <button
-                          type='button'
-                          onClick={handleRemoveImage}
-                          className='absolute top-1 right-1 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-all duration-200 opacity-0 group-hover:opacity-100 z-10'
-                          title='Remove image'
-                        >
-                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-                          </svg>
-                        </button>
-                        <div className='absolute bottom-1 left-1 bg-green-600 text-white px-2 py-0.5 rounded text-[10px] font-bold'>
-                          WebP Format
+                  {/* Aadhar Document Upload */}
+                  <div className='flex flex-col'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
+                      Aadhar Document {aadharImagePreview && <span className='text-green-600'>(Uploaded)</span>}
+                    </label>
+                    <div className='relative flex-1'>
+                      {!aadharImagePreview ? (
+                        <>
+                          <input
+                            type='file'
+                            accept='image/*,application/pdf'
+                            onChange={handleAadharUpload}
+                            disabled={uploadingAadhar}
+                            className='hidden'
+                            id='aadharImageInput'
+                          />
+                          <label
+                            htmlFor='aadharImageInput'
+                            className={`flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                              uploadingAadhar
+                                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                                : 'border-blue-300 bg-white hover:bg-blue-50 hover:border-blue-400'
+                            }`}
+                          >
+                            {uploadingAadhar ? (
+                              <div className='flex flex-col items-center'>
+                                <svg className='animate-spin h-8 w-8 text-blue-600 mb-2' fill='none' viewBox='0 0 24 24'>
+                                  <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                                  <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                                </svg>
+                                <p className='text-sm text-gray-600 font-semibold'>Uploading...</p>
+                              </div>
+                            ) : (
+                              <>
+                                <svg className='w-10 h-10 md:w-12 md:h-12 text-blue-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
+                                </svg>
+                                <p className='text-xs md:text-sm text-gray-600 font-semibold mb-1'>Upload Aadhar</p>
+                                <p className='text-[10px] md:text-xs text-gray-500'>Image or PDF</p>
+                                <p className='text-[10px] text-blue-600 font-semibold mt-1'>Max 12MB</p>
+                              </>
+                            )}
+                          </label>
+                        </>
+                      ) : (
+                        <div className='relative'>
+                          {aadharImagePreview.startsWith('data:application/pdf') || aadharImagePreview.includes('.pdf') ? (
+                            <div className='w-full h-32 md:h-40 flex flex-col items-center justify-center bg-white rounded-lg border-2 border-blue-300'>
+                              <svg className='w-12 h-12 md:w-16 md:h-16 text-red-500 mb-2' fill='currentColor' viewBox='0 0 20 20'>
+                                <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
+                              </svg>
+                              <p className='text-xs md:text-sm font-semibold text-gray-600'>Aadhar PDF</p>
+                              <a
+                                href={aadharImagePreview}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='text-xs text-blue-600 hover:underline mt-1'
+                              >
+                                View PDF
+                              </a>
+                            </div>
+                          ) : (
+                            <img
+                              src={aadharImagePreview}
+                              alt='Aadhar Preview'
+                              className='w-full h-32 md:h-40 object-contain bg-white rounded-lg border-2 border-blue-300 cursor-pointer hover:border-blue-500 transition-all'
+                            />
+                          )}
+                          <button
+                            type='button'
+                            onClick={handleRemoveAadhar}
+                            className='absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg'
+                            title='Delete Aadhar document'
+                          >
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                            </svg>
+                          </button>
                         </div>
-                        <div className='absolute bottom-1 right-1 bg-blue-600 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
-                          </svg>
-                          View
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+
+                  {/* PAN Document Upload */}
+                  <div className='flex flex-col'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
+                      PAN Document {panImagePreview && <span className='text-green-600'>(Uploaded)</span>}
+                    </label>
+                    <div className='relative flex-1'>
+                      {!panImagePreview ? (
+                        <>
+                          <input
+                            type='file'
+                            accept='image/*,application/pdf'
+                            onChange={handlePanUpload}
+                            disabled={uploadingPan}
+                            className='hidden'
+                            id='panImageInput'
+                          />
+                          <label
+                            htmlFor='panImageInput'
+                            className={`flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                              uploadingPan
+                                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                                : 'border-purple-300 bg-white hover:bg-purple-50 hover:border-purple-400'
+                            }`}
+                          >
+                            {uploadingPan ? (
+                              <div className='flex flex-col items-center'>
+                                <svg className='animate-spin h-8 w-8 text-purple-600 mb-2' fill='none' viewBox='0 0 24 24'>
+                                  <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                                  <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                                </svg>
+                                <p className='text-sm text-gray-600 font-semibold'>Uploading...</p>
+                              </div>
+                            ) : (
+                              <>
+                                <svg className='w-10 h-10 md:w-12 md:h-12 text-purple-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
+                                </svg>
+                                <p className='text-xs md:text-sm text-gray-600 font-semibold mb-1'>Upload PAN</p>
+                                <p className='text-[10px] md:text-xs text-gray-500'>Image or PDF</p>
+                                <p className='text-[10px] text-purple-600 font-semibold mt-1'>Max 12MB</p>
+                              </>
+                            )}
+                          </label>
+                        </>
+                      ) : (
+                        <div className='relative'>
+                          {panImagePreview.startsWith('data:application/pdf') || panImagePreview.includes('.pdf') ? (
+                            <div className='w-full h-32 md:h-40 flex flex-col items-center justify-center bg-white rounded-lg border-2 border-purple-300'>
+                              <svg className='w-12 h-12 md:w-16 md:h-16 text-red-500 mb-2' fill='currentColor' viewBox='0 0 20 20'>
+                                <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
+                              </svg>
+                              <p className='text-xs md:text-sm font-semibold text-gray-600'>PAN PDF</p>
+                              <a
+                                href={panImagePreview}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='text-xs text-blue-600 hover:underline mt-1'
+                              >
+                                View PDF
+                              </a>
+                            </div>
+                          ) : (
+                            <img
+                              src={panImagePreview}
+                              alt='PAN Preview'
+                              className='w-full h-32 md:h-40 object-contain bg-white rounded-lg border-2 border-purple-300 cursor-pointer hover:border-purple-500 transition-all'
+                            />
+                          )}
+                          <button
+                            type='button'
+                            onClick={handleRemovePan}
+                            className='absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg'
+                            title='Delete PAN document'
+                          >
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
