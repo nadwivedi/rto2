@@ -128,10 +128,10 @@ exports.createTax = async (req, res) => {
     const { receiptNo, vehicleNumber, ownerName, mobileNumber, totalAmount, paidAmount, balanceAmount, taxFrom, taxTo } = req.body
 
     // Validate required fields
-    if (!receiptNo || !vehicleNumber || !taxFrom || !taxTo) {
+    if (!vehicleNumber || !taxFrom || !taxTo) {
       return res.status(400).json({
         success: false,
-        message: 'Receipt number, vehicle number, tax from, and tax to are required'
+        message: 'Vehicle number, tax from, and tax to are required'
       })
     }
 

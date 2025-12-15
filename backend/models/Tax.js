@@ -9,7 +9,6 @@ const taxSchema = new mongoose.Schema({
   },
   receiptNo: {
     type: String,
-    required: true,
     trim: true,
     uppercase: true
   },

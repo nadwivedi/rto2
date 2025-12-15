@@ -480,7 +480,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                 {/* Receipt Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Receipt Number <span className='text-red-500'>*</span>
+                    Receipt Number
                   </label>
                   <input
                     type='text'
@@ -489,7 +489,6 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                     onChange={handleChange}
                     placeholder='RCP001'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                    required
                   />
                 </div>
 
