@@ -3,7 +3,6 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import Pagination from "../../components/Pagination";
 import AddInsuranceModal from "./components/AddInsuranceModal";
-import RenewInsuranceModal from "./components/RenewInsuranceModal";
 import AddButton from "../../components/AddButton";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -23,13 +22,10 @@ const Insurance = () => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
-  const [insuranceToRenew, setInsuranceToRenew] = useState(null);
   const [selectedInsurance, setSelectedInsurance] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dateFilter, setDateFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("all"); // Add status filter
-  const [initialInsuranceData, setInitialInsuranceData] = useState(null); // For pre-filling renewal data
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -169,42 +165,6 @@ const Insurance = () => {
     }
   };
 
-  const handleRenewClick = (insurance) => {
-    setInsuranceToRenew(insurance);
-    setIsRenewModalOpen(true);
-  };
-
-  const handleRenewSubmit = async (formData) => {
-    try {
-      // Make POST request to renew endpoint
-      const response = await axios.post(`${API_URL}/api/insurance/renew`, formData, { withCredentials: true });
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to renew insurance');
-      }
-
-      // Show success message
-      toast.success('Insurance renewed successfully!', {
-        position: 'top-right',
-        autoClose: 3000
-      });
-
-      // Close the modal
-      setIsRenewModalOpen(false);
-      setInsuranceToRenew(null);
-
-      // Refresh the insurance list and statistics
-      await fetchInsurances();
-      await fetchStatistics();
-    } catch (error) {
-      console.error('Error renewing insurance:', error);
-      toast.error(`Failed to renew insurance: ${error.message}`, {
-        position: 'top-right',
-        autoClose: 5000
-      });
-    }
-  };
-
   const handleEditClick = (insurance) => {
     setSelectedInsurance(insurance);
     setIsEditModalOpen(true);
@@ -313,11 +273,6 @@ const Insurance = () => {
     }
   };
 
-  // Determine if renew button should be shown for an insurance
-  const shouldShowRenewButton = (insurance) => {
-    // Show renew button only if insurance is not already renewed and status is expiring_soon or expired
-    return !insurance.isRenewed && (insurance.status === 'expired' || insurance.status === 'expiring_soon');
-  };
 
   // Helper function to open WhatsApp with custom message
   const handleWhatsAppClick = (insurance) => {
@@ -364,6 +319,54 @@ const Insurance = () => {
   // Determine if WhatsApp button should be shown
   const shouldShowWhatsAppButton = (insurance) => {
     return (insurance.status === 'expiring_soon' || insurance.status === 'expired' || (insurance.balance || 0) > 0);
+  };
+
+  // Handler to send insurance document via WhatsApp
+  const handleSendDocumentWhatsApp = (insurance) => {
+    if (!insurance.mobileNumber || insurance.mobileNumber === 'N/A') {
+      toast.error('Mobile number not available for this record', {
+        position: 'top-right',
+        autoClose: 3000
+      });
+      return;
+    }
+
+    if (!insurance.insuranceDocument) {
+      toast.error('No insurance document available to send', {
+        position: 'top-right',
+        autoClose: 3000
+      });
+      return;
+    }
+
+    // Format mobile number (remove spaces, dashes, etc.)
+    let phoneNumber = insurance.mobileNumber.replace(/\D/g, '');
+
+    // Add country code if not present (assuming India +91)
+    if (!phoneNumber.startsWith('91') && phoneNumber.length === 10) {
+      phoneNumber = '91' + phoneNumber;
+    }
+
+    // Create WhatsApp message with document link
+    const documentURL = `${API_URL}${insurance.insuranceDocument}`;
+
+    let message = `Hello,\n\n`;
+    message += `Here is your Insurance Document for vehicle *${insurance.vehicleNumber}*\n\n`;
+    message += `📋 *Policy Details:*\n`;
+    message += `Policy Number: ${insurance.policyNumber}\n`;
+    message += `Valid From: ${insurance.validFrom}\n`;
+    message += `Valid To: ${insurance.validTo}\n\n`;
+    message += `📄 *Document Link:*\n${documentURL}\n\n`;
+    message += `Thank you!`;
+
+    // Open WhatsApp directly (not web)
+    const whatsappURL = `whatsapp://send?phone=${phoneNumber}&text=${encodeURIComponent(message)}`;
+    window.location.href = whatsappURL;
+  };
+
+  // Determine if document WhatsApp button should be shown
+  const shouldShowDocumentWhatsAppButton = (insurance) => {
+    return insurance.insuranceDocument && insurance.insuranceDocument.trim() !== '';
   };
 
   const handleFilterChange = (filterType, value) => {
@@ -630,6 +633,19 @@ const Insurance = () => {
                       ),
                     },
                     {
+                      title: 'Send Document',
+                      condition: shouldShowDocumentWhatsAppButton,
+                      onClick: handleSendDocumentWhatsApp,
+                      bgColor: 'bg-blue-50',
+                      textColor: 'text-blue-600',
+                      hoverBgColor: 'bg-blue-100',
+                      icon: (
+                        <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
+                          <path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/>
+                        </svg>
+                      ),
+                    },
+                    {
                       title: 'Mark as Paid',
                       condition: (insurance) => (insurance.balance || 0) > 0,
                       onClick: handleMarkAsPaid,
@@ -639,19 +655,6 @@ const Insurance = () => {
                       icon: (
                         <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                        </svg>
-                      ),
-                    },
-                    {
-                      title: 'Renew Insurance',
-                      condition: shouldShowRenewButton,
-                      onClick: handleRenewClick,
-                      bgColor: 'bg-blue-100',
-                      textColor: 'text-blue-600',
-                      hoverBgColor: 'bg-blue-200',
-                      icon: (
-                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
                         </svg>
                       ),
                     },
@@ -885,30 +888,21 @@ const Insurance = () => {
                                     </svg>
                                   </button>
                                 )}
-                                {shouldShowRenewButton(insurance) && (
+                                {/* Send Document via WhatsApp Button */}
+                                {shouldShowDocumentWhatsAppButton(insurance) && (
                                   <button
-                                    onClick={() => handleRenewClick(insurance)}
-                                    className="p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
-                                    title="Renew Insurance"
+                                    onClick={() => handleSendDocumentWhatsApp(insurance)}
+                                    className="p-1.5 2xl:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                    title="Send Document via WhatsApp"
                                   >
-                                    <svg
-                                      className="w-4 h-4 2xl:w-5 2xl:h-5"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                      />
+                                    <svg className="w-4 h-4 2xl:w-5 2xl:h-5" fill="currentColor" viewBox="0 0 24 24">
+                                      <path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z'/>
                                     </svg>
                                   </button>
                                 )}
                                 <button
                                   onClick={() => handleEditClick(insurance)}
-                                  className="p-1.5 2xl:p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                                  className="p-1.5 2xl:p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-all group-hover:scale-110 duration-200"
                                   title="Edit Insurance"
                                 >
                                   <svg
@@ -1005,10 +999,8 @@ const Insurance = () => {
                 isOpen={isAddModalOpen}
                 onClose={() => {
                   setIsAddModalOpen(false);
-                  setInitialInsuranceData(null); // Clear initial data when closing
                 }}
                 onSubmit={handleAddInsurance}
-                initialData={initialInsuranceData} // Pass initial data for renewal
               />
           )}
 
@@ -1023,19 +1015,6 @@ const Insurance = () => {
                 onSubmit={handleEditInsurance}
                 initialData={selectedInsurance} // Pass selected insurance data for editing
                 isEditMode={true}
-              />
-          )}
-
-          {/* Renew Insurance Modal - Lazy Loaded */}
-          {isRenewModalOpen && (
-                          <RenewInsuranceModal
-                isOpen={isRenewModalOpen}
-                onClose={() => {
-                  setIsRenewModalOpen(false);
-                  setInsuranceToRenew(null);
-                }}
-                onSubmit={handleRenewSubmit}
-                insuranceData={insuranceToRenew}
               />
           )}
         </div>

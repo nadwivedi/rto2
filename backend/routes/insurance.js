@@ -31,9 +31,6 @@ router.get('/', insuranceController.getAllInsurance)
 // Create new insurance record
 router.post('/', insuranceController.createInsurance)
 
-// POST renew insurance
-router.post('/renew', insuranceController.renewInsurance)
-
 // Get single insurance record by ID
 router.get('/:id', insuranceController.getInsuranceById)
 

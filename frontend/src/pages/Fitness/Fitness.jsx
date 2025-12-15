@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import AddButton from "../../components/AddButton";
 import AddFitnessModal from "./components/AddFitnessModal";
 import EditFitnessModal from "./components/EditFitnessModal";
-import RenewFitnessModal from "./components/RenewFitnessModal";
 import FitnessDetailModal from "./components/FitnessDetailModal";
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
@@ -24,11 +23,9 @@ const Fitness = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedFitness, setSelectedFitness] = useState(null);
   const [selectedDetailFitness, setSelectedDetailFitness] = useState(null);
-  const [fitnessToRenew, setFitnessToRenew] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'expiring', 'expired', 'pending'
   const [pagination, setPagination] = useState({
@@ -215,57 +212,6 @@ const Fitness = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleRenewClick = (record) => {
-    setFitnessToRenew(record);
-    setIsRenewModalOpen(true);
-  };
-
-  const handleRenewSubmit = async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/fitness/renew`, {
-        oldFitnessId: formData.oldFitnessId,
-        vehicleNumber: formData.vehicleNumber,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
-        totalFee: parseFloat(formData.totalFee),
-        paid: parseFloat(formData.paid),
-        balance: parseFloat(formData.balance),
-      }, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success("Fitness certificate renewed successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-
-        // Refresh the list and statistics from the server
-        await fetchFitnessRecords();
-        await fetchStatistics();
-
-        // Close modal and reset
-        setIsRenewModalOpen(false);
-        setFitnessToRenew(null);
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error renewing fitness record:", error);
-      toast.error(
-        "Failed to renew fitness certificate. Please check if the backend server is running.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDeleteFitness = async (record) => {
     // Show confirmation dialog
     const confirmDelete = window.confirm(
@@ -353,24 +299,6 @@ const Fitness = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Determine if renew button should be shown for a record
-  // Show renew button ONLY if: NOT renewed AND (expired OR expiring_soon)
-  const shouldShowRenewButton = (record) => {
-    const show = !record.isRenewed && (record.status === "expired" || record.status === "expiring_soon");
-
-    // Debug: Log what we're checking for expired/expiring records
-    if (record.status === "expired" || record.status === "expiring_soon") {
-      console.log(`🔍 ${record.vehicleNumber}:`, {
-        status: record.status,
-        isRenewed: record.isRenewed,
-        isRenewedType: typeof record.isRenewed,
-        shouldShowButton: show
-      });
-    }
-
-    return show;
   };
 
   // Helper function to open WhatsApp with custom message
@@ -630,19 +558,6 @@ const Fitness = () => {
                   icon: (
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  ),
-                },
-                {
-                  title: 'Renew Fitness',
-                  condition: shouldShowRenewButton,
-                  onClick: handleRenewClick,
-                  bgColor: 'bg-blue-100',
-                  textColor: 'text-blue-600',
-                  hoverBgColor: 'bg-blue-200',
-                  icon: (
-                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
                     </svg>
                   ),
                 },
@@ -919,28 +834,6 @@ const Fitness = () => {
                                 </svg>
                               </button>
                             )}
-                            {/* Renew Button - Smart logic based on vehicle fitness status */}
-                            {shouldShowRenewButton(record) && (
-                              <button
-                                onClick={() => handleRenewClick(record)}
-                                className="p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
-                                title="Renew Fitness"
-                              >
-                                <svg
-                                  className="w-4 h-4 2xl:w-5 2xl:h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                  />
-                                </svg>
-                              </button>
-                            )}
                             {/* Edit Button */}
                             <button
                               onClick={() => handleEditClick(record)}
@@ -1051,19 +944,6 @@ const Fitness = () => {
             }}
             onSuccess={handleEditSuccess}
             fitness={selectedFitness}
-          />
-      )}
-
-      {/* Renew Fitness Modal - Lazy Loaded */}
-      {isRenewModalOpen && (
-                  <RenewFitnessModal
-            isOpen={isRenewModalOpen}
-            onClose={() => {
-              setIsRenewModalOpen(false);
-              setFitnessToRenew(null); // Reset when closing
-            }}
-            onSubmit={handleRenewSubmit}
-            oldFitness={fitnessToRenew}
           />
       )}
 

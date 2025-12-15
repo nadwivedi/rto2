@@ -30,8 +30,6 @@ router.get('/number/:permitNumber', cgPermitController.getPermitByNumber)
 // POST create new CG permit
 router.post('/', cgPermitController.createPermit)
 
-// POST renew CG permit
-router.post('/renew', cgPermitController.renewPermit)
 
 // PUT update CG permit
 router.put('/:id', cgPermitController.updatePermit)

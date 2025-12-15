@@ -4,7 +4,6 @@ import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
 import IssueCgPermitModal from './components/IssueCgPermitModal'
 import EditCgPermitModal from './components/EditCgPermitModal'
-import RenewCgPermitModal from './components/RenewCgPermitModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
 import StatisticsCard from '../../components/StatisticsCard'
@@ -29,11 +28,8 @@ const CgPermit = () => {
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
-  const [showRenewPermitModal, setShowRenewPermitModal] = useState(false)
-  const [permitToRenew, setPermitToRenew] = useState(null)
   const [loading, setLoading] = useState(true) // Re-initializing loading state
   const [error, setError] = useState(null) // Error state
-  const [initialPermitData, setInitialPermitData] = useState(null) // For pre-filling renewal data
   const [statusFilter, setStatusFilter] = useState('all') // 'all', 'active', 'expiring_soon', 'expired', 'pending'
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -168,62 +164,6 @@ const CgPermit = () => {
   // Use permits directly since filtering is done on backend
   const filteredPermits = permits
 
-  const handleRenewClick = (permit) => {
-    setPermitToRenew(permit)
-    setShowRenewPermitModal(true)
-  }
-
-  const handleRenewSubmit = async (formData) => {
-    try {
-      // Make POST request to renew endpoint
-      const response = await axios.post(`${API_URL}/api/cg-permits/renew`, formData, { withCredentials: true })
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to renew CG permit')
-      }
-
-      // Show success message
-      toast.success('CG Permit renewed successfully!', {
-        position: 'top-right',
-        autoClose: 3000
-      })
-
-      // Close the modal
-      setShowRenewPermitModal(false)
-      setPermitToRenew(null)
-
-      // Refresh the permits list and statistics
-      await fetchPermits()
-      await fetchStatistics()
-    } catch (error) {
-      console.error('Error renewing CG permit:', error)
-
-      // Handle detailed error response from backend
-      if (error.response?.data) {
-        const errorData = error.response.data
-
-        // Show main error message
-        const mainMessage = errorData.errorCount > 1
-          ? `${errorData.message} (${errorData.errorCount} errors)`
-          : (errorData.message || 'Failed to renew CG permit')
-
-        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
-
-        // Show each detailed error if available
-        if (errorData.errors && Array.isArray(errorData.errors)) {
-          errorData.errors.forEach((err, index) => {
-            setTimeout(() => {
-              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
-            }, (index + 1) * 150)
-          })
-        }
-      } else {
-        // Network or other errors
-        toast.error(`Failed to renew CG permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
-      }
-    }
-  }
-
   const handleDeletePermit = async (permit) => {
     // Show confirmation dialog
     const confirmDelete = window.confirm(
@@ -304,12 +244,6 @@ const CgPermit = () => {
       });
     }
   };
-
-  // Determine if renew button should be shown for a permit
-  const shouldShowRenewButton = (permit) => {
-    // Show renew button only if permit is not already renewed and status is expiring_soon or expired
-    return !permit.isRenewed && (permit.status === 'expired' || permit.status === 'expiring_soon')
-  }
 
   // Helper function to open WhatsApp with custom message
   const handleWhatsAppClick = (permit) => {
@@ -652,19 +586,6 @@ const CgPermit = () => {
               ),
             },
             {
-              title: 'Renew Permit',
-              condition: shouldShowRenewButton,
-              onClick: handleRenewClick,
-              bgColor: 'bg-blue-100',
-              textColor: 'text-blue-600',
-              hoverBgColor: 'bg-blue-200',
-              icon: (
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                </svg>
-              ),
-            },
-            {
               title: 'Edit',
               onClick: handleEditPermit,
               bgColor: 'bg-amber-100',
@@ -856,17 +777,6 @@ const CgPermit = () => {
                             </svg>
                           </button>
                         )}
-                        {shouldShowRenewButton(permit) && (
-                          <button
-                            onClick={() => handleRenewClick(permit)}
-                            className='p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-all duration-200 cursor-pointer'
-                            title='Renew Permit'
-                          >
-                            <svg className='w-4 h-4 2xl:w-5 2xl:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                            </svg>
-                          </button>
-                        )}
                         <button
                           onClick={() => handleEditPermit(permit)}
 
@@ -929,10 +839,8 @@ const CgPermit = () => {
             isOpen={showIssuePermitModal}
             onClose={() => {
               setShowIssuePermitModal(false)
-              setInitialPermitData(null) // Clear initial data when closing
             }}
             onSubmit={handleIssuePermit}
-            initialData={initialPermitData} // Pass initial data for renewal
           />
       )}
 
@@ -946,19 +854,6 @@ const CgPermit = () => {
             }}
             onSubmit={handleUpdatePermit}
             permit={editingPermit}
-          />
-      )}
-
-      {/* Renew CG Permit Modal - Lazy Loaded */}
-      {showRenewPermitModal && (
-                  <RenewCgPermitModal
-            isOpen={showRenewPermitModal}
-            onClose={() => {
-              setShowRenewPermitModal(false)
-              setPermitToRenew(null)
-            }}
-            onSubmit={handleRenewSubmit}
-            permitData={permitToRenew}
           />
       )}
 

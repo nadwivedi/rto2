@@ -26,8 +26,6 @@ router.get('/:id', taxController.getTaxById)
 // Create new tax record
 router.post('/', taxController.createTax)
 
-// Renew tax record
-router.post('/renew', taxController.renewTax)
 
 // Update tax record
 router.put('/:id', taxController.updateTax)

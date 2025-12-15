@@ -5,7 +5,6 @@ import { getDaysRemaining, parseFormattedDate } from '../../utils/dateHelpers'
 import Pagination from '../../components/Pagination'
 import IssueNewPermitModal from './components/IssueNewPermitModal'
 import EditNationalPermitModal from './components/EditNationalPermitModal'
-import SmartRenewModal from './components/SmartRenewModal'
 import NationalPermitDetailsModal from './components/NationalPermitDetailsModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
@@ -27,8 +26,6 @@ const NationalPermit = () => {
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
-  const [showSmartRenewModal, setShowSmartRenewModal] = useState(false)
-  const [renewingPermit, setRenewingPermit] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [dateFilter, setDateFilter] = useState('All')
@@ -381,18 +378,6 @@ const NationalPermit = () => {
       toast.error(`Failed to mark Part B payment as paid: ${error.message}`, { position: 'top-right', autoClose: 3000 });
     }
   };
-
-  const handleRenew = (permit) => {
-    // Pass permit for smart renewal endpoint
-    setRenewingPermit(permit)
-    setShowSmartRenewModal(true)
-  }
-
-  const handleRenewalSuccess = (data) => {
-    // Refresh permits list and statistics after successful renewal
-    fetchPermits()
-    fetchStatistics()
-  }
 
   // Page change handler
   const handlePageChange = (newPage) => {
@@ -768,35 +753,6 @@ const NationalPermit = () => {
               ),
             },
             {
-              title: (record) => {
-                const partANeedsRenewal = record.partA?.status && ['expiring_soon', 'expired'].includes(record.partA.status)
-                const partBNeedsRenewal = record.partB?.status && ['expiring_soon', 'expired'].includes(record.partB.status)
-
-                if (partANeedsRenewal && partBNeedsRenewal) {
-                  return 'Renew Permit (Both Parts)'
-                } else if (partANeedsRenewal) {
-                  return `Renew Part A (${getDaysRemaining(record.validTill)} days left)`
-                } else if (partBNeedsRenewal) {
-                  return `Renew Part B (${getDaysRemaining(record.partB?.validTo)} days left)`
-                }
-                return 'Renew Permit'
-              },
-              condition: (record) => {
-                const partANeedsRenewal = record.partA?.status && ['expiring_soon', 'expired'].includes(record.partA.status)
-                const partBNeedsRenewal = record.partB?.status && ['expiring_soon', 'expired'].includes(record.partB.status)
-                return partANeedsRenewal || partBNeedsRenewal
-              },
-              onClick: handleRenew,
-              bgColor: 'bg-emerald-100',
-              textColor: 'text-emerald-600',
-              hoverBgColor: 'bg-emerald-200',
-              icon: (
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                </svg>
-              ),
-            },
-            {
               title: 'Delete',
               onClick: (record) => handleDeletePermit(record.id),
               bgColor: 'bg-red-100',
@@ -1009,48 +965,6 @@ const NationalPermit = () => {
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
                           </svg>
                         </button>
-                        {/* Smart Renew Button - Show when Part A or Part B needs renewal */}
-                        {(() => {
-                          const partANeedsRenewal = permit.partA?.status && ['expiring_soon', 'expired'].includes(permit.partA.status)
-                          const partBNeedsRenewal = permit.partB?.status && ['expiring_soon', 'expired'].includes(permit.partB.status)
-
-                          if (!partANeedsRenewal && !partBNeedsRenewal) return null
-
-                          let title = 'Renew Permit'
-                          let daysLeft = null
-                          let isUrgent = false
-
-                          if (partANeedsRenewal && partBNeedsRenewal) {
-                            title = 'Renew Permit (Both Parts)'
-                            const partADays = getDaysRemaining(permit.validTill)
-                            const partBDays = getDaysRemaining(permit.partB.validTo)
-                            daysLeft = Math.min(partADays, partBDays)
-                            isUrgent = partADays <= 7 || partBDays <= 7
-                          } else if (partANeedsRenewal) {
-                            daysLeft = getDaysRemaining(permit.validTill)
-                            title = `Renew Part A (${daysLeft} days left)`
-                            isUrgent = daysLeft <= 7
-                          } else if (partBNeedsRenewal) {
-                            daysLeft = getDaysRemaining(permit.partB.validTo)
-                            title = `Renew Part B (${daysLeft} days left)`
-                            isUrgent = daysLeft <= 7
-                          }
-
-                          return (
-                            <button
-                              onClick={() => handleRenew(permit)}
-                              className='p-2 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-all hover:shadow-md duration-200 relative flex-shrink-0 hover:scale-105'
-                              title={title}
-                            >
-                              <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                              </svg>
-                              {isUrgent && (
-                                <span className='absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse'></span>
-                              )}
-                            </button>
-                          )
-                        })()}
                       </div>
                     </td>
                   </tr>
@@ -1130,18 +1044,6 @@ const NationalPermit = () => {
             }}
             onSubmit={handleUpdatePermit}
             permit={editingPermit}
-          />
-      )}
-
-      {/* Smart Renew Modal - Lazy Loaded */}
-      {showSmartRenewModal && renewingPermit && (
-                  <SmartRenewModal
-            permit={renewingPermit}
-            onClose={() => {
-              setShowSmartRenewModal(false)
-              setRenewingPermit(null)
-            }}
-            onRenewalSuccess={handleRenewalSuccess}
           />
       )}
       </div>

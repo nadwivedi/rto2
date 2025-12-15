@@ -29,8 +29,6 @@ router.get('/id/:id', pucController.getPucById)
 // Create new PUC record
 router.post('/', pucController.createPuc)
 
-// Renew PUC record
-router.post('/renew', pucController.renewPuc)
 
 // Update PUC record
 router.put('/id/:id', pucController.updatePuc)

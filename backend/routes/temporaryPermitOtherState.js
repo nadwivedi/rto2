@@ -26,8 +26,6 @@ router.get('/:id', temporaryPermitOtherStateController.getPermitById)
 // POST create new temporary permit (other state)
 router.post('/', temporaryPermitOtherStateController.createPermit)
 
-// POST renew temporary permit (other state)
-router.post('/renew', temporaryPermitOtherStateController.renewPermit)
 
 // PUT update temporary permit (other state)
 router.put('/:id', temporaryPermitOtherStateController.updatePermit)

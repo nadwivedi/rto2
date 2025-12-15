@@ -3,7 +3,6 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
 import IssueTemporaryPermitOtherStateModal from './components/IssueTemporaryPermitOtherStateModal'
-import RenewTemporaryPermitOtherStateModal from './components/RenewTemporaryPermitOtherStateModal'
 import EditTemporaryPermitOtherStateModal from './components/EditTemporaryPermitOtherStateModal'
 import AddButton from '../../components/AddButton'
 import SearchBar from '../../components/SearchBar'
@@ -23,10 +22,8 @@ const TemporaryPermitOtherState = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
   const [showIssuePermitModal, setShowIssuePermitModal] = useState(false)
-  const [showRenewPermitModal, setShowRenewPermitModal] = useState(false)
   const [showEditPermitModal, setShowEditPermitModal] = useState(false)
   const [editingPermit, setEditingPermit] = useState(null)
-  const [permitToRenew, setPermitToRenew] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [statusFilter, setStatusFilter] = useState('all')
@@ -158,63 +155,6 @@ const TemporaryPermitOtherState = () => {
       toast.error(`Failed to mark payment as paid: ${error.message}`, { position: 'top-right', autoClose: 3000 });
     }
   };
-
-  const handleRenewClick = (permit) => {
-    setPermitToRenew(permit)
-    setShowRenewPermitModal(true)
-  }
-
-  const handleRenewSubmit = async (formData) => {
-    setLoading(true)
-    try {
-      const response = await axios.post(`${API_URL}/api/temporary-permits-other-state/renew`, {
-        oldPermitId: formData.oldPermitId,
-        permitNumber: formData.permitNumber,
-        permitHolder: formData.permitHolder,
-        vehicleNo: formData.vehicleNo,
-        mobileNo: formData.mobileNo,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
-        totalFee: parseFloat(formData.totalFee),
-        paid: parseFloat(formData.paid),
-        balance: parseFloat(formData.balance),
-        notes: formData.notes
-      }, { withCredentials: true })
-
-      if (response.data.success) {
-        toast.success('Temporary permit (other state) renewed successfully!', {
-          position: 'top-right',
-          autoClose: 3000
-        })
-        setShowRenewPermitModal(false)
-        setPermitToRenew(null)
-        await fetchPermits()
-        await fetchStatistics()
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: 'top-right',
-          autoClose: 3000
-        })
-      }
-    } catch (error) {
-      console.error('Error renewing temporary permit (other state):', error)
-      toast.error(
-        error.response?.data?.message || 'Failed to renew temporary permit (other state).',
-        {
-          position: 'top-right',
-          autoClose: 3000
-        }
-      )
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  // Determine if renew button should be shown for a permit
-  const shouldShowRenewButton = (permit) => {
-    // Simple logic: show renew button only if not renewed and status is expired or expiring_soon
-    return !permit.isRenewed && (permit.status === 'expired' || permit.status === 'expiring_soon')
-  }
 
   // Helper function to open WhatsApp with custom message (expiring only)
   const handleWhatsAppClick = (permit) => {
@@ -421,19 +361,6 @@ const TemporaryPermitOtherState = () => {
                   ),
                 },
                 {
-                  title: 'Renew Permit',
-                  condition: shouldShowRenewButton,
-                  onClick: handleRenewClick,
-                  bgColor: 'bg-blue-100',
-                  textColor: 'text-blue-600',
-                  hoverBgColor: 'bg-blue-200',
-                  icon: (
-                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                    </svg>
-                  ),
-                },
-                {
                   title: 'Edit Permit',
                   onClick: handleEditPermit,
                   bgColor: 'bg-green-100',
@@ -620,19 +547,6 @@ const TemporaryPermitOtherState = () => {
                               </button>
                             )}
 
-                            {/* renew button */}
-                            {shouldShowRenewButton(permit) && (
-                              <button
-                                onClick={() => handleRenewClick(permit)}
-                                className='p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200'
-                                title='Renew Permit'
-                              >
-                                <svg className='w-4 h-4 2xl:w-5 2xl:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                                </svg>
-                              </button>
-                            )}
-
                             {/* edit button */}
                             <button
                               onClick={() => handleEditPermit(permit)}
@@ -705,19 +619,6 @@ const TemporaryPermitOtherState = () => {
               fetchPermits(pagination.currentPage)
               fetchStatistics()
             }}
-          />
-      )}
-
-      {/* Renew Temporary Permit (Other State) Modal - Lazy Loaded */}
-      {showRenewPermitModal && (
-                  <RenewTemporaryPermitOtherStateModal
-            isOpen={showRenewPermitModal}
-            onClose={() => {
-              setShowRenewPermitModal(false)
-              setPermitToRenew(null)
-            }}
-            onSubmit={handleRenewSubmit}
-            oldPermit={permitToRenew}
           />
       )}
 

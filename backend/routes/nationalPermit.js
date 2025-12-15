@@ -38,8 +38,6 @@ router.get('/check-existing/:vehicleNumber', nationalPermitController.checkExist
 // POST create new national permit
 router.post('/', nationalPermitController.createPermit)
 
-// POST smart renew (renew Part A, Part B, or both)
-router.post('/:id/smart-renew', nationalPermitController.smartRenewPermit)
 
 // PUT update national permit
 router.put('/:id', nationalPermitController.updatePermit)

@@ -29,8 +29,6 @@ router.get('/id/:id', fitnessController.getFitnessById)
 // Create new fitness record
 router.post('/', fitnessController.createFitness)
 
-// Renew fitness record
-router.post('/renew', fitnessController.renewFitness)
 
 // Update fitness record
 router.put('/id/:id', fitnessController.updateFitness)

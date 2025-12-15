@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import AddButton from "../../components/AddButton";
 import AddTaxModal from "./components/AddTaxModal";
 import EditTaxModal from "./components/EditTaxModal";
-import RenewTaxModal from "./components/RenewTaxModal";
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -22,10 +21,8 @@ const Tax = () => {
   const [taxRecords, setTaxRecords] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTax, setSelectedTax] = useState(null);
-  const [taxToRenew, setTaxToRenew] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'active', 'expiring', 'expired'
   const [pagination, setPagination] = useState({
@@ -239,62 +236,6 @@ const Tax = () => {
   const handleEditClick = (record) => {
     setSelectedTax(record);
     setIsEditModalOpen(true);
-  };
-
-  const handleRenewClick = (record) => {
-    setTaxToRenew(record);
-    setIsRenewModalOpen(true);
-  };
-
-  const handleRenewSubmit = async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/tax/renew`, {
-        oldTaxId: formData.oldTaxId,
-        receiptNo: formData.receiptNo,
-        vehicleNumber: formData.vehicleNumber,
-        ownerName: formData.ownerName,
-        totalAmount: parseFloat(formData.totalAmount),
-        paidAmount: parseFloat(formData.paidAmount),
-        balanceAmount: parseFloat(formData.balance),
-        taxFrom: formData.taxFrom,
-        taxTo: formData.taxTo,
-      }, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success("Tax renewed successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        setIsRenewModalOpen(false);
-        setTaxToRenew(null);
-        // Refresh the list and statistics from the server
-        await fetchTaxRecords();
-        await fetchStatistics();
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error renewing tax record:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to renew tax record.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Determine if renew button should be shown for a record
-  const shouldShowRenewButton = (record) => {
-    // Simple logic: show renew button only if not renewed and status is expired or expiring_soon
-    return !record.isRenewed && (record.status === "expired" || record.status === "expiring_soon");
   };
 
   // Helper function to open WhatsApp with custom message
@@ -673,19 +614,6 @@ const Tax = () => {
                   ),
                 },
                 {
-                  title: 'Renew Tax',
-                  condition: shouldShowRenewButton,
-                  onClick: handleRenewClick,
-                  bgColor: 'bg-blue-100',
-                  textColor: 'text-blue-600',
-                  hoverBgColor: 'bg-blue-200',
-                  icon: (
-                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-                    </svg>
-                  ),
-                },
-                {
                   title: 'Edit',
                   onClick: handleEditClick,
                   bgColor: 'bg-amber-100',
@@ -925,28 +853,6 @@ const Tax = () => {
                                 </svg>
                               </button>
                             )}
-                            {/* Renew Button - Smart logic based on vehicle tax status */}
-                            {shouldShowRenewButton(record) && (
-                              <button
-                                onClick={() => handleRenewClick(record)}
-                                className="p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
-                                title="Renew Tax"
-                              >
-                                <svg
-                                  className="w-4 h-4 2xl:w-5 2xl:h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                  />
-                                </svg>
-                              </button>
-                            )}
                             {/* Edit Button */}
                             <button
                               onClick={() => handleEditClick(record)}
@@ -1044,19 +950,6 @@ const Tax = () => {
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
             onSubmit={handleAddTax}
-          />
-      )}
-
-      {/* Renew Tax Modal - Lazy Loaded */}
-      {isRenewModalOpen && (
-                  <RenewTaxModal
-            isOpen={isRenewModalOpen}
-            onClose={() => {
-              setIsRenewModalOpen(false);
-              setTaxToRenew(null);
-            }}
-            onSubmit={handleRenewSubmit}
-            oldTax={taxToRenew}
           />
       )}
 
