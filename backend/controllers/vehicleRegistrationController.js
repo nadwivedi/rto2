@@ -232,8 +232,10 @@ exports.createRegistration = async (req, res) => {
       wheelBase
     } = req.body
 
-    // RC image is optional
+    // Images are optional
     const rcImage = req.body.rcImage
+    const aadharImage = req.body.aadharImage
+    const panImage = req.body.panImage
 
     // Validate required fields
     if (!registrationNumber) {
@@ -280,9 +282,15 @@ exports.createRegistration = async (req, res) => {
       wheelBase
     }
 
-    // Only add rcImage if it's provided (optional field)
+    // Only add images if they're provided (optional fields)
     if (rcImage) {
       registrationData.rcImage = rcImage
+    }
+    if (aadharImage) {
+      registrationData.aadharImage = aadharImage
+    }
+    if (panImage) {
+      registrationData.panImage = panImage
     }
 
     const registration = await VehicleRegistration.create(registrationData)
@@ -335,8 +343,10 @@ exports.updateRegistration = async (req, res) => {
       wheelBase
     } = req.body
 
-    // RC image is optional
+    // Images are optional
     const rcImage = req.body.rcImage
+    const aadharImage = req.body.aadharImage
+    const panImage = req.body.panImage
 
     const registration = await VehicleRegistration.findOne({
       _id: req.params.id,
@@ -375,9 +385,15 @@ exports.updateRegistration = async (req, res) => {
     if (fuelType !== undefined) registration.fuelType = fuelType
     if (bodyType !== undefined) registration.bodyType = bodyType
     if (wheelBase !== undefined) registration.wheelBase = wheelBase
-    // Handle optional rcImage field - can be empty string to remove image
+    // Handle optional image fields - can be empty string to remove image
     if (rcImage !== undefined) {
       registration.rcImage = rcImage || undefined
+    }
+    if (aadharImage !== undefined) {
+      registration.aadharImage = aadharImage || undefined
+    }
+    if (panImage !== undefined) {
+      registration.panImage = panImage || undefined
     }
 
     await registration.save()

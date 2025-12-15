@@ -31,7 +31,7 @@ const getInsuranceStatus = (validTo) => {
 // Create new insurance record
 exports.createInsurance = async (req, res) => {
   try {
-    const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks } = req.body
+    const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument } = req.body
 
     // Validate required fields
     if (!policyNumber) {
@@ -97,7 +97,7 @@ exports.createInsurance = async (req, res) => {
     )
 
     // Create new insurance record
-    const newInsurance = new Insurance({
+    const insuranceData = {
       policyNumber,
       vehicleNumber,
       mobileNumber,
@@ -109,7 +109,14 @@ exports.createInsurance = async (req, res) => {
       status,
       remarks,
       userId: req.user.id
-    })
+    }
+
+    // Only add insuranceDocument if it's provided (optional field)
+    if (insuranceDocument) {
+      insuranceData.insuranceDocument = insuranceDocument
+    }
+
+    const newInsurance = new Insurance(insuranceData)
     await newInsurance.save()
 
     res.status(201).json({
@@ -439,7 +446,7 @@ exports.getInsuranceByPolicyNumber = async (req, res) => {
 exports.updateInsurance = async (req, res) => {
   try {
     const { id } = req.params
-    const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks } = req.body
+    const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument } = req.body
 
     const insurance = await Insurance.findOne({ _id: id, userId: req.user.id })
 
@@ -485,6 +492,10 @@ exports.updateInsurance = async (req, res) => {
     if (paid !== undefined) insurance.paid = paid
     if (balance !== undefined) insurance.balance = balance
     if (remarks !== undefined) insurance.remarks = remarks
+    // Handle optional insuranceDocument field - can be empty string to remove document
+    if (insuranceDocument !== undefined) {
+      insurance.insuranceDocument = insuranceDocument || undefined
+    }
 
     await insurance.save()
 
