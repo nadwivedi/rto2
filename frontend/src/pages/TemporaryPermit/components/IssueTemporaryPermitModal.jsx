@@ -32,9 +32,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
     purpose: '',
 
     // Fees
-    totalFee: '',
-    paid: '',
-    balance: ''
+    totalFee: '0',
+    paid: '0',
+    balance: '0'
   })
 
   const [showOptionalFields, setShowOptionalFields] = useState(false)
@@ -80,9 +80,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
         ladenWeight: '',
         unladenWeight: '',
         purpose: '',
-        totalFee: '',
-        paid: '',
-        balance: ''
+        totalFee: '0',
+        paid: '0',
+        balance: '0'
       })
       setVehicleError('')
       setFetchingVehicle(false)
@@ -363,16 +363,26 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
 
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
+      // Remove leading zero when user starts typing
+      let finalValue = value
+      if (value.length > 0) {
+        if (name === 'totalFee' && formData.totalFee === '0') {
+          finalValue = value.replace(/^0+/, '') || '0'
+        } else if (name === 'paid' && formData.paid === '0') {
+          finalValue = value.replace(/^0+/, '') || '0'
+        }
+      }
+
       setFormData(prev => {
-        const paymentResult = handlePaymentCalculation(name, value, prev)
+        const paymentResult = handlePaymentCalculation(name, finalValue, prev)
 
         // Reset validation flag since paid is now capped
         setPaidExceedsTotal(paymentResult.paidExceedsTotal)
 
         return {
           ...prev,
-          [name]: name === 'paid' ? paymentResult.paid : value,
-          totalFee: name === 'totalFee' ? value : prev.totalFee,
+          [name]: name === 'paid' ? paymentResult.paid : finalValue,
+          totalFee: name === 'totalFee' ? finalValue : prev.totalFee,
           paid: name === 'paid' ? paymentResult.paid : prev.paid,
           balance: paymentResult.balance
         }
@@ -462,9 +472,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       ladenWeight: '',
       unladenWeight: '',
       purpose: '',
-      totalFee: '',
-      paid: '',
-      balance: ''
+      totalFee: '0',
+      paid: '0',
+      balance: '0'
     })
     setShowOptionalFields(false)
     setVehicleError('')

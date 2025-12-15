@@ -5,6 +5,7 @@ import AddButton from "../../components/AddButton";
 import AddFitnessModal from "./components/AddFitnessModal";
 import EditFitnessModal from "./components/EditFitnessModal";
 import RenewFitnessModal from "./components/RenewFitnessModal";
+import FitnessDetailModal from "./components/FitnessDetailModal";
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -24,7 +25,9 @@ const Fitness = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedFitness, setSelectedFitness] = useState(null);
+  const [selectedDetailFitness, setSelectedDetailFitness] = useState(null);
   const [fitnessToRenew, setFitnessToRenew] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'expiring', 'expired', 'pending'
@@ -200,6 +203,11 @@ const Fitness = () => {
 
     // Reset selected fitness
     setSelectedFitness(null);
+  };
+
+  const handleViewClick = (record) => {
+    setSelectedDetailFitness(record);
+    setIsDetailModalOpen(true);
   };
 
   const handleEditClick = (record) => {
@@ -888,6 +896,17 @@ const Fitness = () => {
                         {/* Actions */}
                         <td className="px-1 2xl:px-2 py-3 2xl:py-4">
                           <div className="flex items-center justify-end gap-0.5 2xl:gap-0.5 pr-1">
+                            {/* View Details Button */}
+                            <button
+                              onClick={() => handleViewClick(record)}
+                              className="p-1.5 2xl:p-2 text-purple-600 hover:bg-purple-100 rounded-lg transition-all group-hover:scale-110 duration-200"
+                              title="View Details"
+                            >
+                              <svg className="w-4 h-4 2xl:w-5 2xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </button>
                             {/* Mark as Paid Button */}
                             {(record.balance || 0) > 0 && (
                               <button
@@ -1046,6 +1065,18 @@ const Fitness = () => {
             onSubmit={handleRenewSubmit}
             oldFitness={fitnessToRenew}
           />
+      )}
+
+      {/* Fitness Detail Modal - Lazy Loaded */}
+      {isDetailModalOpen && (
+        <FitnessDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setSelectedDetailFitness(null);
+          }}
+          fitness={selectedDetailFitness}
+        />
       )}
     </>
   );

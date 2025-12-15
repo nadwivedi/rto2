@@ -204,6 +204,38 @@ const VehicleTransferDetailModal = ({ isOpen, onClose, transfer }) => {
                   </p>
                 </div>
               </div>
+
+              {/* Fee Breakup - Show only if exists and has values */}
+              {(() => {
+                const validFeeItems = transfer.feeBreakup?.filter(item => item.amount && parseFloat(item.amount) > 0) || []
+                return validFeeItems.length > 0 && (
+                  <div className='mt-4 pt-4 border-t border-purple-300'>
+                    <h4 className='text-xs md:text-sm font-bold text-purple-900 mb-3 flex items-center gap-2'>
+                      <svg className='w-4 h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01' />
+                      </svg>
+                      Fee Breakup Details
+                    </h4>
+                    <div className='grid grid-cols-2 md:grid-cols-4 gap-3'>
+                      {validFeeItems.map((item, index) => (
+                        <div key={index} className='bg-white p-3 md:p-4 rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-all duration-200'>
+                          <div className='flex items-center gap-2 mb-2'>
+                            <div className='bg-purple-500 rounded-full p-1'>
+                              <svg className='w-3 h-3 md:w-4 md:h-4 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                              </svg>
+                            </div>
+                            <label className='text-xs font-bold text-purple-700 uppercase tracking-wide'>{item.name}</label>
+                          </div>
+                          <p className='text-base md:text-lg font-black text-gray-800 pl-1'>
+                            ₹{(item.amount || 0).toLocaleString('en-IN')}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Remarks - Show only if exists */}

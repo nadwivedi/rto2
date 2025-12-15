@@ -324,7 +324,7 @@ exports.getFitnessById = async (req, res) => {
 // Create new fitness record
 exports.createFitness = async (req, res) => {
   try {
-    const { vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, feeBreakup } = req.body
 
     // Validate required fields
     if (!vehicleNumber ) {
@@ -380,6 +380,7 @@ exports.createFitness = async (req, res) => {
       totalFee,
       paid,
       balance,
+      feeBreakup,
       status,
       userId: req.user.id
     })
@@ -404,7 +405,7 @@ exports.createFitness = async (req, res) => {
 // Update fitness record
 exports.updateFitness = async (req, res) => {
   try {
-    const { vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, feeBreakup } = req.body
 
     const fitness = await Fitness.findOne({ _id: req.params.id, userId: req.user.id })
 
@@ -448,6 +449,7 @@ exports.updateFitness = async (req, res) => {
     if (totalFee !== undefined) fitness.totalFee = totalFee
     if (paid !== undefined) fitness.paid = paid
     if (balance !== undefined) fitness.balance = balance
+    if (feeBreakup !== undefined) fitness.feeBreakup = feeBreakup
 
     await fitness.save()
 

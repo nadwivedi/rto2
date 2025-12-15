@@ -15,7 +15,14 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
     validTo: '',
     totalFee: '0',
     paid: '0',
-    balance: '0'
+    balance: '0',
+    feeBreakup: [
+      { name: 'Fitness', amount: '' },
+      { name: 'PUC', amount: '' },
+      { name: 'Radium', amount: '' },
+      { name: 'GPS', amount: '' },
+      { name: 'Speed Governor', amount: '' }
+    ]
   })
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
@@ -32,6 +39,24 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
   // Populate form when fitness record changes
   useEffect(() => {
     if (fitness) {
+      // Ensure fee breakup has default fields if not present
+      const defaultFeeBreakup = [
+        { name: 'Fitness', amount: '' },
+        { name: 'PUC', amount: '' },
+        { name: 'Radium', amount: '' },
+        { name: 'GPS', amount: '' },
+        { name: 'Speed Governor', amount: '' }
+      ]
+
+      // Convert amounts to strings for form inputs
+      let feeBreakup = defaultFeeBreakup
+      if (fitness.feeBreakup && fitness.feeBreakup.length > 0) {
+        feeBreakup = fitness.feeBreakup.map(item => ({
+          name: item.name || '',
+          amount: item.amount ? item.amount.toString() : ''
+        }))
+      }
+
       setFormData({
         vehicleNumber: fitness.vehicleNumber || '',
         mobileNumber: fitness.mobileNumber || '',
@@ -39,7 +64,8 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
         validTo: fitness.validTo || '',
         totalFee: fitness.totalFee?.toString() || '0',
         paid: fitness.paid?.toString() || '0',
-        balance: fitness.balance?.toString() || '0'
+        balance: fitness.balance?.toString() || '0',
+        feeBreakup
       })
 
       // Validate the pre-filled vehicle number
@@ -284,6 +310,30 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
     utilHandleDateBlur(e, setFormData)
   }
 
+  // Fee Breakup Handlers
+  const addFeeBreakupItem = () => {
+    setFormData(prev => ({
+      ...prev,
+      feeBreakup: [...prev.feeBreakup, { name: '', amount: '' }]
+    }))
+  }
+
+  const removeFeeBreakupItem = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      feeBreakup: prev.feeBreakup.filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleFeeBreakupChange = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      feeBreakup: prev.feeBreakup.map((item, i) =>
+        i === index ? { ...item, [field]: value } : item
+      )
+    }))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
 
@@ -320,6 +370,11 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
     // Handle API call here
     setIsSubmitting(true)
     try {
+      // Filter out empty fee breakup items
+      const filteredFeeBreakup = formData.feeBreakup.filter(item =>
+        item.name && item.amount && parseFloat(item.amount) > 0
+      )
+
       // Use _id if available, fallback to id
       const fitnessId = fitness._id || fitness.id
 
@@ -333,6 +388,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
           totalFee: parseFloat(formData.totalFee),
           paid: parseFloat(formData.paid),
           balance: parseFloat(formData.balance),
+          feeBreakup: filteredFeeBreakup,
         },
         { withCredentials: true }
       )
@@ -641,6 +697,64 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
                   </p>
                 </div>
               )}
+
+              {/* Fee Breakup Section */}
+              <div className='mt-4 pt-4 border-t border-purple-200'>
+                <div className='flex justify-between items-center mb-3'>
+                  <h4 className='text-sm md:text-base font-bold text-gray-800'>Fee Breakup (Optional)</h4>
+                  <button
+                    type='button'
+                    onClick={addFeeBreakupItem}
+                    className='px-3 py-1.5 text-xs md:text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-semibold flex items-center gap-1'
+                  >
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+                    </svg>
+                    Add Item
+                  </button>
+                </div>
+
+                <div className='space-y-2'>
+                  {formData.feeBreakup.map((item, index) => (
+                    <div key={index} className='grid grid-cols-1 md:grid-cols-12 gap-2 bg-purple-50 p-2 rounded-lg border border-purple-200'>
+                      <div className='md:col-span-5'>
+                        <input
+                          type='text'
+                          placeholder='Fee name'
+                          value={item.name}
+                          onChange={(e) => handleFeeBreakupChange(index, 'name', e.target.value)}
+                          className='w-full px-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm font-semibold'
+                        />
+                      </div>
+                      <div className='md:col-span-6'>
+                        <div className='relative'>
+                          <span className='absolute left-3 top-2.5 text-gray-500 font-semibold'>₹</span>
+                          <input
+                            type='number'
+                            placeholder='Amount'
+                            value={item.amount}
+                            onChange={(e) => handleFeeBreakupChange(index, 'amount', e.target.value)}
+                            min='0'
+                            className='w-full pl-8 pr-3 py-2 border border-purple-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm font-semibold'
+                          />
+                        </div>
+                      </div>
+                      <div className='md:col-span-1 flex items-center justify-center'>
+                        <button
+                          type='button'
+                          onClick={() => removeFeeBreakupItem(index)}
+                          className='p-2 text-red-600 hover:bg-red-100 rounded-lg transition'
+                          title='Remove this item'
+                        >
+                          <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 

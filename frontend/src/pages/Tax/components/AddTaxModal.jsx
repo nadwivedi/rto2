@@ -22,9 +22,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     vehicleNumber: '',
     ownerName: '',
     mobileNumber: '',
-    totalAmount: '',
-    paidAmount: '',
-    balance: '',
+    totalAmount: '0',
+    paidAmount: '0',
+    balance: '0',
     taxFrom: '',
     taxTo: ''
   })
@@ -50,9 +50,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
         vehicleNumber: '',
         ownerName: '',
         mobileNumber: '',
-        totalAmount: '',
-        paidAmount: '',
-        balance: '',
+        totalAmount: '0',
+        paidAmount: '0',
+        balance: '0',
         taxFrom: '',
         taxTo: ''
       })
@@ -310,6 +310,25 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
       setFormData(prev => ({
         ...prev,
         [name]: cleanedValue
+      }))
+      return
+    }
+
+    // Handle payment fields with leading zero removal
+    if (name === 'totalAmount' || name === 'paidAmount') {
+      // Remove leading zero when user starts typing
+      let finalValue = value
+      if (value.length > 0) {
+        if (name === 'totalAmount' && formData.totalAmount === '0') {
+          finalValue = value.replace(/^0+/, '') || '0'
+        } else if (name === 'paidAmount' && formData.paidAmount === '0') {
+          finalValue = value.replace(/^0+/, '') || '0'
+        }
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        [name]: finalValue
       }))
       return
     }

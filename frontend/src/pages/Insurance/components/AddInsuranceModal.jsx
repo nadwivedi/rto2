@@ -19,9 +19,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     mobileNumber: '',
     validFrom: '',
     validTo: '',
-    totalFee: '',
-    paid: '',
-    balance: '',
+    totalFee: '0',
+    paid: '0',
+    balance: '0',
     insuranceDocument: ''
   })
 
@@ -82,9 +82,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
         mobileNumber: '',
         validFrom: '',
         validTo: '',
-        totalFee: '',
-        paid: '',
-        balance: '',
+        totalFee: '0',
+        paid: '0',
+        balance: '0',
         insuranceDocument: ''
       })
       setFetchingVehicle(false)
@@ -297,16 +297,26 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
 
     // Auto-calculate balance when totalFee or paid changes
     if (name === 'totalFee' || name === 'paid') {
+      // Remove leading zero when user starts typing
+      let finalValue = value
+      if (value.length > 0) {
+        if (name === 'totalFee' && formData.totalFee === '0') {
+          finalValue = value.replace(/^0+/, '') || '0'
+        } else if (name === 'paid' && formData.paid === '0') {
+          finalValue = value.replace(/^0+/, '') || '0'
+        }
+      }
+
       setFormData(prev => {
-        const paymentResult = handlePaymentCalculation(name, value, prev)
+        const paymentResult = handlePaymentCalculation(name, finalValue, prev)
 
         // Reset validation flag since paid is now capped
         setPaidExceedsTotal(paymentResult.paidExceedsTotal)
 
         return {
           ...prev,
-          [name]: name === 'paid' ? paymentResult.paid : value,
-          totalFee: name === 'totalFee' ? value : prev.totalFee,
+          [name]: name === 'paid' ? paymentResult.paid : finalValue,
+          totalFee: name === 'totalFee' ? finalValue : prev.totalFee,
           paid: name === 'paid' ? paymentResult.paid : prev.paid,
           balance: paymentResult.balance
         }
@@ -495,9 +505,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       policyNumber: '',
       validFrom: '',
       validTo: '',
-      totalFee: '',
-      paid: '',
-      balance: ''
+      totalFee: '0',
+      paid: '0',
+      balance: '0'
     })
     setVehicleValidation({ isValid: false, message: '' })
     setPaidExceedsTotal(false)
