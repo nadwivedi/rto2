@@ -7,7 +7,6 @@ import { handleSmartDateInput } from '../../../utils/dateFormatter'
 const API_URL = import.meta.env.VITE_BACKEND_URL
 
 const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
-  const [showOptionalFields, setShowOptionalFields] = useState(true) // Show optional fields by default in edit mode
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
@@ -26,16 +25,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
     validTo: '',
 
     // Optional fields
-    fatherName: '',
-    address: '',
     mobileNumber: '',
-    email: '',
-
-    // Vehicle details
-    chassisNumber: '',
-    engineNumber: '',
-    ladenWeight: '',
-    unladenWeight: '',
 
     // Fees
     totalFee: '',
@@ -53,14 +43,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         vehicleNumber: vehicleNum,
         validFrom: permit.validFrom || '',
         validTo: permit.validTill || permit.validTo || '',
-        fatherName: permit.fatherName || '',
-        address: permit.address || '',
         mobileNumber: permit.mobileNumber?.replace('+91 ', '') || '',
-        email: permit.email || '',
-        chassisNumber: permit.chassisNumber || '',
-        engineNumber: permit.engineNumber || '',
-        ladenWeight: permit.ladenWeight || '',
-        unladenWeight: permit.unladenWeight || '',
         totalFee: (permit.totalFee || permit.fees)?.toString() || '',
         paid: permit.paid?.toString() || '',
         balance: permit.balance?.toString() || ''
@@ -683,139 +666,6 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
               </div>
             </div>
 
-            {/* Expandable Optional Fields */}
-            <div className='border-2 border-gray-200 rounded-xl p-3 md:p-6'>
-              <button
-                type='button'
-                onClick={() => setShowOptionalFields(!showOptionalFields)}
-                className='flex items-center justify-between w-full text-left cursor-pointer'
-              >
-                <h3 className='text-base md:text-lg font-bold text-gray-800'>
-                  Additional Details (Optional)
-                </h3>
-                <svg
-                  className={`w-5 h-5 md:w-6 md:h-6 transition-transform ${showOptionalFields ? 'rotate-180' : ''}`}
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                </svg>
-              </button>
-
-              {showOptionalFields && (
-                <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
-                  {/* Personal Information */}
-                  <div>
-                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-indigo-600'>Personal Information</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Father's Name
-                        </label>
-                        <input
-                          type='text'
-                          name='fatherName'
-                          value={formData.fatherName}
-                          onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Email
-                        </label>
-                        <input
-                          type='email'
-                          name='email'
-                          value={formData.email}
-                          onChange={handleChange}
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div className='md:col-span-2'>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Address
-                        </label>
-                        <textarea
-                          name='address'
-                          value={formData.address}
-                          onChange={handleChange}
-                          rows='2'
-                          placeholder='Complete address with street, area, landmark'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Vehicle Details */}
-                  <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold text-gray-800 mb-3 uppercase '>Vehicle Details</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Chassis Number
-                        </label>
-                        <input
-                          type='text'
-                          name='chassisNumber'
-                          value={formData.chassisNumber}
-                          onChange={handleChange}
-                          placeholder='Enter chassis number'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Engine Number
-                        </label>
-                        <input
-                          type='text'
-                          name='engineNumber'
-                          value={formData.engineNumber}
-                          onChange={handleChange}
-                          placeholder='Enter engine number'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Laden Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='ladenWeight'
-                          value={formData.ladenWeight}
-                          onChange={handleChange}
-                          placeholder='Enter laden weight'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-
-                      <div>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                          Unladen Weight (kg)
-                        </label>
-                        <input
-                          type='number'
-                          name='unladenWeight'
-                          value={formData.unladenWeight}
-                          onChange={handleChange}
-                          placeholder='Enter unladen weight'
-                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Footer Actions */}

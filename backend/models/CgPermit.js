@@ -37,17 +37,8 @@ const CgPermitSchema = new mongoose.Schema({
 
 
   // Additional Details (Optional)
-  fatherName: {
-    type: String,
-    trim: true
-  },
   mobileNumber: {
     type: String,
-    trim: true
-  },
-  email: {
-    type: String,
-    lowercase: true,
     trim: true
   },
 
@@ -93,10 +84,6 @@ const CgPermitSchema = new mongoose.Schema({
   timestamps: true
 })
 
-// Optimized indexes for exact requirements:
-// 1. Get all permits with pending payment (balance > 0)
-// 2. Get all permits with expiring/expired status (filter by validTo date)
-// 3. Search vehicle number and get all permit records for that vehicle
 
 // Index 1: vehicleNumber (for searching vehicle and getting all its permit records)
 CgPermitSchema.index({ vehicleNumber: 1 })

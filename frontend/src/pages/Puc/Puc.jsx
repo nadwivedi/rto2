@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import AddButton from "../../components/AddButton";
 import AddPucModal from "./components/AddPucModal";
 import EditPucModal from "./components/EditPucModal";
-import RenewPucModal from "./components/RenewPucModal";
 import Pagination from "../../components/Pagination";
 import SearchBar from "../../components/SearchBar";
 import StatisticsCard from "../../components/StatisticsCard";
@@ -23,9 +22,7 @@ const Puc = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
   const [selectedPuc, setSelectedPuc] = useState(null);
-  const [pucToRenew, setPucToRenew] = useState(null);
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all"); // 'all', 'expiring_soon', 'expired', 'pending'
   const [pagination, setPagination] = useState({
@@ -92,10 +89,7 @@ const Puc = () => {
           paid: record.paid || 0,
           balance: record.balance || 0,
           status: record.status,
-          isRenewed: record.isRenewed || false, // Include isRenewed field
         }));
-
-        console.log('📥 Transformed PUC records with isRenewed field');
 
         setPucRecords(transformedRecords);
 
@@ -238,58 +232,6 @@ const Puc = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleRenewClick = (record) => {
-    setPucToRenew(record);
-    setIsRenewModalOpen(true);
-  };
-
-  const handleRenewSubmit = async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/puc/renew`, {
-        oldPucId: formData.oldPucId,
-        vehicleNumber: formData.vehicleNumber,
-        mobileNumber: formData.mobileNumber,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
-        totalFee: parseFloat(formData.totalFee),
-        paid: parseFloat(formData.paid),
-        balance: parseFloat(formData.balance),
-      }, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success("PUC certificate renewed successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-
-        // Refresh the list and statistics from the server
-        await fetchPucRecords();
-        await fetchStatistics();
-
-        // Close modal and reset
-        setIsRenewModalOpen(false);
-        setPucToRenew(null);
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error renewing PUC record:", error);
-      toast.error(
-        "Failed to renew PUC certificate. Please check if the backend server is running.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDeletePuc = async (record) => {
     // Show confirmation dialog
     const confirmDelete = window.confirm(
@@ -377,24 +319,6 @@ const Puc = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Determine if renew button should be shown for a record
-  // Show renew button ONLY if: NOT renewed AND (expired OR expiring_soon)
-  const shouldShowRenewButton = (record) => {
-    const show = !record.isRenewed && (record.status === "expired" || record.status === "expiring_soon");
-
-    // Debug: Log what we're checking for expired/expiring records
-    if (record.status === "expired" || record.status === "expiring_soon") {
-      console.log(`🔍 ${record.vehicleNumber}:`, {
-        status: record.status,
-        isRenewed: record.isRenewed,
-        isRenewedType: typeof record.isRenewed,
-        shouldShowButton: show
-      });
-    }
-
-    return show;
   };
 
   // Helper function to open WhatsApp with custom message (expiring only)
@@ -646,19 +570,6 @@ const Puc = () => {
                   icon: (
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                    </svg>
-                  ),
-                },
-                {
-                  title: 'Renew PUC',
-                  condition: shouldShowRenewButton,
-                  onClick: handleRenewClick,
-                  bgColor: 'bg-blue-100',
-                  textColor: 'text-blue-600',
-                  hoverBgColor: 'bg-blue-200',
-                  icon: (
-                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
                     </svg>
                   ),
                 },
@@ -923,28 +834,6 @@ const Puc = () => {
                                 </svg>
                               </button>
                             )}
-                            {/* Renew Button - Smart logic based on vehicle PUC status */}
-                            {shouldShowRenewButton(record) && (
-                              <button
-                                onClick={() => handleRenewClick(record)}
-                                className="p-1.5 2xl:p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-all group-hover:scale-110 duration-200"
-                                title="Renew PUC"
-                              >
-                                <svg
-                                  className="w-4 h-4 2xl:w-5 2xl:h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                  />
-                                </svg>
-                              </button>
-                            )}
                             {/* Edit Button */}
                             <button
                               onClick={() => handleEditClick(record)}
@@ -1054,18 +943,6 @@ const Puc = () => {
         />
       )}
 
-      {/* Renew PUC Modal - Lazy Loaded */}
-      {isRenewModalOpen && (
-        <RenewPucModal
-          isOpen={isRenewModalOpen}
-          onClose={() => {
-            setIsRenewModalOpen(false);
-            setPucToRenew(null); // Reset when closing
-          }}
-          onSubmit={handleRenewSubmit}
-          oldPuc={pucToRenew}
-        />
-      )}
     </>
   );
 };

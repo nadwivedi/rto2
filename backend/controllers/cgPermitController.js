@@ -42,9 +42,7 @@ exports.createPermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      fatherName,
       mobileNumber,
-      email,
       notes
     } = req.body
 
@@ -173,9 +171,7 @@ exports.createPermit = async (req, res) => {
       totalFee: Number(totalFee),
       paid: Number(paid),
       balance: Number(balance),
-      fatherName: fatherName ? fatherName.trim() : undefined,
       mobileNumber: mobileNumber ? mobileNumber.trim() : undefined,
-      email: email ? email.trim() : undefined,
       notes: notes ? notes.trim() : undefined,
       status,
       userId: req.user.id
@@ -510,9 +506,7 @@ exports.updatePermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      fatherName,
       mobileNumber,
-      email,
       notes
     } = req.body
 
@@ -613,9 +607,7 @@ exports.updatePermit = async (req, res) => {
     if (totalFee !== undefined) updateData.totalFee = Number(totalFee)
     if (paid !== undefined) updateData.paid = Number(paid)
     if (balance !== undefined) updateData.balance = Number(balance)
-    if (fatherName !== undefined) updateData.fatherName = fatherName ? fatherName.trim() : ''
     if (mobileNumber !== undefined) updateData.mobileNumber = mobileNumber ? mobileNumber.trim() : ''
-    if (email !== undefined) updateData.email = email ? email.trim() : ''
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
 
     const updatedPermit = await CgPermit.findOneAndUpdate(
