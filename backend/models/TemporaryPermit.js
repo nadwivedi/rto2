@@ -41,44 +41,12 @@ const TemporaryPermitSchema = new mongoose.Schema({
   },
 
   // Additional Details (Optional)
-  fatherName: {
-    type: String,
-    trim: true
-  },
-  address: {
-    type: String,
-    trim: true
-  },
-
   mobileNumber: {
     type: String,
     trim: true
   },
-  email: {
-    type: String,
-    lowercase: true,
-    trim: true
-  },
 
-  // Vehicle Details (Optional)
-  chassisNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  engineNumber: {
-    type: String,
-    trim: true,
-    uppercase: true
-  },
-  ladenWeight: {
-    type: Number
-  },
-  unladenWeight: {
-    type: Number
-  },
 
-  
   // Fees
   totalFee: {
     type: Number,

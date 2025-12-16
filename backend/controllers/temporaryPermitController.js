@@ -39,14 +39,7 @@ exports.createPermit = async (req, res) => {
       vehicleType,
       validFrom,
       validTo,
-      fatherName,
-      address,
       mobileNumber,
-      email,
-      chassisNumber,
-      engineNumber,
-      ladenWeight,
-      unladenWeight,
       totalFee,
       paid,
       balance,
@@ -183,36 +176,6 @@ exports.createPermit = async (req, res) => {
       }
     }
 
-    // 9. Validate email format (if provided)
-    if (email && email.trim() !== '') {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailPattern.test(email.trim())) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid email format'
-        })
-      }
-    }
-
-    // 10. Validate weight values (if provided)
-    if (ladenWeight !== undefined && ladenWeight !== null) {
-      if (isNaN(ladenWeight) || Number(ladenWeight) < 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Laden weight must be a positive number'
-        })
-      }
-    }
-
-    if (unladenWeight !== undefined && unladenWeight !== null) {
-      if (isNaN(unladenWeight) || Number(unladenWeight) < 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Unladen weight must be a positive number'
-        })
-      }
-    }
-
     // Calculate status
     const status = getTemporaryPermitStatus(validTo);
 
@@ -232,14 +195,7 @@ exports.createPermit = async (req, res) => {
     }
 
     // Add optional fields if provided
-    if (fatherName && fatherName.trim() !== '') permitData.fatherName = fatherName.trim()
-    if (address && address.trim() !== '') permitData.address = address.trim()
     if (mobileNumber && mobileNumber.trim() !== '') permitData.mobileNumber = mobileNumber.trim()
-    if (email && email.trim() !== '') permitData.email = email.trim().toLowerCase()
-    if (chassisNumber && chassisNumber.trim() !== '') permitData.chassisNumber = chassisNumber.trim().toUpperCase()
-    if (engineNumber && engineNumber.trim() !== '') permitData.engineNumber = engineNumber.trim().toUpperCase()
-    if (ladenWeight !== undefined && ladenWeight !== null) permitData.ladenWeight = Number(ladenWeight)
-    if (unladenWeight !== undefined && unladenWeight !== null) permitData.unladenWeight = Number(unladenWeight)
     if (notes && notes.trim() !== '') permitData.notes = notes.trim()
 
     // Mark any existing non-renewed temporary permits for this vehicle as expired and renewed
@@ -604,14 +560,7 @@ exports.updatePermit = async (req, res) => {
       vehicleType,
       validFrom,
       validTo,
-      fatherName,
-      address,
       mobileNumber,
-      email,
-      chassisNumber,
-      engineNumber,
-      ladenWeight,
-      unladenWeight,
       totalFee,
       paid,
       balance,
@@ -728,36 +677,6 @@ exports.updatePermit = async (req, res) => {
       }
     }
 
-    // 9. Validate email format (if provided)
-    if (email && email.trim() !== '') {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailPattern.test(email.trim())) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid email format'
-        })
-      }
-    }
-
-    // 10. Validate weight values (if provided)
-    if (ladenWeight !== undefined && ladenWeight !== null) {
-      if (isNaN(ladenWeight) || Number(ladenWeight) < 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Laden weight must be a positive number'
-        })
-      }
-    }
-
-    if (unladenWeight !== undefined && unladenWeight !== null) {
-      if (isNaN(unladenWeight) || Number(unladenWeight) < 0) {
-        return res.status(400).json({
-          success: false,
-          message: 'Unladen weight must be a positive number'
-        })
-      }
-    }
-
     // Prepare update data
     const updateData = {}
     if (permitNumber) updateData.permitNumber = permitNumber.trim()
@@ -773,14 +692,7 @@ exports.updatePermit = async (req, res) => {
     if (totalFee !== undefined) updateData.totalFee = Number(totalFee)
     if (paid !== undefined) updateData.paid = Number(paid)
     if (balance !== undefined) updateData.balance = Number(balance)
-    if (fatherName !== undefined) updateData.fatherName = fatherName ? fatherName.trim() : ''
-    if (address !== undefined) updateData.address = address ? address.trim() : ''
     if (mobileNumber !== undefined) updateData.mobileNumber = mobileNumber ? mobileNumber.trim() : ''
-    if (email !== undefined) updateData.email = email ? email.trim().toLowerCase() : ''
-    if (chassisNumber !== undefined) updateData.chassisNumber = chassisNumber ? chassisNumber.trim().toUpperCase() : ''
-    if (engineNumber !== undefined) updateData.engineNumber = engineNumber ? engineNumber.trim().toUpperCase() : ''
-    if (ladenWeight !== undefined) updateData.ladenWeight = ladenWeight ? Number(ladenWeight) : null
-    if (unladenWeight !== undefined) updateData.unladenWeight = unladenWeight ? Number(unladenWeight) : null
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
     // Note: status is managed by cron job and should not be manually updated
 
