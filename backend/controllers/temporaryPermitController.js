@@ -131,11 +131,11 @@ exports.createPermit = async (req, res) => {
       })
     }
 
-    // 5. Validate totalFee
-    if (isNaN(totalFee) || Number(totalFee) <= 0) {
+    // 5. Validate totalFee - allow zero or greater
+    if (isNaN(totalFee) || Number(totalFee) < 0) {
       return res.status(400).json({
         success: false,
-        message: 'Total fee must be greater than zero'
+        message: 'Total fee cannot be negative'
       })
     }
 
@@ -630,12 +630,12 @@ exports.updatePermit = async (req, res) => {
       })
     }
 
-    // 5. Validate totalFee (if provided)
+    // 5. Validate totalFee (if provided) - allow zero or greater
     if (totalFee !== undefined && totalFee !== null) {
-      if (isNaN(totalFee) || Number(totalFee) <= 0) {
+      if (isNaN(totalFee) || Number(totalFee) < 0) {
         return res.status(400).json({
           success: false,
-          message: 'Total fee must be greater than zero'
+          message: 'Total fee cannot be negative'
         })
       }
     }

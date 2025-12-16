@@ -475,6 +475,30 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     toast.info('Insurance document removed', { position: 'top-right', autoClose: 2000 })
   }
 
+  // Handle Enter key to navigate to next field instead of submitting
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      // Get current tabIndex
+      const currentTabIndex = parseInt(e.target.getAttribute('tabIndex'))
+
+      // If we're on the last field (paid = tabIndex 7), submit the form
+      if (currentTabIndex === 7) {
+        document.querySelector('form')?.requestSubmit()
+        return
+      }
+
+      // Find next input with tabIndex
+      const nextTabIndex = currentTabIndex + 1
+      const nextInput = document.querySelector(`input[tabIndex="${nextTabIndex}"]`)
+
+      if (nextInput) {
+        nextInput.focus()
+      }
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -563,8 +587,10 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
+                      onKeyDown={handleInputKeyDown}
                       placeholder='CG04AA1234 or 4793'
                       maxLength='10'
+                      tabIndex="1"
                       className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
@@ -653,7 +679,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='policyNumber'
                     value={formData.policyNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='INS001234567'
+                    tabIndex="2"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
                     required
                   />
@@ -669,8 +697,10 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='mobileNumber'
                     value={formData.mobileNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='10-digit number'
                     maxLength='10'
+                    tabIndex="3"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                 </div>
@@ -695,7 +725,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
+                    tabIndex="4"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                     required
                   />
@@ -712,7 +744,9 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
+                    tabIndex="5"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50'
                   />
                   <p className='text-xs text-gray-500 mt-1'>Auto-calculated: 1 year from Valid From date minus 1 day</p>
@@ -738,7 +772,10 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
                     placeholder=''
+                    tabIndex="6"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -754,7 +791,10 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
                     placeholder=''
+                    tabIndex="7"
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'

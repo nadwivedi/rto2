@@ -374,6 +374,30 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
     }
   }
 
+  // Handle Enter key to navigate to next field instead of submitting
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      // Get current tabIndex
+      const currentTabIndex = parseInt(e.target.getAttribute('tabIndex'))
+
+      // If we're on the last field (paid = tabIndex 8), submit the form
+      if (currentTabIndex === 8) {
+        document.querySelector('form')?.requestSubmit()
+        return
+      }
+
+      // Find next input with tabIndex
+      const nextTabIndex = currentTabIndex + 1
+      const nextInput = document.querySelector(`input[tabIndex="${nextTabIndex}"]`)
+
+      if (nextInput) {
+        nextInput.focus()
+      }
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -471,8 +495,10 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
+                      onKeyDown={handleInputKeyDown}
                       placeholder='CG04AA1234 or CG04G1234'
                       maxLength='10'
+                      tabIndex="1"
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
@@ -571,7 +597,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                     name='permitNumber'
                     value={formData.permitNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='CG001234567'
+                    tabIndex="2"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
                     required
                   />
@@ -587,7 +615,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                     name='permitHolderName'
                     value={formData.permitHolderName}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Rajesh Transport Services'
+                    tabIndex="3"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
                     required
                   />
@@ -603,8 +633,10 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                     name='mobileNumber'
                     value={formData.mobileNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='10-digit number'
                     maxLength='10'
+                    tabIndex="4"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                 </div>
@@ -620,7 +652,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                     value={formData.validFrom}
                     onChange={handleChange}
                     onBlur={handleDateBlur}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
+                    tabIndex="5"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
@@ -638,7 +672,9 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                     value={formData.validTo}
                     onChange={handleChange}
                     onBlur={handleDateBlur}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Will be calculated automatically'
+                    tabIndex="6"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50'
                     readOnly
                   />
@@ -664,7 +700,10 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
                     placeholder=''
+                    tabIndex="7"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -678,7 +717,10 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) =
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
                     placeholder=''
+                    tabIndex="8"
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'

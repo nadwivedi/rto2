@@ -483,6 +483,30 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     }
   }
 
+  // Handle Enter key to navigate to next field instead of submitting
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      // Get current tabIndex
+      const currentTabIndex = parseInt(e.target.getAttribute('tabIndex'))
+
+      // If we're on the last field (paid = tabIndex 11), submit the form
+      if (currentTabIndex === 11) {
+        document.querySelector('form')?.requestSubmit()
+        return
+      }
+
+      // Find next input with tabIndex
+      const nextTabIndex = currentTabIndex + 1
+      const nextInput = document.querySelector(`input[tabIndex="${nextTabIndex}"]`)
+
+      if (nextInput) {
+        nextInput.focus()
+      }
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -598,8 +622,10 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
+                      onKeyDown={handleInputKeyDown}
                       placeholder='CG04AA1234 or AA4793 or 4793'
                       maxLength='10'
+                      tabIndex="1"
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
@@ -699,8 +725,10 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='mobileNumber'
                     value={formData.mobileNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='10-digit number'
                     maxLength='10'
+                    tabIndex="2"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-transparent'
                   />
                 </div>
@@ -825,7 +853,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='permitNumber'
                     value={formData.permitNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Enter Type A Permit Number'
+                    tabIndex="3"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
                     required
                   />
@@ -841,7 +871,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='permitHolderName'
                     value={formData.permitHolderName}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Rajesh Transport Services'
+                    tabIndex="4"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
@@ -857,7 +889,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Type: 240125 or 24012025'
+                    tabIndex="5"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
@@ -873,7 +907,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Will be calculated automatically'
+                    tabIndex="6"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50'
                     required
                   />
@@ -910,7 +946,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='authorizationNumber'
                     value={formData.authorizationNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Enter National Permit Authorization No.'
+                    tabIndex="7"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -925,7 +963,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='typeBValidFrom'
                     value={formData.typeBValidFrom}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Type: 240125 or 24012025'
+                    tabIndex="8"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                     required
                   />
@@ -941,7 +981,9 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='typeBValidTo'
                     value={formData.typeBValidTo}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Will be calculated automatically'
+                    tabIndex="9"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50'
                     required
                   />
@@ -965,7 +1007,10 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
                     placeholder=''
+                    tabIndex="10"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -979,7 +1024,10 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
                     placeholder=''
+                    tabIndex="11"
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'

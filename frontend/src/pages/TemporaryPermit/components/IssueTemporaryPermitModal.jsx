@@ -406,6 +406,30 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
     }))
   }
 
+  // Handle Enter key to navigate to next field instead of submitting
+  const handleInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+
+      // Get current tabIndex
+      const currentTabIndex = parseInt(e.target.getAttribute('tabIndex'))
+
+      // If we're on the last field (paid = tabIndex 9), submit the form
+      if (currentTabIndex === 9) {
+        document.querySelector('form')?.requestSubmit()
+        return
+      }
+
+      // Find next input with tabIndex
+      const nextTabIndex = currentTabIndex + 1
+      const nextInput = document.querySelector(`input[tabIndex="${nextTabIndex}"], select[tabIndex="${nextTabIndex}"]`)
+
+      if (nextInput) {
+        nextInput.focus()
+      }
+    }
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
 
@@ -438,26 +462,18 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       vehicleType: '',
       validFrom: '',
       validTo: '',
-      fatherName: '',
-      address: '',
       mobileNumber: '',
-      email: '',
-      chassisNumber: '',
-      engineNumber: '',
-      ladenWeight: '',
-      unladenWeight: '',
-      purpose: '',
       totalFee: '0',
       paid: '0',
       balance: '0'
     })
-    setShowOptionalFields(false)
     setVehicleError('')
     setFetchingVehicle(false)
     setVehicleValidation({ isValid: false, message: '' })
     setVehicleMatches([])
     setShowVehicleDropdown(false)
     setSelectedDropdownIndex(0)
+    setManuallyEditedValidTo(false)
     onClose()
   }
 
@@ -506,8 +522,10 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                       name='vehicleNumber'
                       value={formData.vehicleNumber}
                       onChange={handleChange}
+                      onKeyDown={handleInputKeyDown}
                       placeholder='CG04AA1234 or CG04G1234'
                       maxLength='10'
+                      tabIndex="1"
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
@@ -607,7 +625,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='permitNumber'
                     value={formData.permitNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='TP001234567'
+                    tabIndex="2"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono'
                     required
                   />
@@ -623,7 +643,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='permitHolderName'
                     value={formData.permitHolderName}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='Rajesh Transport Services'
+                    tabIndex="3"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                     required
                   />
@@ -639,8 +661,10 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='mobileNumber'
                     value={formData.mobileNumber}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='10-digit number'
                     maxLength='10'
+                    tabIndex="4"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent'
                   />
                 </div>
@@ -654,6 +678,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='vehicleType'
                     value={formData.vehicleType}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
+                    tabIndex="5"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-semibold'
                     required
                   >
@@ -683,7 +709,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='validFrom'
                     value={formData.validFrom}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='DD-MM-YYYY'
+                    tabIndex="6"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                     required
                   />
@@ -700,7 +728,9 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='validTo'
                     value={formData.validTo}
                     onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
                     placeholder='DD-MM-YYYY or Auto-filled'
+                    tabIndex="7"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                   <p className='text-xs text-gray-500 mt-1'>
@@ -727,7 +757,10 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='totalFee'
                     value={formData.totalFee}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
                     placeholder=''
+                    tabIndex="8"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -741,7 +774,10 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
                     name='paid'
                     value={formData.paid}
                     onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
                     placeholder=''
+                    tabIndex="9"
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
