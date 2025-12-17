@@ -254,13 +254,21 @@ exports.getAllPermits = async (req, res) => {
       .sort(sortOptions)
       .skip(skip)
       .limit(parseInt(limit))
+      .lean()
+
+    // Map default values for WhatsApp fields to ensure older records have proper defaults
+    const permitsWithDefaults = permits.map(permit => ({
+      ...permit,
+      whatsappMessageCount: permit.whatsappMessageCount || 0,
+      lastWhatsappSentAt: permit.lastWhatsappSentAt || null
+    }))
 
     // Get total count for pagination
     const total = await CgPermit.countDocuments(query)
 
     res.json({
       success: true,
-      data: permits,
+      data: permitsWithDefaults,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
@@ -329,11 +337,19 @@ exports.getExpiringSoonPermits = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
-    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit));
+    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit)).lean();
+
+    // Map default values for WhatsApp fields
+    const permitsWithDefaults = permits.map(permit => ({
+      ...permit,
+      whatsappMessageCount: permit.whatsappMessageCount || 0,
+      lastWhatsappSentAt: permit.lastWhatsappSentAt || null
+    }));
+
     const total = await CgPermit.countDocuments(query);
     res.json({
       success: true,
-      data: permits,
+      data: permitsWithDefaults,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
@@ -373,11 +389,19 @@ exports.getExpiredPermits = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
-    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit));
+    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit)).lean();
+
+    // Map default values for WhatsApp fields
+    const permitsWithDefaults = permits.map(permit => ({
+      ...permit,
+      whatsappMessageCount: permit.whatsappMessageCount || 0,
+      lastWhatsappSentAt: permit.lastWhatsappSentAt || null
+    }));
+
     const total = await CgPermit.countDocuments(query);
     res.json({
       success: true,
-      data: permits,
+      data: permitsWithDefaults,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
@@ -400,11 +424,19 @@ exports.getPendingPermits = async (req, res) => {
     }
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const sortOptions = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
-    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit));
+    const permits = await CgPermit.find(query).sort(sortOptions).skip(skip).limit(parseInt(limit)).lean();
+
+    // Map default values for WhatsApp fields
+    const permitsWithDefaults = permits.map(permit => ({
+      ...permit,
+      whatsappMessageCount: permit.whatsappMessageCount || 0,
+      lastWhatsappSentAt: permit.lastWhatsappSentAt || null
+    }));
+
     const total = await CgPermit.countDocuments(query);
     res.json({
       success: true,
-      data: permits,
+      data: permitsWithDefaults,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),

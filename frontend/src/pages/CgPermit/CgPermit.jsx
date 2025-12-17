@@ -135,7 +135,9 @@ const CgPermit = () => {
         taxDetails: permit.taxDetails || {
           taxPaidUpto: 'N/A',
           taxAmount: 'N/A'
-        }
+        },
+        whatsappMessageCount: permit.whatsappMessageCount || 0, // WhatsApp message count
+        lastWhatsappSentAt: permit.lastWhatsappSentAt // Last WhatsApp sent time
       }))
 
       setPermits(transformedPermits)
@@ -261,7 +263,7 @@ const CgPermit = () => {
         `${API_URL}/api/cg-permits/${permit.id}/whatsapp-increment`,
         {},
         { withCredentials: true }
-      );
+      )
 
       if (response.data.success) {
         // Update the local state with new count and last sent time
@@ -275,10 +277,10 @@ const CgPermit = () => {
                 }
               : p
           )
-        );
+        )
       }
     } catch (error) {
-      console.error('Error incrementing WhatsApp count:', error);
+      console.error('Error incrementing WhatsApp count:', error)
       // Continue with WhatsApp even if count update fails
     }
 
