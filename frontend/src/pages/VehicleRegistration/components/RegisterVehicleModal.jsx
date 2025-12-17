@@ -1111,14 +1111,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         <option value='MCWG'>MCWG (Motor Cycle With Gear)</option>
                         <option value='MCWOG'>MCWOG (Motor Cycle Without Gear)</option>
                         <option value='LMV-NT'>LMV-NT (Non-Transport)</option>
-                        <option value='HMV-PSV'>HMV-PSV (Heavy Motor Vehicle - Public Service Vehicle)</option>
-                        <option value='MGV-PSV'>MGV-PSV (Medium Goods Vehicle - Public Service Vehicle)</option>
                         <option value='LMV-TR'>LMV-TR (Light Motor Vehicle - Transport)</option>
-                        <option value='3W-NT'>3W-NT (Three Wheeler - Non-Transport)</option>
-                        <option value='3W-TR'>3W-TR (Three Wheeler - Transport)</option>
+                        <option value='Motor Cab'>Motor Cab</option>
+                        <option value='Multiaxle Trailer'>Multiaxle Trailer</option>
                         <option value='Tractor'>Tractor</option>
                         <option value='Construction Vehicle'>Construction Vehicle</option>
-                        <option value='E-Cart'>E-Cart (Electric Cart)</option>
                         <option value='E-Rickshaw'>E-Rickshaw (Electric Rickshaw)</option>
                       </select>
                       <div className='absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none'>

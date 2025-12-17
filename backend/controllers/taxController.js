@@ -553,3 +553,39 @@ exports.markAsPaid = async (req, res) => {
     })
   }
 };
+
+// Increment WhatsApp message count
+exports.incrementWhatsAppCount = async (req, res) => {
+  try {
+    const tax = await Tax.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!tax) {
+      return res.status(404).json({
+        success: false,
+        message: 'Tax record not found'
+      })
+    }
+
+    // Increment the WhatsApp message count
+    tax.whatsappMessageCount = (tax.whatsappMessageCount || 0) + 1
+    tax.lastWhatsappSentAt = new Date()
+
+    await tax.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'WhatsApp message count updated successfully',
+      data: {
+        whatsappMessageCount: tax.whatsappMessageCount,
+        lastWhatsappSentAt: tax.lastWhatsappSentAt
+      }
+    })
+  } catch (error) {
+    console.error('Error incrementing WhatsApp count:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error updating WhatsApp message count',
+      error: error.message
+    })
+  }
+};
