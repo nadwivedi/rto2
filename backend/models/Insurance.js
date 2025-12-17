@@ -80,6 +80,15 @@ const InsuranceSchema = new mongoose.Schema({
   remarks: {
     type: String,
     trim: true
+  },
+
+  // WhatsApp message tracking
+  whatsappMessageCount: {
+    type: Number,
+    default: 0
+  },
+  lastWhatsappSentAt: {
+    type: Date
   }
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields

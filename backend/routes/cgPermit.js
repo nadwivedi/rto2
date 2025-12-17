@@ -37,6 +37,9 @@ router.put('/:id', cgPermitController.updatePermit)
 // PATCH mark CG permit as paid
 router.patch('/:id/mark-as-paid', cgPermitController.markAsPaid)
 
+// PATCH increment WhatsApp message count
+router.patch('/:id/whatsapp-increment', cgPermitController.incrementWhatsAppCount)
+
 // DELETE CG permit
 router.delete('/:id', cgPermitController.deletePermit)
 

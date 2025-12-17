@@ -65,6 +65,15 @@ const fitnessSchema = new mongoose.Schema({
   isRenewed: {
     type: Boolean,
     default: false
+  },
+
+  // WhatsApp message tracking
+  whatsappMessageCount: {
+    type: Number,
+    default: 0
+  },
+  lastWhatsappSentAt: {
+    type: Date
   }
 }, {
   timestamps: true

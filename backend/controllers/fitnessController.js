@@ -597,4 +597,40 @@ exports.markAsPaid = async (req, res) => {
       error: error.message
     })
   }
+};
+
+// Increment WhatsApp message count
+exports.incrementWhatsAppCount = async (req, res) => {
+  try {
+    const fitness = await Fitness.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!fitness) {
+      return res.status(404).json({
+        success: false,
+        message: 'Fitness record not found'
+      })
+    }
+
+    // Increment the WhatsApp message count
+    fitness.whatsappMessageCount = (fitness.whatsappMessageCount || 0) + 1
+    fitness.lastWhatsappSentAt = new Date()
+
+    await fitness.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'WhatsApp message count updated successfully',
+      data: {
+        whatsappMessageCount: fitness.whatsappMessageCount,
+        lastWhatsappSentAt: fitness.lastWhatsappSentAt
+      }
+    })
+  } catch (error) {
+    console.error('Error incrementing WhatsApp count:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error updating WhatsApp message count',
+      error: error.message
+    })
+  }
 }

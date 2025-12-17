@@ -39,6 +39,8 @@ const MobileCardView = ({
       showValidity: true,
       customFields: [],
     },
+    // Footer configuration
+    footer: null,
   };
 
   const config = { ...defaultConfig, ...cardConfig };
@@ -237,6 +239,13 @@ const MobileCardView = ({
                   {/* Validity Period */}
                   {config.body.showValidity && renderValidityPeriod(record)}
                 </div>
+
+                {/* Card Footer */}
+                {config.footer && (
+                  <div className='px-3 pb-3'>
+                    {config.footer(record)}
+                  </div>
+                )}
               </div>
             ))}
           </div>

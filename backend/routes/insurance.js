@@ -40,6 +40,9 @@ router.put('/:id', insuranceController.updateInsurance)
 // PATCH mark insurance as paid
 router.patch('/:id/mark-as-paid', insuranceController.markAsPaid)
 
+// PATCH increment WhatsApp message count
+router.patch('/:id/whatsapp-increment', insuranceController.incrementWhatsAppCount)
+
 // Delete insurance record
 router.delete('/:id', insuranceController.deleteInsurance)
 

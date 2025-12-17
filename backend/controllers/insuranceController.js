@@ -723,5 +723,41 @@ exports.markAsPaid = async (req, res) => {
       error: error.message
     })
   }
+};
+
+// Increment WhatsApp message count
+exports.incrementWhatsAppCount = async (req, res) => {
+  try {
+    const insurance = await Insurance.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!insurance) {
+      return res.status(404).json({
+        success: false,
+        message: 'Insurance record not found'
+      })
+    }
+
+    // Increment the WhatsApp message count
+    insurance.whatsappMessageCount = (insurance.whatsappMessageCount || 0) + 1
+    insurance.lastWhatsappSentAt = new Date()
+
+    await insurance.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'WhatsApp message count updated successfully',
+      data: {
+        whatsappMessageCount: insurance.whatsappMessageCount,
+        lastWhatsappSentAt: insurance.lastWhatsappSentAt
+      }
+    })
+  } catch (error) {
+    console.error('Error incrementing WhatsApp count:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error updating WhatsApp message count',
+      error: error.message
+    })
+  }
 }
 

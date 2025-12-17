@@ -74,6 +74,15 @@ const TemporaryPermitOtherStateSchema = new mongoose.Schema({
   notes: {
     type: String,
     trim: true
+  },
+
+  // WhatsApp message tracking
+  whatsappMessageCount: {
+    type: Number,
+    default: 0
+  },
+  lastWhatsappSentAt: {
+    type: Date
   }
 }, {
   timestamps: true

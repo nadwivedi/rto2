@@ -45,6 +45,9 @@ router.put('/:id', nationalPermitController.updatePermit)
 // PATCH mark national permit as paid
 router.patch('/:id/mark-as-paid', nationalPermitController.markAsPaid)
 
+// PATCH increment WhatsApp message count
+router.patch('/:id/whatsapp-increment', nationalPermitController.incrementWhatsAppCount)
+
 // DELETE national permit
 router.delete('/:id', nationalPermitController.deletePermit)
 

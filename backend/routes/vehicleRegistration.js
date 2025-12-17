@@ -38,4 +38,7 @@ router.delete('/:id', vehicleRegistrationController.deleteRegistration)
 // PATCH update registration status
 router.patch('/:id/status', vehicleRegistrationController.updateRegistrationStatus)
 
+// PATCH increment WhatsApp message count
+router.patch('/:id/whatsapp-increment', vehicleRegistrationController.incrementWhatsAppCount)
+
 module.exports = router

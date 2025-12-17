@@ -112,6 +112,14 @@ const vehicleRegistrationSchema = new mongoose.Schema({
   },
   wheelBase: {
     type: Number
+  },
+  // WhatsApp message tracking
+  whatsappMessageCount: {
+    type: Number,
+    default: 0
+  },
+  lastWhatsappSentAt: {
+    type: Date
   }
 }, {
   timestamps: true

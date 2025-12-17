@@ -595,4 +595,40 @@ exports.markAsPaid = async (req, res) => {
       error: error.message
     })
   }
+};
+
+// Increment WhatsApp message count
+exports.incrementWhatsAppCount = async (req, res) => {
+  try {
+    const puc = await Puc.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!puc) {
+      return res.status(404).json({
+        success: false,
+        message: 'PUC record not found'
+      })
+    }
+
+    // Increment the WhatsApp message count
+    puc.whatsappMessageCount = (puc.whatsappMessageCount || 0) + 1
+    puc.lastWhatsappSentAt = new Date()
+
+    await puc.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'WhatsApp message count updated successfully',
+      data: {
+        whatsappMessageCount: puc.whatsappMessageCount,
+        lastWhatsappSentAt: puc.lastWhatsappSentAt
+      }
+    })
+  } catch (error) {
+    console.error('Error incrementing WhatsApp count:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error updating WhatsApp message count',
+      error: error.message
+    })
+  }
 }

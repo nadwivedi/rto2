@@ -36,6 +36,9 @@ router.put('/id/:id', fitnessController.updateFitness)
 // PATCH mark fitness as paid
 router.patch('/id/:id/mark-as-paid', fitnessController.markAsPaid)
 
+// PATCH increment WhatsApp message count
+router.patch('/id/:id/whatsapp-increment', fitnessController.incrementWhatsAppCount)
+
 // Delete fitness record
 router.delete('/id/:id', fitnessController.deleteFitness)
 

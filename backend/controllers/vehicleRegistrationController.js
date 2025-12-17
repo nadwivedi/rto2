@@ -35,11 +35,19 @@ exports.getAllRegistrations = async (req, res) => {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
+      .lean() // Convert to plain JavaScript objects for better performance
+
+    // Ensure WhatsApp tracking fields have default values for older records
+    const registrationsWithDefaults = registrations.map(reg => ({
+      ...reg,
+      whatsappMessageCount: reg.whatsappMessageCount || 0,
+      lastWhatsappSentAt: reg.lastWhatsappSentAt || null
+    }))
 
     res.json({
       success: true,
-      count: registrations.length,
-      data: registrations,
+      count: registrationsWithDefaults.length,
+      data: registrationsWithDefaults,
       pagination: {
         currentPage: pageNum,
         totalPages,
@@ -608,6 +616,46 @@ exports.shareRegistration = async (req, res) => {
     })
   } catch (error) {
     logError(error, req) // Fire and forget
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+// Increment WhatsApp message count
+exports.incrementWhatsAppCount = async (req, res) => {
+  try {
+    const registration = await VehicleRegistration.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user.id },
+      {
+        $inc: { whatsappMessageCount: 1 },
+        $set: { lastWhatsappSentAt: new Date() }
+      },
+      { new: true }
+    )
+
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Vehicle registration not found'
+      })
+    }
+
+    res.json({
+      success: true,
+      message: 'WhatsApp count incremented',
+      data: {
+        whatsappMessageCount: registration.whatsappMessageCount,
+        lastWhatsappSentAt: registration.lastWhatsappSentAt
+      }
+    })
+  } catch (error) {
+    logError(error, req)
     const userError = getUserFriendlyError(error)
     res.status(500).json({
       success: false,

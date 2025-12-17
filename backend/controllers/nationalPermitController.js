@@ -242,13 +242,20 @@ exports.getAllPermits = async (req, res) => {
         { $limit: parseInt(limit) }
       ])
 
+      // Ensure WhatsApp tracking fields have default values for older records
+      const permitsWithDefaults = permits.map(permit => ({
+        ...permit,
+        whatsappMessageCount: permit.whatsappMessageCount || 0,
+        lastWhatsappSentAt: permit.lastWhatsappSentAt || null
+      }))
+
       // Count unique vehicles for total
       const uniqueVehicles = await NationalPermit.find(matchQuery).distinct('vehicleNumber')
       const total = uniqueVehicles.length
 
       return res.status(200).json({
         success: true,
-        data: permits,
+        data: permitsWithDefaults,
         pagination: {
           currentPage: parseInt(page),
           totalPages: Math.ceil(total / parseInt(limit)),
@@ -292,12 +299,20 @@ exports.getAllPermits = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(parseInt(limit))
       .skip((parseInt(page) - 1) * parseInt(limit))
+      .lean() // Convert to plain JavaScript objects
+
+    // Ensure WhatsApp tracking fields have default values for older records
+    const permitsWithDefaults = permits.map(permit => ({
+      ...permit,
+      whatsappMessageCount: permit.whatsappMessageCount || 0,
+      lastWhatsappSentAt: permit.lastWhatsappSentAt || null
+    }))
 
     const total = await NationalPermit.countDocuments(query)
 
     res.status(200).json({
       success: true,
-      data: permits,
+      data: permitsWithDefaults,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / parseInt(limit)),
@@ -406,6 +421,42 @@ exports.markAsPaid = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to mark as paid',
+      error: error.message
+    })
+  }
+};
+
+// Increment WhatsApp message count
+exports.incrementWhatsAppCount = async (req, res) => {
+  try {
+    const permit = await NationalPermit.findOne({ _id: req.params.id, userId: req.user.id })
+
+    if (!permit) {
+      return res.status(404).json({
+        success: false,
+        message: 'Permit not found'
+      })
+    }
+
+    // Increment the WhatsApp message count
+    permit.whatsappMessageCount = (permit.whatsappMessageCount || 0) + 1
+    permit.lastWhatsappSentAt = new Date()
+
+    await permit.save()
+
+    res.status(200).json({
+      success: true,
+      message: 'WhatsApp message count updated successfully',
+      data: {
+        whatsappMessageCount: permit.whatsappMessageCount,
+        lastWhatsappSentAt: permit.lastWhatsappSentAt
+      }
+    })
+  } catch (error) {
+    console.error('Error incrementing WhatsApp count:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error updating WhatsApp message count',
       error: error.message
     })
   }

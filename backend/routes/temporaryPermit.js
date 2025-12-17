@@ -36,6 +36,9 @@ router.put('/:id', temporaryPermitController.updatePermit)
 // PATCH mark temporary permit as paid
 router.patch('/:id/mark-as-paid', temporaryPermitController.markAsPaid)
 
+// PATCH increment WhatsApp message count
+router.patch('/:id/whatsapp-increment', temporaryPermitController.incrementWhatsAppCount)
+
 // DELETE temporary permit
 router.delete('/:id', temporaryPermitController.deletePermit)
 

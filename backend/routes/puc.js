@@ -36,6 +36,9 @@ router.put('/id/:id', pucController.updatePuc)
 // PATCH mark PUC as paid
 router.patch('/id/:id/mark-as-paid', pucController.markAsPaid)
 
+// PATCH increment WhatsApp message count
+router.patch('/id/:id/whatsapp-increment', pucController.incrementWhatsAppCount)
+
 // Delete PUC record
 router.delete('/id/:id', pucController.deletePuc)
 
