@@ -14,9 +14,6 @@ router.get('/statistics', vehicleRegistrationController.getStatistics)
 // GET check if vehicle exists (must be before other routes)
 router.get('/check-exists/:registrationNumber', vehicleRegistrationController.checkVehicleExists)
 
-// POST share registration via WhatsApp (must be before /:id route)
-router.post('/:id/share', vehicleRegistrationController.shareRegistration)
-
 // GET single vehicle registration by ID
 router.get('/:id', vehicleRegistrationController.getRegistrationById)
 
@@ -37,8 +34,5 @@ router.delete('/:id', vehicleRegistrationController.deleteRegistration)
 
 // PATCH update registration status
 router.patch('/:id/status', vehicleRegistrationController.updateRegistrationStatus)
-
-// PATCH increment WhatsApp message count
-router.patch('/:id/whatsapp-increment', vehicleRegistrationController.incrementWhatsAppCount)
 
 module.exports = router

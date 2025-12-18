@@ -140,13 +140,13 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     return () => clearTimeout(timeoutId)
   }, [formData.vehicleNumber])
 
-  // Check for existing permits when vehicle number is complete (10 characters)
+  // Check for existing permits when vehicle number is complete (9 or 10 characters)
   useEffect(() => {
     const checkExistingPermit = async () => {
       const vehicleNumber = formData.vehicleNumber.trim()
 
-      // Only check if vehicle number is exactly 10 characters and valid
-      if (vehicleNumber.length !== 10 || !vehicleValidation.isValid) {
+      // Only check if vehicle number is 9 or 10 characters and valid
+      if ((vehicleNumber.length !== 9 && vehicleNumber.length !== 10) || !vehicleValidation.isValid) {
         setExistingPermitStatus(null)
         setPermitCheckError('')
         return
@@ -196,7 +196,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
     // Debounce the check - wait 300ms after vehicle number is complete
     const timeoutId = setTimeout(() => {
-      if (formData.vehicleNumber.length === 10 && vehicleValidation.isValid) {
+      if ((formData.vehicleNumber.length === 9 || formData.vehicleNumber.length === 10) && vehicleValidation.isValid) {
         checkExistingPermit()
       }
     }, 300)
@@ -232,7 +232,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     setVehicleValidation(validation)
 
     // Check for existing permits for this vehicle
-    if (validation.isValid && vehicle.registrationNumber.length === 10) {
+    if (validation.isValid && (vehicle.registrationNumber.length === 9 || vehicle.registrationNumber.length === 10)) {
       try {
         const response = await axios.get(`${API_URL}/api/national-permits/check-existing/${vehicle.registrationNumber}`, {
           withCredentials: true
@@ -404,8 +404,8 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
       // Convert to uppercase
       const upperValue = value.toUpperCase()
 
-      // Validate in real-time (only show validation if 10 characters)
-      const validation = upperValue.length === 10 ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
+      // Validate in real-time (only show validation if 9 or 10 characters)
+      const validation = (upperValue.length === 9 || upperValue.length === 10) ? validateVehicleNumberRealtime(upperValue) : { isValid: false, message: '' }
       setVehicleValidation(validation)
 
       setFormData(prev => ({
@@ -510,18 +510,18 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
 
-    // Validate vehicle number before submitting (must be exactly 10 characters and valid format)
-    if (formData.vehicleNumber.length === 10 && !vehicleValidation.isValid) {
-      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 characters, no spaces)', {
+    // Validate vehicle number before submitting (must be 9 or 10 characters and valid format)
+    if ((formData.vehicleNumber.length === 9 || formData.vehicleNumber.length === 10) && !vehicleValidation.isValid) {
+      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)', {
         position: 'top-right',
         autoClose: 4000
       })
       return
     }
 
-    // Ensure vehicle number is exactly 10 characters for submission
-    if (formData.vehicleNumber && formData.vehicleNumber.length !== 10) {
-      toast.error('Vehicle number must be exactly 10 characters', {
+    // Ensure vehicle number is 9 or 10 characters for submission
+    if (formData.vehicleNumber && formData.vehicleNumber.length !== 9 && formData.vehicleNumber.length !== 10) {
+      toast.error('Vehicle number must be 9 or 10 characters', {
         position: 'top-right',
         autoClose: 3000
       })

@@ -37,17 +37,10 @@ exports.getAllRegistrations = async (req, res) => {
       .limit(limitNum)
       .lean() // Convert to plain JavaScript objects for better performance
 
-    // Ensure WhatsApp tracking fields have default values for older records
-    const registrationsWithDefaults = registrations.map(reg => ({
-      ...reg,
-      whatsappMessageCount: reg.whatsappMessageCount || 0,
-      lastWhatsappSentAt: reg.lastWhatsappSentAt || null
-    }))
-
     res.json({
       success: true,
-      count: registrationsWithDefaults.length,
-      data: registrationsWithDefaults,
+      count: registrations.length,
+      data: registrations,
       pagination: {
         currentPage: pageNum,
         totalPages,
@@ -551,108 +544,6 @@ exports.checkVehicleExists = async (req, res) => {
       success: true,
       exists: !!exists,
       message: exists ? 'Vehicle already registered' : 'Vehicle not found'
-    })
-  } catch (error) {
-    logError(error, req)
-    const userError = getUserFriendlyError(error)
-    res.status(500).json({
-      success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
-    })
-  }
-}
-
-// Share registration via WhatsApp
-exports.shareRegistration = async (req, res) => {
-  try {
-    const registration = await VehicleRegistration.findOne({ _id: req.params.id, userId: req.user.id })
-
-    if (!registration) {
-      return res.status(404).json({
-        success: false,
-        message: 'Vehicle registration not found'
-      })
-    }
-
-    const message = `*VEHICLE REGISTRATION CERTIFICATE*\n\n` +
-      `Registration No: ${registration.registrationNumber}\n` +
-      `Date of Registration: ${registration.dateOfRegistration || 'N/A'}\n\n` +
-      `*Vehicle Details*\n` +
-      `Chassis No: ${registration.chassisNumber}\n` +
-      `Engine No: ${registration.engineNumber || 'N/A'}\n` +
-      `Maker: ${registration.makerName || 'N/A'}\n` +
-      `Model: ${registration.modelName || 'N/A'}\n` +
-      `Maker Model: ${registration.makerModel || 'N/A'}\n` +
-      `Colour: ${registration.colour || 'N/A'}\n` +
-      `Seating Capacity: ${registration.seatingCapacity || 'N/A'}\n` +
-      `Vehicle Class: ${registration.vehicleClass || 'N/A'}\n` +
-      `Vehicle Category: ${registration.vehicleCategory || 'N/A'}\n` +
-      `Laden Weight: ${registration.ladenWeight || 'N/A'} kg\n` +
-      `Unladen Weight: ${registration.unladenWeight || 'N/A'} kg\n` +
-      `Manufacture Year: ${registration.manufactureYear || 'N/A'}\n` +
-      `Purchase/Delivery Date: ${registration.purchaseDeliveryDate || 'N/A'}\n` +
-      `Sale Amount: ${registration.saleAmount ? '₹' + registration.saleAmount : 'N/A'}\n\n` +
-      `*Owner Details*\n` +
-      `Name: ${registration.ownerName || 'N/A'}\n` +
-      `S/W/D of: ${registration.sonWifeDaughterOf || 'N/A'}\n` +
-      `Address: ${registration.address || 'N/A'}\n\n` +
-      `Status: ${registration.status}\n\n` +
-      `---\n` +
-      `Regional Transport Office`
-
-    const { phoneNumber } = req.body
-
-    res.json({
-      success: true,
-      message: 'Registration details prepared for sharing',
-      data: {
-        phoneNumber,
-        message,
-        whatsappUrl: `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`
-      }
-    })
-  } catch (error) {
-    logError(error, req) // Fire and forget
-    const userError = getUserFriendlyError(error)
-    res.status(500).json({
-      success: false,
-      message: userError.message,
-      errors: userError.details,
-      errorCount: userError.errorCount,
-      timestamp: new Date().toISOString()
-    })
-  }
-}
-
-// Increment WhatsApp message count
-exports.incrementWhatsAppCount = async (req, res) => {
-  try {
-    const registration = await VehicleRegistration.findOneAndUpdate(
-      { _id: req.params.id, userId: req.user.id },
-      {
-        $inc: { whatsappMessageCount: 1 },
-        $set: { lastWhatsappSentAt: new Date() }
-      },
-      { new: true }
-    )
-
-    if (!registration) {
-      return res.status(404).json({
-        success: false,
-        message: 'Vehicle registration not found'
-      })
-    }
-
-    res.json({
-      success: true,
-      message: 'WhatsApp count incremented',
-      data: {
-        whatsappMessageCount: registration.whatsappMessageCount,
-        lastWhatsappSentAt: registration.lastWhatsappSentAt
-      }
     })
   } catch (error) {
     logError(error, req)
