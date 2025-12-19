@@ -4,6 +4,7 @@ import Sidebar from './components/Sidebar'
 import Users from './pages/Users'
 import VehicleRegistrations from './pages/VehicleRegistrations'
 import Export from './pages/Export'
+import CreateVehicleFromJson from './pages/CreateVehicleFromJson'
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -42,6 +43,7 @@ function App() {
             <Routes>
               <Route path='/' element={<Users />} />
               <Route path='/vehicle-registrations' element={<VehicleRegistrations />} />
+              <Route path='/create-vehicle-json' element={<CreateVehicleFromJson />} />
               <Route path='/export' element={<Export />} />
             </Routes>
           </div>

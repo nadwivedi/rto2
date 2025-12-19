@@ -62,10 +62,19 @@ const Users = () => {
   })
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [copiedId, setCopiedId] = useState(null)
 
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  const copyToClipboard = (userId) => {
+    navigator.clipboard.writeText(userId)
+    setCopiedId(userId)
+    setTimeout(() => {
+      setCopiedId(null)
+    }, 2000)
+  }
 
   const fetchUsers = async () => {
     try {
@@ -262,7 +271,29 @@ const Users = () => {
                 <tbody className='divide-y divide-gray-200'>
                   {users.map((user) => (
                     <tr key={user._id} className='hover:bg-gray-50'>
-                      <td className='px-6 py-4 text-sm font-medium text-gray-900'>{user.name}</td>
+                      <td className='px-6 py-4'>
+                        <div className='flex flex-col'>
+                          <span className='text-sm font-medium text-gray-900'>{user.name}</span>
+                          <div className='flex items-center gap-2 mt-1'>
+                            <span className='text-xs text-gray-500 font-mono'>ID: {user._id}</span>
+                            <button
+                              onClick={() => copyToClipboard(user._id)}
+                              className='text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50 transition-colors'
+                              title='Copy User ID'
+                            >
+                              {copiedId === user._id ? (
+                                <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                                </svg>
+                              ) : (
+                                <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z' />
+                                </svg>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </td>
                       <td className='px-6 py-4 text-sm text-gray-700'>{user.mobile1}</td>
                       <td className='px-6 py-4 text-sm text-gray-700'>{user.email || '-'}</td>
                       <td className='px-6 py-4 text-sm'>
@@ -304,10 +335,27 @@ const Users = () => {
                   <div className='flex justify-between items-start mb-3'>
                     <div className='flex-1'>
                       <h3 className='font-semibold text-gray-900 text-base'>{user.name}</h3>
-                      <p className='text-sm text-gray-600 mt-1'>{user.mobile1}</p>
-                      {user.email && (
-                        <p className='text-sm text-gray-600 mt-0.5'>{user.email}</p>
-                      )}
+                      <div className='flex items-center gap-2 mt-1'>
+                        <span className='text-xs text-gray-500 font-mono'>ID: {user._id}</span>
+                        <button
+                          onClick={() => copyToClipboard(user._id)}
+                          className='text-indigo-600 hover:text-indigo-800 p-1 rounded hover:bg-indigo-50 transition-colors'
+                          title='Copy User ID'
+                        >
+                          {copiedId === user._id ? (
+                            <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                            </svg>
+                          ) : (
+                            <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z' />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      <p className='text-sm text-gray-600 mt-1'>
+                        {user.mobile1}{user.email && ` • ${user.email}`}
+                      </p>
                     </div>
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                       user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
