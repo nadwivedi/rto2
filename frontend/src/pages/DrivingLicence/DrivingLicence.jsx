@@ -59,6 +59,12 @@ const DrivingLicence = () => {
 
       if (response.data.success) {
         const data = response.data.data
+        console.log('=== Statistics Response ===')
+        console.log('Full Data:', data)
+        console.log('LL Expiring Count:', data.llExpiringCount)
+        console.log('LL Eligible for DL Count:', data.llEligibleForDLCount)
+        console.log('========================')
+
         setLlExpiringCount(data.llExpiringCount || 0)
         setLlEligibleForDLCount(data.llEligibleForDLCount || 0)
         setPendingPaymentCount(data.pendingPaymentCount || 0)
@@ -198,27 +204,46 @@ const DrivingLicence = () => {
 
     // Filter by LL Eligible for DL (completed 30 days and not expired)
     if (llEligibleForDLFilter !== 'All') {
+      console.log('Filtering for LL Eligible for DL')
+      console.log('Total applications before filter:', filtered.length)
+      console.log('Today:', today)
+
       filtered = filtered.filter(app => {
         const llIssueDate = app.fullData?.learningLicenseIssueDate
         const llExpiryDate = app.fullData?.learningLicenseExpiryDate
 
-        if (!llIssueDate || !llExpiryDate) return false
+        if (!llIssueDate || !llExpiryDate) {
+          console.log('Skipping app (no LL dates):', app.name)
+          return false
+        }
 
         try {
           const issueDate = new Date(llIssueDate)
           const expiryDate = new Date(llExpiryDate)
 
           // Check if LL is not expired
-          if (expiryDate < today) return false
+          if (expiryDate < today) {
+            console.log('LL Expired for:', app.name, 'Expiry:', expiryDate, 'Today:', today)
+            return false
+          }
 
           // Check if LL has completed 30 days
           const daysSinceIssue = Math.floor((today - issueDate) / (1000 * 60 * 60 * 24))
 
-          return daysSinceIssue >= 30
+          console.log('App:', app.name, 'Days since issue:', daysSinceIssue, 'Issue Date:', issueDate)
+
+          const isEligible = daysSinceIssue >= 30
+          if (isEligible) {
+            console.log('✓ Eligible:', app.name)
+          }
+          return isEligible
         } catch (e) {
+          console.error('Error processing app:', app.name, e)
           return false
         }
       })
+
+      console.log('Total applications after filter:', filtered.length)
 
       // Sort by most recently eligible (those who just completed 30 days recently)
       filtered.sort((a, b) => {

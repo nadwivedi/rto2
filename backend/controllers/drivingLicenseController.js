@@ -578,7 +578,14 @@ exports.getStatistics = async (req, res) => {
     })
 
     // Count LL eligible for DL (completed 30 days and not expired)
-    const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000))
+    const todayStart = new Date(today)
+    todayStart.setHours(0, 0, 0, 0)
+
+    const thirtyDaysAgo = new Date(todayStart.getTime() - (30 * 24 * 60 * 60 * 1000))
+
+    console.log('Today Start:', todayStart)
+    console.log('Thirty Days Ago:', thirtyDaysAgo)
+
     const llEligibleForDLCount = await Driving.countDocuments({
       userId: new mongoose.Types.ObjectId(req.user.id),
       learningLicenseIssueDate: {
@@ -589,9 +596,11 @@ exports.getStatistics = async (req, res) => {
       learningLicenseExpiryDate: {
         $exists: true,
         $ne: null,
-        $gte: today
+        $gte: todayStart
       }
     })
+
+    console.log('LL Eligible for DL Count:', llEligibleForDLCount)
 
     res.status(200).json({
       success: true,
