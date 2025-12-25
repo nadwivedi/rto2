@@ -40,7 +40,7 @@ const DrivingLicence = () => {
   // Fetch applications from backend
   useEffect(() => {
     fetchApplications(1)
-  }, [searchQuery, typeFilter, paymentStatusFilter])
+  }, [searchQuery, typeFilter, paymentStatusFilter, llEligibleForDLFilter])
 
   // Fetch statistics on component mount
   useEffect(() => {
@@ -49,28 +49,16 @@ const DrivingLicence = () => {
 
   const fetchStatistics = async () => {
     try {
-      console.log('Fetching statistics...')
-
       // Fetch all statistics in one call
       const response = await axios.get(`${API_URL}/api/driving-licenses/statistics`, {
         withCredentials: true
       })
-      console.log('Statistics Response:', response.data)
-
       if (response.data.success) {
         const data = response.data.data
-        console.log('=== Statistics Response ===')
-        console.log('Full Data:', data)
-        console.log('LL Expiring Count:', data.llExpiringCount)
-        console.log('LL Eligible for DL Count:', data.llEligibleForDLCount)
-        console.log('========================')
-
         setLlExpiringCount(data.llExpiringCount || 0)
         setLlEligibleForDLCount(data.llEligibleForDLCount || 0)
         setPendingPaymentCount(data.pendingPaymentCount || 0)
         setTotalPendingAmount(data.pendingPaymentAmount || 0)
-
-        console.log('Statistics updated - LL:', data.llExpiringCount, 'LL Eligible for DL:', data.llEligibleForDLCount, 'Pending Payment Count:', data.pendingPaymentCount, 'Amount:', data.pendingPaymentAmount)
       }
     } catch (error) {
       console.error('Error fetching statistics:', error)
@@ -92,12 +80,10 @@ const DrivingLicence = () => {
       if (searchQuery) params.search = searchQuery
       if (typeFilter !== 'All') params.licenseClass = typeFilter
       if (paymentStatusFilter !== 'All') params.paymentStatus = paymentStatusFilter
+      if (llEligibleForDLFilter !== 'All') params.llEligibleForDL = 'true'
 
       const response = await axios.get(`${API_URL}/api/driving-licenses`, { params, withCredentials: true })
 
-      console.log('API Response:', response.data) // Debug log
-
-      // Transform backend data to match frontend format
       const transformedData = (response.data.data || []).map(app => {
 
         // Safely handle date
@@ -166,8 +152,6 @@ const DrivingLicence = () => {
         }
       })
 
-      console.log('Transformed Data:', transformedData) // Debug log
-
       setApplications(transformedData)
 
       // Update pagination state
@@ -195,70 +179,12 @@ const DrivingLicence = () => {
   }
 
 
-  // Apply client-side filtering for LL expiry and LL eligible for DL
+  // Apply client-side filtering for LL expiry only
   const currentApplications = useMemo(() => {
     let filtered = [...applications]
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-
-    // Filter by LL Eligible for DL (completed 30 days and not expired)
-    if (llEligibleForDLFilter !== 'All') {
-      console.log('Filtering for LL Eligible for DL')
-      console.log('Total applications before filter:', filtered.length)
-      console.log('Today:', today)
-
-      filtered = filtered.filter(app => {
-        const llIssueDate = app.fullData?.learningLicenseIssueDate
-        const llExpiryDate = app.fullData?.learningLicenseExpiryDate
-
-        if (!llIssueDate || !llExpiryDate) {
-          console.log('Skipping app (no LL dates):', app.name)
-          return false
-        }
-
-        try {
-          const issueDate = new Date(llIssueDate)
-          const expiryDate = new Date(llExpiryDate)
-
-          // Check if LL is not expired
-          if (expiryDate < today) {
-            console.log('LL Expired for:', app.name, 'Expiry:', expiryDate, 'Today:', today)
-            return false
-          }
-
-          // Check if LL has completed 30 days
-          const daysSinceIssue = Math.floor((today - issueDate) / (1000 * 60 * 60 * 24))
-
-          console.log('App:', app.name, 'Days since issue:', daysSinceIssue, 'Issue Date:', issueDate)
-
-          const isEligible = daysSinceIssue >= 30
-          if (isEligible) {
-            console.log('✓ Eligible:', app.name)
-          }
-          return isEligible
-        } catch (e) {
-          console.error('Error processing app:', app.name, e)
-          return false
-        }
-      })
-
-      console.log('Total applications after filter:', filtered.length)
-
-      // Sort by most recently eligible (those who just completed 30 days recently)
-      filtered.sort((a, b) => {
-        try {
-          const aIssueDate = new Date(a.fullData?.learningLicenseIssueDate)
-          const bIssueDate = new Date(b.fullData?.learningLicenseIssueDate)
-
-          // Sort by issue date descending (most recent issue date first)
-          // This shows the ones who completed 30 days most recently
-          return bIssueDate - aIssueDate
-        } catch (e) {
-          return 0
-        }
-      })
-    }
 
     // Filter by LL Expiry
     if (llExpiryFilter !== 'All') {
@@ -283,7 +209,7 @@ const DrivingLicence = () => {
     }
 
     return filtered
-  }, [applications, llEligibleForDLFilter, llExpiryFilter])
+  }, [applications, llExpiryFilter])
 
   // Calculate statistics
   const stats = useMemo(() => {

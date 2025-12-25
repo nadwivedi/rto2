@@ -183,7 +183,8 @@ exports.getAllApplications = async (req, res) => {
       limit = 20,
       search,
       applicationStatus,
-      paymentStatus
+      paymentStatus,
+      llEligibleForDL
     } = req.query
 
     // Build query - filter by logged-in user
@@ -218,12 +219,37 @@ exports.getAllApplications = async (req, res) => {
       }
     }
 
+    // Filter by LL eligible for DL (completed 30 days and not expired)
+    if (llEligibleForDL === 'true') {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000))
+
+      query.learningLicenseIssueDate = {
+        $exists: true,
+        $ne: null,
+        $lte: thirtyDaysAgo
+      }
+      query.learningLicenseExpiryDate = {
+        $exists: true,
+        $ne: null,
+        $gte: today
+      }
+    }
+
     // Calculate pagination
     const skip = (parseInt(page) - 1) * parseInt(limit)
 
-    // Execute query with default sort by creation date (newest first)
+    // Determine sort order
+    let sortCriteria = { createdAt: -1 }
+    if (llEligibleForDL === 'true') {
+      // Sort by most recently eligible (most recent issue date first)
+      sortCriteria = { learningLicenseIssueDate: -1 }
+    }
+
+    // Execute query with sort
     const applications = await Driving.find(query)
-      .sort({ createdAt: -1 })
+      .sort(sortCriteria)
       .skip(skip)
       .limit(parseInt(limit))
 
@@ -583,9 +609,6 @@ exports.getStatistics = async (req, res) => {
 
     const thirtyDaysAgo = new Date(todayStart.getTime() - (30 * 24 * 60 * 60 * 1000))
 
-    console.log('Today Start:', todayStart)
-    console.log('Thirty Days Ago:', thirtyDaysAgo)
-
     const llEligibleForDLCount = await Driving.countDocuments({
       userId: new mongoose.Types.ObjectId(req.user.id),
       learningLicenseIssueDate: {
@@ -599,8 +622,6 @@ exports.getStatistics = async (req, res) => {
         $gte: todayStart
       }
     })
-
-    console.log('LL Eligible for DL Count:', llEligibleForDLCount)
 
     res.status(200).json({
       success: true,
