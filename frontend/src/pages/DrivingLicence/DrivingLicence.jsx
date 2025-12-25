@@ -24,10 +24,10 @@ const DrivingLicence = () => {
   const [selectedApplication, setSelectedApplication] = useState(null)
   const [typeFilter, setTypeFilter] = useState('All')
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('All')
-  const [dlExpiryFilter, setDlExpiryFilter] = useState('All')
+  const [llEligibleForDLFilter, setLlEligibleForDLFilter] = useState('All')
   const [llExpiryFilter, setLlExpiryFilter] = useState('All')
   const [llExpiringCount, setLlExpiringCount] = useState(0)
-  const [dlExpiringCount, setDlExpiringCount] = useState(0)
+  const [llEligibleForDLCount, setLlEligibleForDLCount] = useState(0)
   const [pendingPaymentCount, setPendingPaymentCount] = useState(0)
   const [totalPendingAmount, setTotalPendingAmount] = useState(0)
   const [pagination, setPagination] = useState({
@@ -60,16 +60,16 @@ const DrivingLicence = () => {
       if (response.data.success) {
         const data = response.data.data
         setLlExpiringCount(data.llExpiringCount || 0)
-        setDlExpiringCount(data.dlExpiringCount || 0)
+        setLlEligibleForDLCount(data.llEligibleForDLCount || 0)
         setPendingPaymentCount(data.pendingPaymentCount || 0)
         setTotalPendingAmount(data.pendingPaymentAmount || 0)
 
-        console.log('Statistics updated - LL:', data.llExpiringCount, 'DL:', data.dlExpiringCount, 'Pending Payment Count:', data.pendingPaymentCount, 'Amount:', data.pendingPaymentAmount)
+        console.log('Statistics updated - LL:', data.llExpiringCount, 'LL Eligible for DL:', data.llEligibleForDLCount, 'Pending Payment Count:', data.pendingPaymentCount, 'Amount:', data.pendingPaymentAmount)
       }
     } catch (error) {
       console.error('Error fetching statistics:', error)
       setLlExpiringCount(0)
-      setDlExpiringCount(0)
+      setLlEligibleForDLCount(0)
       setPendingPaymentCount(0)
       setTotalPendingAmount(0)
     }
@@ -189,31 +189,49 @@ const DrivingLicence = () => {
   }
 
 
-  // Apply client-side filtering for DL and LL expiry
+  // Apply client-side filtering for LL expiry and LL eligible for DL
   const currentApplications = useMemo(() => {
     let filtered = [...applications]
 
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
 
-    // Filter by DL Expiry
-    if (dlExpiryFilter !== 'All') {
+    // Filter by LL Eligible for DL (completed 30 days and not expired)
+    if (llEligibleForDLFilter !== 'All') {
       filtered = filtered.filter(app => {
-        if (!app.expiryDate || app.expiryDate === '-') return false
+        const llIssueDate = app.fullData?.learningLicenseIssueDate
+        const llExpiryDate = app.fullData?.learningLicenseExpiryDate
+
+        if (!llIssueDate || !llExpiryDate) return false
 
         try {
-          const [day, month, year] = app.expiryDate.split('-')
-          const expiryDate = new Date(year, month - 1, day)
-          const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24))
+          const issueDate = new Date(llIssueDate)
+          const expiryDate = new Date(llExpiryDate)
 
-          if (dlExpiryFilter === '30') {
-            return daysUntilExpiry >= 0 && daysUntilExpiry <= 30
-          } else if (dlExpiryFilter === '60') {
-            return daysUntilExpiry >= 0 && daysUntilExpiry <= 60
-          }
+          // Check if LL is not expired
+          if (expiryDate < today) return false
+
+          // Check if LL has completed 30 days
+          const daysSinceIssue = Math.floor((today - issueDate) / (1000 * 60 * 60 * 24))
+
+          return daysSinceIssue >= 30
         } catch (e) {
           return false
         }
-        return true
+      })
+
+      // Sort by most recently eligible (those who just completed 30 days recently)
+      filtered.sort((a, b) => {
+        try {
+          const aIssueDate = new Date(a.fullData?.learningLicenseIssueDate)
+          const bIssueDate = new Date(b.fullData?.learningLicenseIssueDate)
+
+          // Sort by issue date descending (most recent issue date first)
+          // This shows the ones who completed 30 days most recently
+          return bIssueDate - aIssueDate
+        } catch (e) {
+          return 0
+        }
       })
     }
 
@@ -240,24 +258,24 @@ const DrivingLicence = () => {
     }
 
     return filtered
-  }, [applications, dlExpiryFilter, llExpiryFilter])
+  }, [applications, llEligibleForDLFilter, llExpiryFilter])
 
   // Calculate statistics
   const stats = useMemo(() => {
     const total = pagination.totalRecords
 
     // Use the fetched counts instead of calculating from current page
-    const expiringSoon = dlExpiringCount
+    const llEligibleForDL = llEligibleForDLCount
     const llExpiringSoon = llExpiringCount
 
     return {
       total,
-      expiringSoon,
+      llEligibleForDL,
       llExpiringSoon,
       totalPending: totalPendingAmount,
       pendingCount: pendingPaymentCount
     }
-  }, [pagination.totalRecords, dlExpiringCount, llExpiringCount, totalPendingAmount, pendingPaymentCount])
+  }, [pagination.totalRecords, llEligibleForDLCount, llExpiringCount, totalPendingAmount, pendingPaymentCount])
 
   // Page change handler
   const handlePageChange = (newPage) => {
@@ -518,10 +536,10 @@ const DrivingLicence = () => {
                 title='Total Applications'
                 value={stats.total}
                 color='blue'
-                isActive={paymentStatusFilter === 'All' && dlExpiryFilter === 'All' && llExpiryFilter === 'All'}
+                isActive={paymentStatusFilter === 'All' && llEligibleForDLFilter === 'All' && llExpiryFilter === 'All'}
                 onClick={() => {
                   setPaymentStatusFilter('All')
-                  setDlExpiryFilter('All')
+                  setLlEligibleForDLFilter('All')
                   setLlExpiryFilter('All')
                 }}
                 icon={
@@ -531,25 +549,25 @@ const DrivingLicence = () => {
                 }
               />
               <StatisticsCard
-                title='DL Expiring Soon'
-                value={stats.expiringSoon}
+                title='Eligible for DL'
+                value={stats.llEligibleForDL}
                 color='purple'
-                isActive={dlExpiryFilter === '30'}
+                isActive={llEligibleForDLFilter === 'eligible'}
                 onClick={() => {
-                  if (dlExpiryFilter === '30') {
+                  if (llEligibleForDLFilter === 'eligible') {
                     // If already active, reset to show all
-                    setDlExpiryFilter('All')
+                    setLlEligibleForDLFilter('All')
                   } else {
-                    // Activate DL expiring filter and reset others
-                    setDlExpiryFilter('30')
+                    // Activate LL eligible filter and reset others
+                    setLlEligibleForDLFilter('eligible')
                     setLlExpiryFilter('All')
                     setPaymentStatusFilter('All')
                   }
                 }}
-                subtext='Within 30 days'
+                subtext='LL completed 30 days'
                 icon={
                   <svg className='w-4 h-4 lg:w-6 lg:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' />
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                   </svg>
                 }
               />
@@ -565,7 +583,7 @@ const DrivingLicence = () => {
                   } else {
                     // Activate LL expiring filter and reset others
                     setLlExpiryFilter('30')
-                    setDlExpiryFilter('All')
+                    setLlEligibleForDLFilter('All')
                     setPaymentStatusFilter('All')
                   }
                 }}
@@ -588,7 +606,7 @@ const DrivingLicence = () => {
                   } else {
                     // Activate pending payment filter and reset others
                     setPaymentStatusFilter('Pending')
-                    setDlExpiryFilter('All')
+                    setLlEligibleForDLFilter('All')
                     setLlExpiryFilter('All')
                   }
                 }}
@@ -677,13 +695,13 @@ const DrivingLicence = () => {
               </select>
 
               {/* Clear Filters */}
-              {(typeFilter !== 'All' || searchQuery || paymentStatusFilter !== 'All' || dlExpiryFilter !== 'All' || llExpiryFilter !== 'All') && (
+              {(typeFilter !== 'All' || searchQuery || paymentStatusFilter !== 'All' || llEligibleForDLFilter !== 'All' || llExpiryFilter !== 'All') && (
                 <button
                   onClick={() => {
                     setTypeFilter('All')
                     setSearchQuery('')
                     setPaymentStatusFilter('All')
-                    setDlExpiryFilter('All')
+                    setLlEligibleForDLFilter('All')
                     setLlExpiryFilter('All')
                   }}
                   className='px-3 lg:px-4 py-2 lg:py-3 text-xs lg:text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl hover:from-red-600 hover:to-rose-600 transition-all font-bold shadow-md hover:shadow-lg'
@@ -698,18 +716,18 @@ const DrivingLicence = () => {
           </div>
 
           {/* Active Filter Indicators */}
-          {(dlExpiryFilter !== 'All' || llExpiryFilter !== 'All') && (
+          {(llEligibleForDLFilter !== 'All' || llExpiryFilter !== 'All') && (
             <div className='mt-3 flex flex-wrap gap-2'>
-              {dlExpiryFilter !== 'All' && (
+              {llEligibleForDLFilter !== 'All' && (
                 <span className='inline-flex items-center gap-1 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold'>
                   <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z' />
                   </svg>
-                  DL Expiring in {dlExpiryFilter} days
+                  Eligible for DL (LL completed 30+ days)
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      setDlExpiryFilter('All')
+                      setLlEligibleForDLFilter('All')
                     }}
                     className='ml-1 hover:bg-purple-200 rounded-full p-0.5'
                   >
