@@ -132,17 +132,12 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
 
               {/* Fee Breakup - Show only if exists and has values */}
               {(() => {
-                // Debug: Log the fee breakup data
-                console.log('Fitness feeBreakup:', fitness.feeBreakup)
-
                 // Filter to only show items with actual amounts
                 const validFeeItems = fitness.feeBreakup?.filter(item => {
                   if (!item || !item.name) return false
                   const amount = parseFloat(item.amount)
                   return !isNaN(amount) && amount > 0
                 }) || []
-
-                console.log('Valid fee items:', validFeeItems)
 
                 return validFeeItems.length > 0 && (
                   <div className='mt-4 pt-4 border-t border-purple-300'>

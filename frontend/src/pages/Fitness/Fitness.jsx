@@ -91,13 +91,12 @@ const Fitness = () => {
           totalFee: record.totalFee || 0,
           paid: record.paid || 0,
           balance: record.balance || 0,
+          feeBreakup: record.feeBreakup || [],
           status: record.status,
           isRenewed: record.isRenewed || false, // Include isRenewed field
           whatsappMessageCount: record.whatsappMessageCount || 0, // WhatsApp message count
           lastWhatsappSentAt: record.lastWhatsappSentAt, // Last WhatsApp sent time
         }));
-
-        console.log('📥 Transformed fitness records with isRenewed field');
 
         setFitnessRecords(transformedRecords);
 
@@ -161,6 +160,7 @@ const Fitness = () => {
         totalFee: parseFloat(formData.totalFee),
         paid: parseFloat(formData.paid),
         balance: parseFloat(formData.balance),
+        feeBreakup: formData.feeBreakup || []
       }, { withCredentials: true });
 
       if (response.data.success) {
