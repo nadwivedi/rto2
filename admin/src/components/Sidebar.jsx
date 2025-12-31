@@ -1,13 +1,19 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
-  const location = useLocation()
+  const location = useLocation();
+  const { isAuthenticated, loading } = useAuth();
 
   const handleLinkClick = () => {
     // Close sidebar on mobile when a link is clicked
     if (onClose) {
-      onClose()
+      onClose();
     }
+  };
+
+  if (loading || !isAuthenticated) {
+    return null;
   }
 
   return (
@@ -15,7 +21,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       {/* Overlay for mobile */}
       {isOpen && (
         <div
-          className='fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden'
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={onClose}
         ></div>
       )}
@@ -31,27 +37,27 @@ const Sidebar = ({ isOpen, onClose }) => {
         `}
       >
         {/* Logo */}
-        <div className='p-6 border-b border-indigo-700 flex justify-between items-center'>
+        <div className="p-6 border-b border-indigo-700 flex justify-between items-center">
           <div>
-            <h1 className='text-2xl font-bold'>RTO Sarthi</h1>
-            <p className='text-xs text-indigo-300 mt-1'>Admin Panel</p>
+            <h1 className="text-2xl font-bold">RTO Sarthi</h1>
+            <p className="text-xs text-indigo-300 mt-1">Admin Panel</p>
           </div>
           {/* Close button for mobile */}
           <button
             onClick={onClose}
-            className='md:hidden p-1 rounded-lg hover:bg-indigo-800 transition-colors'
-            aria-label='Close menu'
+            className="md:hidden p-1 rounded-lg hover:bg-indigo-800 transition-colors"
+            aria-label="Close menu"
           >
-            <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Menu */}
-        <nav className='p-4 space-y-2'>
+        <nav className="p-4 space-y-2">
           <Link
-            to='/'
+            to="/"
             onClick={handleLinkClick}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               location.pathname === '/'
@@ -59,14 +65,14 @@ const Sidebar = ({ isOpen, onClose }) => {
                 : 'text-indigo-200 hover:bg-indigo-800'
             }`}
           >
-            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
             <span>Manage Users</span>
           </Link>
 
           <Link
-            to='/vehicle-registrations'
+            to="/vehicle-registrations"
             onClick={handleLinkClick}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               location.pathname === '/vehicle-registrations'
@@ -74,14 +80,14 @@ const Sidebar = ({ isOpen, onClose }) => {
                 : 'text-indigo-200 hover:bg-indigo-800'
             }`}
           >
-            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span>Vehicle Registrations</span>
           </Link>
 
           <Link
-            to='/create-vehicle-json'
+            to="/create-vehicle-json"
             onClick={handleLinkClick}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               location.pathname === '/create-vehicle-json'
@@ -89,14 +95,14 @@ const Sidebar = ({ isOpen, onClose }) => {
                 : 'text-indigo-200 hover:bg-indigo-800'
             }`}
           >
-            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             <span>Create Vehicle (JSON)</span>
           </Link>
 
           <Link
-            to='/export'
+            to="/export"
             onClick={handleLinkClick}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               location.pathname === '/export'
@@ -104,15 +110,15 @@ const Sidebar = ({ isOpen, onClose }) => {
                 : 'text-indigo-200 hover:bg-indigo-800'
             }`}
           >
-            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span>Export Data</span>
           </Link>
         </nav>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Sidebar
+export default Sidebar;

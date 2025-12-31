@@ -9,7 +9,7 @@ const Login = () => {
   const navigate = useNavigate()
   const { login } = useAuth()
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   })
   const [loading, setLoading] = useState(false)
@@ -27,8 +27,8 @@ const Login = () => {
     e.preventDefault()
     setError('')
 
-    if (!formData.username || !formData.password) {
-      setError('Please enter username and password')
+    if (!formData.email || !formData.password) {
+      setError('Please enter email and password')
       return
     }
 
@@ -36,7 +36,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(`${BACKEND_URL}/api/admin/auth/login`, {
-        username: formData.username,
+        email: formData.email,
         password: formData.password
       }, {
         withCredentials: true
@@ -57,11 +57,11 @@ const Login = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br- from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4'>
+    <div className='min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4'>
       <div className='w-full max-w-md'>
         <div className='bg-white rounded-2xl shadow-2xl p-8'>
           <div className='text-center mb-8'>
-            <div className='w-20 h-20 bg-gradient-to-br- from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg'>
+            <div className='w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg'>
               <svg className='w-10 h-10 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4' />
               </svg>
@@ -84,17 +84,17 @@ const Login = () => {
           <form onSubmit={handleSubmit} className='space-y-6'>
             <div>
               <label className='block text-sm font-bold text-gray-700 mb-2'>
-                Username
+                Email
               </label>
               <input
-                type='text'
-                name='username'
-                value={formData.username}
+                type='email'
+                name='email'
+                value={formData.email}
                 onChange={handleChange}
-                placeholder='Enter your username'
+                placeholder='Enter your email'
                 className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm'
                 disabled={loading}
-                autoComplete='username'
+                autoComplete='email'
               />
             </div>
 
@@ -117,7 +117,7 @@ const Login = () => {
             <button
               type='submit'
               disabled={loading}
-              className='w-full bg-gradient-to-r- from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
+              className='w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 rounded-lg font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none'
             >
               {loading ? (
                 <div className='flex items-center justify-center gap-2'>

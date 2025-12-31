@@ -1,34 +1,27 @@
 const Admin = require('../models/Admin')
 const jwt = require('jsonwebtoken')
 
+
 // Admin login
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body
+    const { email, password } = req.body
 
     // Validate input
-    if (!username || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide username and password'
+        message: 'Please provide email and password'
       })
     }
 
-    // Find admin by username
-    const admin = await Admin.findOne({ username: username.toLowerCase().trim() })
+    // Find admin by email
+    const admin = await Admin.findOne({ email: email.toLowerCase().trim() })
 
     if (!admin) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
-      })
-    }
-
-    // Check if admin is active
-    if (!admin.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: 'Your account has been deactivated. Please contact support.'
       })
     }
 
@@ -49,10 +42,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       {
         id: admin._id,
-        username: admin.username,
         email: admin.email,
-        name: admin.name,
-        role: admin.role,
         type: 'admin'
       },
       process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
@@ -73,10 +63,7 @@ exports.login = async (req, res) => {
       data: {
         admin: {
           id: admin._id,
-          name: admin.name,
-          username: admin.username,
           email: admin.email,
-          role: admin.role,
           lastLogin: admin.lastLogin
         }
       }
@@ -102,22 +89,12 @@ exports.getProfile = async (req, res) => {
       })
     }
 
-    if (!admin.isActive) {
-      return res.status(403).json({
-        success: false,
-        message: 'Your account has been deactivated'
-      })
-    }
-
     res.json({
       success: true,
       data: {
         admin: {
           id: admin._id,
-          name: admin.name,
-          username: admin.username,
           email: admin.email,
-          role: admin.role,
           lastLogin: admin.lastLogin,
           createdAt: admin.createdAt
         }
