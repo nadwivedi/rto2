@@ -35,12 +35,7 @@ exports.createPermit = async (req, res) => {
     const { permitNumber, permitHolder, vehicleNo, mobileNo, validFrom, validTo, totalFee, paid, balance, notes } = req.body
 
     // Validate required fields
-    if (!permitNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit number is required'
-      })
-    }
+    // permitNumber is now optional, so no validation needed
 
     if (!permitHolder) {
       return res.status(400).json({
@@ -112,8 +107,7 @@ exports.createPermit = async (req, res) => {
     )
 
     // Create new temporary permit
-    const newPermit = new TemporaryPermitOtherState({
-      permitNumber,
+    const permitData = {
       permitHolder,
       vehicleNo,
       mobileNo,
@@ -123,9 +117,14 @@ exports.createPermit = async (req, res) => {
       paid,
       balance,
       status,
-      notes,
       userId: req.user.id
-    })
+    }
+
+    // Add optional fields if provided
+    if (permitNumber) permitData.permitNumber = permitNumber
+    if (notes) permitData.notes = notes
+
+    const newPermit = new TemporaryPermitOtherState(permitData)
     await newPermit.save()
 
     res.status(201).json({

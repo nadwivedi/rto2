@@ -10,7 +10,7 @@ const TemporaryPermitSchema = new mongoose.Schema({
   // Essential Information (Required)
   permitNumber: {
     type: String,
-    required: true,
+    required: false,
     trim: true
   },
   permitHolder: {

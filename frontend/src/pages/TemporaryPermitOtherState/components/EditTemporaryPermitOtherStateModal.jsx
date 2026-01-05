@@ -170,8 +170,8 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
       return
     }
 
-    // Validation
-    if (!formData.permitNumber || !formData.permitHolder || !formData.vehicleNo ||
+    // Validation (permitNumber is now optional)
+    if (!formData.permitHolder || !formData.vehicleNo ||
         !formData.mobileNo || !formData.validFrom || !formData.validTo) {
       toast.error('Please fill all required fields')
       return
@@ -188,7 +188,30 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
       }
     } catch (error) {
       console.error('Error updating permit:', error)
-      toast.error(error.response?.data?.message || 'Failed to update permit')
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data
+
+        // Show main error message
+        const mainMessage = errorData.errorCount > 1
+          ? `${errorData.message} (${errorData.errorCount} errors)`
+          : (errorData.message || 'Failed to update permit')
+
+        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
+            }, (index + 1) * 150)
+          })
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to update permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
+      }
     } finally {
       setLoading(false)
     }
@@ -267,7 +290,7 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
                 {/* Permit Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Permit Number <span className='text-red-500'>*</span>
+                    Permit Number <span className='text-xs text-gray-500 font-normal'>(Optional)</span>
                   </label>
                   <input
                     type='text'
@@ -276,8 +299,8 @@ const EditTemporaryPermitOtherStateModal = ({ permit, onClose, onPermitUpdated }
                     onChange={handleChange}
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono'
                     placeholder='TP-OS-001'
-                    required
                   />
+                  <p className='text-xs text-gray-500 mt-1'>Optional field - please go ahead</p>
                 </div>
 
                 {/* Permit Holder Name */}

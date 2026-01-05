@@ -229,23 +229,38 @@ const TemporaryPermit = () => {
       await fetchPermits();
       await fetchStatistics();
     } catch (error) {
-      if (error.response.data) {
-        return toast.error(
-          `${
-            error.response.data.message ||
-            "some error while updating temp permit"
-          }`,
-          {
-            position: "top-right",
-            autoClose: 3000,
-          }
-        );
-      }
       console.error("Error updating temporary permit:", error);
-      toast.error(`Failed to update temporary permit: ${error.message}`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data;
+
+        // Show main error message
+        const mainMessage =
+          errorData.errorCount > 1
+            ? `${errorData.message} (${errorData.errorCount} errors)`
+            : errorData.message || "Failed to update temporary permit";
+
+        toast.error(mainMessage, { position: "top-right", autoClose: 5000 });
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, {
+                position: "top-right",
+                autoClose: 4000,
+              });
+            }, (index + 1) * 150);
+          });
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to update temporary permit: ${error.message}`, {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      }
     }
   };
 
@@ -471,22 +486,42 @@ const TemporaryPermit = () => {
       // Refresh the permits list and statistics
       await fetchPermits();
       await fetchStatistics();
+
+      // Close the modal
+      setShowIssuePermitModal(false);
     } catch (error) {
-      if (error.response.data) {
-        return toast.error(
-          `${
-            error.response.data.message || "some error while adding temp permit"
-          }`,
-          {
-            position: "top-right",
-            autoClose: 3000,
-          }
-        );
+      console.error("Error creating temporary permit:", error);
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data;
+
+        // Show main error message
+        const mainMessage =
+          errorData.errorCount > 1
+            ? `${errorData.message} (${errorData.errorCount} errors)`
+            : errorData.message || "Failed to create temporary permit";
+
+        toast.error(mainMessage, { position: "top-right", autoClose: 5000 });
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, {
+                position: "top-right",
+                autoClose: 4000,
+              });
+            }, (index + 1) * 150);
+          });
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to create temporary permit: ${error.message}`, {
+          position: "top-right",
+          autoClose: 5000,
+        });
       }
-      toast.error(`Failed to create temporary permit`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
     }
   };
 

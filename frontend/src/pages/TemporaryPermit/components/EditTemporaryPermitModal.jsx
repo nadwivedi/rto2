@@ -560,7 +560,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
                 {/* Permit Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Permit Number <span className='text-red-500'>*</span>
+                    Permit Number <span className='text-xs text-gray-500 font-normal'>(Optional)</span>
                   </label>
                   <input
                     type='text'
@@ -569,8 +569,8 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
                     onChange={handleChange}
                     placeholder='TP001234567'
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent font-mono'
-                    required
                   />
+                  <p className='text-xs text-gray-500 mt-1'>Optional field - please go ahead</p>
                 </div>
 
                 {/* Permit Holder Name */}

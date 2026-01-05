@@ -47,12 +47,7 @@ exports.createPermit = async (req, res) => {
     } = req.body
 
     // 1. Validate required fields
-    if (!permitNumber || permitNumber.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit number is required'
-      })
-    }
+    // permitNumber is now optional, so no validation needed
 
     if (!permitHolder || permitHolder.trim() === '') {
       return res.status(400).json({
@@ -96,13 +91,15 @@ exports.createPermit = async (req, res) => {
       })
     }
 
-    // 2. Check if permit number already exists
-    const existingPermit = await TemporaryPermit.findOne({ permitNumber: permitNumber.trim() })
-    if (existingPermit) {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit number already exists'
-      })
+    // 2. Check if permit number already exists (only if provided)
+    if (permitNumber && permitNumber.trim()) {
+      const existingPermit = await TemporaryPermit.findOne({ permitNumber: permitNumber.trim() })
+      if (existingPermit) {
+        return res.status(400).json({
+          success: false,
+          message: 'Permit number already exists'
+        })
+      }
     }
 
     // 3. Validate vehicle number format (should be 10 characters)
@@ -181,7 +178,6 @@ exports.createPermit = async (req, res) => {
 
     // Prepare permit data with validated values
     const permitData = {
-      permitNumber: permitNumber.trim(),
       permitHolder: permitHolder.trim(),
       vehicleNumber: vehicleNumber.trim().toUpperCase(),
       vehicleType: vehicleType.toUpperCase(),
@@ -195,6 +191,7 @@ exports.createPermit = async (req, res) => {
     }
 
     // Add optional fields if provided
+    if (permitNumber && permitNumber.trim() !== '') permitData.permitNumber = permitNumber.trim()
     if (mobileNumber && mobileNumber.trim() !== '') permitData.mobileNumber = mobileNumber.trim()
     if (notes && notes.trim() !== '') permitData.notes = notes.trim()
 
@@ -568,12 +565,7 @@ exports.updatePermit = async (req, res) => {
     } = req.body
 
     // 1. Validate required fields
-    if (permitNumber && permitNumber.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit number cannot be empty'
-      })
-    }
+    // permitNumber is now optional, so no validation needed
 
     if (permitHolder && permitHolder.trim() === '') {
       return res.status(400).json({
@@ -679,7 +671,7 @@ exports.updatePermit = async (req, res) => {
 
     // Prepare update data
     const updateData = {}
-    if (permitNumber) updateData.permitNumber = permitNumber.trim()
+    if (permitNumber !== undefined) updateData.permitNumber = permitNumber ? permitNumber.trim() : undefined
     if (permitHolder) updateData.permitHolder = permitHolder.trim()
     if (vehicleNumber) updateData.vehicleNumber = vehicleNumber.trim().toUpperCase()
     if (vehicleType) updateData.vehicleType = vehicleType.toUpperCase()
