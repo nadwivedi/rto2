@@ -774,15 +774,24 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                 </div>
 
                 <div className='space-y-2'>
-                  {formData.feeBreakup.map((item, index) => (
+                  {formData.feeBreakup.map((item, index) => {
+                    // First 5 items are fixed/default items, rest are editable
+                    const isFixedItem = index < 5
+
+                    return (
                     <div key={index} className='grid grid-cols-1 md:grid-cols-12 gap-2 bg-purple-50 p-2 rounded-lg border border-purple-200'>
                       <div className='md:col-span-5'>
                         <input
                           type='text'
                           placeholder='Fee name'
                           value={item.name}
-                          readOnly
-                          className='w-full px-3 py-2 border border-purple-300 rounded-lg bg-purple-100 text-sm font-semibold cursor-not-allowed'
+                          onChange={(e) => !isFixedItem && handleFeeBreakupChange(index, 'name', e.target.value)}
+                          readOnly={isFixedItem}
+                          className={`w-full px-3 py-2 border rounded-lg text-sm font-semibold ${
+                            isFixedItem
+                              ? 'border-purple-300 bg-purple-100 cursor-not-allowed'
+                              : 'border-purple-300 bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent'
+                          }`}
                         />
                       </div>
                       <div className='md:col-span-6'>
@@ -813,7 +822,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                         </button>
                       </div>
                     </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             </div>
