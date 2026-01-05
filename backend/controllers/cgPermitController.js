@@ -47,15 +47,7 @@ exports.createPermit = async (req, res) => {
     } = req.body
 
     // Validate required fields
-    if (!permitNumber || !permitNumber.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit number is required',
-        errors: ['Permit number is required'],
-        errorCount: 1,
-        timestamp: getSimplifiedTimestamp()
-      })
-    }
+    // permitNumber is now optional, so no validation needed
 
     if (!permitHolder || !permitHolder.trim()) {
       return res.status(400).json({
@@ -163,7 +155,7 @@ exports.createPermit = async (req, res) => {
 
     // Prepare validated permit data
     const permitData = {
-      permitNumber: permitNumber.trim(),
+      permitNumber: permitNumber ? permitNumber.trim() : undefined,
       permitHolder: permitHolder.trim(),
       vehicleNumber: vehicleNumber.trim().toUpperCase(),
       validFrom: validFrom.trim(),
@@ -543,15 +535,7 @@ exports.updatePermit = async (req, res) => {
     } = req.body
 
     // Validate required fields if provided
-    if (permitNumber !== undefined && (!permitNumber || !permitNumber.trim())) {
-      return res.status(400).json({
-        success: false,
-        message: 'Permit number cannot be empty',
-        errors: ['Permit number cannot be empty'],
-        errorCount: 1,
-        timestamp: getSimplifiedTimestamp()
-      })
-    }
+    // permitNumber is now optional, so no validation needed
 
     if (permitHolder !== undefined && (!permitHolder || !permitHolder.trim())) {
       return res.status(400).json({
@@ -627,7 +611,7 @@ exports.updatePermit = async (req, res) => {
     // Prepare validated update data
     const updateData = {}
 
-    if (permitNumber !== undefined) updateData.permitNumber = permitNumber.trim()
+    if (permitNumber !== undefined) updateData.permitNumber = permitNumber ? permitNumber.trim() : undefined
     if (permitHolder !== undefined) updateData.permitHolder = permitHolder.trim()
     if (vehicleNumber !== undefined) updateData.vehicleNumber = vehicleNumber.trim().toUpperCase()
     if (validFrom !== undefined) updateData.validFrom = validFrom.trim()

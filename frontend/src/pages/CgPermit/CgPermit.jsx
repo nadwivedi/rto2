@@ -372,6 +372,9 @@ const CgPermit = () => {
       // Refresh the permits list and statistics
       await fetchPermits()
       await fetchStatistics()
+
+      // Close the modal
+      setShowIssuePermitModal(false)
     } catch (error) {
       console.error('Error creating CG permit:', error)
 
@@ -449,7 +452,30 @@ const CgPermit = () => {
       setEditingPermit(null)
     } catch (error) {
       console.error('Error updating CG permit:', error)
-      toast.error(`Failed to update CG permit: ${error.message}`, { position: 'top-right', autoClose: 3000 })
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data
+
+        // Show main error message
+        const mainMessage = errorData.errorCount > 1
+          ? `${errorData.message} (${errorData.errorCount} errors)`
+          : (errorData.message || 'Failed to update CG permit')
+
+        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
+            }, (index + 1) * 150)
+          })
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to update CG permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
+      }
     }
   }
 
