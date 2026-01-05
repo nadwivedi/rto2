@@ -86,10 +86,10 @@ exports.createPermit = async (req, res) => {
     } = req.body
 
     // Validate required fields
-    if (!vehicleNumber || !permitNumber || !permitHolder || !partBNumber) {
+    if (!vehicleNumber || !permitHolder) {
       return res.status(400).json({
         success: false,
-        message: 'Vehicle number, permit number, permit holder, and authorization number are required'
+        message: 'Vehicle number and permit holder are required'
       })
     }
 
@@ -352,6 +352,7 @@ exports.updatePermit = async (req, res) => {
     if (updateData.mobileNumber !== undefined) permit.mobileNumber = updateData.mobileNumber
 
     // Update Part A
+    if (updateData.permitNumber !== undefined) permit.permitNumber = updateData.permitNumber
     if (updateData.permitHolder) permit.permitHolder = updateData.permitHolder
     if (updateData.partAValidFrom) permit.partAValidFrom = updateData.partAValidFrom
     if (updateData.partAValidTo) {
@@ -360,7 +361,7 @@ exports.updatePermit = async (req, res) => {
     }
 
     // Update Part B
-    if (updateData.partBNumber) permit.authNumber = updateData.partBNumber
+    if (updateData.partBNumber !== undefined) permit.authNumber = updateData.partBNumber
     if (updateData.partBValidFrom) permit.partBValidFrom = updateData.partBValidFrom
     if (updateData.partBValidTo) {
       permit.partBValidTo = updateData.partBValidTo

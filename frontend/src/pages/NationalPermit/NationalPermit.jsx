@@ -473,10 +473,35 @@ const NationalPermit = () => {
       // Refresh the permits list and statistics
       await fetchPermits()
       await fetchStatistics()
+
+      // Close the modal
+      setShowIssuePermitModal(false)
     } catch (error) {
       console.error('Error creating permit:', error)
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to create permit'
-      toast.error(errorMessage, { position: 'top-right', autoClose: 4000 })
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data
+
+        // Show main error message
+        const mainMessage = errorData.errorCount > 1
+          ? `${errorData.message} (${errorData.errorCount} errors)`
+          : (errorData.message || 'Failed to create permit')
+
+        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
+            }, (index + 1) * 150)
+          })
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to create permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
+      }
     }
   }
 
@@ -484,6 +509,7 @@ const NationalPermit = () => {
     try {
       // Prepare data to match backend controller expectations (flat model)
       const permitData = {
+        permitNumber: formData.permitNumber || '',
         mobileNumber: formData.mobileNumber || '',
         permitHolder: formData.permitHolderName,
         partAValidFrom: formData.validFrom,
@@ -516,8 +542,30 @@ const NationalPermit = () => {
       setEditingPermit(null)
     } catch (error) {
       console.error('Error updating permit:', error)
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to update permit'
-      toast.error(errorMessage, { position: 'top-right', autoClose: 4000 })
+
+      // Handle detailed error response from backend
+      if (error.response?.data) {
+        const errorData = error.response.data
+
+        // Show main error message
+        const mainMessage = errorData.errorCount > 1
+          ? `${errorData.message} (${errorData.errorCount} errors)`
+          : (errorData.message || 'Failed to update permit')
+
+        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
+
+        // Show each detailed error if available
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((err, index) => {
+            setTimeout(() => {
+              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
+            }, (index + 1) * 150)
+          })
+        }
+      } else {
+        // Network or other errors
+        toast.error(`Failed to update permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
+      }
     }
   }
 

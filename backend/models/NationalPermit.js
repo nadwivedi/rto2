@@ -25,7 +25,7 @@ const NationalPermitSchema = new mongoose.Schema({
   // ========== PART A DATA (5-year National Permit) ==========
   permitNumber: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
     index: true
   },
@@ -53,7 +53,7 @@ const NationalPermitSchema = new mongoose.Schema({
   // ========== PART B DATA (1-year Authorization) ==========
   authNumber: {
     type: String,
-    required: true,
+    required: false,
     trim: true,
     index: true
   },

@@ -846,7 +846,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                 {/* Permit Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Permit Number <span className='text-red-500'>*</span>
+                    Permit Number <span className='text-xs text-gray-500 font-normal'>(Optional)</span>
                   </label>
                   <input
                     type='text'
@@ -857,8 +857,8 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder='Enter Type A Permit Number'
                     tabIndex="3"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
-                    required
                   />
+                  <p className='text-xs text-gray-500 mt-1'>Optional field - please go ahead</p>
                 </div>
 
                 {/* Permit Holder Name */}
@@ -939,7 +939,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
               <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Authorization Number <span className='text-red-500'>*</span>
+                    Authorization Number <span className='text-xs text-gray-500 font-normal'>(Optional)</span>
                   </label>
                   <input
                     type='text'
@@ -950,8 +950,8 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
                     placeholder='Enter National Permit Authorization No.'
                     tabIndex="7"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
-                    required
                   />
+                  <p className='text-xs text-gray-500 mt-1'>Optional field - please go ahead</p>
                 </div>
 
                 <div>
