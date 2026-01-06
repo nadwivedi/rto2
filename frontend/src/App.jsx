@@ -10,6 +10,7 @@ import Setting from './pages/Setting'
 import DrivingLicence from './pages/DrivingLicence/DrivingLicence'
 import NationalPermit from './pages/NationalPermit/NationalPermit'
 import CgPermit from './pages/CgPermit/CgPermit'
+import BusPermit from './pages/BusPermit/BusPermit'
 import TemporaryPermit from './pages/TemporaryPermit/TemporaryPermit'
 import TemporaryPermitOtherState from './pages/TemporaryPermitOtherState/TemporaryPermitOtherState'
 import VehicleRegistration from './pages/VehicleRegistration/VehicleRegistration'
@@ -52,6 +53,7 @@ function App() {
                         <Route path='/setting' element={<Setting />} />
                         <Route path='/national-permit' element={<NationalPermit />} />
                         <Route path='/cg-permit' element={<CgPermit />} />
+                        <Route path='/bus-permit' element={<BusPermit />} />
                         <Route path='/temporary-permit' element={<TemporaryPermit />} />
                         <Route path='/temporary-permit-other-state' element={<TemporaryPermitOtherState />} />
                         <Route path='/vehicle-registration' element={<VehicleRegistration />} />

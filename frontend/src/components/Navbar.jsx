@@ -9,7 +9,7 @@ const Navbar = () => {
 
   const menuItems = [
     {
-      name: "Vehicle Reg.",
+      name: "Vehicle +",
       icon: "🚗",
       path: "/",
       description: "Register Vehicles",
@@ -26,6 +26,12 @@ const Navbar = () => {
       icon: "📄",
       path: "/cg-permit",
       description: "CG State Permits",
+    },
+    {
+      name: "Bus Permit",
+      icon: "🚌",
+      path: "/bus-permit",
+      description: "Bus Permits",
     },
     {
       name: "Temp Permit",
@@ -52,34 +58,6 @@ const Navbar = () => {
       path: "/tax",
       description: "Tax Management",
     },
-
-     {
-      name: "Bill",
-      icon: "📈",
-      path: "/dealer-bill",
-      description: "Dealer Billing",
-    },
-
-    {
-      name: "Insurance",
-      icon: "🛡️",
-      path: "/insurance",
-      description: "Vehicle Insurance",
-    },
-
-    {
-      name: "DL",
-      icon: "🪪",
-      path: "/driving",
-      description: "DL Applications",
-    },
-
-    {
-      name: "Vehicle Transfer",
-      icon: "🔀",
-      path: "/vehicle-transfer",
-      description: "Transfer Ownership",
-    },
     {
       name: "PUC",
       icon: "💨",
@@ -91,6 +69,34 @@ const Navbar = () => {
       icon: "📍",
       path: "/gps",
       description: "GPS Tracking",
+    },
+
+    {
+      name: "Insurance",
+      icon: "🛡️",
+      path: "/insurance",
+      description: "Vehicle Insurance",
+    },
+
+     {
+      name: "Bill",
+      icon: "📈",
+      path: "/dealer-bill",
+      description: "Dealer Billing",
+    },
+
+    {
+      name: "DL",
+      icon: "🪪",
+      path: "/driving",
+      description: "DL Applications",
+    },
+
+    {
+      name: "Transfer",
+      icon: "🔀",
+      path: "/vehicle-transfer",
+      description: "Transfer Ownership",
     },
 
      {
