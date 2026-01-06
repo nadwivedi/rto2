@@ -86,6 +86,12 @@ const Navbar = () => {
       path: "/puc",
       description: "Pollution Certificate",
     },
+    {
+      name: "GPS",
+      icon: "📍",
+      path: "/gps",
+      description: "GPS Tracking",
+    },
 
      {
       name: "Forms",

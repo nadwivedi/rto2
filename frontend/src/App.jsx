@@ -21,6 +21,7 @@ import Tax from './pages/Tax/Tax'
 import Forms from './pages/forms/Forms'
 import Form20 from './pages/Form20'
 import Puc from './pages/Puc/Puc'
+import Gps from './pages/Gps/Gps'
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
                         <Route path='/forms' element={<Forms />} />
                         <Route path='/forms/form-20' element={<Form20 />} />
                         <Route path='/puc' element={<Puc />} />
+                        <Route path='/gps' element={<Gps />} />
                         <Route path='/dealer-bill' element={<DealerBill />} />
                       </Routes>
                     </main>

@@ -96,6 +96,7 @@ const taxRoutes = require('./routes/tax')
 const insuranceRoutes = require('./routes/insurance')
 const vehicleTransferRoutes = require('./routes/vehicleTransfer')
 const pucRoutes = require('./routes/puc')
+const gpsRoutes = require('./routes/gpsRoutes')
 const uploadRoutes = require('./routes/upload')
 
 // Use Routes
@@ -122,6 +123,7 @@ app.use('/api/tax', userAuth, taxRoutes)
 app.use('/api/insurance', userAuth, insuranceRoutes)
 app.use('/api/vehicle-transfers', userAuth, vehicleTransferRoutes)
 app.use('/api/puc', userAuth, pucRoutes)
+app.use('/api/gps', userAuth, gpsRoutes)
 
 // Root route
 app.get('/', (req, res) => {
