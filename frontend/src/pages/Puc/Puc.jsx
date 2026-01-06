@@ -82,6 +82,7 @@ const Puc = () => {
           id: record._id,
           _id: record._id, // Keep _id for edit/delete operations
           vehicleNumber: record.vehicleNumber,
+          ownerName: record.ownerName,
           mobileNumber: record.mobileNumber,
           validFrom: record.validFrom,
           validTo: record.validTo,
@@ -134,6 +135,7 @@ const Puc = () => {
     try {
       const response = await axios.post(`${API_URL}/api/puc`, {
         vehicleNumber: formData.vehicleNumber,
+        ownerName: formData.ownerName,
         mobileNumber: formData.mobileNumber,
         validFrom: formData.validFrom,
         validTo: formData.validTo,
@@ -184,6 +186,7 @@ const Puc = () => {
         `${API_URL}/api/puc/id/${pucId}`,
         {
           vehicleNumber: formData.vehicleNumber,
+          ownerName: formData.ownerName,
           mobileNumber: formData.mobileNumber,
           validFrom: formData.validFrom,
           validTo: formData.validTo,
@@ -612,6 +615,9 @@ const Puc = () => {
                       Vehicle Number
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
+                      Owner Name
+                    </th>
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Valid From
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
@@ -627,9 +633,6 @@ const Puc = () => {
                       Balance
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide pl-20 2xl:pl-32">
-                      Payment Status
-                    </th>
-                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Status
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
@@ -686,14 +689,26 @@ const Puc = () => {
                                 );
                               })()}
                             </div>
-                            {record.mobileNumber && (
-                              <div className="flex items-center mt-1.5 text-[10px] 2xl:text-xs text-gray-600">
-                                <svg className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                </svg>
-                                {record.mobileNumber}
-                              </div>
-                            )}
+                          </div>
+                        </td>
+
+                        {/* Owner Name */}
+                        <td className='px-4 2xl:px-6 py-3 2xl:py-5'>
+                          <div className='flex items-center'>
+                            <div className='flex-shrink-0 h-8 w-8 2xl:h-10 2xl:w-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold shadow-md text-xs 2xl:text-sm'>
+                              {record.ownerName?.charAt(0) || 'O'}
+                            </div>
+                            <div className='ml-2 2xl:ml-4'>
+                              <div className='text-[11px] 2xl:text-sm font-bold text-gray-900'>{record.ownerName || 'N/A'}</div>
+                              {record.mobileNumber && (
+                                <div className='text-[10px] 2xl:text-xs text-gray-500 flex items-center mt-0.5 2xl:mt-1'>
+                                  <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                                  </svg>
+                                  {record.mobileNumber}
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </td>
 
@@ -769,47 +784,8 @@ const Puc = () => {
                           </div>
                         </td>
 
-                        {/* Payment Status */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4 pl-20 2xl:pl-32">
-                          {(record.balance || 0) > 0 ? (
-                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
-                              <svg
-                                className="w-2.5 h-2.5 2xl:w-3 2xl:h-3 mr-0.5 2xl:mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
-                              </svg>
-                              Pending
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                              <svg
-                                className="w-2.5 h-2.5 2xl:w-3 2xl:h-3 mr-0.5 2xl:mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                              Paid
-                            </span>
-                          )}
-                        </td>
-
                         {/* Status */}
-                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4 pl-20 2xl:pl-32">
                           <span
                             className={`inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold ${getStatusColor(
                               record.status

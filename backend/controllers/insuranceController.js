@@ -31,15 +31,9 @@ const getInsuranceStatus = (validTo) => {
 // Create new insurance record
 exports.createInsurance = async (req, res) => {
   try {
-    const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument } = req.body
+    const { policyNumber, policyHolderName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument } = req.body
 
     // Validate required fields
-    if (!policyNumber) {
-      return res.status(400).json({
-        success: false,
-        message: 'Policy number is required'
-      })
-    }
 
     if (!vehicleNumber) {
       return res.status(400).json({
@@ -99,6 +93,7 @@ exports.createInsurance = async (req, res) => {
     // Create new insurance record
     const insuranceData = {
       policyNumber,
+      policyHolderName,
       vehicleNumber,
       mobileNumber,
       validFrom,
@@ -154,6 +149,7 @@ exports.getAllInsurance = async (req, res) => {
         { policyNumber: { $regex: search, $options: 'i' } },
         { vehicleNumber: { $regex: search, $options: 'i' } },
         { ownerName: { $regex: search, $options: 'i' } },
+        { policyHolderName: { $regex: search, $options: 'i' } },
         { mobileNumber: { $regex: search, $options: 'i' } }
       ]
     }
@@ -446,7 +442,7 @@ exports.getInsuranceByPolicyNumber = async (req, res) => {
 exports.updateInsurance = async (req, res) => {
   try {
     const { id } = req.params
-    const { policyNumber, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument } = req.body
+    const { policyNumber, policyHolderName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument } = req.body
 
     const insurance = await Insurance.findOne({ _id: id, userId: req.user.id })
 
@@ -480,6 +476,7 @@ exports.updateInsurance = async (req, res) => {
 
     // Update fields
     if (policyNumber) insurance.policyNumber = policyNumber
+    if (policyHolderName) insurance.policyHolderName = policyHolderName
     if (vehicleNumber) insurance.vehicleNumber = vehicleNumber
     if (mobileNumber !== undefined) insurance.mobileNumber = mobileNumber
     if (validFrom) insurance.validFrom = validFrom

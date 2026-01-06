@@ -16,6 +16,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   const [formData, setFormData] = useState({
     vehicleNumber: '',
     policyNumber: '',
+    policyHolderName: '',
     mobileNumber: '',
     validFrom: '',
     validTo: '',
@@ -47,6 +48,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       setFormData({
         vehicleNumber: vehicleNum,
         policyNumber: initialData.policyNumber || '',
+        policyHolderName: initialData.policyHolderName || '',
         validFrom: initialData.validFrom || '',
         validTo: initialData.validTo || '',
         totalFee: initialData.totalFee?.toString() || '',
@@ -79,6 +81,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       setFormData({
         vehicleNumber: '',
         policyNumber: '',
+        policyHolderName: '',
         mobileNumber: '',
         validFrom: '',
         validTo: '',
@@ -123,12 +126,13 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
             setSelectedDropdownIndex(0)
             setVehicleError('')
           } else {
-            // Single match found - auto-fill vehicle number and mobile number
+            // Single match found - auto-fill vehicle number, mobile number, and owner name
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
               vehicleNumber: vehicleData.registrationNumber,
-              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
+              policyHolderName: vehicleData.ownerName || prev.policyHolderName
             }))
             // Validate the auto-filled vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -223,7 +227,8 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     setFormData(prev => ({
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
-      mobileNumber: vehicle.mobileNumber || prev.mobileNumber
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
+      policyHolderName: vehicle.ownerName || prev.policyHolderName
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])
@@ -483,8 +488,8 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       // Get current tabIndex
       const currentTabIndex = parseInt(e.target.getAttribute('tabIndex'))
 
-      // If we're on the last field (paid = tabIndex 7), submit the form
-      if (currentTabIndex === 7) {
+      // If we're on the last field (paid = tabIndex 8), submit the form
+      if (currentTabIndex === 8) {
         document.querySelector('form')?.requestSubmit()
         return
       }
@@ -527,6 +532,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     setFormData({
       vehicleNumber: '',
       policyNumber: '',
+      policyHolderName: '',
       validFrom: '',
       validTo: '',
       totalFee: '0',
@@ -672,7 +678,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                 {/* Policy Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Policy Number <span className='text-red-500'>*</span>
+                    Policy Number
                   </label>
                   <input
                     type='text'
@@ -683,7 +689,23 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     placeholder='INS001234567'
                     tabIndex="2"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono'
-                    required
+                  />
+                </div>
+
+                {/* Policy Holder Name */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Policy Holder Name
+                  </label>
+                  <input
+                    type='text'
+                    name='policyHolderName'
+                    value={formData.policyHolderName}
+                    onChange={handleChange}
+                    onKeyDown={handleInputKeyDown}
+                    placeholder='Enter policy holder name'
+                    tabIndex="3"
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                 </div>
 
@@ -700,7 +722,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     onKeyDown={handleInputKeyDown}
                     placeholder='10-digit number'
                     maxLength='10'
-                    tabIndex="3"
+                    tabIndex="4"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
                   />
                 </div>
@@ -727,7 +749,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     onChange={handleChange}
                     onKeyDown={handleInputKeyDown}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
-                    tabIndex="4"
+                    tabIndex="5"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent'
                     required
                   />
@@ -746,7 +768,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     onChange={handleChange}
                     onKeyDown={handleInputKeyDown}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
-                    tabIndex="5"
+                    tabIndex="6"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50'
                   />
                   <p className='text-xs text-gray-500 mt-1'>Auto-calculated: 1 year from Valid From date minus 1 day</p>
@@ -775,7 +797,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     onFocus={(e) => e.target.select()}
                     onKeyDown={handleInputKeyDown}
                     placeholder=''
-                    tabIndex="6"
+                    tabIndex="7"
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
                     required
                   />
@@ -794,7 +816,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
                     onFocus={(e) => e.target.select()}
                     onKeyDown={handleInputKeyDown}
                     placeholder=''
-                    tabIndex="7"
+                    tabIndex="8"
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'

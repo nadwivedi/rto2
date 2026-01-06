@@ -783,10 +783,10 @@ const Insurance = () => {
                     <thead className={theme.tableHeader}>
                       <tr>
                         <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                          Vehicle No.
+                          Vehicle / Policy No.
                         </th>
                         <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
-                          Policy Number
+                          Policy Holder
                         </th>
                         <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wider">
                           Valid From
@@ -819,66 +819,75 @@ const Insurance = () => {
                             className="hover:bg-gradient-to-r hover:from-blue-50 hover:via-indigo-50 hover:to-purple-50 transition-all duration-300 group"
                           >
                             <td className="px-4 2xl:px-6 py-3 2xl:py-5">
-                              <div>
-                                {(() => {
-                                  const parts = getVehicleNumberParts(
-                                    insurance.vehicleNumber
-                                  );
-                                  if (!parts) {
+                              <div className='flex flex-col gap-1 2xl:gap-1.5'>
+                                <div>
+                                  {(() => {
+                                    const parts = getVehicleNumberParts(
+                                      insurance.vehicleNumber
+                                    );
+                                    if (!parts) {
+                                      return (
+                                        <div className='flex items-center gap-1.5'>
+                                          <svg className='w-3.5 h-3.5 2xl:w-4 2xl:h-4 text-blue-600 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                                            <path d='M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z' />
+                                            <path d='M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z' />
+                                          </svg>
+                                          <span className='text-[13px] 2xl:text-[15px] font-semibold text-gray-900'>{insurance.vehicleNumber}</span>
+                                        </div>
+                                      );
+                                    }
                                     return (
-                                      <span className="inline-flex items-center px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-full text-[10px] 2xl:text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200">
+                                      <div className={vehicleDesign.container}>
                                         <svg
-                                          className="w-2.5 h-2.5 2xl:w-3 2xl:h-3 mr-0.5 2xl:mr-1"
+                                          className="w-4 h-6 mr-0.5 text-blue-800 flex-shrink-0"
                                           fill="currentColor"
                                           viewBox="0 0 20 20"
                                         >
                                           <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                                           <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
                                         </svg>
-                                        {insurance.vehicleNumber}
-                                      </span>
+                                        <span className={vehicleDesign.stateCode}>
+                                          {parts.stateCode}
+                                        </span>
+                                        <span
+                                          className={vehicleDesign.districtCode}
+                                        >
+                                          {parts.districtCode}
+                                        </span>
+                                        <span className={vehicleDesign.series}>
+                                          {parts.series}
+                                        </span>
+                                        <span className={vehicleDesign.last4Digits}>
+                                          {parts.last4Digits}
+                                        </span>
+                                      </div>
                                     );
-                                  }
-                                  return (
-                                    <div className={vehicleDesign.container}>
-                                      <svg
-                                        className="w-3.5 h-5 2xl:w-4 2xl:h-6 mr-0.5 text-blue-800 flex-shrink-0"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                      >
-                                        <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                                        <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1v-5a1 1 0 00-.293-.707l-2-2A1 1 0 0015 7h-1z" />
-                                      </svg>
-                                      <span className={vehicleDesign.stateCode}>
-                                        {parts.stateCode}
-                                      </span>
-                                      <span
-                                        className={vehicleDesign.districtCode}
-                                      >
-                                        {parts.districtCode}
-                                      </span>
-                                      <span className={vehicleDesign.series}>
-                                        {parts.series}
-                                      </span>
-                                      <span className={vehicleDesign.last4Digits}>
-                                        {parts.last4Digits}
-                                      </span>
-                                    </div>
-                                  );
-                                })()}
-                                {insurance.mobileNumber && (
-                                  <div className="flex items-center mt-1.5 text-[10px] 2xl:text-xs text-gray-600">
-                                    <svg className="w-3 h-3 2xl:w-3.5 2xl:h-3.5 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                    </svg>
-                                    {insurance.mobileNumber}
-                                  </div>
-                                )}
+                                  })()}
+                                </div>
+                                <div className='flex items-center gap-1.5'>
+                                  <svg className='w-3.5 h-3.5 text-indigo-600 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                                  </svg>
+                                  <span className='text-[11px] 2xl:text-[13px] font-medium text-gray-600'>{insurance.policyNumber}</span>
+                                </div>
                               </div>
                             </td>
-                            <td className="px-4 2xl:px-6 py-3 2xl:py-5">
-                              <div className="text-[11px] 2xl:text-sm font-mono font-semibold text-gray-900 bg-gray-100 px-2 py-1 2xl:px-3 2xl:py-1.5 rounded-lg inline-block border border-gray-200">
-                                {insurance.policyNumber}
+                            <td className='px-4 2xl:px-6 py-3 2xl:py-5'>
+                              <div className='flex items-center'>
+                                <div className='flex-shrink-0 h-8 w-8 2xl:h-10 2xl:w-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold shadow-md text-xs 2xl:text-sm'>
+                                  {insurance.policyHolderName?.charAt(0) || 'P'}
+                                </div>
+                                <div className='ml-2 2xl:ml-4'>
+                                  <div className='text-[11px] 2xl:text-sm font-bold text-gray-900'>{insurance.policyHolderName || 'N/A'}</div>
+                                  {insurance.mobileNumber && (
+                                    <div className='text-[10px] 2xl:text-xs text-gray-500 flex items-center mt-0.5 2xl:mt-1'>
+                                      <svg className='w-3 h-3 mr-1' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z' />
+                                      </svg>
+                                      {insurance.mobileNumber}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </td>
                             <td className="px-0.5 2xl:px-1 py-3 2xl:py-5 pl-8 2xl:pl-12">

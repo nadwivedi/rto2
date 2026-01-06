@@ -324,7 +324,7 @@ exports.getPucById = async (req, res) => {
 // Create new PUC record
 exports.createPuc = async (req, res) => {
   try {
-    const { vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
 
     // Validate required fields
     if (!vehicleNumber ) {
@@ -374,6 +374,7 @@ exports.createPuc = async (req, res) => {
     // Create new PUC record
     const puc = new Puc({
       vehicleNumber,
+      ownerName,
       mobileNumber,
       validFrom,
       validTo,
@@ -404,7 +405,7 @@ exports.createPuc = async (req, res) => {
 // Update PUC record
 exports.updatePuc = async (req, res) => {
   try {
-    const { vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
 
     const puc = await Puc.findOne({ _id: req.params.id, userId: req.user.id })
 
@@ -438,6 +439,7 @@ exports.updatePuc = async (req, res) => {
 
     // Update fields
     if (vehicleNumber) puc.vehicleNumber = vehicleNumber
+    if (ownerName !== undefined) puc.ownerName = ownerName
     if (mobileNumber !== undefined) puc.mobileNumber = mobileNumber
     if (validFrom) puc.validFrom = validFrom
     if (validTo) {

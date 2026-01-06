@@ -10,9 +10,13 @@ const InsuranceSchema = new mongoose.Schema({
   // Policy Information
   policyNumber: {
     type: String,
-    required: true,
     trim: true,
     uppercase: true
+  },
+
+  policyHolderName: {
+    type: String,
+    trim: true
   },
 
   // Vehicle Information

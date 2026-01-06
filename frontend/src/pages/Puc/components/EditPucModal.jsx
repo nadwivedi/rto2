@@ -9,6 +9,7 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 const EditPucModal = ({ isOpen, onClose, onSubmit, puc }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
+    ownerName: '',
     mobileNumber: '',
     validFrom: '',
     validTo: '',
@@ -30,6 +31,7 @@ const EditPucModal = ({ isOpen, onClose, onSubmit, puc }) => {
     if (puc) {
       setFormData({
         vehicleNumber: puc.vehicleNumber || '',
+        ownerName: puc.ownerName || '',
         mobileNumber: puc.mobileNumber || '',
         validFrom: puc.validFrom || '',
         validTo: puc.validTo || '',
@@ -398,7 +400,7 @@ const EditPucModal = ({ isOpen, onClose, onSubmit, puc }) => {
                 Vehicle Details
               </h3>
 
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
                 {/* Vehicle Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -482,6 +484,21 @@ const EditPucModal = ({ isOpen, onClose, onSubmit, puc }) => {
                   <p className='text-xs mt-1 text-gray-500'>
                     Search by: Full number (CG04AA1234), Series (AA4793), or Last 4 digits (4793)
                   </p>
+                </div>
+
+                {/* Owner Name */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Owner Name
+                  </label>
+                  <input
+                    type='text'
+                    name='ownerName'
+                    value={formData.ownerName}
+                    onChange={handleChange}
+                    placeholder='Enter owner name'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent'
+                  />
                 </div>
 
                 {/* Mobile Number */}

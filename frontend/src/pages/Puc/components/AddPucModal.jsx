@@ -9,6 +9,7 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 const AddPucModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
+    ownerName: '',
     mobileNumber: '',
     validFrom: '',
     validTo: '',
@@ -30,6 +31,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit }) => {
     if (!isOpen) {
       setFormData({
         vehicleNumber: '',
+        ownerName: '',
         mobileNumber: '',
         validFrom: '',
         validTo: '',
@@ -108,6 +110,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit }) => {
             setFormData(prev => ({
               ...prev,
               vehicleNumber: vehicleData.registrationNumber,
+              ownerName: vehicleData.ownerName || prev.ownerName,
               mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
             }))
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -155,6 +158,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit }) => {
     setFormData(prev => ({
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
+      ownerName: vehicle.ownerName || prev.ownerName,
       mobileNumber: vehicle.mobileNumber || prev.mobileNumber
     }))
     setShowVehicleDropdown(false)
@@ -329,6 +333,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit }) => {
     }
     setFormData({
       vehicleNumber: '',
+      ownerName: '',
       mobileNumber: '',
       validFrom: '',
       validTo: '',
@@ -378,7 +383,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit }) => {
                 Vehicle Details
               </h3>
 
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
                 {/* Vehicle Number */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -462,6 +467,21 @@ const AddPucModal = ({ isOpen, onClose, onSubmit }) => {
                   <p className='text-xs mt-1 text-gray-500'>
                     Search by: Full number (CG04AA1234), Series (AA4793), or Last 4 digits (4793)
                   </p>
+                </div>
+
+                {/* Owner Name */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Owner Name
+                  </label>
+                  <input
+                    type='text'
+                    name='ownerName'
+                    value={formData.ownerName}
+                    onChange={handleChange}
+                    placeholder='Enter owner name'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent'
+                  />
                 </div>
 
                 {/* Mobile Number */}
