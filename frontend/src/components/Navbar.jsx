@@ -5,7 +5,18 @@ import { getTheme } from "../context/ThemeContext";
 const Navbar = () => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
   const theme = getTheme();
+
+  const handleDropdownEnter = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDropdownPosition({
+      top: rect.bottom + 2, // Small gap
+      right: window.innerWidth - rect.right - 40, // Shift 40px more to the right
+    });
+    setIsDropdownOpen(true);
+  };
 
   const menuItems = [
     {
@@ -113,6 +124,27 @@ const Navbar = () => {
       description: "App Settings",
     },
   ];
+
+  // Dropdown items for desktop (Forms and Settings)
+  const dropdownItems = [
+    {
+      name: "Forms",
+      icon: "📋",
+      path: "/forms",
+      description: "RTO Forms",
+    },
+    {
+      name: "setting",
+      icon: "⚙️",
+      path: "/setting",
+      description: "App Settings",
+    },
+  ];
+
+  // Desktop menu items (all except Forms and Settings)
+  const desktopMenuItems = menuItems.filter(
+    (item) => item.path !== "/forms" && item.path !== "/setting"
+  );
 
   const isActive = (path) => location.pathname === path;
 
@@ -253,8 +285,8 @@ const Navbar = () => {
       <nav className={`hidden lg:block fixed top-0 left-0 right-0 ${theme.navbar} text-white shadow-2xl z-50`}>
         <div className="px-3 2xl:px-4 py-2 2xl:py-3">
           {/* Menu Items - Horizontal with responsive sizing */}
-          <div className="flex items-center gap-1.5 2xl:gap-2 overflow-x-auto scrollbar-hide">
-            {menuItems.map((item) => (
+          <div className="flex items-center gap-1.5 2xl:gap-2.5 overflow-x-auto scrollbar-hide">
+            {desktopMenuItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -293,9 +325,106 @@ const Navbar = () => {
                 )}
               </Link>
             ))}
+
+            {/* Dropdown Menu */}
+            <div
+              className="relative flex-shrink-0"
+              onMouseEnter={handleDropdownEnter}
+              onMouseLeave={() => {
+                console.log("Mouse left dropdown area");
+                setIsDropdownOpen(false);
+              }}
+            >
+              {/* Dropdown Trigger - Downward Arrow */}
+              <button
+                className={`flex items-center justify-center px-2 2xl:px-3 py-1.5 2xl:py-2 rounded-lg transition-all duration-200 border ${
+                  isDropdownOpen
+                    ? "bg-white/10 border-purple-400/20"
+                    : "hover:bg-white/10 border-transparent hover:border-purple-400/20"
+                }`}
+                title="More Options"
+                type="button"
+              >
+                <svg
+                  className={`w-4 h-4 2xl:w-5 2xl:h-5 transition-colors ${
+                    isDropdownOpen
+                      ? "text-orange-300"
+                      : "text-purple-200 hover:text-orange-300"
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </nav>
+
+      {/* Dropdown Content - Fixed positioning outside overflow container */}
+      {isDropdownOpen && (
+        <div
+          className="fixed z-[100]"
+          style={{
+            top: `${dropdownPosition.top - 4}px`,
+            right: `${dropdownPosition.right}px`,
+          }}
+          onMouseEnter={() => setIsDropdownOpen(true)}
+          onMouseLeave={() => setIsDropdownOpen(false)}
+        >
+          {/* Invisible bridge to prevent dropdown from closing */}
+          <div className="h-2 w-full"></div>
+
+          <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 rounded-lg shadow-2xl border border-purple-400/20 w-[150px] overflow-hidden">
+            {dropdownItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setIsDropdownOpen(false)}
+                className={`flex items-center gap-2 px-3 py-2.5 transition-all duration-200 group/item ${
+                  isActive(item.path)
+                    ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border-l-4 border-orange-400"
+                    : "hover:bg-white/10 border-l-4 border-transparent hover:border-purple-400/40"
+                }`}
+              >
+                <span
+                  className={`text-base ${
+                    isActive(item.path)
+                      ? "text-orange-300"
+                      : "text-purple-200 group-hover/item:text-orange-300"
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                <div className="flex-1">
+                  <div
+                    className={`text-xs font-semibold ${
+                      isActive(item.path)
+                        ? "text-white"
+                        : "text-purple-100 group-hover/item:text-white"
+                    }`}
+                  >
+                    {item.name}
+                  </div>
+                  <div className="text-[10px] text-purple-400 group-hover/item:text-purple-300">
+                    {item.description}
+                  </div>
+                </div>
+                {isActive(item.path) && (
+                  <div className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></div>
+                )}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 };
