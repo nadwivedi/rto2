@@ -14,6 +14,10 @@ const fitnessSchema = new mongoose.Schema({
     uppercase: true,
     trim: true,
   },
+  ownerName: {
+    type: String,
+    trim: true
+  },
   mobileNumber: {
     type: String,
     trim: true

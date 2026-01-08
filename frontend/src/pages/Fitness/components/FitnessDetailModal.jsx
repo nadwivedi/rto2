@@ -45,6 +45,12 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
                   <label className='text-xs font-semibold text-gray-600 block mb-1'>Vehicle Number</label>
                   <p className='text-sm md:text-base font-bold text-gray-900 font-mono'>{fitness.vehicleNumber}</p>
                 </div>
+                {fitness.ownerName && (
+                  <div className='bg-white/70 p-3 rounded-lg'>
+                    <label className='text-xs font-semibold text-gray-600 block mb-1'>Owner Name</label>
+                    <p className='text-sm md:text-base font-bold text-gray-900'>{fitness.ownerName}</p>
+                  </div>
+                )}
                 {fitness.mobileNumber && (
                   <div className='bg-white/70 p-3 rounded-lg'>
                     <label className='text-xs font-semibold text-gray-600 block mb-1'>Mobile Number</label>

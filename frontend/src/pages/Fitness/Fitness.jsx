@@ -85,6 +85,7 @@ const Fitness = () => {
           id: record._id,
           _id: record._id, // Keep _id for edit/delete operations
           vehicleNumber: record.vehicleNumber,
+          ownerName: record.ownerName,
           mobileNumber: record.mobileNumber,
           validFrom: record.validFrom,
           validTo: record.validTo,
@@ -154,6 +155,7 @@ const Fitness = () => {
     try {
       const response = await axios.post(`${API_URL}/api/fitness`, {
         vehicleNumber: formData.vehicleNumber,
+        ownerName: formData.ownerName,
         mobileNumber: formData.mobileNumber,
         validFrom: formData.validFrom,
         validTo: formData.validTo,
@@ -701,6 +703,9 @@ const Fitness = () => {
                       Vehicle Number
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
+                      Owner Name
+                    </th>
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Valid From
                     </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
@@ -783,6 +788,13 @@ const Fitness = () => {
                                 {record.mobileNumber}
                               </div>
                             )}
+                          </div>
+                        </td>
+
+                        {/* Owner Name */}
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          <div className="text-[11px] 2xl:text-sm font-semibold text-gray-800">
+                            {record.ownerName || 'N/A'}
                           </div>
                         </td>
 

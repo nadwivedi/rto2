@@ -9,6 +9,7 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     vehicleNumber: '',
+    ownerName: '',
     mobileNumber: '',
     validFrom: '',
     validTo: '',
@@ -37,6 +38,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     if (!isOpen) {
       setFormData({
         vehicleNumber: '',
+        ownerName: '',
         mobileNumber: '',
         validFrom: '',
         validTo: '',
@@ -131,6 +133,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
             setFormData(prev => ({
               ...prev,
               vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
+              ownerName: vehicleData.ownerName || '',
               mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
             }));
             // Validate the full vehicle number
@@ -181,6 +184,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
     setFormData(prev => ({
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
+      ownerName: vehicle.ownerName || '',
       mobileNumber: vehicle.mobileNumber || prev.mobileNumber
     }));
     setShowVehicleDropdown(false);
@@ -594,6 +598,22 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit }) => {
                   onKeyDown={handleInputKeyDown}
                   placeholder='10-digit number'
                   maxLength='10'
+                  tabIndex="3"
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-800'
+                />
+              </div>
+               {/* Owner Name */}
+               <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  Owner Name
+                </label>
+                <input
+                  type='text'
+                  name='ownerName'
+                  value={formData.ownerName}
+                  onChange={handleChange}
+                  onKeyDown={handleInputKeyDown}
+                  placeholder='Owner Name'
                   tabIndex="2"
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-gray-800'
                 />
