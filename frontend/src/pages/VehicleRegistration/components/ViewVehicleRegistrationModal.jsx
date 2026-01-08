@@ -76,6 +76,193 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
             </div>
           )}
 
+          {/* Vehicle Related Documents Section */}
+          {(selectedRegistration.fitness || selectedRegistration.tax || selectedRegistration.insurance || selectedRegistration.puc) && (
+            <div className='mb-4 bg-gradient-to-br from-orange-50 to-amber-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-orange-200'>
+              <h3 className='text-sm md:text-base font-bold text-orange-900 mb-3 flex items-center gap-2'>
+                <svg className='w-4 h-4 text-orange-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                </svg>
+                Vehicle Documents & Compliance
+              </h3>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
+                {/* Fitness Card */}
+                {selectedRegistration.fitness && (
+                  <div className='bg-white rounded-lg p-3 border-2 border-green-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-2 mb-2'>
+                      <div className='bg-green-100 p-1.5 rounded-lg'>
+                        <svg className='w-4 h-4 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                      </div>
+                      <h4 className='text-sm font-bold text-green-900'>Fitness</h4>
+                    </div>
+                    <div className='space-y-1.5'>
+                      <div className='bg-green-50 p-2 rounded'>
+                        <p className='text-[9px] text-green-600 font-semibold uppercase'>Valid From</p>
+                        <p className='text-xs font-bold text-green-900'>{selectedRegistration.fitness.validFrom}</p>
+                      </div>
+                      <div className='bg-green-50 p-2 rounded'>
+                        <p className='text-[9px] text-green-600 font-semibold uppercase'>Valid To</p>
+                        <p className='text-xs font-bold text-green-900'>{selectedRegistration.fitness.validTo}</p>
+                      </div>
+                      <div className='bg-green-50 p-2 rounded'>
+                        <p className='text-[9px] text-green-600 font-semibold uppercase'>Status</p>
+                        <p className='text-xs font-bold text-green-900 capitalize'>{selectedRegistration.fitness.status}</p>
+                      </div>
+                      <div className='grid grid-cols-3 gap-1'>
+                        <div className='bg-blue-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-blue-600 font-semibold'>Total</p>
+                          <p className='text-[10px] font-bold text-blue-900'>₹{selectedRegistration.fitness.totalFee}</p>
+                        </div>
+                        <div className='bg-green-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-green-600 font-semibold'>Paid</p>
+                          <p className='text-[10px] font-bold text-green-900'>₹{selectedRegistration.fitness.paid}</p>
+                        </div>
+                        <div className='bg-red-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-red-600 font-semibold'>Balance</p>
+                          <p className='text-[10px] font-bold text-red-900'>₹{selectedRegistration.fitness.balance}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Tax Card */}
+                {selectedRegistration.tax && (
+                  <div className='bg-white rounded-lg p-3 border-2 border-blue-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-2 mb-2'>
+                      <div className='bg-blue-100 p-1.5 rounded-lg'>
+                        <svg className='w-4 h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                      </div>
+                      <h4 className='text-sm font-bold text-blue-900'>Tax</h4>
+                    </div>
+                    <div className='space-y-1.5'>
+                      <div className='bg-blue-50 p-2 rounded'>
+                        <p className='text-[9px] text-blue-600 font-semibold uppercase'>Tax From</p>
+                        <p className='text-xs font-bold text-blue-900'>{selectedRegistration.tax.taxFrom}</p>
+                      </div>
+                      <div className='bg-blue-50 p-2 rounded'>
+                        <p className='text-[9px] text-blue-600 font-semibold uppercase'>Tax To</p>
+                        <p className='text-xs font-bold text-blue-900'>{selectedRegistration.tax.taxTo}</p>
+                      </div>
+                      <div className='bg-blue-50 p-2 rounded'>
+                        <p className='text-[9px] text-blue-600 font-semibold uppercase'>Status</p>
+                        <p className='text-xs font-bold text-blue-900 capitalize'>{selectedRegistration.tax.status}</p>
+                      </div>
+                      <div className='grid grid-cols-3 gap-1'>
+                        <div className='bg-blue-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-blue-600 font-semibold'>Total</p>
+                          <p className='text-[10px] font-bold text-blue-900'>₹{selectedRegistration.tax.totalAmount}</p>
+                        </div>
+                        <div className='bg-green-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-green-600 font-semibold'>Paid</p>
+                          <p className='text-[10px] font-bold text-green-900'>₹{selectedRegistration.tax.paidAmount}</p>
+                        </div>
+                        <div className='bg-red-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-red-600 font-semibold'>Balance</p>
+                          <p className='text-[10px] font-bold text-red-900'>₹{selectedRegistration.tax.balanceAmount}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Insurance Card */}
+                {selectedRegistration.insurance && (
+                  <div className='bg-white rounded-lg p-3 border-2 border-purple-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-2 mb-2'>
+                      <div className='bg-purple-100 p-1.5 rounded-lg'>
+                        <svg className='w-4 h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
+                        </svg>
+                      </div>
+                      <h4 className='text-sm font-bold text-purple-900'>Insurance</h4>
+                    </div>
+                    <div className='space-y-1.5'>
+                      {selectedRegistration.insurance.policyNumber && (
+                        <div className='bg-purple-50 p-2 rounded'>
+                          <p className='text-[9px] text-purple-600 font-semibold uppercase'>Policy No.</p>
+                          <p className='text-xs font-bold text-purple-900'>{selectedRegistration.insurance.policyNumber}</p>
+                        </div>
+                      )}
+                      <div className='bg-purple-50 p-2 rounded'>
+                        <p className='text-[9px] text-purple-600 font-semibold uppercase'>Valid From</p>
+                        <p className='text-xs font-bold text-purple-900'>{selectedRegistration.insurance.validFrom}</p>
+                      </div>
+                      <div className='bg-purple-50 p-2 rounded'>
+                        <p className='text-[9px] text-purple-600 font-semibold uppercase'>Valid To</p>
+                        <p className='text-xs font-bold text-purple-900'>{selectedRegistration.insurance.validTo}</p>
+                      </div>
+                      <div className='bg-purple-50 p-2 rounded'>
+                        <p className='text-[9px] text-purple-600 font-semibold uppercase'>Status</p>
+                        <p className='text-xs font-bold text-purple-900 capitalize'>{selectedRegistration.insurance.status}</p>
+                      </div>
+                      <div className='grid grid-cols-3 gap-1'>
+                        <div className='bg-blue-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-blue-600 font-semibold'>Total</p>
+                          <p className='text-[10px] font-bold text-blue-900'>₹{selectedRegistration.insurance.totalFee}</p>
+                        </div>
+                        <div className='bg-green-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-green-600 font-semibold'>Paid</p>
+                          <p className='text-[10px] font-bold text-green-900'>₹{selectedRegistration.insurance.paid}</p>
+                        </div>
+                        <div className='bg-red-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-red-600 font-semibold'>Balance</p>
+                          <p className='text-[10px] font-bold text-red-900'>₹{selectedRegistration.insurance.balance}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* PUC Card */}
+                {selectedRegistration.puc && (
+                  <div className='bg-white rounded-lg p-3 border-2 border-teal-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-2 mb-2'>
+                      <div className='bg-teal-100 p-1.5 rounded-lg'>
+                        <svg className='w-4 h-4 text-teal-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9' />
+                        </svg>
+                      </div>
+                      <h4 className='text-sm font-bold text-teal-900'>PUC</h4>
+                    </div>
+                    <div className='space-y-1.5'>
+                      <div className='bg-teal-50 p-2 rounded'>
+                        <p className='text-[9px] text-teal-600 font-semibold uppercase'>Valid From</p>
+                        <p className='text-xs font-bold text-teal-900'>{selectedRegistration.puc.validFrom}</p>
+                      </div>
+                      <div className='bg-teal-50 p-2 rounded'>
+                        <p className='text-[9px] text-teal-600 font-semibold uppercase'>Valid To</p>
+                        <p className='text-xs font-bold text-teal-900'>{selectedRegistration.puc.validTo}</p>
+                      </div>
+                      <div className='bg-teal-50 p-2 rounded'>
+                        <p className='text-[9px] text-teal-600 font-semibold uppercase'>Status</p>
+                        <p className='text-xs font-bold text-teal-900 capitalize'>{selectedRegistration.puc.status}</p>
+                      </div>
+                      <div className='grid grid-cols-3 gap-1'>
+                        <div className='bg-blue-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-blue-600 font-semibold'>Total</p>
+                          <p className='text-[10px] font-bold text-blue-900'>₹{selectedRegistration.puc.totalFee}</p>
+                        </div>
+                        <div className='bg-green-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-green-600 font-semibold'>Paid</p>
+                          <p className='text-[10px] font-bold text-green-900'>₹{selectedRegistration.puc.paid}</p>
+                        </div>
+                        <div className='bg-red-50 p-1.5 rounded text-center'>
+                          <p className='text-[8px] text-red-600 font-semibold'>Balance</p>
+                          <p className='text-[10px] font-bold text-red-900'>₹{selectedRegistration.puc.balance}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className='grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4'>
             {/* Column 1: Registration & Vehicle Details */}
             <div className='bg-gradient-to-br from-indigo-50 to-purple-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-indigo-200 flex flex-col'>

@@ -1,4 +1,8 @@
 const VehicleRegistration = require('../models/VehicleRegistration')
+const Fitness = require('../models/Fitness')
+const Tax = require('../models/Tax')
+const Insurance = require('../models/Insurance')
+const Puc = require('../models/Puc')
 const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 
 // Get all vehicle registrations
@@ -37,10 +41,57 @@ exports.getAllRegistrations = async (req, res) => {
       .limit(limitNum)
       .lean() // Convert to plain JavaScript objects for better performance
 
+    // Fetch related fitness, tax, PUC, and insurance data for each vehicle
+    const registrationsWithDetails = await Promise.all(
+      registrations.map(async (registration) => {
+        const vehicleNumber = registration.registrationNumber || registration.vehicleNumber
+
+        // Fetch latest fitness record
+        const latestFitness = await Fitness.findOne({
+          vehicleNumber: vehicleNumber,
+          userId: req.user.id
+        })
+          .sort({ createdAt: -1 })
+          .lean()
+
+        // Fetch latest tax record
+        const latestTax = await Tax.findOne({
+          vehicleNumber: vehicleNumber,
+          userId: req.user.id
+        })
+          .sort({ createdAt: -1 })
+          .lean()
+
+        // Fetch latest insurance record
+        const latestInsurance = await Insurance.findOne({
+          vehicleNumber: vehicleNumber,
+          userId: req.user.id
+        })
+          .sort({ createdAt: -1 })
+          .lean()
+
+        // Fetch latest PUC record
+        const latestPuc = await Puc.findOne({
+          vehicleNumber: vehicleNumber,
+          userId: req.user.id
+        })
+          .sort({ createdAt: -1 })
+          .lean()
+
+        return {
+          ...registration,
+          fitness: latestFitness,
+          tax: latestTax,
+          insurance: latestInsurance,
+          puc: latestPuc
+        }
+      })
+    )
+
     res.json({
       success: true,
-      count: registrations.length,
-      data: registrations,
+      count: registrationsWithDetails.length,
+      data: registrationsWithDetails,
       pagination: {
         currentPage: pageNum,
         totalPages,
