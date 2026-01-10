@@ -54,7 +54,7 @@ exports.login = async (req, res) => {
           message: 'Please provide a valid 10-digit mobile number'
         })
       }
-      user = await User.findOne({ mobile: trimmedIdentifier })
+      user = await User.findOne({ mobile1: trimmedIdentifier })
     }
 
 
@@ -90,7 +90,8 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       {
         id: user._id,
-        mobile: user.mobile,
+        mobile1: user.mobile1,
+        mobile2: user.mobile2,
         email: user.email,
         name: user.name,
         type: 'user'
