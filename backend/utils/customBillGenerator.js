@@ -300,10 +300,12 @@ async function generateCustomBillPDF(customBill, userInfo) {
       if (customBill.items && customBill.items.length > 0) {
         customBill.items.forEach((item, index) => {
           // SI No
-          doc.text((index + 1).toString(), colX.slNo + 5, itemY, {
-            width: 30,
-            align: 'center'
-          })
+          if (item.slNo) {
+            doc.text(item.slNo.toString(), colX.slNo + 5, itemY, {
+              width: 30,
+              align: 'center'
+            })
+          }
 
           // Description (handle multiline)
           const description = (item.description || '').toUpperCase()
@@ -321,7 +323,13 @@ async function generateCustomBillPDF(customBill, userInfo) {
             })
           }
 
-          // Rate - leave empty (don't display any value)
+          // Rate
+          if (item.rate) {
+            doc.text(item.rate.toLocaleString('en-IN'), colX.rate, itemY, {
+              width: 60,
+              align: 'center'
+            })
+          }
 
           // Amount
           if (item.amount) {

@@ -19,10 +19,16 @@ const Navbar = () => {
   };
 
   const menuItems = [
+    // {
+    //   name: "",
+    //   icon: "📊",
+    //   path: "/",
+    //   description: "Overview & Expiring Items",
+    // },
     {
       name: "Vehicle +",
       icon: "🚗",
-      path: "/",
+      path: "/vehicle-registration",
       description: "Register Vehicles",
     },
 

@@ -11,9 +11,9 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
   }))
   const [customerName, setCustomerName] = useState('')
   const [items, setItems] = useState([
-    { description: '', quantity: '', rate: '', amount: '' },
-    { description: '', quantity: '', rate: '', amount: '' },
-    { description: '', quantity: '', rate: '', amount: '' }
+    { slNo: '1', description: '', quantity: '', rate: '', amount: '' },
+    { slNo: '2', description: '', quantity: '', rate: '', amount: '' },
+    { slNo: '3', description: '', quantity: '', rate: '', amount: '' }
   ])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -65,11 +65,11 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
     if (emptyIndex !== -1) {
       // Fill the empty row
       const newItems = [...items]
-      newItems[emptyIndex] = { description, quantity: '', rate: '', amount: '' }
+      newItems[emptyIndex] = { slNo: (emptyIndex + 1).toString(), description, quantity: '', rate: '', amount: '' }
       setItems(newItems)
     } else {
       // All rows filled, add new row
-      setItems([...items, { description, quantity: '', rate: '', amount: '' }])
+      setItems([...items, { slNo: (items.length + 1).toString(), description, quantity: '', rate: '', amount: '' }])
     }
   }
 
@@ -126,7 +126,7 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
 
   // Add new custom item row
   const addItem = () => {
-    setItems([...items, { description: '', quantity: '', rate: '', amount: '' }])
+    setItems([...items, { slNo: (items.length + 1).toString(), description: '', quantity: '', rate: '', amount: '' }])
   }
 
   // Remove item row
@@ -162,6 +162,7 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
         billDate,
         customerName: customerName.trim(),
         items: filledItems.map(item => ({
+          slNo: item.slNo,
           description: item.description.trim(),
           quantity: item.quantity ? parseFloat(item.quantity) : '',
           rate: item.rate ? parseFloat(item.rate) : '',
@@ -188,9 +189,9 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
       }))
       setCustomerName('')
       setItems([
-        { description: '', quantity: '', rate: '', amount: '' },
-        { description: '', quantity: '', rate: '', amount: '' },
-        { description: '', quantity: '', rate: '', amount: '' }
+        { slNo: '1', description: '', quantity: '', rate: '', amount: '' },
+        { slNo: '2', description: '', quantity: '', rate: '', amount: '' },
+        { slNo: '3', description: '', quantity: '', rate: '', amount: '' }
       ])
 
       onSuccess && onSuccess(data.data)
@@ -345,8 +346,13 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
               <tbody>
                 {items.map((item, index) => (
                   <tr key={index}>
-                    <td className='border border-black px-1.5 2xl:px-2 text-center align-top pt-1.5 2xl:pt-2 text-[10.5px] 2xl:text-sm font-bold text-blue-600'>
-                      {index + 1}
+                    <td className='border border-black px-1.5 2xl:px-2 text-center align-top pt-1.5 2xl:pt-2'>
+                      <input
+                        type='text'
+                        value={item.slNo}
+                        onChange={(e) => handleItemChange(index, 'slNo', e.target.value)}
+                        className='w-full text-[10.5px] 2xl:text-sm text-center px-1 py-0.5 focus:outline-none focus:bg-yellow-50 font-bold text-blue-600'
+                      />
                     </td>
                     <td className='border border-black px-1.5 2xl:px-2 align-top pt-1.5 2xl:pt-2'>
                       <textarea

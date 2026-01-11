@@ -25,6 +25,9 @@ const customBillSchema = new mongoose.Schema(
     items: [
       {
         _id: false,
+        slNo: {
+          type: String
+        },
         description: {
           type: String,
           required: true

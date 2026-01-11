@@ -23,6 +23,7 @@ import Forms from './pages/forms/Forms'
 import Form20 from './pages/Form20'
 import Puc from './pages/Puc/Puc'
 import Gps from './pages/Gps/Gps'
+import Dashboard from './pages/Dashboard/Dashboard'
 
 function App() {
   return (
@@ -48,7 +49,7 @@ function App() {
                     {/* Page Content */}
                     <main>
                       <Routes>
-                        <Route path='/' element={<VehicleRegistration />} />
+                        <Route path='/' element={<Dashboard />} />
                         <Route path='/driving' element={<DrivingLicence />} />
                         <Route path='/setting' element={<Setting />} />
                         <Route path='/national-permit' element={<NationalPermit />} />
