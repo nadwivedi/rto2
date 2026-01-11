@@ -193,75 +193,59 @@ const Dashboard = () => {
 
         {/* Module Sections */}
         <div className='grid grid-cols-2 gap-2 lg:gap-4'>
-          {expiringRecords.fitness.length > 0 && (
-            <DashboardModuleSection
-              title='Fitness'
-              icon='✅'
-              color='red'
-              records={expiringRecords.fitness}
-              viewAllLink='/fitness'
-              emptyMessage='No fitness certificates expiring in the next 30 days'
-            />
-          )}
+          <DashboardModuleSection
+            title='Fitness'
+            icon='✅'
+            color='red'
+            records={expiringRecords.fitness}
+            viewAllLink='/fitness'
+            emptyMessage='No fitness certificates expiring in the next 30 days'
+          />
 
-          {expiringRecords.tax.length > 0 && (
-            <DashboardModuleSection
-              title='Tax'
-              icon='💰'
-              color='yellow'
-              records={expiringRecords.tax}
-              viewAllLink='/tax'
-              emptyMessage='No tax certificates expiring in the next 15 days'
-            />
-          )}
+          <DashboardModuleSection
+            title='Tax'
+            icon='💰'
+            color='yellow'
+            records={expiringRecords.tax}
+            viewAllLink='/tax'
+            emptyMessage='No tax certificates expiring in the next 15 days'
+          />
 
-          {expiringRecords.puc.length > 0 && (
-            <DashboardModuleSection
-              title='PUC'
-              icon='💨'
-              color='teal'
-              records={expiringRecords.puc}
-              viewAllLink='/puc'
-              emptyMessage='No PUC certificates expiring in the next 30 days'
-            />
-          )}
+          <DashboardModuleSection
+            title='PUC'
+            icon='💨'
+            color='teal'
+            records={expiringRecords.puc}
+            viewAllLink='/puc'
+            emptyMessage='No PUC certificates expiring in the next 30 days'
+          />
 
-          {expiringRecords.gps.length > 0 && (
-            <DashboardModuleSection
-              title='GPS'
-              icon='📍'
-              color='purple'
-              records={expiringRecords.gps}
-              viewAllLink='/gps'
-              emptyMessage='No GPS devices expiring in the next 30 days'
-            />
-          )}
+          <DashboardModuleSection
+            title='GPS'
+            icon='📍'
+            color='purple'
+            records={expiringRecords.gps}
+            viewAllLink='/gps'
+            emptyMessage='No GPS devices expiring in the next 30 days'
+          />
 
-          {expiringRecords.busPermit.length > 0 && (
-            <DashboardModuleSection
-              title='Bus Permit'
-              icon='🚌'
-              color='orange'
-              records={expiringRecords.busPermit}
-              viewAllLink='/bus-permit'
-              emptyMessage='No bus permits expiring in the next 30 days'
-            />
-          )}
+          <DashboardModuleSection
+            title='NP'
+            icon='🗺️'
+            color='indigo'
+            records={expiringRecords.nationalPermit}
+            viewAllLink='/national-permit'
+            emptyMessage='No national permits expiring in the next 30 days'
+          />
 
-          {totalExpiring === 0 && (
-            <div className='bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden'>
-              <div className='p-16 text-center'>
-                <div className='w-32 h-32 bg-gradient-to-br from-green-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl'>
-                  <svg className='w-16 h-16 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={3} d='M5 13l4 4L19 7' />
-                  </svg>
-                </div>
-                <h2 className='text-3xl font-black text-gray-900 mb-3'>All Clear!</h2>
-                <p className='text-gray-600 text-lg mb-2'>No certificates or permits expiring in the next 30 days</p>
-                <p className='text-gray-500 text-sm'>Your fleet is up to date 🎉</p>
-              </div>
-            </div>
-          )}
+          <DashboardModuleSection
+            title='Bus Permit'
+            icon='🚌'
+            color='orange'
+            records={expiringRecords.busPermit}
+            viewAllLink='/bus-permit'
+            emptyMessage='No bus permits expiring in the next 30 days'
+          />
         </div>
       </div>
     </div>

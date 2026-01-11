@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { formatDate, getDaysRemaining } from '../../../utils/dateHelpers'
 import { getVehicleNumberParts } from '../../../utils/vehicleNoCheck'
@@ -12,6 +13,7 @@ const DashboardModuleSection = ({
   loading
 }) => {
   const navigate = useNavigate()
+  const [showAll, setShowAll] = useState(false)
 
   const colorClasses = {
     red: {
@@ -55,33 +57,35 @@ const DashboardModuleSection = ({
   const getDaysRemainingBadge = (validTo) => {
     const days = getDaysRemaining(validTo)
     if (days < 0) {
-      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 lg:px-2 lg:py-1'>Expired</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-extrabold bg-red-100 text-red-700 lg:px-2 lg:py-1'>Expired</span>
     }
     if (days <= 7) {
-      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 lg:px-2 lg:py-1'>{days}d</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-extrabold bg-red-100 text-red-700 lg:px-2 lg:py-1'>{days}d</span>
     }
     if (days <= 15) {
-      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700 lg:px-2 lg:py-1'>{days}d</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-extrabold bg-orange-100 text-orange-700 lg:px-2 lg:py-1'>{days}d</span>
     }
-    return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 lg:px-2 lg:py-1'>{days}d</span>
+    return <span className='px-1.5 py-0.5 rounded-full text-xs font-extrabold bg-yellow-100 text-yellow-700 lg:px-2 lg:py-1'>{days}d</span>
   }
 
-  const formatVehicleNumber = (vehicleNumber) => {
+  const formatVehicleNumber = (vehicleNumber, isMobile = false) => {
     const parts = getVehicleNumberParts(vehicleNumber)
     if (parts) {
       return (
-        <div className='flex items-center gap-0.5 font-mono font-bold text-xs lg:text-sm'>
-          <svg className='w-3 h-3 mr-0.5 text-blue-800' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' />
-          </svg>
-          <span className='text-blue-900 text-sm'>{parts.stateCode}</span>
-          <span className='text-blue-700 text-sm'>{parts.districtCode}</span>
-          <span className='text-gray-600 text-sm'>{parts.series}</span>
-          <span className='text-gray-900 font-black text-sm'>{parts.last4Digits}</span>
+        <div className='flex items-center gap-0.5 font-mono font-bold'>
+          {!isMobile && (
+            <svg className='w-3 h-3 mr-0.5 text-blue-800' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' />
+            </svg>
+          )}
+          <span className={`text-blue-900 ${isMobile ? 'text-xs' : 'text-sm'}`}>{parts.stateCode}</span>
+          <span className={`text-blue-700 ${isMobile ? 'text-xs' : 'text-sm'}`}>{parts.districtCode}</span>
+          <span className={`text-gray-600 ${isMobile ? 'text-xs' : 'text-sm'}`}>{parts.series}</span>
+          <span className={`text-gray-900 font-black ${isMobile ? 'text-xs' : 'text-sm'}`}>{parts.last4Digits}</span>
         </div>
       )
     }
-    return <span className='font-mono font-bold text-sm'>{vehicleNumber}</span>
+    return <span className={`font-mono font-bold ${isMobile ? 'text-xs' : 'text-sm'}`}>{vehicleNumber}</span>
   }
 
   if (loading) {
@@ -144,23 +148,21 @@ const DashboardModuleSection = ({
 
       {/* Mobile Card View */}
       <div className='block lg:hidden p-1.5 space-y-2'>
-        {records.slice(0, 10).map((record, index) => (
+        {records.slice(0, showAll ? records.length : 3).map((record, index) => (
           <div key={index} className='bg-white rounded-lg p-2.5 border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all duration-200'>
-            {/* Vehicle Number */}
-            <div className='mb-2 pb-1.5 border-b border-gray-200'>
-              {formatVehicleNumber(record.vehicleNumber)}
-            </div>
-
-            {/* Owner Name & Days Left - Same Row */}
-            <div className='flex items-center justify-between mb-1.5'>
-              <div className='flex items-center gap-1 flex-1 min-w-0'>
-                <svg className='w-2.5 h-2.5 text-gray-400 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
-                </svg>
-                <span className='text-[10px] font-semibold text-gray-800 truncate'>{record.ownerName}</span>
-              </div>
+            {/* Vehicle Number & Days Left - Same Row */}
+            <div className='flex items-center justify-between mb-2 pb-1.5 border-b border-gray-200'>
+              {formatVehicleNumber(record.vehicleNumber, true)}
               {/* Days Badge */}
               {getDaysRemainingBadge(record.validTo)}
+            </div>
+
+            {/* Owner Name */}
+            <div className='flex items-center gap-1 mb-1.5'>
+              <svg className='w-2.5 h-2.5 text-gray-400 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+              </svg>
+              <span className='text-[10px] font-semibold text-gray-800 truncate'>{record.ownerName}</span>
             </div>
 
             {/* Expiry Date & Balance */}
@@ -176,6 +178,30 @@ const DashboardModuleSection = ({
             </div>
           </div>
         ))}
+
+        {/* Show More Button for Mobile */}
+        {records.length > 3 && (
+          <button
+            onClick={() => setShowAll(!showAll)}
+            className='w-full py-2 mt-2 flex items-center justify-center gap-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200'
+          >
+            {showAll ? (
+              <>
+                Show Less
+                <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' />
+                </svg>
+              </>
+            ) : (
+              <>
+                Show More ({records.length - 3} more)
+                <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                </svg>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Desktop Table View */}
@@ -190,7 +216,7 @@ const DashboardModuleSection = ({
             </tr>
           </thead>
           <tbody className='bg-white divide-y divide-gray-200'>
-            {records.slice(0, 10).map((record, index) => (
+            {records.slice(0, showAll ? records.length : 3).map((record, index) => (
               <tr key={index} className='hover:bg-gray-50 transition-colors'>
                 <td className='px-6 py-4 whitespace-nowrap'>
                   {formatVehicleNumber(record.vehicleNumber)}
@@ -210,16 +236,28 @@ const DashboardModuleSection = ({
         </table>
       </div>
 
-      {records.length > 10 && (
-        <div className='px-6 py-4 bg-gray-50 border-t border-gray-200'>
+      {/* Show More Button for Desktop */}
+      {records.length > 3 && (
+        <div className='hidden lg:block px-6 py-4 bg-gray-50 border-t border-gray-200'>
           <button
-            onClick={() => navigate(viewAllLink)}
+            onClick={() => setShowAll(!showAll)}
             className={`w-full ${colorClasses[color]?.text} hover:bg-white rounded-lg py-2 font-semibold text-sm transition-all duration-200 flex items-center justify-center gap-2`}
           >
-            View All {records.length} Records
-            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-            </svg>
+            {showAll ? (
+              <>
+                Show Less
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' />
+                </svg>
+              </>
+            ) : (
+              <>
+                Show More ({records.length - 3} more)
+                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                </svg>
+              </>
+            )}
           </button>
         </div>
       )}
