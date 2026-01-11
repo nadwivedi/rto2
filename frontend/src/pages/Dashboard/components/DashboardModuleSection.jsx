@@ -116,14 +116,14 @@ const DashboardModuleSection = ({
   if (!records || records.length === 0) {
     return (
       <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden'>
-        <div className={`px-6 py-5 bg-gradient-to-r ${colorClasses[color]?.lightBg} ${colorClasses[color]?.border} border-b`}>
-          <div className='flex items-center gap-3'>
+        <div className={`px-3 py-3 lg:px-6 lg:py-5 bg-gradient-to-r ${colorClasses[color]?.lightBg} ${colorClasses[color]?.border} border-b`}>
+          <div className='flex items-center gap-2 lg:gap-3'>
             <div className={`w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br ${colorClasses[color]?.bg} rounded-xl flex items-center justify-center shadow-md text-2xl`}>
               {icon}
             </div>
             <div>
               <h2 className='text-base lg:text-xl font-bold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis'>{title}</h2>
-              <p className='text-xs text-gray-500'>Expiring in next 30 days</p>
+              <p className='text-xs text-gray-500'>0 expiring soon</p>
             </div>
           </div>
         </div>
@@ -150,7 +150,7 @@ const DashboardModuleSection = ({
             </div>
             <div>
               <h2 className='text-base lg:text-xl font-bold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis'>{title}</h2>
-              <p className='text-xs text-gray-500'>Expiring soon</p>
+              <p className='text-xs text-gray-500'>{records.length} expiring soon</p>
             </div>
           </div>
         </div>
