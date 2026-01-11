@@ -55,15 +55,15 @@ const DashboardModuleSection = ({
   const getDaysRemainingBadge = (validTo) => {
     const days = getDaysRemaining(validTo)
     if (days < 0) {
-      return <span className='px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700'>Expired</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 lg:px-2 lg:py-1'>Expired</span>
     }
     if (days <= 7) {
-      return <span className='px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700'>{days} days</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 lg:px-2 lg:py-1'>{days}d</span>
     }
     if (days <= 15) {
-      return <span className='px-2 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700'>{days} days</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700 lg:px-2 lg:py-1'>{days}d</span>
     }
-    return <span className='px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700'>{days} days</span>
+    return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 lg:px-2 lg:py-1'>{days}d</span>
   }
 
   const formatVehicleNumber = (vehicleNumber) => {
@@ -71,13 +71,13 @@ const DashboardModuleSection = ({
     if (parts) {
       return (
         <div className='flex items-center gap-0.5 font-mono font-bold text-xs lg:text-sm'>
-          <svg className='w-3 h-4 mr-0.5 text-blue-800' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+          <svg className='w-3 h-3 mr-0.5 text-blue-800' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4' />
           </svg>
-          <span className='text-blue-900'>{parts.stateCode}</span>
-          <span className='text-blue-700'>{parts.districtCode}</span>
-          <span className='text-gray-600'>{parts.series}</span>
-          <span className='text-gray-800 font-black'>{parts.last4Digits}</span>
+          <span className='text-blue-900 text-sm'>{parts.stateCode}</span>
+          <span className='text-blue-700 text-sm'>{parts.districtCode}</span>
+          <span className='text-gray-600 text-sm'>{parts.series}</span>
+          <span className='text-gray-900 font-black text-sm'>{parts.last4Digits}</span>
         </div>
       )
     }
@@ -104,11 +104,11 @@ const DashboardModuleSection = ({
       <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden'>
         <div className={`px-6 py-5 bg-gradient-to-r ${colorClasses[color]?.lightBg} ${colorClasses[color]?.border} border-b`}>
           <div className='flex items-center gap-3'>
-            <div className={`w-10 h-10 bg-gradient-to-br ${colorClasses[color]?.bg} rounded-xl flex items-center justify-center shadow-md text-2xl`}>
+            <div className={`w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br ${colorClasses[color]?.bg} rounded-xl flex items-center justify-center shadow-md text-2xl`}>
               {icon}
             </div>
             <div>
-              <h2 className='text-xl font-bold text-gray-900'>{title}</h2>
+              <h2 className='text-base lg:text-xl font-bold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis'>{title}</h2>
               <p className='text-xs text-gray-500'>Expiring in next 30 days</p>
             </div>
           </div>
@@ -128,42 +128,50 @@ const DashboardModuleSection = ({
 
   return (
     <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-300'>
-      <div className={`px-6 py-5 bg-gradient-to-r ${colorClasses[color]?.lightBg} ${colorClasses[color]?.border} border-b`}>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
-            <div className={`w-10 h-10 bg-gradient-to-br ${colorClasses[color]?.bg} rounded-xl flex items-center justify-center shadow-md text-2xl`}>
+      <div className={`px-3 py-3 lg:px-6 lg:py-5 bg-gradient-to-r ${colorClasses[color]?.lightBg} ${colorClasses[color]?.border} border-b`}>
+        <div className='flex items-center'>
+          <div className='flex items-center gap-2 lg:gap-3'>
+            <div className={`w-8 h-8 lg:w-10 lg:h-10 bg-gradient-to-br ${colorClasses[color]?.bg} rounded-xl flex items-center justify-center shadow-md text-2xl`}>
               {icon}
             </div>
             <div>
-              <h2 className='text-xl font-bold text-gray-900'>{title}</h2>
-              <p className='text-xs text-gray-500'>{records.length} {records.length === 1 ? 'record' : 'records'} expiring soon</p>
+              <h2 className='text-base lg:text-xl font-bold text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis'>{title}</h2>
+              <p className='text-xs text-gray-500'>Expiring soon</p>
             </div>
           </div>
-          <button
-            onClick={() => navigate(viewAllLink)}
-            className={`px-4 py-2 ${colorClasses[color]?.text} hover:bg-white rounded-lg font-semibold text-sm transition-all duration-200 flex items-center gap-2`}
-          >
-            View All
-            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-            </svg>
-          </button>
         </div>
       </div>
 
       {/* Mobile Card View */}
-      <div className='block lg:hidden p-4 space-y-3'>
+      <div className='block lg:hidden p-1.5 space-y-2'>
         {records.slice(0, 10).map((record, index) => (
-          <div key={index} className='bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-all'>
-            <div className='flex justify-between items-start mb-2'>
+          <div key={index} className='bg-white rounded-lg p-2.5 border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all duration-200'>
+            {/* Vehicle Number */}
+            <div className='mb-2 pb-1.5 border-b border-gray-200'>
               {formatVehicleNumber(record.vehicleNumber)}
+            </div>
+
+            {/* Owner Name & Days Left - Same Row */}
+            <div className='flex items-center justify-between mb-1.5'>
+              <div className='flex items-center gap-1 flex-1 min-w-0'>
+                <svg className='w-2.5 h-2.5 text-gray-400 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
+                </svg>
+                <span className='text-[10px] font-semibold text-gray-800 truncate'>{record.ownerName}</span>
+              </div>
+              {/* Days Badge */}
               {getDaysRemainingBadge(record.validTo)}
             </div>
-            <div className='text-sm text-gray-700 font-semibold mb-1'>{record.ownerName}</div>
-            <div className='flex justify-between items-center text-xs text-gray-500'>
-              <span>Expires: {formatDate(record.validTo)}</span>
+
+            {/* Expiry Date & Balance */}
+            <div className='flex items-center justify-between'>
+              <span className='font-medium text-[10px] text-gray-600'>{formatDate(record.validTo)}</span>
+
+              {/* Balance */}
               {record.balance > 0 && (
-                <span className='text-orange-600 font-bold'>₹{record.balance}</span>
+                <span className='px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700'>
+                  ₹{record.balance}
+                </span>
               )}
             </div>
           </div>
@@ -178,9 +186,7 @@ const DashboardModuleSection = ({
               <th className='px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider'>Vehicle</th>
               <th className='px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider'>Owner</th>
               <th className='px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider'>Mobile</th>
-              <th className='px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider'>Expires</th>
               <th className='px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider'>Days Left</th>
-              <th className='px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider'>Balance</th>
             </tr>
           </thead>
           <tbody className='bg-white divide-y divide-gray-200'>
@@ -195,18 +201,8 @@ const DashboardModuleSection = ({
                 <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-600'>
                   {record.mobileNumber || 'N/A'}
                 </td>
-                <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-600'>
-                  {formatDate(record.validTo)}
-                </td>
                 <td className='px-6 py-4 whitespace-nowrap'>
                   {getDaysRemainingBadge(record.validTo)}
-                </td>
-                <td className='px-6 py-4 whitespace-nowrap text-sm font-bold'>
-                  {record.balance > 0 ? (
-                    <span className='text-orange-600'>₹{record.balance}</span>
-                  ) : (
-                    <span className='text-green-600'>Paid</span>
-                  )}
                 </td>
               </tr>
             ))}

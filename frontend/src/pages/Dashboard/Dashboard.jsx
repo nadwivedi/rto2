@@ -110,12 +110,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-8'>
+    <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-2 lg:p-8'>
       <div className='max-w-7xl mx-auto'>
       
 
         {/* Statistics Cards */}
-        <div className='mt-14 lg:mt-14 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3 mb-8'>
+        <div className='mt-16 lg:mt-14 grid grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3 mb-4 lg:mb-8'>
           <StatisticsCard
             title='Fitness'
             value={statistics.fitness.expiringSoon || 0}
@@ -192,10 +192,10 @@ const Dashboard = () => {
         </div>
 
         {/* Module Sections */}
-        <div className='space-y-6'>
+        <div className='grid grid-cols-2 gap-2 lg:gap-4'>
           {expiringRecords.fitness.length > 0 && (
             <DashboardModuleSection
-              title='Fitness Certificates'
+              title='Fitness'
               icon='✅'
               color='red'
               records={expiringRecords.fitness}
@@ -206,7 +206,7 @@ const Dashboard = () => {
 
           {expiringRecords.tax.length > 0 && (
             <DashboardModuleSection
-              title='Tax Certificates'
+              title='Tax'
               icon='💰'
               color='yellow'
               records={expiringRecords.tax}
@@ -217,7 +217,7 @@ const Dashboard = () => {
 
           {expiringRecords.puc.length > 0 && (
             <DashboardModuleSection
-              title='PUC Certificates'
+              title='PUC'
               icon='💨'
               color='teal'
               records={expiringRecords.puc}
@@ -228,7 +228,7 @@ const Dashboard = () => {
 
           {expiringRecords.gps.length > 0 && (
             <DashboardModuleSection
-              title='GPS Devices'
+              title='GPS'
               icon='📍'
               color='purple'
               records={expiringRecords.gps}
@@ -239,7 +239,7 @@ const Dashboard = () => {
 
           {expiringRecords.busPermit.length > 0 && (
             <DashboardModuleSection
-              title='Bus Permits'
+              title='Bus Permit'
               icon='🚌'
               color='orange'
               records={expiringRecords.busPermit}
