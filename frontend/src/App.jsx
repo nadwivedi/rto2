@@ -24,6 +24,7 @@ import Form20 from './pages/Form20'
 import Puc from './pages/Puc/Puc'
 import Gps from './pages/Gps/Gps'
 import Dashboard from './pages/Dashboard/Dashboard'
+import Dashboard2 from './pages/Dashboard/Dashboard2'
 
 function App() {
   return (
@@ -50,6 +51,7 @@ function App() {
                     <main>
                       <Routes>
                         <Route path='/' element={<Dashboard />} />
+                        <Route path='/dashboard2' element={<Dashboard2 />} />
                         <Route path='/driving' element={<DrivingLicence />} />
                         <Route path='/setting' element={<Setting />} />
                         <Route path='/national-permit' element={<NationalPermit />} />

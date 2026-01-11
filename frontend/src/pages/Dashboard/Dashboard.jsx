@@ -32,65 +32,44 @@ const Dashboard = () => {
 
   const fetchAllData = async (isRefresh = false) => {
     if (isRefresh) {
-      setRefreshing(true)
+      setRefreshing(true);
     } else {
-      setLoading(true)
+      setLoading(true);
     }
 
     try {
-      const [
-        fitnessStatsRes,
-        fitnessExpiringRes,
-        taxStatsRes,
-        taxExpiringRes,
-        pucStatsRes,
-        pucExpiringRes,
-        gpsStatsRes,
-        gpsExpiringRes,
-        busPermitStatsRes,
-        busPermitExpiringRes
-      ] = await Promise.all([
-        axios.get(`${BACKEND_URL}/api/fitness/statistics`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/fitness/expiring-soon`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/tax/statistics`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/tax/expiring-soon`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/puc/statistics`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/puc/expiring-soon`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/gps/statistics`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/gps/expiring-soon`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/bus-permits/statistics`, { withCredentials: true }).catch(() => null),
-        axios.get(`${BACKEND_URL}/api/bus-permits/expiring-soon`, { withCredentials: true }).catch(() => null)
-      ])
+      const response = await axios.get(`${BACKEND_URL}/api/dashboard`, { withCredentials: true });
+      const data = response.data.data;
 
-      setStatistics({
-        fitness: fitnessStatsRes?.data?.data || { total: 0, expiringSoon: 0 },
-        tax: taxStatsRes?.data?.data || { total: 0, expiring: 0 },
-        puc: pucStatsRes?.data?.data || { total: 0, expiringSoon: 0 },
-        gps: gpsStatsRes?.data?.data || { total: 0, expiringSoon: 0 },
-        busPermit: busPermitStatsRes?.data?.data || { total: 0, expiringSoon: 0 },
+      setStatistics(data.statistics || {
+        fitness: { total: 0, expiringSoon: 0 },
+        tax: { total: 0, expiring: 0 },
+        puc: { total: 0, expiringSoon: 0 },
+        gps: { total: 0, expiringSoon: 0 },
+        busPermit: { total: 0, expiringSoon: 0 },
         nationalPermit: { total: 0, partAExpiringSoon: 0, partBExpiringSoon: 0 }
-      })
+      });
 
-      setExpiringRecords({
-        fitness: fitnessExpiringRes?.data?.data || [],
-        tax: taxExpiringRes?.data?.data || [],
-        puc: pucExpiringRes?.data?.data || [],
-        gps: gpsExpiringRes?.data?.data || [],
-        busPermit: busPermitExpiringRes?.data?.data || [],
+      setExpiringRecords(data.expiringRecords || {
+        fitness: [],
+        tax: [],
+        puc: [],
+        gps: [],
+        busPermit: [],
         nationalPermit: []
-      })
+      });
 
       if (isRefresh) {
-        toast.success('Dashboard refreshed successfully!')
+        toast.success('Dashboard refreshed successfully!');
       }
     } catch (error) {
-      console.error('Dashboard fetch error:', error)
-      toast.error('Failed to load dashboard data. Please try again.')
+      console.error('Dashboard fetch error:', error);
+      toast.error('Failed to load dashboard data. Please try again.');
     } finally {
-      setLoading(false)
-      setRefreshing(false)
+      setLoading(false);
+      setRefreshing(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchAllData()
@@ -133,20 +112,10 @@ const Dashboard = () => {
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-4 lg:p-8'>
       <div className='max-w-7xl mx-auto'>
-        {/* Header */}
-        <div className='mb-8'>
-          <h1 className='text-3xl lg:text-4xl font-black text-gray-900 flex items-center gap-3'>
-            Dashboard Overview
-            {totalExpiring > 0 && (
-              <span className='px-3 py-1 bg-red-500 text-white text-sm rounded-full animate-pulse'>
-                {totalExpiring} expiring
-              </span>
-            )}
-          </h1>
-        </div>
+      
 
         {/* Statistics Cards */}
-        <div className='grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3 mb-8'>
+        <div className='mt-14 lg:mt-14 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 lg:gap-3 mb-8'>
           <StatisticsCard
             title='Fitness'
             value={statistics.fitness.expiringSoon || 0}

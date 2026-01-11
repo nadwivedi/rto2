@@ -99,6 +99,7 @@ const vehicleTransferRoutes = require('./routes/vehicleTransfer')
 const pucRoutes = require('./routes/puc')
 const gpsRoutes = require('./routes/gpsRoutes')
 const uploadRoutes = require('./routes/upload')
+const dashboardRoutes = require('./routes/dashboard')
 
 // Use Routes
 
@@ -110,6 +111,7 @@ app.use('/api/admin/export', exportRoutes)
 
 // User routes
 app.use('/api/auth', authRoutes)
+app.use('/api/dashboard', userAuth, dashboardRoutes)
 // Protect all routes below with userAuth middleware
 app.use('/api/upload', userAuth, uploadRoutes)
 app.use('/api/driving-licenses', userAuth, drivingLicenseRoutes)
