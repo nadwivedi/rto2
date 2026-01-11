@@ -10,17 +10,32 @@ exports.getDashboardData = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user.id);
 
+    // Helper function to parse DD-MM-YYYY to Date
+    const parseDate = (dateStr) => {
+      if (!dateStr) return null;
+      const [day, month, year] = dateStr.split('-');
+      return new Date(year, month - 1, day);
+    };
+
+    // Get current date and calculate threshold dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const thirtyDaysFromNow = new Date(today);
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+    const fifteenDaysFromNow = new Date(today);
+    fifteenDaysFromNow.setDate(fifteenDaysFromNow.getDate() + 15);
+
     const [
       fitnessStats,
-      fitnessExpiring,
+      fitnessAll,
       pucStats,
-      pucExpiring,
+      pucAll,
       gpsStats,
-      gpsExpiring,
+      gpsAll,
       taxStats,
-      taxExpiring,
+      taxAll,
       busPermitStats,
-      busPermitExpiring,
+      busPermitAll,
       nationalPermitStats,
       nationalPermitExpiring
     ] = await Promise.all([
@@ -29,42 +44,68 @@ exports.getDashboardData = async (req, res) => {
         { $match: { userId } },
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]),
-      Fitness.find({ userId, status: 'expiring_soon' }).sort({ validTo: 1 }).limit(10),
+      Fitness.find({ userId }).sort({ validTo: 1 }),
 
       // PUC
       Puc.aggregate([
         { $match: { userId } },
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]),
-      Puc.find({ userId, status: 'expiring_soon' }).sort({ validTo: 1 }).limit(10),
+      Puc.find({ userId }).sort({ validTo: 1 }),
 
       // GPS
       Gps.aggregate([
         { $match: { userId } },
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]),
-      Gps.find({ userId, status: 'expiring_soon' }).sort({ validTo: 1 }).limit(10),
+      Gps.find({ userId }).sort({ validTo: 1 }),
 
       // Tax
       Tax.aggregate([
         { $match: { userId } },
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]),
-      Tax.find({ userId, status: 'expiring_soon' }).sort({ taxDueDate: 1 }).limit(10),
+      Tax.find({ userId }).sort({ taxDueDate: 1 }),
 
       // Bus Permit
       BusPermit.aggregate([
         { $match: { userId } },
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]),
-      BusPermit.find({ userId, status: 'expiring_soon' }).sort({ permitExpiryDate: 1 }).limit(10),
-      
+      BusPermit.find({ userId }).sort({ permitExpiryDate: 1 }),
+
       // National Permit (dummy data for now as logic is more complex)
       Promise.resolve({ total: 0, partAExpiringSoon: 0, partBExpiringSoon: 0 }),
       Promise.resolve([]),
     ]);
 
-    const formatStats = (stats) => {
+    // Filter expiring records based on actual dates
+    const fitnessExpiring = fitnessAll.filter(record => {
+      const expiryDate = parseDate(record.validTo);
+      return expiryDate && expiryDate >= today && expiryDate <= thirtyDaysFromNow;
+    }).slice(0, 50);
+
+    const pucExpiring = pucAll.filter(record => {
+      const expiryDate = parseDate(record.validTo);
+      return expiryDate && expiryDate >= today && expiryDate <= thirtyDaysFromNow;
+    }).slice(0, 50);
+
+    const gpsExpiring = gpsAll.filter(record => {
+      const expiryDate = parseDate(record.validTo);
+      return expiryDate && expiryDate >= today && expiryDate <= thirtyDaysFromNow;
+    }).slice(0, 50);
+
+    const taxExpiring = taxAll.filter(record => {
+      const expiryDate = parseDate(record.taxDueDate);
+      return expiryDate && expiryDate >= today && expiryDate <= fifteenDaysFromNow;
+    }).slice(0, 50);
+
+    const busPermitExpiring = busPermitAll.filter(record => {
+      const expiryDate = parseDate(record.permitExpiryDate);
+      return expiryDate && expiryDate >= today && expiryDate <= thirtyDaysFromNow;
+    }).slice(0, 50);
+
+    const formatStats = (stats, expiringCount) => {
       const result = { total: 0, active: 0, expiringSoon: 0, expired: 0 };
       let total = 0;
       stats.forEach(s => {
@@ -74,18 +115,22 @@ exports.getDashboardData = async (req, res) => {
         total += s.count;
       });
       result.total = total;
+      // Override expiringSoon with actual calculated count
+      if (expiringCount !== undefined) {
+        result.expiringSoon = expiringCount;
+      }
       return result;
     };
-    
+
     res.json({
       success: true,
       data: {
         statistics: {
-          fitness: formatStats(fitnessStats),
-          puc: formatStats(pucStats),
-          gps: formatStats(gpsStats),
-          tax: formatStats(taxStats),
-          busPermit: formatStats(busPermitStats),
+          fitness: formatStats(fitnessStats, fitnessExpiring.length),
+          puc: formatStats(pucStats, pucExpiring.length),
+          gps: formatStats(gpsStats, gpsExpiring.length),
+          tax: { ...formatStats(taxStats, taxExpiring.length), expiring: taxExpiring.length },
+          busPermit: formatStats(busPermitStats, busPermitExpiring.length),
           nationalPermit: nationalPermitStats,
         },
         expiringRecords: {

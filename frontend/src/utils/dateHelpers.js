@@ -44,16 +44,33 @@ export const getOneYearFromNow = (fromDate = new Date()) => {
 
 /**
  * Get the number of days remaining until a date
- * @param {Date|string} targetDate - Target date
+ * @param {Date|string} targetDate - Target date (supports DD-MM-YYYY format)
  * @returns {number} Days remaining (negative if past)
  */
 export const getDaysRemaining = (targetDate) => {
   if (!targetDate) return 0
 
-  const target = new Date(targetDate)
+  // Try to parse DD-MM-YYYY format first
+  let target;
+  if (typeof targetDate === 'string' && targetDate.includes('-')) {
+    const parts = targetDate.split('-');
+    if (parts.length === 3 && parts[0].length <= 2) {
+      // It's DD-MM-YYYY format
+      const [day, month, year] = parts;
+      target = new Date(year, month - 1, day);
+    } else {
+      target = new Date(targetDate);
+    }
+  } else {
+    target = new Date(targetDate);
+  }
+
   if (isNaN(target.getTime())) return 0
 
   const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  target.setHours(0, 0, 0, 0)
+
   const daysRemaining = Math.ceil((target - today) / (1000 * 60 * 60 * 24))
 
   return daysRemaining
