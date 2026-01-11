@@ -15,6 +15,16 @@ const DashboardModuleSection = ({
   const navigate = useNavigate()
   const [showAll, setShowAll] = useState(false)
 
+  // Helper to get the correct expiry date field based on record type
+  const getExpiryDate = (record) => {
+    return record.taxTo || record.validTo || record.permitExpiryDate
+  }
+
+  // Helper to get the correct balance field
+  const getBalance = (record) => {
+    return record.balance || record.balanceAmount || 0
+  }
+
   const colorClasses = {
     red: {
       bg: 'from-red-500 to-orange-600',
@@ -57,15 +67,15 @@ const DashboardModuleSection = ({
   const getDaysRemainingBadge = (validTo) => {
     const days = getDaysRemaining(validTo)
     if (days < 0) {
-      return <span className='px-1.5 py-0.5 rounded-full text-xs font-extrabold bg-red-100 text-red-700 lg:px-2 lg:py-1'>Expired</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 lg:px-2 lg:py-1'>Expired</span>
     }
     if (days <= 7) {
-      return <span className='px-1.5 py-0.5 rounded-full text-xs font-extrabold bg-red-100 text-red-700 lg:px-2 lg:py-1'>{days}d</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 lg:px-2 lg:py-1'>{days}d</span>
     }
     if (days <= 15) {
-      return <span className='px-1.5 py-0.5 rounded-full text-xs font-extrabold bg-orange-100 text-orange-700 lg:px-2 lg:py-1'>{days}d</span>
+      return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-orange-100 text-orange-700 lg:px-2 lg:py-1'>{days}d</span>
     }
-    return <span className='px-1.5 py-0.5 rounded-full text-xs font-extrabold bg-yellow-100 text-yellow-700 lg:px-2 lg:py-1'>{days}d</span>
+    return <span className='px-1.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 lg:px-2 lg:py-1'>{days}d</span>
   }
 
   const formatVehicleNumber = (vehicleNumber, isMobile = false) => {
@@ -154,7 +164,7 @@ const DashboardModuleSection = ({
             <div className='flex items-center justify-between mb-2 pb-1.5 border-b border-gray-200'>
               {formatVehicleNumber(record.vehicleNumber, true)}
               {/* Days Badge */}
-              {getDaysRemainingBadge(record.validTo)}
+              {getDaysRemainingBadge(getExpiryDate(record))}
             </div>
 
             {/* Owner Name */}
@@ -216,7 +226,7 @@ const DashboardModuleSection = ({
                   {record.mobileNumber || 'N/A'}
                 </td>
                 <td className='px-6 py-4 whitespace-nowrap'>
-                  {getDaysRemainingBadge(record.validTo)}
+                  {getDaysRemainingBadge(getExpiryDate(record))}
                 </td>
               </tr>
             ))}

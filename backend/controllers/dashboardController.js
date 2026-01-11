@@ -65,7 +65,7 @@ exports.getDashboardData = async (req, res) => {
         { $match: { userId } },
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]),
-      Tax.find({ userId }).sort({ taxDueDate: 1 }),
+      Tax.find({ userId }).sort({ taxTo: 1 }),
 
       // Bus Permit
       BusPermit.aggregate([
@@ -96,7 +96,7 @@ exports.getDashboardData = async (req, res) => {
     }).slice(0, 50);
 
     const taxExpiring = taxAll.filter(record => {
-      const expiryDate = parseDate(record.taxDueDate);
+      const expiryDate = parseDate(record.taxTo);
       return expiryDate && expiryDate >= today && expiryDate <= fifteenDaysFromNow;
     }).slice(0, 50);
 
