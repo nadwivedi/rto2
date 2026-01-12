@@ -3,6 +3,9 @@ const Fitness = require('../models/Fitness')
 const Tax = require('../models/Tax')
 const Insurance = require('../models/Insurance')
 const Puc = require('../models/Puc')
+const Gps = require('../models/Gps')
+const CgPermit = require('../models/CgPermit')
+const NationalPermit = require('../models/NationalPermit')
 const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 
 // Get all vehicle registrations
@@ -78,12 +81,39 @@ exports.getAllRegistrations = async (req, res) => {
           .sort({ createdAt: -1 })
           .lean()
 
+        // Fetch latest GPS record
+        const latestGps = await Gps.findOne({
+          vehicleNumber: vehicleNumber,
+          userId: req.user.id
+        })
+          .sort({ createdAt: -1 })
+          .lean()
+
+        // Fetch latest CG Permit record
+        const latestCgPermit = await CgPermit.findOne({
+          vehicleNumber: vehicleNumber,
+          userId: req.user.id
+        })
+          .sort({ createdAt: -1 })
+          .lean()
+
+        // Fetch latest National Permit record
+        const latestNationalPermit = await NationalPermit.findOne({
+          vehicleNumber: vehicleNumber,
+          userId: req.user.id
+        })
+          .sort({ createdAt: -1 })
+          .lean()
+
         return {
           ...registration,
           fitness: latestFitness,
           tax: latestTax,
           insurance: latestInsurance,
           puc: latestPuc,
+          gps: latestGps,
+          cgPermit: latestCgPermit,
+          nationalPermit: latestNationalPermit,
           speedGovernorImage: registration.speedGovernorImage // Include speedGovernorImage
         }
       })

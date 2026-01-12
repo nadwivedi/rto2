@@ -5,18 +5,32 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration }) => {
   const [showImageViewer, setShowImageViewer] = useState(false)
+  const [currentImageUrl, setCurrentImageUrl] = useState('')
+  const [currentImageTitle, setCurrentImageTitle] = useState('')
 
   if (!isOpen || !selectedRegistration) {
     return null
   }
 
-  const rcImageUrl = selectedRegistration.rcImage?.startsWith('data:')
-    ? selectedRegistration.rcImage
-    : `${API_URL}${selectedRegistration.rcImage}`
+  const getImageUrl = (imageData) => {
+    if (!imageData) return null
+    return imageData.startsWith('data:') ? imageData : `${API_URL}${imageData}`
+  }
+
+  const rcImageUrl = getImageUrl(selectedRegistration.rcImage)
+  const aadharImageUrl = getImageUrl(selectedRegistration.aadharImage)
+  const panImageUrl = getImageUrl(selectedRegistration.panImage)
+  const speedGovernorImageUrl = getImageUrl(selectedRegistration.speedGovernorImage)
+
+  const handleImageClick = (url, title) => {
+    setCurrentImageUrl(url)
+    setCurrentImageTitle(title)
+    setShowImageViewer(true)
+  }
 
   return (
     <div className='fixed inset-0 bg-black/70  flex items-center justify-center z-50 p-2 md:p-4 animate-fadeIn'>
-      <div className='bg-white rounded-xl md:rounded-3xl shadow-2xl w-full md:w-[95%] lg:w-[90%] xl:w-[85%] max-h-[98vh] md:max-h-[95vh] overflow-hidden animate-slideUp'>
+      <div className='bg-white rounded-xl md:rounded-3xl shadow-2xl w-full md:w-[95%] lg:w-[95%] xl:w-[92%] 2xl:w-[90%] max-h-[98vh] md:max-h-[95vh] overflow-hidden animate-slideUp'>
         {/* Header */}
         <div className='sticky top-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white p-3 md:p-5 z-10 shadow-lg'>
           <div className='flex items-center justify-between gap-2'>
@@ -44,40 +58,117 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
 
         {/* Content */}
         <div className='overflow-y-auto max-h-[calc(98vh-100px)] md:max-h-[calc(95vh-130px)] p-3 md:p-5'>
-          {/* RC Image Section */}
-          {selectedRegistration.rcImage && (
+          {/* Document Images Section */}
+          {(rcImageUrl || aadharImageUrl || panImageUrl || speedGovernorImageUrl) && (
             <div className='mb-4 bg-gradient-to-br from-green-50 to-emerald-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-green-200'>
               <h3 className='text-sm md:text-base font-bold text-green-900 mb-3 flex items-center gap-2'>
                 <svg className='w-4 h-4 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' />
                 </svg>
-                RC Document Image
+                Document Images
               </h3>
-              <div className='relative bg-white rounded-lg p-2 border-2 border-green-300 group'>
-                <img
-                  src={rcImageUrl}
-                  alt='RC Document'
-                  onClick={() => setShowImageViewer(true)}
-                  className='w-full max-h-96 object-contain rounded cursor-pointer hover:opacity-90 transition-opacity'
-                  title='Click to view full image with zoom'
-                />
-                <div className='absolute top-3 right-3 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg'>
-                  WebP Format
-                </div>
-                <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => setShowImageViewer(true)}>
-                  <div className='bg-white text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 font-bold'>
-                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
-                    </svg>
-                    Click to View & Zoom
+              <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
+                {/* RC Image */}
+                {rcImageUrl && (
+                  <div className='bg-white rounded-lg p-2 border-2 border-blue-300 group relative'>
+                    <div className='text-[10px] font-bold text-blue-800 mb-2 text-center uppercase tracking-wide'>RC Image</div>
+                    <div className='relative'>
+                      <img
+                        src={rcImageUrl}
+                        alt='RC Document'
+                        onClick={() => handleImageClick(rcImageUrl, 'RC Document Image')}
+                        className='w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity'
+                        title='Click to view full image with zoom'
+                      />
+                      <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => handleImageClick(rcImageUrl, 'RC Document Image')}>
+                        <div className='bg-white text-gray-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
+                          </svg>
+                          View
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* Aadhar Image */}
+                {aadharImageUrl && (
+                  <div className='bg-white rounded-lg p-2 border-2 border-orange-300 group relative'>
+                    <div className='text-[10px] font-bold text-orange-800 mb-2 text-center uppercase tracking-wide'>Aadhar Image</div>
+                    <div className='relative'>
+                      <img
+                        src={aadharImageUrl}
+                        alt='Aadhar Document'
+                        onClick={() => handleImageClick(aadharImageUrl, 'Aadhar Document Image')}
+                        className='w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity'
+                        title='Click to view full image with zoom'
+                      />
+                      <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => handleImageClick(aadharImageUrl, 'Aadhar Document Image')}>
+                        <div className='bg-white text-gray-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
+                          </svg>
+                          View
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* PAN Image */}
+                {panImageUrl && (
+                  <div className='bg-white rounded-lg p-2 border-2 border-purple-300 group relative'>
+                    <div className='text-[10px] font-bold text-purple-800 mb-2 text-center uppercase tracking-wide'>PAN Image</div>
+                    <div className='relative'>
+                      <img
+                        src={panImageUrl}
+                        alt='PAN Card'
+                        onClick={() => handleImageClick(panImageUrl, 'PAN Card Image')}
+                        className='w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity'
+                        title='Click to view full image with zoom'
+                      />
+                      <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => handleImageClick(panImageUrl, 'PAN Card Image')}>
+                        <div className='bg-white text-gray-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
+                          </svg>
+                          View
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Speed Governor Image */}
+                {speedGovernorImageUrl && (
+                  <div className='bg-white rounded-lg p-2 border-2 border-teal-300 group relative'>
+                    <div className='text-[10px] font-bold text-teal-800 mb-2 text-center uppercase tracking-wide'>Speed Governor</div>
+                    <div className='relative'>
+                      <img
+                        src={speedGovernorImageUrl}
+                        alt='Speed Governor'
+                        onClick={() => handleImageClick(speedGovernorImageUrl, 'Speed Governor Image')}
+                        className='w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity'
+                        title='Click to view full image with zoom'
+                      />
+                      <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => handleImageClick(speedGovernorImageUrl, 'Speed Governor Image')}>
+                        <div className='bg-white text-gray-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
+                          </svg>
+                          View
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* Vehicle Related Documents Section */}
-          {(selectedRegistration.fitness || selectedRegistration.tax || selectedRegistration.insurance || selectedRegistration.puc) && (
+          {(selectedRegistration.fitness || selectedRegistration.tax || selectedRegistration.insurance || selectedRegistration.puc || selectedRegistration.gps || selectedRegistration.cgPermit || selectedRegistration.nationalPermit) && (
             <div className='mb-4 bg-gradient-to-br from-orange-50 to-amber-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-orange-200'>
               <h3 className='text-sm md:text-base font-bold text-orange-900 mb-3 flex items-center gap-2'>
                 <svg className='w-4 h-4 text-orange-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -85,44 +176,30 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
                 </svg>
                 Vehicle Documents & Compliance
               </h3>
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3'>
+              <div className='grid grid-cols-2 xl:grid-cols-7 gap-2'>
                 {/* Fitness Card */}
                 {selectedRegistration.fitness && (
-                  <div className='bg-white rounded-lg p-3 border-2 border-green-200 hover:shadow-md transition-shadow'>
-                    <div className='flex items-center gap-2 mb-2'>
-                      <div className='bg-green-100 p-1.5 rounded-lg'>
-                        <svg className='w-4 h-4 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='bg-white rounded-lg p-2 md:p-3 border-2 border-green-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-1 md:gap-2 mb-1.5 md:mb-2'>
+                      <div className='bg-green-100 p-1 md:p-1.5 rounded-lg'>
+                        <svg className='w-3 h-3 md:w-4 md:h-4 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
                         </svg>
                       </div>
-                      <h4 className='text-sm font-bold text-green-900'>Fitness</h4>
+                      <h4 className='text-xs md:text-sm font-bold text-green-900'>Fitness</h4>
                     </div>
-                    <div className='space-y-1.5'>
-                      <div className='bg-green-50 p-2 rounded'>
-                        <p className='text-[9px] text-green-600 font-semibold uppercase'>Valid From</p>
-                        <p className='text-xs font-bold text-green-900'>{selectedRegistration.fitness.validFrom}</p>
+                    <div className='space-y-1 md:space-y-1.5'>
+                      <div className='bg-green-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-green-600 font-semibold uppercase'>Valid From</p>
+                        <p className='text-[10px] md:text-xs font-bold text-green-900'>{selectedRegistration.fitness.validFrom}</p>
                       </div>
-                      <div className='bg-green-50 p-2 rounded'>
-                        <p className='text-[9px] text-green-600 font-semibold uppercase'>Valid To</p>
-                        <p className='text-xs font-bold text-green-900'>{selectedRegistration.fitness.validTo}</p>
+                      <div className='bg-green-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-green-600 font-semibold uppercase'>Valid To</p>
+                        <p className='text-[10px] md:text-xs font-bold text-green-900'>{selectedRegistration.fitness.validTo}</p>
                       </div>
-                      <div className='bg-green-50 p-2 rounded'>
-                        <p className='text-[9px] text-green-600 font-semibold uppercase'>Status</p>
-                        <p className='text-xs font-bold text-green-900 capitalize'>{selectedRegistration.fitness.status}</p>
-                      </div>
-                      <div className='grid grid-cols-3 gap-1'>
-                        <div className='bg-blue-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-blue-600 font-semibold'>Total</p>
-                          <p className='text-[10px] font-bold text-blue-900'>₹{selectedRegistration.fitness.totalFee}</p>
-                        </div>
-                        <div className='bg-green-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-green-600 font-semibold'>Paid</p>
-                          <p className='text-[10px] font-bold text-green-900'>₹{selectedRegistration.fitness.paid}</p>
-                        </div>
-                        <div className='bg-red-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-red-600 font-semibold'>Balance</p>
-                          <p className='text-[10px] font-bold text-red-900'>₹{selectedRegistration.fitness.balance}</p>
-                        </div>
+                      <div className='bg-green-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-green-600 font-semibold uppercase'>Status</p>
+                        <p className='text-[10px] md:text-xs font-bold text-green-900 capitalize'>{selectedRegistration.fitness.status}</p>
                       </div>
                     </div>
                   </div>
@@ -130,41 +207,27 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
 
                 {/* Tax Card */}
                 {selectedRegistration.tax && (
-                  <div className='bg-white rounded-lg p-3 border-2 border-blue-200 hover:shadow-md transition-shadow'>
-                    <div className='flex items-center gap-2 mb-2'>
-                      <div className='bg-blue-100 p-1.5 rounded-lg'>
-                        <svg className='w-4 h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='bg-white rounded-lg p-2 md:p-3 border-2 border-blue-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-1 md:gap-2 mb-1.5 md:mb-2'>
+                      <div className='bg-blue-100 p-1 md:p-1.5 rounded-lg'>
+                        <svg className='w-3 h-3 md:w-4 md:h-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                         </svg>
                       </div>
-                      <h4 className='text-sm font-bold text-blue-900'>Tax</h4>
+                      <h4 className='text-xs md:text-sm font-bold text-blue-900'>Tax</h4>
                     </div>
-                    <div className='space-y-1.5'>
-                      <div className='bg-blue-50 p-2 rounded'>
-                        <p className='text-[9px] text-blue-600 font-semibold uppercase'>Tax From</p>
-                        <p className='text-xs font-bold text-blue-900'>{selectedRegistration.tax.taxFrom}</p>
+                    <div className='space-y-1 md:space-y-1.5'>
+                      <div className='bg-blue-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-blue-600 font-semibold uppercase'>Tax From</p>
+                        <p className='text-[10px] md:text-xs font-bold text-blue-900'>{selectedRegistration.tax.taxFrom}</p>
                       </div>
-                      <div className='bg-blue-50 p-2 rounded'>
-                        <p className='text-[9px] text-blue-600 font-semibold uppercase'>Tax To</p>
-                        <p className='text-xs font-bold text-blue-900'>{selectedRegistration.tax.taxTo}</p>
+                      <div className='bg-blue-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-blue-600 font-semibold uppercase'>Tax To</p>
+                        <p className='text-[10px] md:text-xs font-bold text-blue-900'>{selectedRegistration.tax.taxTo}</p>
                       </div>
-                      <div className='bg-blue-50 p-2 rounded'>
-                        <p className='text-[9px] text-blue-600 font-semibold uppercase'>Status</p>
-                        <p className='text-xs font-bold text-blue-900 capitalize'>{selectedRegistration.tax.status}</p>
-                      </div>
-                      <div className='grid grid-cols-3 gap-1'>
-                        <div className='bg-blue-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-blue-600 font-semibold'>Total</p>
-                          <p className='text-[10px] font-bold text-blue-900'>₹{selectedRegistration.tax.totalAmount}</p>
-                        </div>
-                        <div className='bg-green-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-green-600 font-semibold'>Paid</p>
-                          <p className='text-[10px] font-bold text-green-900'>₹{selectedRegistration.tax.paidAmount}</p>
-                        </div>
-                        <div className='bg-red-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-red-600 font-semibold'>Balance</p>
-                          <p className='text-[10px] font-bold text-red-900'>₹{selectedRegistration.tax.balanceAmount}</p>
-                        </div>
+                      <div className='bg-blue-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-blue-600 font-semibold uppercase'>Status</p>
+                        <p className='text-[10px] md:text-xs font-bold text-blue-900 capitalize'>{selectedRegistration.tax.status}</p>
                       </div>
                     </div>
                   </div>
@@ -172,47 +235,33 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
 
                 {/* Insurance Card */}
                 {selectedRegistration.insurance && (
-                  <div className='bg-white rounded-lg p-3 border-2 border-purple-200 hover:shadow-md transition-shadow'>
-                    <div className='flex items-center gap-2 mb-2'>
-                      <div className='bg-purple-100 p-1.5 rounded-lg'>
-                        <svg className='w-4 h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='bg-white rounded-lg p-2 md:p-3 border-2 border-purple-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-1 md:gap-2 mb-1.5 md:mb-2'>
+                      <div className='bg-purple-100 p-1 md:p-1.5 rounded-lg'>
+                        <svg className='w-3 h-3 md:w-4 md:h-4 text-purple-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z' />
                         </svg>
                       </div>
-                      <h4 className='text-sm font-bold text-purple-900'>Insurance</h4>
+                      <h4 className='text-xs md:text-sm font-bold text-purple-900'>Insurance</h4>
                     </div>
-                    <div className='space-y-1.5'>
+                    <div className='space-y-1 md:space-y-1.5'>
                       {selectedRegistration.insurance.policyNumber && (
-                        <div className='bg-purple-50 p-2 rounded'>
-                          <p className='text-[9px] text-purple-600 font-semibold uppercase'>Policy No.</p>
-                          <p className='text-xs font-bold text-purple-900'>{selectedRegistration.insurance.policyNumber}</p>
+                        <div className='bg-purple-50 p-1.5 md:p-2 rounded'>
+                          <p className='text-[8px] md:text-[9px] text-purple-600 font-semibold uppercase'>Policy No.</p>
+                          <p className='text-[10px] md:text-xs font-bold text-purple-900'>{selectedRegistration.insurance.policyNumber}</p>
                         </div>
                       )}
-                      <div className='bg-purple-50 p-2 rounded'>
-                        <p className='text-[9px] text-purple-600 font-semibold uppercase'>Valid From</p>
-                        <p className='text-xs font-bold text-purple-900'>{selectedRegistration.insurance.validFrom}</p>
+                      <div className='bg-purple-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-purple-600 font-semibold uppercase'>Valid From</p>
+                        <p className='text-[10px] md:text-xs font-bold text-purple-900'>{selectedRegistration.insurance.validFrom}</p>
                       </div>
-                      <div className='bg-purple-50 p-2 rounded'>
-                        <p className='text-[9px] text-purple-600 font-semibold uppercase'>Valid To</p>
-                        <p className='text-xs font-bold text-purple-900'>{selectedRegistration.insurance.validTo}</p>
+                      <div className='bg-purple-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-purple-600 font-semibold uppercase'>Valid To</p>
+                        <p className='text-[10px] md:text-xs font-bold text-purple-900'>{selectedRegistration.insurance.validTo}</p>
                       </div>
-                      <div className='bg-purple-50 p-2 rounded'>
-                        <p className='text-[9px] text-purple-600 font-semibold uppercase'>Status</p>
-                        <p className='text-xs font-bold text-purple-900 capitalize'>{selectedRegistration.insurance.status}</p>
-                      </div>
-                      <div className='grid grid-cols-3 gap-1'>
-                        <div className='bg-blue-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-blue-600 font-semibold'>Total</p>
-                          <p className='text-[10px] font-bold text-blue-900'>₹{selectedRegistration.insurance.totalFee}</p>
-                        </div>
-                        <div className='bg-green-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-green-600 font-semibold'>Paid</p>
-                          <p className='text-[10px] font-bold text-green-900'>₹{selectedRegistration.insurance.paid}</p>
-                        </div>
-                        <div className='bg-red-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-red-600 font-semibold'>Balance</p>
-                          <p className='text-[10px] font-bold text-red-900'>₹{selectedRegistration.insurance.balance}</p>
-                        </div>
+                      <div className='bg-purple-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-purple-600 font-semibold uppercase'>Status</p>
+                        <p className='text-[10px] md:text-xs font-bold text-purple-900 capitalize'>{selectedRegistration.insurance.status}</p>
                       </div>
                     </div>
                   </div>
@@ -220,40 +269,137 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
 
                 {/* PUC Card */}
                 {selectedRegistration.puc && (
-                  <div className='bg-white rounded-lg p-3 border-2 border-teal-200 hover:shadow-md transition-shadow'>
-                    <div className='flex items-center gap-2 mb-2'>
-                      <div className='bg-teal-100 p-1.5 rounded-lg'>
-                        <svg className='w-4 h-4 text-teal-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <div className='bg-white rounded-lg p-2 md:p-3 border-2 border-teal-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-1 md:gap-2 mb-1.5 md:mb-2'>
+                      <div className='bg-teal-100 p-1 md:p-1.5 rounded-lg'>
+                        <svg className='w-3 h-3 md:w-4 md:h-4 text-teal-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9' />
                         </svg>
                       </div>
-                      <h4 className='text-sm font-bold text-teal-900'>PUC</h4>
+                      <h4 className='text-xs md:text-sm font-bold text-teal-900'>PUC</h4>
                     </div>
-                    <div className='space-y-1.5'>
-                      <div className='bg-teal-50 p-2 rounded'>
-                        <p className='text-[9px] text-teal-600 font-semibold uppercase'>Valid From</p>
-                        <p className='text-xs font-bold text-teal-900'>{selectedRegistration.puc.validFrom}</p>
+                    <div className='space-y-1 md:space-y-1.5'>
+                      <div className='bg-teal-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-teal-600 font-semibold uppercase'>Valid From</p>
+                        <p className='text-[10px] md:text-xs font-bold text-teal-900'>{selectedRegistration.puc.validFrom}</p>
                       </div>
-                      <div className='bg-teal-50 p-2 rounded'>
-                        <p className='text-[9px] text-teal-600 font-semibold uppercase'>Valid To</p>
-                        <p className='text-xs font-bold text-teal-900'>{selectedRegistration.puc.validTo}</p>
+                      <div className='bg-teal-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-teal-600 font-semibold uppercase'>Valid To</p>
+                        <p className='text-[10px] md:text-xs font-bold text-teal-900'>{selectedRegistration.puc.validTo}</p>
                       </div>
-                      <div className='bg-teal-50 p-2 rounded'>
-                        <p className='text-[9px] text-teal-600 font-semibold uppercase'>Status</p>
-                        <p className='text-xs font-bold text-teal-900 capitalize'>{selectedRegistration.puc.status}</p>
+                      <div className='bg-teal-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-teal-600 font-semibold uppercase'>Status</p>
+                        <p className='text-[10px] md:text-xs font-bold text-teal-900 capitalize'>{selectedRegistration.puc.status}</p>
                       </div>
-                      <div className='grid grid-cols-3 gap-1'>
-                        <div className='bg-blue-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-blue-600 font-semibold'>Total</p>
-                          <p className='text-[10px] font-bold text-blue-900'>₹{selectedRegistration.puc.totalFee}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* GPS Card */}
+                {selectedRegistration.gps && (
+                  <div className='bg-white rounded-lg p-2 md:p-3 border-2 border-amber-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-1 md:gap-2 mb-1.5 md:mb-2'>
+                      <div className='bg-amber-100 p-1 md:p-1.5 rounded-lg'>
+                        <svg className='w-3 h-3 md:w-4 md:h-4 text-amber-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z' />
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 11a3 3 0 11-6 0 3 3 0 016 0z' />
+                        </svg>
+                      </div>
+                      <h4 className='text-xs md:text-sm font-bold text-amber-900'>GPS</h4>
+                    </div>
+                    <div className='space-y-1 md:space-y-1.5'>
+                      <div className='bg-amber-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-amber-600 font-semibold uppercase'>Valid From</p>
+                        <p className='text-[10px] md:text-xs font-bold text-amber-900'>{selectedRegistration.gps.validFrom}</p>
+                      </div>
+                      <div className='bg-amber-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-amber-600 font-semibold uppercase'>Valid To</p>
+                        <p className='text-[10px] md:text-xs font-bold text-amber-900'>{selectedRegistration.gps.validTo}</p>
+                      </div>
+                      <div className='bg-amber-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-amber-600 font-semibold uppercase'>Status</p>
+                        <p className='text-[10px] md:text-xs font-bold text-amber-900 capitalize'>{selectedRegistration.gps.status}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* CG Permit Card */}
+                {selectedRegistration.cgPermit && (
+                  <div className='bg-white rounded-lg p-2 md:p-3 border-2 border-rose-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-1 md:gap-2 mb-1.5 md:mb-2'>
+                      <div className='bg-rose-100 p-1 md:p-1.5 rounded-lg'>
+                        <svg className='w-3 h-3 md:w-4 md:h-4 text-rose-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' />
+                        </svg>
+                      </div>
+                      <h4 className='text-xs md:text-sm font-bold text-rose-900'>CG Permit</h4>
+                    </div>
+                    <div className='space-y-1 md:space-y-1.5'>
+                      <div className='bg-rose-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-rose-600 font-semibold uppercase'>Valid From</p>
+                        <p className='text-[10px] md:text-xs font-bold text-rose-900'>{selectedRegistration.cgPermit.validFrom}</p>
+                      </div>
+                      <div className='bg-rose-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-rose-600 font-semibold uppercase'>Valid To</p>
+                        <p className='text-[10px] md:text-xs font-bold text-rose-900'>{selectedRegistration.cgPermit.validTo}</p>
+                      </div>
+                      <div className='bg-rose-50 p-1.5 md:p-2 rounded'>
+                        <p className='text-[8px] md:text-[9px] text-rose-600 font-semibold uppercase'>Status</p>
+                        <p className='text-[10px] md:text-xs font-bold text-rose-900 capitalize'>{selectedRegistration.cgPermit.status}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* National Permit Card - Full width on mobile, single column on desktop */}
+                {selectedRegistration.nationalPermit && (
+                  <div className='col-span-2 xl:col-span-1 bg-white rounded-lg p-2 md:p-3 border-2 border-indigo-200 hover:shadow-md transition-shadow'>
+                    <div className='flex items-center gap-1 md:gap-2 mb-1.5 md:mb-2'>
+                      <div className='bg-indigo-100 p-1 md:p-1.5 rounded-lg'>
+                        <svg className='w-3 h-3 md:w-4 md:h-4 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                        </svg>
+                      </div>
+                      <h4 className='text-xs md:text-sm font-bold text-indigo-900'>National Permit</h4>
+                    </div>
+
+                    <div className='space-y-2'>
+                      {/* Part A Section */}
+                      <div className='bg-indigo-50 p-2 rounded-lg border border-indigo-200'>
+                        <p className='text-[9px] font-bold text-indigo-700 mb-1 uppercase tracking-wide'>Part A (5 Years)</p>
+                        <div className='space-y-1'>
+                          <div className='flex justify-between items-center'>
+                            <p className='text-[8px] md:text-[9px] text-indigo-600 font-semibold'>Valid From:</p>
+                            <p className='text-[9px] md:text-[10px] font-bold text-indigo-900'>{selectedRegistration.nationalPermit.partAValidFrom}</p>
+                          </div>
+                          <div className='flex justify-between items-center'>
+                            <p className='text-[8px] md:text-[9px] text-indigo-600 font-semibold'>Valid To:</p>
+                            <p className='text-[9px] md:text-[10px] font-bold text-indigo-900'>{selectedRegistration.nationalPermit.partAValidTo}</p>
+                          </div>
+                          <div className='flex justify-between items-center'>
+                            <p className='text-[8px] md:text-[9px] text-indigo-600 font-semibold'>Status:</p>
+                            <p className='text-[9px] md:text-[10px] font-bold text-indigo-900 capitalize'>{selectedRegistration.nationalPermit.partAStatus}</p>
+                          </div>
                         </div>
-                        <div className='bg-green-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-green-600 font-semibold'>Paid</p>
-                          <p className='text-[10px] font-bold text-green-900'>₹{selectedRegistration.puc.paid}</p>
-                        </div>
-                        <div className='bg-red-50 p-1.5 rounded text-center'>
-                          <p className='text-[8px] text-red-600 font-semibold'>Balance</p>
-                          <p className='text-[10px] font-bold text-red-900'>₹{selectedRegistration.puc.balance}</p>
+                      </div>
+
+                      {/* Part B Section */}
+                      <div className='bg-violet-50 p-2 rounded-lg border border-violet-200'>
+                        <p className='text-[9px] font-bold text-violet-700 mb-1 uppercase tracking-wide'>Part B (1 Year)</p>
+                        <div className='space-y-1'>
+                          <div className='flex justify-between items-center'>
+                            <p className='text-[8px] md:text-[9px] text-violet-600 font-semibold'>Valid From:</p>
+                            <p className='text-[9px] md:text-[10px] font-bold text-violet-900'>{selectedRegistration.nationalPermit.partBValidFrom}</p>
+                          </div>
+                          <div className='flex justify-between items-center'>
+                            <p className='text-[8px] md:text-[9px] text-violet-600 font-semibold'>Valid To:</p>
+                            <p className='text-[9px] md:text-[10px] font-bold text-violet-900'>{selectedRegistration.nationalPermit.partBValidTo}</p>
+                          </div>
+                          <div className='flex justify-between items-center'>
+                            <p className='text-[8px] md:text-[9px] text-violet-600 font-semibold'>Status:</p>
+                            <p className='text-[9px] md:text-[10px] font-bold text-violet-900 capitalize'>{selectedRegistration.nationalPermit.partBStatus}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -272,39 +418,49 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
                 </svg>
                 Registration & Vehicle
               </h3>
-              <div className='grid grid-cols-2 gap-1.5 md:gap-2 flex-1'>
-                {selectedRegistration.registrationNumber && (
-                  <div className='bg-white/80 p-2 rounded-lg'>
-                    <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Registration Number</div>
-                    <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.registrationNumber}</div>
-                  </div>
-                )}
-                {selectedRegistration.chassisNumber && (
-                  <div className='bg-gradient-to-br from-blue-100 to-cyan-100 p-2 md:p-2.5 rounded-lg border-2 border-blue-300'>
-                    <div className='text-[10px] md:text-xs font-semibold text-blue-700'>
-                      Chassis Number
+              <div className='space-y-1.5 md:space-y-2 flex-1'>
+                {/* First Row: Registration Number and Date of Registration */}
+                <div className='grid grid-cols-2 gap-1.5 md:gap-2'>
+                  {selectedRegistration.registrationNumber && (
+                    <div className='bg-white/80 p-2 rounded-lg'>
+                      <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Registration Number</div>
+                      <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.registrationNumber}</div>
                     </div>
-                    <div className='text-[10px] md:text-[15px] font-bold text-blue-900 mt-1 font-mono break-all'>{selectedRegistration.chassisNumber}</div>
-                  </div>
-                )}
-                {selectedRegistration.engineNumber && (
-                  <div className='bg-gradient-to-br from-green-100 to-emerald-100 p-2 md:p-2.5 rounded-lg border-2 border-green-300'>
-                    <div className='text-[10px] md:text-xs font-semibold text-green-700 flex items-center gap-1'>
-                      <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' />
-                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
-                      </svg>
-                      Engine Number
+                  )}
+                  {selectedRegistration.dateOfRegistration && (
+                    <div className='bg-white/80 p-2 rounded-lg'>
+                      <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Date of Registration</div>
+                      <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.dateOfRegistration}</div>
                     </div>
-                    <div className='text-[10px] md:text-[15px] font-bold text-green-900 mt-1 font-mono break-all'>{selectedRegistration.engineNumber}</div>
-                  </div>
-                )}
-                {selectedRegistration.dateOfRegistration && (
-                  <div className='bg-white/80 p-2 rounded-lg'>
-                    <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Date of Registration</div>
-                    <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.dateOfRegistration}</div>
-                  </div>
-                )}
+                  )}
+                </div>
+
+                {/* Second Row: Chassis Number and Engine Number */}
+                <div className='grid grid-cols-2 gap-1.5 md:gap-2'>
+                  {selectedRegistration.chassisNumber && (
+                    <div className='bg-gradient-to-br from-blue-100 to-cyan-100 p-2 md:p-2.5 rounded-lg border-2 border-blue-300'>
+                      <div className='text-[10px] md:text-xs font-semibold text-blue-700'>
+                        Chassis Number
+                      </div>
+                      <div className='text-[10px] md:text-[15px] font-bold text-blue-900 mt-1 font-mono break-all'>{selectedRegistration.chassisNumber}</div>
+                    </div>
+                  )}
+                  {selectedRegistration.engineNumber && (
+                    <div className='bg-gradient-to-br from-green-100 to-emerald-100 p-2 md:p-2.5 rounded-lg border-2 border-green-300'>
+                      <div className='text-[10px] md:text-xs font-semibold text-green-700 flex items-center gap-1'>
+                        <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' />
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 12a3 3 0 11-6 0 3 3 0 016 0z' />
+                        </svg>
+                        Engine Number
+                      </div>
+                      <div className='text-[10px] md:text-[15px] font-bold text-green-900 mt-1 font-mono break-all'>{selectedRegistration.engineNumber}</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Rest of the vehicle details */}
+                <div className='grid grid-cols-2 gap-1.5 md:gap-2'>
                 {selectedRegistration.makerName && (
                   <div className='bg-white/80 p-2 rounded-lg'>
                     <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Maker Name</div>
@@ -341,6 +497,7 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
                     <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.vehicleCategory}</div>
                   </div>
                 )}
+              </div>
               </div>
             </div>
 
@@ -478,8 +635,8 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
         <ImageViewer
           isOpen={showImageViewer}
           onClose={() => setShowImageViewer(false)}
-          imageUrl={rcImageUrl}
-          title='RC Document Image'
+          imageUrl={currentImageUrl}
+          title={currentImageTitle}
         />
       </div>
     </div>
