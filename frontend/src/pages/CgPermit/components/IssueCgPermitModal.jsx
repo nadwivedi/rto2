@@ -439,7 +439,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
 
     const dataToSubmit = {
       permitNumber: formData.permitNumber,
-      permitHolderName: formData.permitHolderName,
+      permitHolder: formData.permitHolderName,
       vehicleNumber: formData.vehicleNumber,
       validFrom: formData.validFrom,
       validTo: formData.validTo,
@@ -451,7 +451,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
 
     setIsSubmitting(true)
     try {
-      const response = await axios.post(`${API_URL}/api/cg-permit`, dataToSubmit, {
+      const response = await axios.post(`${API_URL}/api/cg-permits`, dataToSubmit, {
         withCredentials: true
       })
 

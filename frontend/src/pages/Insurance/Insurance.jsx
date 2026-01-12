@@ -133,36 +133,9 @@ const Insurance = () => {
   // No need for client-side filtering anymore - server handles it
   const filteredInsurances = insurances;
 
-  const handleAddInsurance = async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/insurance`, formData, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success("Insurance record added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        // Refresh the list from the server
-        await fetchInsurances();
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error adding insurance record:", error);
-      toast.error(
-        "Failed to add insurance record. Please check if the backend server is running.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
+  const handleAddInsurance = async () => {
+    // Modal handles API call internally, just refresh data
+    await fetchInsurances();
   };
 
   const handleEditClick = (insurance) => {

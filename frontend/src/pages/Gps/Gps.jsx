@@ -130,50 +130,10 @@ const Gps = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleAddGps = async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/gps`, {
-        vehicleNumber: formData.vehicleNumber,
-        ownerName: formData.ownerName,
-        mobileNumber: formData.mobileNumber,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
-        totalFee: parseFloat(formData.totalFee),
-        paid: parseFloat(formData.paid),
-        balance: parseFloat(formData.balance),
-      }, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success("GPS certificate added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-
-        // Refresh the list and statistics from the server
-        await fetchGpsRecords();
-        await fetchStatistics();
-
-        // Close modal
-        setIsAddModalOpen(false);
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error adding GPS record:", error);
-      toast.error(
-        "Failed to add GPS certificate. Please check if the backend server is running.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
+  const handleAddGps = async () => {
+    // Modal handles API call internally, just refresh data
+    await fetchGpsRecords();
+    await fetchStatistics();
   };
 
   const handleEditGps = async (formData) => {

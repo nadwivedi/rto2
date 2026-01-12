@@ -441,68 +441,10 @@ const NationalPermit = () => {
     }
   }
 
-  const handleIssuePermit = async (formData) => {
-    try {
-      // Prepare data to match backend controller expectations (flat model)
-      const permitData = {
-        vehicleNumber: formData.vehicleNumber,
-        permitNumber: formData.permitNumber,
-        permitHolder: formData.permitHolderName,
-        mobileNumber: formData.mobileNumber || '',
-        partAValidFrom: formData.validFrom,
-        partAValidTo: formData.validTo,
-        partBNumber: formData.authorizationNumber,
-        partBValidFrom: formData.typeBValidFrom,
-        partBValidTo: formData.typeBValidTo,
-        totalFee: Number(formData.totalFee) || 0,
-        paid: Number(formData.paid) || 0,
-        balance: Number(formData.balance) || 0,
-        notes: formData.notes || ''
-      }
-
-      // Make POST request to backend
-      const response = await axios.post(`${API_URL}/api/national-permits`, permitData, { withCredentials: true })
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to create permit')
-      }
-
-      // Show success message
-      toast.success('National Permit added successfully!', { position: 'top-right', autoClose: 3000 })
-
-      // Refresh the permits list and statistics
-      await fetchPermits()
-      await fetchStatistics()
-
-      // Close the modal
-      setShowIssuePermitModal(false)
-    } catch (error) {
-      console.error('Error creating permit:', error)
-
-      // Handle detailed error response from backend
-      if (error.response?.data) {
-        const errorData = error.response.data
-
-        // Show main error message
-        const mainMessage = errorData.errorCount > 1
-          ? `${errorData.message} (${errorData.errorCount} errors)`
-          : (errorData.message || 'Failed to create permit')
-
-        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
-
-        // Show each detailed error if available
-        if (errorData.errors && Array.isArray(errorData.errors)) {
-          errorData.errors.forEach((err, index) => {
-            setTimeout(() => {
-              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
-            }, (index + 1) * 150)
-          })
-        }
-      } else {
-        // Network or other errors
-        toast.error(`Failed to create permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
-      }
-    }
+  const handleIssuePermit = async () => {
+    // Modal handles API call internally, just refresh data
+    await fetchPermits()
+    await fetchStatistics()
   }
 
   const handleUpdatePermit = async (formData) => {

@@ -565,14 +565,14 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber
 
     const dataToSubmit = {
       permitNumber: formData.permitNumber,
-      permitHolderName: formData.permitHolderName,
+      permitHolder: formData.permitHolderName,
       vehicleNumber: formData.vehicleNumber,
-      validFrom: formData.validFrom,
-      validTo: formData.validTo,
+      partAValidFrom: formData.validFrom,
+      partAValidTo: formData.validTo,
       mobileNumber: formData.mobileNumber,
-      authorizationNumber: formData.authorizationNumber,
-      typeBValidFrom: formData.typeBValidFrom,
-      typeBValidTo: formData.typeBValidTo,
+      partBNumber: formData.authorizationNumber,
+      partBValidFrom: formData.typeBValidFrom,
+      partBValidTo: formData.typeBValidTo,
       totalFee: parseFloat(formData.totalFee) || 0,
       paid: parseFloat(formData.paid) || 0,
       balance: parseFloat(formData.balance) || 0,
@@ -583,7 +583,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber
 
     setIsSubmitting(true)
     try {
-      const response = await axios.post(`${API_URL}/api/national-permit`, dataToSubmit, {
+      const response = await axios.post(`${API_URL}/api/national-permits`, dataToSubmit, {
         withCredentials: true
       })
 

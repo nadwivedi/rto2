@@ -130,50 +130,10 @@ const Puc = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleAddPuc = async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/puc`, {
-        vehicleNumber: formData.vehicleNumber,
-        ownerName: formData.ownerName,
-        mobileNumber: formData.mobileNumber,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
-        totalFee: parseFloat(formData.totalFee),
-        paid: parseFloat(formData.paid),
-        balance: parseFloat(formData.balance),
-      }, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success("PUC certificate added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-
-        // Refresh the list and statistics from the server
-        await fetchPucRecords();
-        await fetchStatistics();
-
-        // Close modal
-        setIsAddModalOpen(false);
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error adding PUC record:", error);
-      toast.error(
-        "Failed to add PUC certificate. Please check if the backend server is running.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
+  const handleAddPuc = async () => {
+    // Modal handles API call internally, just refresh data
+    await fetchPucRecords();
+    await fetchStatistics();
   };
 
   const handleEditPuc = async (formData) => {

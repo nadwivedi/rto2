@@ -326,82 +326,10 @@ const CgPermit = () => {
     setShowEditPermitModal(true)
   }
 
-  const handleIssuePermit = async (formData) => {
-    try {
-      // Prepare data to match backend model
-      const permitData = {
-        permitNumber: formData.permitNumber,
-        permitHolder: formData.permitHolderName,
-        vehicleNumber: formData.vehicleNumber,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
-        issueDate: formData.validFrom,
-        permitType: 'Type A',
-        validityPeriod: 5,
-        fatherName: formData.fatherName || '',
-        address: formData.address || '',
-        mobileNumber: formData.mobileNumber || '',
-        email: formData.email || '',
-        vehicleModel: formData.vehicleModel || '',
-        vehicleType: formData.vehicleType || '',
-        chassisNumber: formData.chassisNumber || '',
-        engineNumber: formData.engineNumber || '',
-        unladenWeight: formData.unladenWeight ? Number(formData.unladenWeight) : 0,
-        grossWeight: formData.grossWeight ? Number(formData.grossWeight) : 0,
-        yearOfManufacture: new Date().getFullYear().toString(),
-        seatingCapacity: '2',
-        goodsType: formData.goodsType || 'General Goods',
-        route: 'Chhattisgarh State',
-        maxLoadCapacity: formData.grossWeight ? `${formData.grossWeight} kg` : '',
-        totalFee: Number(formData.totalFee) || 0,
-        paid: Number(formData.paid) || 0,
-        balance: Number(formData.balance) || 0,
-        status: 'Active'
-      }
-
-      // Make POST request to backend
-      const response = await axios.post(`${API_URL}/api/cg-permits`, permitData, { withCredentials: true })
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to create CG permit')
-      }
-
-      // Show success message
-      toast.success('CG Permit added successfully!', { position: 'top-right', autoClose: 3000 })
-
-      // Refresh the permits list and statistics
-      await fetchPermits()
-      await fetchStatistics()
-
-      // Close the modal
-      setShowIssuePermitModal(false)
-    } catch (error) {
-      console.error('Error creating CG permit:', error)
-
-      // Handle detailed error response from backend
-      if (error.response?.data) {
-        const errorData = error.response.data
-
-        // Show main error message
-        const mainMessage = errorData.errorCount > 1
-          ? `${errorData.message} (${errorData.errorCount} errors)`
-          : (errorData.message || 'Failed to create CG permit')
-
-        toast.error(mainMessage, { position: 'top-right', autoClose: 5000 })
-
-        // Show each detailed error if available
-        if (errorData.errors && Array.isArray(errorData.errors)) {
-          errorData.errors.forEach((err, index) => {
-            setTimeout(() => {
-              toast.error(`• ${err}`, { position: 'top-right', autoClose: 4000 })
-            }, (index + 1) * 150)
-          })
-        }
-      } else {
-        // Network or other errors
-        toast.error(`Failed to create CG permit: ${error.message}`, { position: 'top-right', autoClose: 5000 })
-      }
-    }
+  const handleIssuePermit = async () => {
+    // Modal handles API call internally, just refresh data
+    await fetchPermits()
+    await fetchStatistics()
   }
 
   const handleUpdatePermit = async (formData) => {
