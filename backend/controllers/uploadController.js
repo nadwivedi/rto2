@@ -8,6 +8,7 @@ const uploadsDir = path.join(__dirname, '..', 'uploads', 'rc-images')
 const aadharUploadsDir = path.join(__dirname, '..', 'uploads', 'aadhar-images')
 const panUploadsDir = path.join(__dirname, '..', 'uploads', 'pan-images')
 const insuranceUploadsDir = path.join(__dirname, '..', 'uploads', 'insurance-documents')
+const speedGovernorUploadsDir = path.join(__dirname, '..', 'uploads', 'speed-governor-images')
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true })
@@ -20,6 +21,9 @@ if (!fs.existsSync(panUploadsDir)) {
 }
 if (!fs.existsSync(insuranceUploadsDir)) {
   fs.mkdirSync(insuranceUploadsDir, { recursive: true })
+}
+if (!fs.existsSync(speedGovernorUploadsDir)) {
+  fs.mkdirSync(speedGovernorUploadsDir, { recursive: true })
 }
 
 // Helper function to delete old RC image file
@@ -413,11 +417,118 @@ exports.uploadPanImage = async (req, res) => {
   }
 }
 
+exports.uploadSpeedGovernorImage = async (req, res) => {
+  try {
+    const { imageData, vehicleRegistrationId, vehicleNumber } = req.body
+
+    if (!imageData) {
+      return res.status(400).json({
+        success: false,
+        message: 'Document data is required'
+      })
+    }
+
+    if (!vehicleNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vehicle registration number is required'
+      })
+    }
+
+    // If vehicleRegistrationId provided, check for existing document and delete it
+    if (vehicleRegistrationId) {
+      const existingVehicle = await VehicleRegistration.findOne({
+        _id: vehicleRegistrationId,
+        userId: req.user.id
+      })
+
+      if (existingVehicle && existingVehicle.speedGovernorImage) {
+        // Delete old PAN document
+        try {
+          const filename = path.basename(existingVehicle.speedGovernorImage)
+          const filePath = path.join(speedGovernorUploadsDir, filename)
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath)
+          }
+        } catch (err) {
+          console.error('Error deleting old Speed Governor image:', err)
+        }
+      }
+    }
+
+    // Validate base64 format
+    const imageFormatRegex = /^data:image\/(jpeg|jpg|png|webp);base64,/
+    const pdfFormatRegex = /^data:application\/pdf;base64,/
+
+    let fileFormat = null
+    let fileExtension = null
+
+    const imageMatch = imageData.match(imageFormatRegex)
+    const pdfMatch = imageData.match(pdfFormatRegex)
+
+    if (imageMatch) {
+      fileFormat = imageMatch[1]
+      fileExtension = fileFormat === 'jpeg' ? 'jpg' : fileFormat
+    } else if (pdfMatch) {
+      fileFormat = 'pdf'
+      fileExtension = 'pdf'
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Only JPG, JPEG, PNG, WebP, and PDF formats are accepted'
+      })
+    }
+
+    const base64Data = imageData.replace(/^data:(image\/[a-z]+|application\/pdf);base64,/, '')
+    const buffer = Buffer.from(base64Data, 'base64')
+
+    const fileSizeInMB = buffer.length / (1024 * 1024)
+    if (fileSizeInMB > 12) {
+      return res.status(400).json({
+        success: false,
+        message: `File size (${fileSizeInMB.toFixed(2)}MB) exceeds the 12MB limit`
+      })
+    }
+
+    // Generate filename with vehicle number
+    // Format: speed-governor-VEHICLENUMBER.extension
+    const sanitizedVehicleNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '')
+    const filename = `speed-governor-${sanitizedVehicleNumber}.${fileExtension}`
+    const filePath = path.join(speedGovernorUploadsDir, filename)
+
+    fs.writeFileSync(filePath, buffer)
+
+    const relativePath = `/uploads/speed-governor-images/${filename}`
+
+    res.status(200).json({
+      success: true,
+      message: 'Speed Governor document uploaded successfully',
+      data: {
+        filename,
+        path: relativePath,
+        size: buffer.length,
+        sizeInMB: fileSizeInMB.toFixed(2),
+        format: fileFormat.toUpperCase()
+      }
+    })
+  } catch (error) {
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(500).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
 // Upload Insurance Document Image/PDF
 exports.uploadInsuranceDocument = async (req, res) => {
   try {
     const { imageData, insuranceId, vehicleNumber } = req.body
-
+		
     if (!imageData) {
       return res.status(400).json({
         success: false,

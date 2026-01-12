@@ -34,6 +34,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     rcImage: '',
     aadharImage: '',
     panImage: '',
+    speedGovernorImage: '',
     numberOfCylinders: '',
     cubicCapacity: '',
     fuelType: '',
@@ -46,9 +47,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [rcImagePreview, setRcImagePreview] = useState(null)
   const [aadharImagePreview, setAadharImagePreview] = useState(null)
   const [panImagePreview, setPanImagePreview] = useState(null)
+  const [speedGovernorImagePreview, setSpeedGovernorImagePreview] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
   const [uploadingAadhar, setUploadingAadhar] = useState(false)
   const [uploadingPan, setUploadingPan] = useState(false)
+  const [uploadingSpeedGovernor, setUploadingSpeedGovernor] = useState(false)
 
   // Handle Enter key to move to next field in order
   const handleKeyDown = (e) => {
@@ -134,6 +137,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       } else {
         setPanImagePreview(null)
       }
+      if (editData.speedGovernorImage) {
+        setSpeedGovernorImagePreview(`${API_URL}${editData.speedGovernorImage}`)
+      } else {
+        setSpeedGovernorImagePreview(null)
+      }
     } else {
       setFormData({
         registrationNumber: '',
@@ -157,6 +165,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         rcImage: '',
         aadharImage: '',
         panImage: '',
+        speedGovernorImage: '',
         numberOfCylinders: '',
         cubicCapacity: '',
         fuelType: '',
@@ -167,6 +176,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       setRcImagePreview(null)
       setAadharImagePreview(null)
       setPanImagePreview(null)
+      setSpeedGovernorImagePreview(null)
     }
     setError('')
     setVehicleAlreadyExists(false)
@@ -692,6 +702,125 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       panImage: ''
     }))
     toast.info('PAN document removed', { position: 'top-right', autoClose: 2000 })
+  }
+
+  // Handle Speed Governor upload
+  const handleSpeedGovernorUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const isImage = file.type.startsWith('image/')
+    const isPDF = file.type === 'application/pdf'
+
+    if (!isImage && !isPDF) {
+      toast.error('Please select a valid image or PDF file', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error('File size should be less than 12MB', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    setUploadingSpeedGovernor(true)
+
+    try {
+      if (isPDF) {
+        const reader = new FileReader()
+        reader.onloadend = async () => {
+          try {
+            const base64String = reader.result
+            const response = await axios.post(
+              `${API_URL}/api/upload/speed-governor-image`,
+              {
+                imageData: base64String,
+                vehicleRegistrationId: editData?._id || null,
+                vehicleNumber: formData.registrationNumber
+              },
+              { withCredentials: true }
+            )
+
+            if (response.data.success) {
+              setFormData(prev => ({ ...prev, speedGovernorImage: response.data.data.path }))
+              setSpeedGovernorImagePreview(base64String)
+              setUploadingSpeedGovernor(false)
+              toast.success(`Speed Governor PDF uploaded successfully!`, { position: 'top-right', autoClose: 2000 })
+            }
+          } catch (uploadError) {
+            setUploadingSpeedGovernor(false)
+            toast.error('Failed to upload Speed Governor PDF', { position: 'top-right', autoClose: 3000 })
+          }
+        }
+        reader.readAsDataURL(file)
+        return
+      }
+
+      const img = new Image()
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        img.onload = async () => {
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          const maxWidth = 1920, maxHeight = 1920
+          let width = img.width, height = img.height
+
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height)
+            width *= ratio
+            height *= ratio
+          }
+
+          canvas.width = width
+          canvas.height = height
+          ctx.drawImage(img, 0, 0, width, height)
+
+          canvas.toBlob(async (blob) => {
+            if (blob) {
+              const webpReader = new FileReader()
+              webpReader.onloadend = async () => {
+                try {
+                  const response = await axios.post(
+                    `${API_URL}/api/upload/speed-governor-image`,
+                    {
+                      imageData: webpReader.result,
+                      vehicleRegistrationId: editData?._id || null,
+                      vehicleNumber: formData.registrationNumber
+                    },
+                    { withCredentials: true }
+                  )
+
+                  if (response.data.success) {
+                    setFormData(prev => ({ ...prev, speedGovernorImage: response.data.data.path }))
+                    setSpeedGovernorImagePreview(URL.createObjectURL(blob))
+                    setUploadingSpeedGovernor(false)
+                    toast.success(`Speed Governor uploaded successfully!`, { position: 'top-right', autoClose: 2000 })
+                  }
+                } catch (uploadError) {
+                  setUploadingSpeedGovernor(false)
+                  toast.error('Failed to upload Speed Governor', { position: 'top-right', autoClose: 3000 })
+                }
+              }
+              webpReader.readAsDataURL(blob)
+            }
+          }, 'image/webp', 0.8)
+        }
+        img.src = event.target.result
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      setUploadingSpeedGovernor(false)
+      toast.error('Error uploading Speed Governor', { position: 'top-right', autoClose: 3000 })
+    }
+  }
+
+  // Remove Speed Governor image
+  const handleRemoveSpeedGovernor = () => {
+    setSpeedGovernorImagePreview(null)
+    setFormData(prev => ({
+      ...prev,
+      speedGovernorImage: ''
+    }))
+    toast.info('Speed Governor document removed', { position: 'top-right', autoClose: 2000 })
   }
 
   const handleSubmit = async (e) => {
@@ -1488,7 +1617,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 </div>
               </div>
               <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-3 md:p-6 rounded-xl md:rounded-2xl border border-green-100'>
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6'>
+                <div className='grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6'>
                   {/* RC Document Upload */}
                   <div className='flex flex-col'>
                     <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
@@ -1729,6 +1858,88 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                             onClick={handleRemovePan}
                             className='absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg'
                             title='Delete PAN document'
+                          >
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Speed Governor Document Upload */}
+                  <div className='flex flex-col'>
+                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
+                      Speed Governor {speedGovernorImagePreview && <span className='text-green-600'>(Uploaded)</span>}
+                    </label>
+                    <div className='relative flex-1'>
+                      {!speedGovernorImagePreview ? (
+                        <>
+                          <input
+                            type='file'
+                            accept='image/*,application/pdf'
+                            onChange={handleSpeedGovernorUpload}
+                            disabled={uploadingSpeedGovernor}
+                            className='hidden'
+                            id='speedGovernorImageInput'
+                          />
+                          <label
+                            htmlFor='speedGovernorImageInput'
+                            className={`flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
+                              uploadingSpeedGovernor
+                                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                                : 'border-yellow-300 bg-white hover:bg-yellow-50 hover:border-yellow-400'
+                            }`}
+                          >
+                            {uploadingSpeedGovernor ? (
+                              <div className='flex flex-col items-center'>
+                                <svg className='animate-spin h-8 w-8 text-yellow-600 mb-2' fill='none' viewBox='0 0 24 24'>
+                                  <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                                  <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                                </svg>
+                                <p className='text-sm text-gray-600 font-semibold'>Uploading...</p>
+                              </div>
+                            ) : (
+                              <>
+                                <svg className='w-10 h-10 md:w-12 md:h-12 text-yellow-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
+                                </svg>
+                                <p className='text-xs md:text-sm text-gray-600 font-semibold mb-1'>Upload Speed Governor</p>
+                                <p className='text-[10px] md:text-xs text-gray-500'>Image or PDF</p>
+                                <p className='text-[10px] text-yellow-600 font-semibold mt-1'>Max 12MB</p>
+                              </>
+                            )}
+                          </label>
+                        </>
+                      ) : (
+                        <div className='relative'>
+                          {speedGovernorImagePreview.startsWith('data:application/pdf') || speedGovernorImagePreview.includes('.pdf') ? (
+                            <div className='w-full h-32 md:h-40 flex flex-col items-center justify-center bg-white rounded-lg border-2 border-yellow-300'>
+                              <svg className='w-12 h-12 md:w-16 md:h-16 text-red-500 mb-2' fill='currentColor' viewBox='0 0 20 20'>
+                                <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
+                              </svg>
+                              <p className='text-xs md:text-sm font-semibold text-gray-600'>Speed Governor PDF</p>
+                              <a
+                                href={speedGovernorImagePreview}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                className='text-xs text-blue-600 hover:underline mt-1'
+                              >
+                                View PDF
+                              </a>
+                            </div>
+                          ) : (
+                            <img
+                              src={speedGovernorImagePreview}
+                              alt='Speed Governor Preview'
+                              className='w-full h-32 md:h-40 object-contain bg-white rounded-lg border-2 border-yellow-300 cursor-pointer hover:border-yellow-500 transition-all'
+                            />
+                          )}
+                          <button
+                            type='button'
+                            onClick={handleRemoveSpeedGovernor}
+                            className='absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg'
+                            title='Delete Speed Governor document'
                           >
                             <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />

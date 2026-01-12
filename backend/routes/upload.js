@@ -14,6 +14,9 @@ router.post('/aadhar-image', uploadController.uploadAadharImage)
 // POST upload PAN image/PDF (base64, max 12MB)
 router.post('/pan-image', uploadController.uploadPanImage)
 
+// POST upload Speed Governor image/PDF (base64, max 12MB)
+router.post('/speed-governor-image', uploadController.uploadSpeedGovernorImage)
+
 // POST upload Insurance Document image/PDF (base64, max 12MB)
 router.post('/insurance-document', uploadController.uploadInsuranceDocument)
 

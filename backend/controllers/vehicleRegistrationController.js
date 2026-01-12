@@ -83,7 +83,8 @@ exports.getAllRegistrations = async (req, res) => {
           fitness: latestFitness,
           tax: latestTax,
           insurance: latestInsurance,
-          puc: latestPuc
+          puc: latestPuc,
+          speedGovernorImage: registration.speedGovernorImage // Include speedGovernorImage
         }
       })
     )
@@ -140,21 +141,12 @@ exports.exportAllRegistrations = async (req, res) => {
 // Get single vehicle registration by ID
 exports.getRegistrationById = async (req, res) => {
   try {
-    const registration = await VehicleRegistration.findOne({
-      _id: req.params.id,
-      userId: req.user.id
-    })
-
-    if (!registration) {
-      return res.status(404).json({
-        success: false,
-        message: 'Vehicle registration not found'
-      })
-    }
-
     res.json({
       success: true,
-      data: registration
+      data: {
+        ...registration.toObject(),
+        speedGovernorImage: registration.speedGovernorImage
+      }
     })
   } catch (error) {
     logError(error, req) // Fire and forget
@@ -186,7 +178,10 @@ exports.getRegistrationByNumber = async (req, res) => {
 
     res.json({
       success: true,
-      data: registration
+      data: {
+        ...registration.toObject(),
+        speedGovernorImage: registration.speedGovernorImage
+      }
     })
   } catch (error) {
     logError(error, req) // Fire and forget
@@ -238,7 +233,7 @@ exports.searchRegistrationByNumber = async (req, res) => {
     res.json({
       success: true,
       count: registrations.length,
-      data: registrations.length === 1 ? registrations[0] : registrations,
+      data: registrations.length === 1 ? { ...registrations[0].toObject(), speedGovernorImage: registrations[0].speedGovernorImage } : registrations.map(reg => ({ ...reg.toObject(), speedGovernorImage: reg.speedGovernorImage })),
       multiple: registrations.length > 1
     })
   } catch (error) {
@@ -288,6 +283,7 @@ exports.createRegistration = async (req, res) => {
     const rcImage = req.body.rcImage
     const aadharImage = req.body.aadharImage
     const panImage = req.body.panImage
+    const speedGovernorImage = req.body.speedGovernorImage
 
     // Validate required fields
     if (!registrationNumber) {
@@ -344,6 +340,9 @@ exports.createRegistration = async (req, res) => {
     if (panImage) {
       registrationData.panImage = panImage
     }
+    if (speedGovernorImage) {
+      registrationData.speedGovernorImage = speedGovernorImage
+    }
 
     const registration = await VehicleRegistration.create(registrationData)
 
@@ -399,6 +398,7 @@ exports.updateRegistration = async (req, res) => {
     const rcImage = req.body.rcImage
     const aadharImage = req.body.aadharImage
     const panImage = req.body.panImage
+    const speedGovernorImage = req.body.speedGovernorImage
 
     const registration = await VehicleRegistration.findOne({
       _id: req.params.id,
@@ -446,6 +446,9 @@ exports.updateRegistration = async (req, res) => {
     }
     if (panImage !== undefined) {
       registration.panImage = panImage || undefined
+    }
+    if (speedGovernorImage !== undefined) {
+      registration.speedGovernorImage = speedGovernorImage || undefined
     }
 
     await registration.save()

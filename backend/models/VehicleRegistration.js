@@ -96,6 +96,10 @@ const vehicleRegistrationSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  speedGovernorImage: {
+    type: String,
+    trim: true
+  },
   numberOfCylinders: {
     type: Number
   },
