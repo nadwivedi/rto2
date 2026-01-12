@@ -501,7 +501,7 @@ const Users = () => {
                 >
                   <option value=''>Select State</option>
                   {INDIAN_STATES.map((state) => (
-                    <option key={state} value={state}>
+                    <option key={state} value={state.toUpperCase()}>
                       {state.toUpperCase()}
                     </option>
                   ))}

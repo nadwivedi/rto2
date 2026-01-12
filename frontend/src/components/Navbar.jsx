@@ -20,16 +20,10 @@ const Navbar = () => {
 
   const menuItems = [
     {
-      name: "Dashboard",
+      name: "",
       icon: "📊",
       path: "/",
       description: "Overview & Expiring Items",
-    },
-    {
-      name: "Dashboard2",
-      icon: "📈",
-      path: "/dashboard2",
-      description: "Customizable Dashboard",
     },
     {
       name: "Vehicle +",
@@ -196,7 +190,7 @@ const Navbar = () => {
 
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br- from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md">
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-md">
               <span className="text-lg font-black text-white">R</span>
             </div>
             <h1 className="text-sm font-bold text-white">RTO Sarthi</h1>
@@ -209,7 +203,7 @@ const Navbar = () => {
 
       {/* Mobile Slide-in Menu */}
       <div
-        className={`lg:hidden fixed left-0 top-0 h-full bg-gradient-to-br- from-indigo-900 via-purple-900 to-blue-900 text-white transform transition-transform duration-300 ease-in-out z-50 w-64 shadow-2xl ${
+        className={`lg:hidden fixed left-0 top-0 h-full bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white transform transition-transform duration-300 ease-in-out z-50 w-64 shadow-2xl ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -217,7 +211,7 @@ const Navbar = () => {
         <div className="p-4 border-b border-purple-700/30">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <div className="w-9 h-9 bg-gradient-to-br- from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center shadow-lg">
                 <span className="text-xl font-black text-white">R</span>
               </div>
               <div>
@@ -258,7 +252,7 @@ const Navbar = () => {
               onClick={() => setIsMobileMenuOpen(false)}
               className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group ${
                 isActive(item.path)
-                  ? "bg-gradient-to-r- from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg"
+                  ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg"
                   : "hover:bg-white/10 hover:border border-transparent hover:border-purple-400/20"
               }`}
             >
@@ -304,7 +298,7 @@ const Navbar = () => {
                 to={item.path}
                 className={`flex items-center gap-1.5 2xl:gap-2 px-1.5 2xl:px-2.5 py-1.5 2xl:py-2 rounded-lg transition-all duration-200 group flex-shrink-0 ${
                   isActive(item.path)
-                    ? "bg-gradient-to-r- from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg"
+                    ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border border-purple-400/40 shadow-lg"
                     : "hover:bg-white/10 hover:border border-transparent hover:border-purple-400/20"
                 }`}
                 title={item.description}
@@ -394,7 +388,7 @@ const Navbar = () => {
           {/* Invisible bridge to prevent dropdown from closing */}
           <div className="h-2 w-full"></div>
 
-          <div className="bg-gradient-to-br- from-indigo-900 via-purple-900 to-blue-900 rounded-lg shadow-2xl border border-purple-400/20 w-[150px] overflow-hidden">
+          <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 rounded-lg shadow-2xl border border-purple-400/20 w-[150px] overflow-hidden">
             {dropdownItems.map((item) => (
               <Link
                 key={item.path}
@@ -402,7 +396,7 @@ const Navbar = () => {
                 onClick={() => setIsDropdownOpen(false)}
                 className={`flex items-center gap-2 px-3 py-2.5 transition-all duration-200 group/item ${
                   isActive(item.path)
-                    ? "bg-gradient-to-r- from-purple-600/30 to-pink-600/30 border-l-4 border-orange-400"
+                    ? "bg-gradient-to-r from-purple-600/30 to-pink-600/30 border-l-4 border-orange-400"
                     : "hover:bg-white/10 border-l-4 border-transparent hover:border-purple-400/40"
                 }`}
               >
