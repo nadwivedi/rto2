@@ -1,12 +1,28 @@
 import { useState } from 'react'
 import ImageViewer from '../../../components/ImageViewer'
+import AddFitnessModal from '../../Fitness/components/AddFitnessModal'
+import AddTaxModal from '../../Tax/components/AddTaxModal'
+import AddPucModal from '../../Puc/components/AddPucModal'
+import AddGpsModal from '../../Gps/components/AddGpsModal'
+import AddInsuranceModal from '../../Insurance/components/AddInsuranceModal'
+import IssueCgPermitModal from '../../CgPermit/components/IssueCgPermitModal'
+import IssueNewPermitModal from '../../NationalPermit/components/IssueNewPermitModal'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
-const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration }) => {
+const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, onRefresh }) => {
   const [showImageViewer, setShowImageViewer] = useState(false)
   const [currentImageUrl, setCurrentImageUrl] = useState('')
   const [currentImageTitle, setCurrentImageTitle] = useState('')
+
+  // State for quick-add modals
+  const [showAddFitnessModal, setShowAddFitnessModal] = useState(false)
+  const [showAddTaxModal, setShowAddTaxModal] = useState(false)
+  const [showAddPucModal, setShowAddPucModal] = useState(false)
+  const [showAddGpsModal, setShowAddGpsModal] = useState(false)
+  const [showAddInsuranceModal, setShowAddInsuranceModal] = useState(false)
+  const [showAddCgPermitModal, setShowAddCgPermitModal] = useState(false)
+  const [showAddNationalPermitModal, setShowAddNationalPermitModal] = useState(false)
 
   if (!isOpen || !selectedRegistration) {
     return null
@@ -26,6 +42,14 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
     setCurrentImageUrl(url)
     setCurrentImageTitle(title)
     setShowImageViewer(true)
+  }
+
+  // Handle successful record addition
+  const handleRecordAdded = () => {
+    // Refresh the parent data if callback provided
+    if (onRefresh) {
+      onRefresh()
+    }
   }
 
   return (
@@ -621,8 +645,91 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
           </div>
         </div>
 
-        {/* Footer */}
-        <div className='sticky bottom-0 bg-gray-50 px-3 py-2.5 md:px-5 md:py-3 border-t border-gray-200 flex justify-end'>
+        {/* Footer with Quick Add Actions */}
+        <div className='sticky bottom-0 bg-gradient-to-r from-gray-50 to-gray-100 px-3 py-2.5 md:px-5 md:py-3 border-t-2 border-gray-300 flex flex-wrap items-center justify-between gap-2'>
+          {/* Quick Add Buttons */}
+          <div className='flex flex-wrap items-center gap-2'>
+            <span className='text-xs font-semibold text-gray-600 hidden md:inline'>Quick Add:</span>
+
+            <button
+              onClick={() => setShowAddFitnessModal(true)}
+              className='px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-200 font-bold text-xs md:text-sm shadow-md hover:shadow-lg flex items-center gap-1'
+              title='Add Fitness Record'
+            >
+              <svg className='w-3 h-3 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              Fitness
+            </button>
+
+            <button
+              onClick={() => setShowAddTaxModal(true)}
+              className='px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-lg hover:from-blue-600 hover:to-cyan-700 transition-all duration-200 font-bold text-xs md:text-sm shadow-md hover:shadow-lg flex items-center gap-1'
+              title='Add Tax Record'
+            >
+              <svg className='w-3 h-3 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              Tax
+            </button>
+
+            <button
+              onClick={() => setShowAddPucModal(true)}
+              className='px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-teal-500 to-cyan-600 text-white rounded-lg hover:from-teal-600 hover:to-cyan-700 transition-all duration-200 font-bold text-xs md:text-sm shadow-md hover:shadow-lg flex items-center gap-1'
+              title='Add PUC Record'
+            >
+              <svg className='w-3 h-3 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              PUC
+            </button>
+
+            <button
+              onClick={() => setShowAddGpsModal(true)}
+              className='px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-200 font-bold text-xs md:text-sm shadow-md hover:shadow-lg flex items-center gap-1'
+              title='Add GPS Record'
+            >
+              <svg className='w-3 h-3 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              GPS
+            </button>
+
+            <button
+              onClick={() => setShowAddInsuranceModal(true)}
+              className='px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-700 transition-all duration-200 font-bold text-xs md:text-sm shadow-md hover:shadow-lg flex items-center gap-1'
+              title='Add Insurance Record'
+            >
+              <svg className='w-3 h-3 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              Insurance
+            </button>
+
+            <button
+              onClick={() => setShowAddCgPermitModal(true)}
+              className='px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-lg hover:from-rose-600 hover:to-red-700 transition-all duration-200 font-bold text-xs md:text-sm shadow-md hover:shadow-lg flex items-center gap-1'
+              title='Issue CG Permit'
+            >
+              <svg className='w-3 h-3 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              CG Permit
+            </button>
+
+            <button
+              onClick={() => setShowAddNationalPermitModal(true)}
+              className='px-3 py-1.5 md:px-4 md:py-2 bg-gradient-to-r from-indigo-500 to-violet-600 text-white rounded-lg hover:from-indigo-600 hover:to-violet-700 transition-all duration-200 font-bold text-xs md:text-sm shadow-md hover:shadow-lg flex items-center gap-1'
+              title='Issue National Permit'
+            >
+              <svg className='w-3 h-3 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              NP
+            </button>
+          </div>
+
+          {/* Close Button */}
           <button
             onClick={onClose}
             className='px-4 py-2 md:px-6 md:py-2 bg-gray-600 text-white rounded-lg md:rounded-xl hover:bg-gray-700 transition-all duration-200 font-bold text-sm shadow-md hover:shadow-lg'
@@ -639,6 +746,102 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration })
           title={currentImageTitle}
         />
       </div>
+
+      {/* Quick Add Modals */}
+      {showAddFitnessModal && (
+        <AddFitnessModal
+          isOpen={showAddFitnessModal}
+          onClose={() => setShowAddFitnessModal(false)}
+          onSubmit={handleRecordAdded}
+          prefilledVehicleNumber={selectedRegistration.registrationNumber || selectedRegistration.vehicleNumber}
+          prefilledOwnerName={selectedRegistration.ownerName || ''}
+          prefilledMobileNumber={selectedRegistration.mobileNumber || ''}
+        />
+      )}
+
+      {showAddTaxModal && (
+        <AddTaxModal
+          isOpen={showAddTaxModal}
+          onClose={() => setShowAddTaxModal(false)}
+          onSubmit={() => {
+            setShowAddTaxModal(false)
+            handleRecordAdded()
+          }}
+          prefilledVehicleNumber={selectedRegistration.registrationNumber || selectedRegistration.vehicleNumber}
+          prefilledOwnerName={selectedRegistration.ownerName || ''}
+          prefilledMobileNumber={selectedRegistration.mobileNumber || ''}
+        />
+      )}
+
+      {showAddPucModal && (
+        <AddPucModal
+          isOpen={showAddPucModal}
+          onClose={() => setShowAddPucModal(false)}
+          onSubmit={() => {
+            setShowAddPucModal(false)
+            handleRecordAdded()
+          }}
+          prefilledVehicleNumber={selectedRegistration.registrationNumber || selectedRegistration.vehicleNumber}
+          prefilledOwnerName={selectedRegistration.ownerName || ''}
+          prefilledMobileNumber={selectedRegistration.mobileNumber || ''}
+        />
+      )}
+
+      {showAddGpsModal && (
+        <AddGpsModal
+          isOpen={showAddGpsModal}
+          onClose={() => setShowAddGpsModal(false)}
+          onSubmit={() => {
+            setShowAddGpsModal(false)
+            handleRecordAdded()
+          }}
+          prefilledVehicleNumber={selectedRegistration.registrationNumber || selectedRegistration.vehicleNumber}
+          prefilledOwnerName={selectedRegistration.ownerName || ''}
+          prefilledMobileNumber={selectedRegistration.mobileNumber || ''}
+        />
+      )}
+
+      {showAddInsuranceModal && (
+        <AddInsuranceModal
+          isOpen={showAddInsuranceModal}
+          onClose={() => setShowAddInsuranceModal(false)}
+          onSubmit={() => {
+            setShowAddInsuranceModal(false)
+            handleRecordAdded()
+          }}
+          prefilledVehicleNumber={selectedRegistration.registrationNumber || selectedRegistration.vehicleNumber}
+          prefilledOwnerName={selectedRegistration.ownerName || ''}
+          prefilledMobileNumber={selectedRegistration.mobileNumber || ''}
+        />
+      )}
+
+      {showAddCgPermitModal && (
+        <IssueCgPermitModal
+          isOpen={showAddCgPermitModal}
+          onClose={() => setShowAddCgPermitModal(false)}
+          onSubmit={() => {
+            setShowAddCgPermitModal(false)
+            handleRecordAdded()
+          }}
+          prefilledVehicleNumber={selectedRegistration.registrationNumber || selectedRegistration.vehicleNumber}
+          prefilledOwnerName={selectedRegistration.ownerName || ''}
+          prefilledMobileNumber={selectedRegistration.mobileNumber || ''}
+        />
+      )}
+
+      {showAddNationalPermitModal && (
+        <IssueNewPermitModal
+          isOpen={showAddNationalPermitModal}
+          onClose={() => setShowAddNationalPermitModal(false)}
+          onSubmit={() => {
+            setShowAddNationalPermitModal(false)
+            handleRecordAdded()
+          }}
+          prefilledVehicleNumber={selectedRegistration.registrationNumber || selectedRegistration.vehicleNumber}
+          prefilledOwnerName={selectedRegistration.ownerName || ''}
+          prefilledMobileNumber={selectedRegistration.mobileNumber || ''}
+        />
+      )}
     </div>
   )
 }

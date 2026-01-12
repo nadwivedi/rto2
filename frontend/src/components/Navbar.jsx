@@ -131,8 +131,14 @@ const Navbar = () => {
     },
   ];
 
-  // Dropdown items for desktop (Forms and Settings)
+  // Dropdown items for desktop (Dashboard, Forms and Settings)
   const dropdownItems = [
+    {
+      name: "Dashboard",
+      icon: "📊",
+      path: "/",
+      description: "Overview & Expiring Items",
+    },
     {
       name: "Forms",
       icon: "📋",
@@ -147,9 +153,9 @@ const Navbar = () => {
     },
   ];
 
-  // Desktop menu items (all except Forms and Settings)
+  // Desktop menu items (all except Dashboard, Forms and Settings)
   const desktopMenuItems = menuItems.filter(
-    (item) => item.path !== "/forms" && item.path !== "/setting"
+    (item) => item.path !== "/" && item.path !== "/forms" && item.path !== "/setting"
   );
 
   const isActive = (path) => location.pathname === path;

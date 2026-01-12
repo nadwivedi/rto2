@@ -7,7 +7,7 @@ import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
-const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
+const IssueNewPermitModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', prefilledOwnerName = '', prefilledMobileNumber = '' }) => {
   const [showOptionalFields, setShowOptionalFields] = useState(false)
   const [partAImage, setPartAImage] = useState(null)
   const [partBImage, setPartBImage] = useState(null)
@@ -21,6 +21,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const dropdownItemRefs = useRef([])
   const [existingPermitStatus, setExistingPermitStatus] = useState(null)
   const [permitCheckError, setPermitCheckError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Helper function to format date as DD-MM-YYYY
   const formatDate = (date) => {
@@ -42,15 +43,15 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
     // Required fields
     permitNumber: '',
-    permitHolderName: '',
+    permitHolderName: prefilledOwnerName,
     validFrom: '',
     validTo: '',
 
     // Contact
-    mobileNumber: '',
+    mobileNumber: prefilledMobileNumber,
 
     // Vehicle details
-    vehicleNumber: '',
+    vehicleNumber: prefilledVehicleNumber,
 
     // Type B Authorization details
     authorizationNumber: '',
@@ -65,6 +66,22 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     // Notes
     notes: ''
   })
+
+  // Set prefilled values when modal opens
+  useEffect(() => {
+    if (isOpen && (prefilledVehicleNumber || prefilledOwnerName || prefilledMobileNumber)) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: prefilledVehicleNumber,
+        permitHolderName: prefilledOwnerName,
+        mobileNumber: prefilledMobileNumber
+      }));
+      // Mark vehicle as valid if prefilled
+      if (prefilledVehicleNumber) {
+        setVehicleValidation({ isValid: true, message: 'Vehicle number prefilled' });
+      }
+    }
+  }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber])
 
   // Fetch vehicle details when registration number is entered
   useEffect(() => {
@@ -507,7 +524,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     // Validate vehicle number before submitting (must be 9 or 10 characters and valid format)
@@ -546,36 +563,47 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
       return
     }
 
-    if (onSubmit) {
-      onSubmit({
-        ...formData,
-        partAImage,
-        partBImage
-      })
+    const dataToSubmit = {
+      permitNumber: formData.permitNumber,
+      permitHolderName: formData.permitHolderName,
+      vehicleNumber: formData.vehicleNumber,
+      validFrom: formData.validFrom,
+      validTo: formData.validTo,
+      mobileNumber: formData.mobileNumber,
+      authorizationNumber: formData.authorizationNumber,
+      typeBValidFrom: formData.typeBValidFrom,
+      typeBValidTo: formData.typeBValidTo,
+      totalFee: parseFloat(formData.totalFee) || 0,
+      paid: parseFloat(formData.paid) || 0,
+      balance: parseFloat(formData.balance) || 0,
+      notes: formData.notes,
+      partAImage: partAImage,
+      partBImage: partBImage
     }
-    // Reset form
-    setFormData({
-      permitNumber: '',
-      permitHolderName: '',
-      validFrom: '',
-      validTo: '',
-      mobileNumber: '',
-      vehicleNumber: '',
-      authorizationNumber: '',
-      typeBValidFrom: '', // Reset to empty
-      typeBValidTo: '', // Reset to empty
-      totalFee: '0',
-      paid: '0',
-      balance: '0',
-      notes: ''
-    })
-    setPartAImage(null)
-    setPartBImage(null)
-    setShowOptionalFields(false)
-    setVehicleError('')
-    setFetchingVehicle(false)
-    setVehicleValidation({ isValid: false, message: '' })
-    onClose()
+
+    setIsSubmitting(true)
+    try {
+      const response = await axios.post(`${API_URL}/api/national-permit`, dataToSubmit, {
+        withCredentials: true
+      })
+
+      if (response.data.success) {
+        toast.success('National Permit added successfully!')
+
+        // Call onSubmit callback to notify parent (for refresh)
+        if (onSubmit) {
+          onSubmit()
+        }
+
+        // Close modal
+        onClose()
+      }
+    } catch (error) {
+      console.error('Error adding National Permit:', error)
+      toast.error(error.response?.data?.message || 'Failed to add National Permit')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isOpen) return null
@@ -1151,12 +1179,25 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit }) => {
 
               <button
                 type='submit'
-                className='flex-1 md:flex-none px-4 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base'
+                disabled={isSubmitting}
+                className='flex-1 md:flex-none px-4 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer text-sm md:text-base disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                </svg>
-                Add Permit
+                {isSubmitting ? (
+                  <>
+                    <svg className='animate-spin h-5 w-5 text-white' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    Add Permit
+                  </>
+                )}
               </button>
             </div>
           </div>

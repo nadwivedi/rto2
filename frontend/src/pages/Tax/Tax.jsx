@@ -152,47 +152,10 @@ const Tax = () => {
     return new Date(0);
   };
 
-  const handleAddTax = async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/tax`, {
-        receiptNo: formData.receiptNo,
-        vehicleNumber: formData.vehicleNumber,
-        ownerName: formData.ownerName,
-        mobileNumber: formData.mobileNumber,
-        totalAmount: parseFloat(formData.totalAmount),
-        paidAmount: parseFloat(formData.paidAmount),
-        balanceAmount: parseFloat(formData.balance),
-        taxFrom: formData.taxFrom,
-        taxTo: formData.taxTo,
-      }, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success("Tax record added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-        // Refresh the list and statistics from the server
-        await fetchTaxRecords();
-        await fetchStatistics();
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error adding tax record:", error);
-      toast.error(
-        "Failed to add tax record. Please check if the backend server is running.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
+  const handleAddTax = async () => {
+    // Modal handles API call internally, just refresh data
+    await fetchTaxRecords();
+    await fetchStatistics();
   };
 
   const handleEditTax = async (formData) => {

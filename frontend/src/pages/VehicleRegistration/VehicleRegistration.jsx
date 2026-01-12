@@ -595,6 +595,7 @@ const VehicleRegistration = () => {
           isOpen={showDetailsModal}
           onClose={() => setShowDetailsModal(false)}
           selectedRegistration={selectedRegistration}
+          onRefresh={() => fetchRegistrations()}
         />
       )}
     </>

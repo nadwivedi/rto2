@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
-const AddGpsModal = ({ isOpen, onClose, onSubmit }) => {
+const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', prefilledOwnerName = '', prefilledMobileNumber = '' }) => {
   const [formData, setFormData] = useState({
-    vehicleNumber: '',
-    ownerName: '',
-    mobileNumber: '',
+    vehicleNumber: prefilledVehicleNumber,
+    ownerName: prefilledOwnerName,
+    mobileNumber: prefilledMobileNumber,
     validFrom: '',
     validTo: '',
     totalFee: '',
@@ -25,14 +26,15 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit }) => {
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
   const dropdownItemRefs = useRef([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Reset form when modal closes
+  // Reset form when modal closes or when prefilled values change
   useEffect(() => {
     if (!isOpen) {
       setFormData({
-        vehicleNumber: '',
-        ownerName: '',
-        mobileNumber: '',
+        vehicleNumber: prefilledVehicleNumber,
+        ownerName: prefilledOwnerName,
+        mobileNumber: prefilledMobileNumber,
         validFrom: '',
         validTo: '',
         totalFee: '',
@@ -47,7 +49,23 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit }) => {
       setShowVehicleDropdown(false)
       setSelectedDropdownIndex(0)
     }
-  }, [isOpen])
+  }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber])
+
+  // Set prefilled values when modal opens
+  useEffect(() => {
+    if (isOpen && (prefilledVehicleNumber || prefilledOwnerName || prefilledMobileNumber)) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: prefilledVehicleNumber,
+        ownerName: prefilledOwnerName,
+        mobileNumber: prefilledMobileNumber
+      }));
+      // Mark vehicle as valid if prefilled
+      if (prefilledVehicleNumber) {
+        setVehicleValidation({ isValid: true, message: 'Vehicle number prefilled' });
+      }
+    }
+  }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber])
 
   // Calculate valid to date (2 years from valid from for GPS)
   useEffect(() => {
@@ -310,40 +328,58 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit }) => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if ((formData.vehicleNumber.length === 9 || formData.vehicleNumber.length === 10) && !vehicleValidation.isValid) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
+      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
       return
     }
 
     if (formData.vehicleNumber && formData.vehicleNumber.length !== 9 && formData.vehicleNumber.length !== 10) {
-      alert('Vehicle number must be 9 or 10 characters')
+      toast.error('Vehicle number must be 9 or 10 characters')
       return
     }
 
     if (paidExceedsTotal) {
-      alert('Paid amount cannot be more than the total fee!')
+      toast.error('Paid amount cannot be more than the total fee!')
       return
     }
 
-    if (onSubmit) {
-      onSubmit(formData)
+    const dataToSubmit = {
+      vehicleNumber: formData.vehicleNumber,
+      ownerName: formData.ownerName,
+      mobileNumber: formData.mobileNumber,
+      validFrom: formData.validFrom,
+      validTo: formData.validTo,
+      totalFee: parseFloat(formData.totalFee) || 0,
+      paid: parseFloat(formData.paid) || 0,
+      balance: parseFloat(formData.balance) || 0
     }
-    setFormData({
-      vehicleNumber: '',
-      ownerName: '',
-      mobileNumber: '',
-      validFrom: '',
-      validTo: '',
-      totalFee: '',
-      paid: '',
-      balance: ''
-    })
-    setVehicleValidation({ isValid: false, message: '' })
-    setPaidExceedsTotal(false)
-    onClose()
+
+    setIsSubmitting(true)
+    try {
+      const response = await axios.post(`${API_URL}/api/gps`, dataToSubmit, {
+        withCredentials: true
+      })
+
+      if (response.data.success) {
+        toast.success('GPS record added successfully!')
+
+        // Call onSubmit callback to notify parent (for refresh)
+        if (onSubmit) {
+          onSubmit()
+        }
+
+        // Close modal
+        onClose()
+      }
+    } catch (error) {
+      console.error('Error adding GPS:', error)
+      toast.error(error.response?.data?.message || 'Failed to add GPS record')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isOpen) return null
@@ -650,12 +686,25 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit }) => {
 
               <button
                 type='submit'
-                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
+                disabled={isSubmitting}
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                </svg>
-                Add GPS
+                {isSubmitting ? (
+                  <>
+                    <svg className='animate-spin h-5 w-5 text-white' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    Add GPS
+                  </>
+                )}
               </button>
             </div>
           </div>

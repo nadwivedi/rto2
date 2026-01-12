@@ -150,51 +150,10 @@ const Fitness = () => {
     return new Date(0);
   };
 
-  const handleAddFitness = async (formData) => {
-    setLoading(true);
-    try {
-      const response = await axios.post(`${API_URL}/api/fitness`, {
-        vehicleNumber: formData.vehicleNumber,
-        ownerName: formData.ownerName,
-        mobileNumber: formData.mobileNumber,
-        validFrom: formData.validFrom,
-        validTo: formData.validTo,
-        totalFee: parseFloat(formData.totalFee),
-        paid: parseFloat(formData.paid),
-        balance: parseFloat(formData.balance),
-        feeBreakup: formData.feeBreakup || []
-      }, { withCredentials: true });
-
-      if (response.data.success) {
-        toast.success("Fitness certificate added successfully!", {
-          position: "top-right",
-          autoClose: 3000,
-        });
-
-        // Refresh the list and statistics from the server
-        await fetchFitnessRecords();
-        await fetchStatistics();
-
-        // Close modal
-        setIsAddModalOpen(false);
-      } else {
-        toast.error(`Error: ${response.data.message}`, {
-          position: "top-right",
-          autoClose: 3000,
-        });
-      }
-    } catch (error) {
-      console.error("Error adding fitness record:", error);
-      toast.error(
-        "Failed to add fitness certificate. Please check if the backend server is running.",
-        {
-          position: "top-right",
-          autoClose: 3000,
-        }
-      );
-    } finally {
-      setLoading(false);
-    }
+  const handleAddFitness = async () => {
+    // Modal handles API call internally, just refresh data
+    await fetchFitnessRecords();
+    await fetchStatistics();
   };
 
   const handleEditSuccess = async () => {

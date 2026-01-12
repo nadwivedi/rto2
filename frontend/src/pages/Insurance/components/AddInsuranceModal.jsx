@@ -7,17 +7,17 @@ import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
-const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEditMode = false }) => {
+const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEditMode = false, prefilledVehicleNumber = '', prefilledOwnerName = '', prefilledMobileNumber = '' }) => {
   // Helper function to get today's date in DD-MM-YYYY format
   const getTodayDate = () => {
     return utilGetTodayDate()
   }
 
   const [formData, setFormData] = useState({
-    vehicleNumber: '',
+    vehicleNumber: prefilledVehicleNumber,
     policyNumber: '',
-    policyHolderName: '',
-    mobileNumber: '',
+    policyHolderName: prefilledOwnerName,
+    mobileNumber: prefilledMobileNumber,
     validFrom: '',
     validTo: '',
     totalFee: '0',
@@ -40,6 +40,7 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
   const dropdownItemRefs = useRef([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Pre-fill form when initialData is provided (for edit/renewal) or reset on open
   useEffect(() => {
@@ -79,10 +80,10 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     } else if (!isOpen) {
       // Reset form when modal closes
       setFormData({
-        vehicleNumber: '',
+        vehicleNumber: prefilledVehicleNumber,
         policyNumber: '',
-        policyHolderName: '',
-        mobileNumber: '',
+        policyHolderName: prefilledOwnerName,
+        mobileNumber: prefilledMobileNumber,
         validFrom: '',
         validTo: '',
         totalFee: '0',
@@ -94,7 +95,23 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
       setVehicleValidation({ isValid: false, message: '' })
       setInsuranceDocPreview(null)
     }
-  }, [initialData, isOpen])
+  }, [initialData, isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber])
+
+  // Set prefilled values when modal opens (for quick add from vehicle registration)
+  useEffect(() => {
+    if (isOpen && !initialData && (prefilledVehicleNumber || prefilledOwnerName || prefilledMobileNumber)) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: prefilledVehicleNumber,
+        policyHolderName: prefilledOwnerName,
+        mobileNumber: prefilledMobileNumber
+      }));
+      // Mark vehicle as valid if prefilled
+      if (prefilledVehicleNumber) {
+        setVehicleValidation({ isValid: true, message: 'Vehicle number prefilled' });
+      }
+    }
+  }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber, initialData])
 
   // Fetch vehicle details when registration number is entered
   useEffect(() => {
@@ -504,44 +521,60 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     // Validate vehicle number before submitting
     if (!vehicleValidation.isValid && formData.vehicleNumber) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars), no spaces')
+      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars), no spaces')
       return
     }
 
     // Validate paid amount doesn't exceed total fee
     if (paidExceedsTotal) {
-      alert('Paid amount cannot be more than the total fee!')
+      toast.error('Paid amount cannot be more than the total fee!')
       return
     }
 
-    if (onSubmit) {
-      // Add issueDate to the form data before submitting (issueDate = validFrom)
-      const submitData = {
-        ...formData,
-        issueDate: formData.validFrom,
-        status: 'Active'
-      }
-      onSubmit(submitData)
+    // Prepare data for submission
+    const submitData = {
+      vehicleNumber: formData.vehicleNumber,
+      policyNumber: formData.policyNumber,
+      policyHolderName: formData.policyHolderName,
+      mobileNumber: formData.mobileNumber,
+      validFrom: formData.validFrom,
+      validTo: formData.validTo,
+      issueDate: formData.validFrom,
+      totalFee: parseFloat(formData.totalFee) || 0,
+      paid: parseFloat(formData.paid) || 0,
+      balance: parseFloat(formData.balance) || 0,
+      insuranceDocument: formData.insuranceDocument || '',
+      status: 'Active'
     }
-    // Reset form
-    setFormData({
-      vehicleNumber: '',
-      policyNumber: '',
-      policyHolderName: '',
-      validFrom: '',
-      validTo: '',
-      totalFee: '0',
-      paid: '0',
-      balance: '0'
-    })
-    setVehicleValidation({ isValid: false, message: '' })
-    setPaidExceedsTotal(false)
-    onClose()
+
+    setIsSubmitting(true)
+    try {
+      const response = await axios.post(`${API_URL}/api/insurance`, submitData, {
+        withCredentials: true
+      })
+
+      if (response.data.success) {
+        toast.success('Insurance record added successfully!')
+
+        // Call onSubmit callback to notify parent (for refresh)
+        if (onSubmit) {
+          onSubmit()
+        }
+
+        // Close modal
+        onClose()
+      }
+    } catch (error) {
+      console.error('Error adding insurance:', error)
+      toast.error(error.response?.data?.message || 'Failed to add insurance record')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isOpen) return null
@@ -977,12 +1010,25 @@ const AddInsuranceModal = ({ isOpen, onClose, onSubmit, initialData = null, isEd
 
               <button
                 type='submit'
-                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
+                disabled={isSubmitting}
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                </svg>
-                {isEditMode ? 'Update Insurance' : 'Add Insurance'}
+                {isSubmitting ? (
+                  <>
+                    <svg className='animate-spin h-5 w-5 text-white' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                    </svg>
+                    {isEditMode ? 'Updating...' : 'Adding...'}
+                  </>
+                ) : (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    {isEditMode ? 'Update Insurance' : 'Add Insurance'}
+                  </>
+                )}
               </button>
             </div>
           </div>

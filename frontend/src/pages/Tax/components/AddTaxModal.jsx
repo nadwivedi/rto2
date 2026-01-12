@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { handleDateBlur as utilHandleDateBlur, handleSmartDateInput } from '../../../utils/dateFormatter'
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
-const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
+const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', prefilledOwnerName = '', prefilledMobileNumber = '' }) => {
   const [fetchingVehicle, setFetchingVehicle] = useState(false)
   const [vehicleError, setVehicleError] = useState('')
   const [dateError, setDateError] = useState({ taxFrom: '', taxTo: '' })
@@ -16,12 +17,13 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
   const [showVehicleDropdown, setShowVehicleDropdown] = useState(false)
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
   const dropdownItemRefs = useRef([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [formData, setFormData] = useState({
     receiptNo: '',
-    vehicleNumber: '',
-    ownerName: '',
-    mobileNumber: '',
+    vehicleNumber: prefilledVehicleNumber,
+    ownerName: prefilledOwnerName,
+    mobileNumber: prefilledMobileNumber,
     totalAmount: '0',
     paidAmount: '0',
     balance: '0',
@@ -42,14 +44,14 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     return day <= daysInMonth
   }
 
-  // Reset form when modal closes
+  // Reset form when modal closes or when prefilled values change
   useEffect(() => {
     if (!isOpen) {
       setFormData({
         receiptNo: '',
-        vehicleNumber: '',
-        ownerName: '',
-        mobileNumber: '',
+        vehicleNumber: prefilledVehicleNumber,
+        ownerName: prefilledOwnerName,
+        mobileNumber: prefilledMobileNumber,
         totalAmount: '0',
         paidAmount: '0',
         balance: '0',
@@ -64,7 +66,23 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
       setShowVehicleDropdown(false)
       setSelectedDropdownIndex(0)
     }
-  }, [isOpen])
+  }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber])
+
+  // Set prefilled values when modal opens
+  useEffect(() => {
+    if (isOpen && (prefilledVehicleNumber || prefilledOwnerName || prefilledMobileNumber)) {
+      setFormData(prev => ({
+        ...prev,
+        vehicleNumber: prefilledVehicleNumber,
+        ownerName: prefilledOwnerName,
+        mobileNumber: prefilledMobileNumber
+      }));
+      // Mark vehicle as valid if prefilled
+      if (prefilledVehicleNumber) {
+        setVehicleValidation({ isValid: true, message: 'Vehicle number prefilled' });
+      }
+    }
+  }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber])
 
   // Fetch vehicle details when registration number is entered
   useEffect(() => {
@@ -438,48 +456,63 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     // Validate vehicle number before submitting (must be 9 or 10 characters and valid format)
     if ((formData.vehicleNumber.length === 9 || formData.vehicleNumber.length === 10) && !vehicleValidation.isValid) {
-      alert('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
+      toast.error('Please enter a valid vehicle number in the format: CG04AA1234 (10 chars) or CG04G1234 (9 chars)')
       return
     }
 
     // Ensure vehicle number is 9 or 10 characters for submission
     if (formData.vehicleNumber && formData.vehicleNumber.length !== 9 && formData.vehicleNumber.length !== 10) {
-      alert('Vehicle number must be 9 or 10 characters')
+      toast.error('Vehicle number must be 9 or 10 characters')
       return
     }
 
     // Validate paid amount doesn't exceed total fee
     if (paidExceedsTotal) {
-      alert('Paid amount cannot be more than the total fee!')
+      toast.error('Paid amount cannot be more than the total fee!')
       return
     }
 
-    if (onSubmit) {
-      onSubmit(formData)
+    const dataToSubmit = {
+      receiptNo: formData.receiptNo,
+      vehicleNumber: formData.vehicleNumber,
+      ownerName: formData.ownerName,
+      mobileNumber: formData.mobileNumber,
+      taxFrom: formData.taxFrom,
+      taxTo: formData.taxTo,
+      totalAmount: parseFloat(formData.totalAmount),
+      paidAmount: parseFloat(formData.paidAmount),
+      balanceAmount: parseFloat(formData.balance)
     }
-    // Reset form
-    setFormData({
-      receiptNo: '',
-      vehicleNumber: '',
-      ownerName: '',
-      totalAmount: '0',
-      paidAmount: '0',
-      balance: '0',
-      taxFrom: '',
-      taxTo: ''
-    })
-    setTaxPeriod('Q1') // Reset to Q1
-    setDateError({ taxFrom: '', taxTo: '' })
-    setVehicleError('')
-    setFetchingVehicle(false)
-    setVehicleValidation({ isValid: false, message: '' })
-    setPaidExceedsTotal(false)
-    onClose()
+
+    // Make API call
+    setIsSubmitting(true)
+    try {
+      const response = await axios.post(`${API_URL}/api/tax`, dataToSubmit, {
+        withCredentials: true
+      })
+
+      if (response.data.success) {
+        toast.success('Tax record added successfully!')
+
+        // Call onSubmit callback to notify parent (for refresh)
+        if (onSubmit) {
+          onSubmit()
+        }
+
+        // Close modal
+        onClose()
+      }
+    } catch (error) {
+      console.error('Error adding tax:', error)
+      toast.error(error.response?.data?.message || 'Failed to add tax record')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (!isOpen) return null
@@ -913,12 +946,25 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit }) => {
 
               <button
                 type='submit'
-                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer'
+                disabled={isSubmitting}
+                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
               >
-                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                </svg>
-                Add Tax Record
+                {isSubmitting ? (
+                  <>
+                    <svg className='animate-spin h-5 w-5 text-white' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    Add Tax Record
+                  </>
+                )}
               </button>
             </div>
           </div>
