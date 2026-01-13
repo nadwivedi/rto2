@@ -57,13 +57,17 @@ const StatisticsCard = ({ title, value, icon, color, onClick, isActive, extraVal
     >
       <div className='flex items-center justify-between'>
         <div>
-          <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1'>{title}</p>
+          <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1 whitespace-nowrap'>{title}</p>
           <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{value}</h3>
           {extraValue && <p className='text-[8px] lg:text-xs text-orange-600 font-bold mt-0.5'>{extraValue}</p>}
           {subtext && <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>{subtext}</p>}
         </div>
-        <div className={`w-8 h-8 lg:w-11 lg:h-11 ${colorClasses[color]?.bg} rounded-lg flex items-center justify-center shadow-md`}>
-          {icon}
+        <div className={`w-6 h-6 lg:w-8 lg:h-8 ${colorClasses[color]?.bg} rounded-lg flex items-center justify-center shadow-md`}>
+          {icon && (
+            <svg className='w-4 h-4 lg:w-5 lg:h-5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+            </svg>
+          )}
         </div>
       </div>
     </div>

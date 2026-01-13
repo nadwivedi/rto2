@@ -4,6 +4,8 @@ const Gps = require('../models/Gps');
 const Tax = require('../models/Tax');
 const BusPermit = require('../models/BusPermit');
 const NationalPermit = require('../models/NationalPermit');
+const CgPermit = require('../models/CgPermit');
+const Insurance = require('../models/Insurance');
 const mongoose = require('mongoose');
 
 exports.getDashboardData = async (req, res) => {
@@ -22,7 +24,11 @@ exports.getDashboardData = async (req, res) => {
       busPermitStats,
       busPermitExpiring,
       nationalPermitStats,
-      nationalPermitExpiring
+      nationalPermitExpiring,
+      cgPermitStats,
+      cgPermitExpiring,
+      insuranceStats,
+      insuranceExpiring,
     ] = await Promise.all([
       // Fitness
       Fitness.aggregate([
@@ -62,6 +68,20 @@ exports.getDashboardData = async (req, res) => {
       // National Permit (dummy data for now as logic is more complex)
       Promise.resolve({ total: 0, partAExpiringSoon: 0, partBExpiringSoon: 0 }),
       Promise.resolve([]),
+
+      // CG Permit
+      CgPermit.aggregate([
+        { $match: { userId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      CgPermit.find({ userId, status: 'expiring_soon' }).sort({ permitExpiryDate: 1 }),
+
+      // Insurance
+      Insurance.aggregate([
+        { $match: { userId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      Insurance.find({ userId, status: 'expiring_soon' }).sort({ validTo: 1 }),
     ]);
 
     const formatStats = (stats) => {
@@ -87,6 +107,8 @@ exports.getDashboardData = async (req, res) => {
           tax: { ...formatStats(taxStats), expiring: formatStats(taxStats).expiringSoon },
           busPermit: formatStats(busPermitStats),
           nationalPermit: nationalPermitStats,
+          cgPermit: formatStats(cgPermitStats),
+          insurance: formatStats(insuranceStats),
         },
         expiringRecords: {
           fitness: fitnessExpiring,
@@ -95,6 +117,8 @@ exports.getDashboardData = async (req, res) => {
           tax: taxExpiring,
           busPermit: busPermitExpiring,
           nationalPermit: nationalPermitExpiring,
+          cgPermit: cgPermitExpiring,
+          insurance: insuranceExpiring,
         },
       },
     });
