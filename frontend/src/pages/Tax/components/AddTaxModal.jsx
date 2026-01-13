@@ -27,6 +27,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
     totalAmount: '0',
     paidAmount: '0',
     balance: '0',
+    taxAmount: '',
     taxFrom: '',
     taxTo: ''
   })
@@ -55,6 +56,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
         totalAmount: '0',
         paidAmount: '0',
         balance: '0',
+        taxAmount: '',
         taxFrom: '',
         taxTo: ''
       })
@@ -351,6 +353,15 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
       return
     }
 
+    // Handle taxAmount field (optional, no special zero handling)
+    if (name === 'taxAmount') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }))
+      return
+    }
+
     // Handle date fields with smart validation and formatting
     if (name === 'taxFrom' || name === 'taxTo') {
       const formatted = handleSmartDateInput(value, formData[name] || '')
@@ -440,8 +451,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
       // Get current tabIndex
       const currentTabIndex = parseInt(e.target.getAttribute('tabIndex'))
 
-      // If we're on the last field (taxTo = tabIndex 8), submit the form
-      if (currentTabIndex === 8) {
+      // If we're on the last field (taxTo = tabIndex 9), submit the form
+      if (currentTabIndex === 9) {
         document.querySelector('form')?.requestSubmit()
         return
       }
@@ -486,7 +497,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
       taxTo: formData.taxTo,
       totalAmount: parseFloat(formData.totalAmount),
       paidAmount: parseFloat(formData.paidAmount),
-      balanceAmount: parseFloat(formData.balance)
+      balanceAmount: parseFloat(formData.balance),
+      taxAmount: formData.taxAmount ? parseFloat(formData.taxAmount) : undefined
     }
 
     // Make API call
@@ -868,7 +880,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                 </div>
               </div>
 
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
                 {/* Tax From */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -924,6 +936,24 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                       {dateError.taxTo}
                     </p>
                   )}
+                </div>
+
+                {/* Tax Amount (Optional) */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Tax Amount (₹) <span className='text-xs text-gray-500'>(Optional)</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='taxAmount'
+                    value={formData.taxAmount}
+                    onChange={handleChange}
+                    onFocus={(e) => e.target.select()}
+                    onKeyDown={handleInputKeyDown}
+                    placeholder=''
+                    tabIndex="9"
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                  />
                 </div>
               </div>
             </div>

@@ -44,6 +44,10 @@ const taxSchema = new mongoose.Schema({
     required: true,
     default: 0
   },
+  taxAmount: {
+    type: Number,
+    required: false
+  },
   taxFrom: {
     type: String,
     required: true

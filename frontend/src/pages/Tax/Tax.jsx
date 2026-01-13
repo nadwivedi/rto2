@@ -95,6 +95,7 @@ const Tax = () => {
           totalAmount: record.totalAmount || 0,
           paidAmount: record.paidAmount || 0,
           balanceAmount: record.balanceAmount || 0,
+          taxAmount: record.taxAmount,
           taxFrom: record.taxFrom,
           taxTo: record.taxTo,
           status: record.status,
@@ -169,6 +170,7 @@ const Tax = () => {
         totalAmount: parseFloat(formData.totalAmount),
         paidAmount: parseFloat(formData.paidAmount),
         balanceAmount: parseFloat(formData.balance),
+        taxAmount: formData.taxAmount ? parseFloat(formData.taxAmount) : undefined,
         taxFrom: formData.taxFrom,
         taxTo: formData.taxTo,
       }, { withCredentials: true });
@@ -707,6 +709,9 @@ const Tax = () => {
                     <th className="px-0.5 2xl:px-1 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
                       Tax To
                     </th>
+                    <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide">
+                      Tax Amt
+                    </th>
                     <th className="px-4 2xl:px-6 py-3 2xl:py-4 text-right text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide bg-white/10 pl-12 2xl:pl-16">
                       Total Fee
                     </th>
@@ -847,6 +852,24 @@ const Tax = () => {
                               {record.taxTo}
                             </span>
                           </div>
+                        </td>
+
+                        {/* Tax Amount */}
+                        <td className="px-4 2xl:px-6 py-3 2xl:py-4">
+                          {record.taxAmount && record.taxAmount > 0 ? (
+                            <div className="text-right">
+                              <div className="text-[11px] 2xl:text-sm font-bold text-purple-600">
+                                ₹{record.taxAmount.toLocaleString("en-IN")}
+                              </div>
+                              <div className="text-[10px] 2xl:text-xs text-purple-600 mt-0.5">Tax Amt</div>
+                            </div>
+                          ) : (
+                            <div className="text-right">
+                              <div className="text-[11px] 2xl:text-sm font-medium text-gray-400">
+                                -
+                              </div>
+                            </div>
+                          )}
                         </td>
 
                         {/* Total Fee */}

@@ -27,6 +27,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
     totalAmount: '0',
     paidAmount: '0',
     balance: '0',
+    taxAmount: '',
     taxFrom: '',
     taxTo: ''
   })
@@ -56,6 +57,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
         totalAmount: tax.totalAmount?.toString() || '0',
         paidAmount: tax.paidAmount?.toString() || '0',
         balance: tax.balanceAmount?.toString() || '0',
+        taxAmount: tax.taxAmount ? tax.taxAmount.toString() : '',
         taxFrom: tax.taxFrom || '',
         taxTo: tax.taxTo || ''
       })
@@ -619,7 +621,7 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                 Tax Period (Quarterly - 3 Months)
               </h3>
 
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4'>
                 {/* Tax From */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
@@ -671,6 +673,21 @@ const EditTaxModal = ({ isOpen, onClose, onSubmit, tax }) => {
                       {dateError.taxTo}
                     </p>
                   )}
+                </div>
+
+                {/* Tax Amount (Optional) */}
+                <div>
+                  <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                    Tax Amount (₹) <span className='text-xs text-gray-500'>(Optional)</span>
+                  </label>
+                  <input
+                    type='number'
+                    name='taxAmount'
+                    value={formData.taxAmount}
+                    onChange={handleChange}
+                    placeholder=''
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                  />
                 </div>
               </div>
             </div>
