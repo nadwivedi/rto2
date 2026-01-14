@@ -668,8 +668,10 @@ const IssueBusPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) 
                     required
                   >
                     <option value='AC'>AC</option>
-                    <option value='Delux'>Delux</option>
-                    <option value='Sleeper'>Sleeper</option>
+                    <option value='DELUX'>DELUX</option>
+                    <option value='SLEEPER'>SLEEPER</option>
+                    <option value='ORDINARY'>ORDINARY</option>
+                    <option value='SCHOOL BUS'>SCHOOL BUS</option>
                   </select>
                 </div>
               </div>

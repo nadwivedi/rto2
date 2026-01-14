@@ -174,11 +174,11 @@ exports.createPermit = async (req, res) => {
       })
     }
 
-    if (!category || !['AC', 'Delux', 'Sleeper'].includes(category)) {
+    if (!category || !['AC', 'DELUX', 'SLEEPER', 'ORDINARY', 'SCHOOL BUS'].includes(category)) {
       return res.status(400).json({
         success: false,
-        message: 'Category must be AC, Delux, or Sleeper',
-        errors: ['Category must be AC, Delux, or Sleeper'],
+        message: 'Category must be AC, DELUX, SLEEPER, ORDINARY, or SCHOOL BUS',
+        errors: ['Category must be AC, DELUX, SLEEPER, ORDINARY, or SCHOOL BUS'],
         errorCount: 1,
         timestamp: getSimplifiedTimestamp()
       })
@@ -669,11 +669,11 @@ exports.updatePermit = async (req, res) => {
       })
     }
 
-    if (category !== undefined && !['AC', 'Delux', 'Sleeper'].includes(category)) {
+    if (category !== undefined && !['AC', 'DELUX', 'SLEEPER', 'ORDINARY', 'SCHOOL BUS'].includes(category)) {
       return res.status(400).json({
         success: false,
-        message: 'Category must be AC, Delux, or Sleeper',
-        errors: ['Category must be AC, Delux, or Sleeper'],
+        message: 'Category must be AC, DELUX, SLEEPER, ORDINARY, or SCHOOL BUS',
+        errors: ['Category must be AC, DELUX, SLEEPER, ORDINARY, or SCHOOL BUS'],
         errorCount: 1,
         timestamp: getSimplifiedTimestamp()
       })

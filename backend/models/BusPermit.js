@@ -48,7 +48,7 @@ const BusPermitSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: ['AC', 'Delux', 'Sleeper'],
+    enum: ['AC', 'DELUX', 'SLEEPER', 'ORDINARY', 'SCHOOL BUS'],
     required: true
   },
 
