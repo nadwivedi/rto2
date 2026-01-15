@@ -577,10 +577,10 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                       value={formData.vehicleNumber}
                       onChange={handleChange}
                       onKeyDown={handleInputKeyDown}
-                      placeholder='CG04AA1234 or AA4793 or 4793'
+                      placeholder='CG04AA1234'
                       maxLength='10'
                       tabIndex="1"
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono bg-white ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
                           : formData.vehicleNumber && vehicleValidation.isValid
@@ -652,9 +652,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                       </div>
                     )}
                   </div>
-                  <p className='text-xs text-gray-500 mt-1'>
-                    Search by: Full number (CG04AA1234), Series (AA4793), or Last 4 digits (4793)
-                  </p>
+                  
                   {vehicleValidation.message && !fetchingVehicle && !showVehicleDropdown && (
                     <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
                       {vehicleValidation.message}
@@ -682,7 +680,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onKeyDown={handleInputKeyDown}
                     placeholder='RCP001'
                     tabIndex="2"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase bg-white'
                   />
                 </div>
 
@@ -699,7 +697,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onKeyDown={handleInputKeyDown}
                     placeholder='Enter owner name'
                     tabIndex="3"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                   />
                 </div>
 
@@ -717,7 +715,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     placeholder='10-digit number'
                     maxLength='10'
                     tabIndex="4"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                   />
                 </div>
               </div>
@@ -745,7 +743,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onKeyDown={handleInputKeyDown}
                     placeholder=''
                     tabIndex="5"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold bg-white'
                     required
                   />
                 </div>
@@ -767,7 +765,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
-                        : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent'
+                        : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent bg-white'
                     }`}
                     required
                   />
@@ -893,10 +891,10 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     onKeyDown={handleInputKeyDown}
-                    placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
+                    placeholder='DD-MM-YYYY'
                     tabIndex="7"
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent ${
-                      dateError.taxFrom ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                      dateError.taxFrom ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'
                     }`}
                     required
                   />
@@ -913,7 +911,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                 {/* Tax To (Auto-calculated) */}
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                    Tax To <span className='text-xs text-blue-500'>(Auto-calculated, editable)</span>
+                    Tax To <span className='text-xs text-blue-500'>(Auto-calculated)</span>
                   </label>
                   <input
                     type='text'
@@ -922,9 +920,9 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     onKeyDown={handleInputKeyDown}
-                    placeholder='DD-MM-YYYY (auto-calculated)'
+                    placeholder='DD-MM-YYYY'
                     tabIndex="8"
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-purple-50/50 ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white ${
                       dateError.taxTo ? 'border-red-500 bg-red-50' : 'border-gray-300'
                     }`}
                   />
@@ -952,7 +950,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onKeyDown={handleInputKeyDown}
                     placeholder=''
                     tabIndex="9"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold bg-white'
                   />
                 </div>
               </div>

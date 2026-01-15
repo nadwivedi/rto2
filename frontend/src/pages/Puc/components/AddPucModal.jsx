@@ -433,7 +433,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                       onChange={handleChange}
                       placeholder='CG04AA1234 or 4793'
                       maxLength='10'
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono bg-white ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
                           : formData.vehicleNumber && vehicleValidation.isValid
@@ -500,9 +500,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                   {!vehicleError && !fetchingVehicle && formData.vehicleNumber && vehicleValidation.isValid && !showVehicleDropdown && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Details verified</p>
                   )}
-                  <p className='text-xs mt-1 text-gray-500'>
-                    Search by: Full number (CG04AA1234), Series (AA4793), or Last 4 digits (4793)
-                  </p>
+                 
                 </div>
 
                 {/* Owner Name */}
@@ -516,7 +514,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     value={formData.ownerName}
                     onChange={handleChange}
                     placeholder='Enter owner name'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white'
                   />
                 </div>
 
@@ -532,7 +530,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onChange={handleChange}
                     placeholder='10-digit number'
                     maxLength='10'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white'
                   />
                 </div>
               </div>
@@ -558,7 +556,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                     required
                   />
                 </div>
@@ -575,7 +573,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (auto-calculated)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                   />
                 </div>
               </div>
@@ -600,7 +598,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     value={formData.totalFee}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent font-semibold bg-white'
                     required
                   />
                 </div>
@@ -619,7 +617,7 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
-                        : 'border-gray-300 focus:ring-purple-500 focus:border-transparent'
+                        : 'border-gray-300 focus:ring-purple-500 focus:border-transparent bg-white'
                     }`}
                     required
                   />

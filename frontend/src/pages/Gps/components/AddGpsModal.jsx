@@ -413,7 +413,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
             {/* Section 1: Vehicle Details */}
-            <div className='bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-cyan-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
+            <div className='bg-gradient-to-r from-blue-100 to-cyan-100 border-2 border-cyan-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
                 <span className='bg-cyan-600 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>1</span>
                 Vehicle Details
@@ -433,7 +433,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                       onChange={handleChange}
                       placeholder='CG04AA1234 or 4793'
                       maxLength='10'
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono bg-white ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
                           : formData.vehicleNumber && vehicleValidation.isValid
@@ -500,9 +500,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                   {!vehicleError && !fetchingVehicle && formData.vehicleNumber && vehicleValidation.isValid && !showVehicleDropdown && (
                     <p className='text-xs text-green-600 mt-1'>✓ Vehicle found - Details verified</p>
                   )}
-                  <p className='text-xs mt-1 text-gray-500'>
-                    Search by: Full number (CG04AA1234), Series (AA4793), or Last 4 digits (4793)
-                  </p>
+                 
                 </div>
 
                 {/* Owner Name */}
@@ -516,7 +514,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     value={formData.ownerName}
                     onChange={handleChange}
                     placeholder='Enter owner name'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white'
                   />
                 </div>
 
@@ -532,7 +530,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onChange={handleChange}
                     placeholder='10-digit number'
                     maxLength='10'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent bg-white'
                   />
                 </div>
               </div>
@@ -557,8 +555,8 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     value={formData.validFrom}
                     onChange={handleChange}
                     onBlur={handleDateBlur}
-                    placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    placeholder='DD-MM-YYYY'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                     required
                   />
                 </div>
@@ -575,7 +573,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (auto-calculated)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-indigo-50/50'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                   />
                 </div>
               </div>
@@ -600,7 +598,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     value={formData.totalFee}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-semibold bg-white'
                     required
                   />
                 </div>
@@ -619,7 +617,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
-                        : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent'
+                        : 'border-gray-300 focus:ring-emerald-500 focus:border-transparent bg-white'
                     }`}
                     required
                   />
