@@ -522,7 +522,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                       placeholder='CG04AA1234 or CG04G1234'
                       maxLength='10'
                       tabIndex="1"
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono bg-white ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
                           : formData.vehicleNumber && vehicleValidation.isValid
@@ -594,9 +594,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                       </div>
                     )}
                   </div>
-                  <p className='text-xs text-gray-500 mt-1'>
-                    Search by: Full number (CG04AA1234 or CG04G1234), Series (AA4793), or Last 4 digits (4793)
-                  </p>
+
                   {vehicleValidation.message && !fetchingVehicle && !showVehicleDropdown && (
                     <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
                       {vehicleValidation.message}
@@ -623,9 +621,8 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                     onKeyDown={handleInputKeyDown}
                     placeholder='CG001234567'
                     tabIndex="2"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase bg-white'
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Optional field - please go ahead</p>
                 </div>
 
                 {/* Permit Holder Name */}
@@ -641,7 +638,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                     onKeyDown={handleInputKeyDown}
                     placeholder='Rajesh Transport Services'
                     tabIndex="3"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase bg-white'
                     required
                   />
                 </div>
@@ -660,7 +657,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                     placeholder='10-digit number'
                     maxLength='10'
                     tabIndex="4"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                   />
                 </div>
 
@@ -678,10 +675,10 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                     onKeyDown={handleInputKeyDown}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
                     tabIndex="5"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                     required
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Format: DD-MM-YYYY. Type 2-digit year (24) to auto-expand to 2024</p>
+
                 </div>
 
                 {/* Valid To (Auto-calculated) */}
@@ -701,7 +698,6 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50'
                     readOnly
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated (5 years - 1 day from Valid From date)</p>
                 </div>
               </div>
             </div>
@@ -727,7 +723,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                     onKeyDown={handleInputKeyDown}
                     placeholder=''
                     tabIndex="7"
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold bg-white'
                     required
                   />
                 </div>
@@ -747,7 +743,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
                     className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
-                        : 'border-gray-300 focus:ring-green-500 focus:border-transparent'
+                        : 'border-gray-300 focus:ring-green-500 focus:border-transparent bg-white'
                     }`}
                     required
                   />

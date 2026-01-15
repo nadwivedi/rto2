@@ -751,7 +751,6 @@ const IssueBusPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) 
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50'
                     readOnly
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated (5 years - 1 day from Valid From date)</p>
                 </div>
               </div>
             </div>

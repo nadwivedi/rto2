@@ -430,7 +430,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                       onChange={handleChange}
                       placeholder='CG04AA1234 or CG04G1234'
                       maxLength='10'
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono bg-white ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
                           : formData.vehicleNumber && vehicleValidation.isValid
@@ -502,9 +502,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                       </div>
                     )}
                   </div>
-                  <p className='text-xs text-gray-500 mt-1'>
-                    Search by: Full number (CG04AA1234 or CG04G1234), Series (AA4793), or Last 4 digits (4793)
-                  </p>
+
                   {vehicleValidation.message && !fetchingVehicle && !showVehicleDropdown && (
                     <p className={`text-xs mt-1 ${vehicleValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
                       {vehicleValidation.message}
@@ -529,9 +527,9 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.permitNumber}
                     onChange={handleChange}
                     placeholder='CG001234567'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase bg-white'
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Optional field - please go ahead</p>
+
                 </div>
 
                 {/* Permit Holder Name */}
@@ -545,7 +543,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.permitHolderName}
                     onChange={handleChange}
                     placeholder='Rajesh Transport Services'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase bg-white'
                     required
                   />
                 </div>
@@ -562,7 +560,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     onChange={handleChange}
                     placeholder='10-digit number'
                     maxLength='10'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                   />
                 </div>
 
@@ -578,10 +576,10 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                     required
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Format: DD-MM-YYYY. Type 2-digit year (24) to auto-expand to 2024</p>
+
                 </div>
 
                 {/* Valid To (Auto-calculated) */}
@@ -599,7 +597,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50'
                     readOnly
                   />
-                  <p className='text-xs text-gray-500 mt-1'>Auto-calculated (5 years - 1 day from Valid From date)</p>
+
                 </div>
               </div>
             </div>
@@ -622,7 +620,7 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.totalFee}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold bg-white'
                     required
                   />
                 </div>
@@ -636,18 +634,14 @@ const EditCgPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.paid}
                     onChange={handleChange}
                     placeholder=''
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold ${
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 font-semibold bg-white ${
                       paidExceedsTotal
                         ? 'border-red-500 focus:ring-red-500 bg-red-50'
                         : 'border-gray-300 focus:ring-green-500 focus:border-transparent'
                     }`}
                     required
                   />
-                  {paidExceedsTotal && (
-                    <p className='text-xs mt-1 text-red-600 font-semibold'>
-                      Paid amount cannot exceed total fee!
-                    </p>
-                  )}
+
                 </div>
                 <div>
                   <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
