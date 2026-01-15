@@ -436,7 +436,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                       onChange={handleChange}
                       placeholder='CG04AA1234 or CG04G1234'
                       maxLength='10'
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono ${
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:border-transparent font-mono bg-white ${
                         formData.vehicleNumber && !vehicleValidation.isValid
                           ? 'border-red-500 focus:ring-red-500'
                           : formData.vehicleNumber && vehicleValidation.isValid
@@ -535,7 +535,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.permitNumber}
                     onChange={handleChange}
                     placeholder='CG001234567'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono uppercase bg-white'
                   />
                   <p className='text-xs text-gray-500 mt-1'>Optional field - please go ahead</p>
                 </div>
@@ -551,7 +551,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.permitHolderName}
                     onChange={handleChange}
                     placeholder='Rajesh Transport Services'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase bg-white'
                     required
                   />
                 </div>
@@ -568,7 +568,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     onChange={handleChange}
                     placeholder='10-digit number'
                     maxLength='10'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                   />
                 </div>
 
@@ -583,7 +583,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.routeFrom}
                     onChange={handleChange}
                     placeholder='e.g., Raipur'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase bg-white'
                     required
                   />
                 </div>
@@ -599,7 +599,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.routeTo}
                     onChange={handleChange}
                     placeholder='e.g., Bilaspur'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent uppercase bg-white'
                     required
                   />
                 </div>
@@ -636,7 +636,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     onChange={handleChange}
                     onBlur={handleDateBlur}
                     placeholder='DD-MM-YYYY (e.g., 24-01-2025)'
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white'
                     required
                   />
                   <p className='text-xs text-gray-500 mt-1'>Format: DD-MM-YYYY. Type 2-digit year (24) to auto-expand to 2024</p>
@@ -679,7 +679,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
                     value={formData.totalFee}
                     onChange={handleChange}
                     placeholder=''
-                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold'
+                    className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-semibold bg-white'
                     required
                   />
                 </div>
