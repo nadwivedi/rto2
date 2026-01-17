@@ -12,6 +12,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
     vehicleNumber: '',
     ownerName: '',
     mobileNumber: '',
+    partyId: '',
     validFrom: '',
     validTo: '',
     totalFee: '0',
@@ -62,6 +63,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
         vehicleNumber: fitness.vehicleNumber || '',
         ownerName: fitness.ownerName || '',
         mobileNumber: fitness.mobileNumber || '',
+        partyId: fitness.partyId?._id || fitness.partyId || '',
         validFrom: fitness.validFrom || '',
         validTo: fitness.validTo || '',
         totalFee: fitness.totalFee?.toString() || '0',
@@ -149,13 +151,14 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
             setShowVehicleDropdown(true)
             setSelectedDropdownIndex(0)
           } else {
-            // Single match found - auto-fill including mobile number
+            // Single match found - auto-fill including mobile number and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
               vehicleNumber: vehicleData.registrationNumber,
               ownerName: vehicleData.ownerName || '',
-              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
 
             // Validate the auto-filled vehicle number
@@ -204,7 +207,8 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
       ownerName: vehicle.ownerName || '',
-      mobileNumber: vehicle.mobileNumber || prev.mobileNumber
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
 
     // Validate the selected vehicle number
@@ -388,6 +392,7 @@ const EditFitnessModal = ({ isOpen, onClose, onSuccess, fitness }) => {
           vehicleNumber: formData.vehicleNumber,
           ownerName: formData.ownerName,
           mobileNumber: formData.mobileNumber,
+          partyId: formData.partyId || null,
           validFrom: formData.validFrom,
           validTo: formData.validTo,
           totalFee: parseFloat(formData.totalFee),

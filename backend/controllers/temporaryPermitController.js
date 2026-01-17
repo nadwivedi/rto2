@@ -1,4 +1,5 @@
 const TemporaryPermit = require('../models/TemporaryPermit')
+const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
 
 // helper function to calculate status
@@ -43,7 +44,8 @@ exports.createPermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      notes
+      notes,
+      partyId
     } = req.body
 
     // 1. Validate required fields
@@ -176,6 +178,18 @@ exports.createPermit = async (req, res) => {
     // Calculate status
     const status = getTemporaryPermitStatus(validTo);
 
+    // Get partyId - use provided or fetch from VehicleRegistration
+    let finalPartyId = partyId
+    if (!finalPartyId && vehicleNumber) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNumber.trim().toUpperCase(),
+        userId: req.user.id
+      })
+      if (vehicle && vehicle.partyId) {
+        finalPartyId = vehicle.partyId
+      }
+    }
+
     // Prepare permit data with validated values
     const permitData = {
       permitHolder: permitHolder.trim(),
@@ -186,6 +200,7 @@ exports.createPermit = async (req, res) => {
       totalFee: Number(totalFee),
       paid: paid !== undefined ? Number(paid) : 0,
       balance: balance !== undefined ? Number(balance) : Number(totalFee) - (paid !== undefined ? Number(paid) : 0),
+      partyId: finalPartyId || undefined,
       status,
       userId: req.user.id
     }
@@ -561,7 +576,8 @@ exports.updatePermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      notes
+      notes,
+      partyId
     } = req.body
 
     // 1. Validate required fields
@@ -686,6 +702,7 @@ exports.updatePermit = async (req, res) => {
     if (balance !== undefined) updateData.balance = Number(balance)
     if (mobileNumber !== undefined) updateData.mobileNumber = mobileNumber ? mobileNumber.trim() : ''
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
+    if (partyId !== undefined) updateData.partyId = partyId || null
     // Note: status is managed by cron job and should not be manually updated
 
     const updatedPermit = await TemporaryPermit.findOneAndUpdate(

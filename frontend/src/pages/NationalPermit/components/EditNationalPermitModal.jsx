@@ -39,6 +39,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
 
     // Contact
     mobileNumber: '',
+    partyId: '',
 
     // Vehicle details
     vehicleNumber: '',
@@ -68,6 +69,7 @@ const EditNationalPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         issueDate: permit.partA.issueDate || '',
         status: permit.status || 'Active',
         mobileNumber: permit.partA.ownerMobile?.replace('+91 ', '') || '',
+        partyId: permit.partyId?._id || permit.partyId || '',
         vehicleNumber: permit.vehicleNo || '',
         authorizationNumber: permit.partB?.authorizationNumber || '',
         typeBValidFrom: permit.partB?.validFrom || '',

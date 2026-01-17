@@ -1,4 +1,5 @@
 const Gps = require('../models/Gps')
+const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
 
 // helper function to calculate status
@@ -320,7 +321,7 @@ exports.getGpsById = async (req, res) => {
 // Create new GPS record
 exports.createGps = async (req, res) => {
   try {
-    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance, partyId: reqPartyId } = req.body
 
     // Validate required fields
     if (!vehicleNumber ) {
@@ -352,6 +353,18 @@ exports.createGps = async (req, res) => {
     // Calculate status
     const status = getGpsStatus(validTo);
 
+    // Use partyId from request body if provided, otherwise auto-fetch from vehicle registration
+    let partyId = reqPartyId || null
+    if (!partyId) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id
+      }).select('partyId')
+      if (vehicle && vehicle.partyId) {
+        partyId = vehicle.partyId
+      }
+    }
+
     // Mark any existing non-renewed GPS records for this vehicle as expired and renewed
     await Gps.updateMany(
       {
@@ -378,7 +391,8 @@ exports.createGps = async (req, res) => {
       paid,
       balance,
       status,
-      userId: req.user.id
+      userId: req.user.id,
+      partyId
     })
 
     await gps.save()
@@ -401,7 +415,7 @@ exports.createGps = async (req, res) => {
 // Update GPS record
 exports.updateGps = async (req, res) => {
   try {
-    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance, partyId } = req.body
 
     const gps = await Gps.findOne({ _id: req.params.id, userId: req.user.id })
 
@@ -446,6 +460,7 @@ exports.updateGps = async (req, res) => {
     if (totalFee !== undefined) gps.totalFee = totalFee
     if (paid !== undefined) gps.paid = paid
     if (balance !== undefined) gps.balance = balance
+    if (partyId !== undefined) gps.partyId = partyId
 
     await gps.save()
 

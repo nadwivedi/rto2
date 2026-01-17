@@ -24,6 +24,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
     vehicleNumber: prefilledVehicleNumber,
     ownerName: prefilledOwnerName,
     mobileNumber: prefilledMobileNumber,
+    partyId: '',
     totalAmount: '0',
     paidAmount: '0',
     balance: '0',
@@ -53,6 +54,7 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
         vehicleNumber: prefilledVehicleNumber,
         ownerName: prefilledOwnerName,
         mobileNumber: prefilledMobileNumber,
+        partyId: '',
         totalAmount: '0',
         paidAmount: '0',
         balance: '0',
@@ -115,13 +117,14 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number, owner name, and mobile number
+            // Single match found - auto-fill including full vehicle number, owner name, mobile number, and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
               vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
               ownerName: vehicleData.ownerName || prev.ownerName,
-              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -172,7 +175,8 @@ const AddTaxModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
       ownerName: vehicle.ownerName || prev.ownerName,
-      mobileNumber: vehicle.mobileNumber || prev.mobileNumber
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])

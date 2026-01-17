@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
@@ -39,8 +39,43 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     cubicCapacity: '',
     fuelType: '',
     bodyType: '',
-    wheelBase: ''
+    wheelBase: '',
+    partyId: ''
   })
+
+  // Party-related state
+  const [parties, setParties] = useState([])
+  const [showPartySuggestions, setShowPartySuggestions] = useState(false)
+  const [filteredParties, setFilteredParties] = useState([])
+  const [highlightedIndex, setHighlightedIndex] = useState(-1)
+  const [showAddPartyModal, setShowAddPartyModal] = useState(false)
+  const [selectedPartyName, setSelectedPartyName] = useState('')
+  const [newParty, setNewParty] = useState({
+    partyName: '',
+    sonWifeDaughterOf: '',
+    mobile: '',
+    email: '',
+    address: ''
+  })
+  const [savingParty, setSavingParty] = useState(false)
+
+  // Refs for party modal Enter key navigation
+  const partyNameRef = useRef(null)
+  const partySWDRef = useRef(null)
+  const partyMobileRef = useRef(null)
+  const partyEmailRef = useRef(null)
+  const partyAddressRef = useRef(null)
+  const partySaveButtonRef = useRef(null)
+
+  // Handle Enter key navigation in Add Party modal
+  const handlePartyKeyDown = (e, nextRef) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (nextRef && nextRef.current) {
+        nextRef.current.focus()
+      }
+    }
+  }
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -53,8 +88,39 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [uploadingPan, setUploadingPan] = useState(false)
   const [uploadingSpeedGovernor, setUploadingSpeedGovernor] = useState(false)
 
-  // Handle Enter key to move to next field in order
+  // Handle Enter key to move to next field in order and arrow keys for party suggestions
   const handleKeyDown = (e) => {
+    const currentFieldName = e.target.name
+
+    // Handle arrow keys for party suggestions dropdown (only for ownerName field)
+    if (currentFieldName === 'ownerName' && showPartySuggestions && filteredParties.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        setHighlightedIndex(prev =>
+          prev < filteredParties.length - 1 ? prev + 1 : 0
+        )
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        setHighlightedIndex(prev =>
+          prev > 0 ? prev - 1 : filteredParties.length - 1
+        )
+        return
+      }
+      if (e.key === 'Enter' && highlightedIndex >= 0) {
+        e.preventDefault()
+        handlePartySelect(filteredParties[highlightedIndex])
+        return
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setShowPartySuggestions(false)
+        setHighlightedIndex(-1)
+        return
+      }
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault() // Prevent default form submission
 
@@ -85,7 +151,6 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         'email'
       ]
 
-      const currentFieldName = e.target.name
       const currentIndex = navigationOrder.indexOf(currentFieldName)
 
       // Move to next field in the order
@@ -102,14 +167,48 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     }
   }
 
+  // Fetch all parties on component mount
+  useEffect(() => {
+    const fetchParties = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/parties?all=true`, { withCredentials: true })
+        if (response.data.success) {
+          setParties(response.data.data)
+        }
+      } catch (error) {
+        console.error('Error fetching parties:', error)
+      }
+    }
+    if (isOpen) {
+      fetchParties()
+    }
+  }, [isOpen])
+
+  // Auto-focus on party name when Add Party modal opens
+  useEffect(() => {
+    if (showAddPartyModal && partyNameRef.current) {
+      setTimeout(() => {
+        partyNameRef.current.focus()
+      }, 100)
+    }
+  }, [showAddPartyModal])
+
   useEffect(() => {
     if (editData) {
       // Set registrationNumber from either registrationNumber or vehicleNumber for backward compatibility
       const regNumber = editData.registrationNumber || editData.vehicleNumber || ''
       setFormData({
         ...editData,
-        registrationNumber: regNumber
+        registrationNumber: regNumber,
+        partyId: editData.partyId?._id || editData.partyId || ''
       })
+
+      // Set selected party name if party is linked
+      if (editData.partyId?.partyName) {
+        setSelectedPartyName(editData.partyId.partyName)
+      } else {
+        setSelectedPartyName('')
+      }
 
       // Validate existing registration number
       if (regNumber) {
@@ -170,9 +269,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         cubicCapacity: '',
         fuelType: '',
         bodyType: '',
-        wheelBase: ''
+        wheelBase: '',
+        partyId: ''
       })
       setVehicleValidation({ isValid: false, message: '' })
+      setSelectedPartyName('')
       setRcImagePreview(null)
       setAadharImagePreview(null)
       setPanImagePreview(null)
@@ -250,6 +351,94 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       ...prev,
       [name]: processedValue
     }))
+  }
+
+  // Handle owner name change with party suggestions
+  const handleOwnerNameChange = (e) => {
+    const value = e.target.value.toUpperCase()
+    setFormData(prev => ({ ...prev, ownerName: value }))
+
+    // Filter parties based on input (start from 1 character)
+    if (value.length >= 1) {
+      const filtered = parties.filter(party =>
+        party.partyName.toUpperCase().includes(value)
+      )
+      setFilteredParties(filtered)
+      setShowPartySuggestions(filtered.length > 0)
+      setHighlightedIndex(-1) // Reset highlighted index when filtering
+    } else {
+      setShowPartySuggestions(false)
+      setFilteredParties([])
+      setHighlightedIndex(-1)
+    }
+  }
+
+  // Handle party selection from suggestions
+  const handlePartySelect = (party) => {
+    setFormData(prev => ({
+      ...prev,
+      ownerName: party.partyName,
+      sonWifeDaughterOf: party.sonWifeDaughterOf || '',
+      mobileNumber: party.mobile || '',
+      email: party.email || '',
+      address: party.address || '',
+      partyId: party._id
+    }))
+    setSelectedPartyName(party.partyName)
+    setShowPartySuggestions(false)
+    setHighlightedIndex(-1)
+  }
+
+  // Clear party selection
+  const clearPartySelection = () => {
+    setFormData(prev => ({
+      ...prev,
+      partyId: ''
+    }))
+    setSelectedPartyName('')
+  }
+
+  // Handle new party form change
+  const handleNewPartyChange = (e) => {
+    const { name, value } = e.target
+    const uppercaseFields = ['partyName', 'sonWifeDaughterOf', 'address']
+    const processedValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
+    setNewParty(prev => ({ ...prev, [name]: processedValue }))
+  }
+
+  // Save new party
+  const handleSaveParty = async () => {
+    if (!newParty.partyName.trim()) {
+      toast.error('Party name is required', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    setSavingParty(true)
+    try {
+      const response = await axios.post(`${API_URL}/api/parties`, newParty, { withCredentials: true })
+      if (response.data.success) {
+        const savedParty = response.data.data
+        // Add to parties list
+        setParties(prev => [...prev, savedParty])
+        // Auto-select the new party
+        handlePartySelect(savedParty)
+        // Close modal and reset form
+        setShowAddPartyModal(false)
+        setNewParty({
+          partyName: '',
+          sonWifeDaughterOf: '',
+          mobile: '',
+          email: '',
+          address: ''
+        })
+        toast.success('Party added successfully!', { position: 'top-right', autoClose: 2000 })
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to add party'
+      toast.error(errorMessage, { position: 'top-right', autoClose: 3000 })
+    } finally {
+      setSavingParty(false)
+    }
   }
 
   const handleDateChange = (e) => {
@@ -1466,7 +1655,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
             {/* Owner Details Section */}
             <div className='mb-4 md:mb-8'>
-              <div className='flex items-center gap-2 md:gap-3 mb-3 md:mb-6'>
+              <div className='flex flex-wrap items-center gap-3 md:gap-4 mb-3 md:mb-6'>
                 <div className='bg-gradient-to-br from-purple-500 to-pink-600 p-1.5 md:p-2.5 rounded-lg md:rounded-xl shadow-lg'>
                   <svg className='w-4 h-4 md:w-6 md:h-6 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
@@ -1476,14 +1665,42 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                   <h3 className='text-sm md:text-xl font-bold text-gray-800'>Owner Details</h3>
                   <p className='text-[10px] md:text-sm text-gray-500 hidden md:block'>Enter owner information</p>
                 </div>
+                <button
+                  type='button'
+                  onClick={() => setShowAddPartyModal(true)}
+                  className='flex items-center gap-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-2.5 py-1.5 md:px-3 md:py-1.5 rounded-lg text-xs md:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200'
+                >
+                  <svg className='w-3.5 h-3.5 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+                  </svg>
+                  <span>Add Party</span>
+                </button>
+                {selectedPartyName && (
+                  <div className='flex items-center gap-1.5 bg-green-100 text-green-700 px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-medium'>
+                    <svg className='w-3.5 h-3.5 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    <span className='hidden md:inline'>{selectedPartyName}</span>
+                    <span className='md:hidden'>{selectedPartyName.length > 12 ? selectedPartyName.substring(0, 12) + '...' : selectedPartyName}</span>
+                    <button
+                      type='button'
+                      onClick={clearPartySelection}
+                      className='ml-0.5 hover:text-green-900'
+                    >
+                      <svg className='w-3.5 h-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </div>
               <div className='bg-gradient-to-br from-purple-50 to-pink-50 p-3 md:p-6 rounded-xl md:rounded-2xl border border-purple-100'>
                 {/* Row 1: Owner Name and Son/Wife/Daughter of */}
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 mb-3 md:mb-5'>
-                  {/* Owner Name */}
+                  {/* Owner Name with Party Suggestions */}
                   <div className='group'>
                     <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
-                      Owner Name
+                      Owner Name <span className='text-purple-500 text-[10px] md:text-xs font-normal'>(Type to search parties)</span>
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
@@ -1495,11 +1712,40 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='text'
                         name='ownerName'
                         value={formData.ownerName}
-                        onChange={handleChange}
+                        onChange={handleOwnerNameChange}
                         onKeyDown={handleKeyDown}
-                        placeholder='Enter full name of owner'
+                        onBlur={() => setTimeout(() => setShowPartySuggestions(false), 200)}
+                        placeholder='Enter full name of owner or search party'
+                        autoComplete='off'
                         className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
                       />
+                      {/* Party Suggestions Dropdown */}
+                      {showPartySuggestions && filteredParties.length > 0 && (
+                        <div className='absolute z-50 w-full mt-1 bg-white border-2 border-purple-200 rounded-xl shadow-lg max-h-48 overflow-y-auto'>
+                          {filteredParties.map((party, index) => (
+                            <button
+                              key={party._id}
+                              type='button'
+                              onMouseDown={(e) => {
+                                e.preventDefault()
+                                handlePartySelect(party)
+                              }}
+                              onMouseEnter={() => setHighlightedIndex(index)}
+                              className={`w-full px-3 py-2 text-left transition-colors border-b border-gray-100 last:border-b-0 ${
+                                index === highlightedIndex
+                                  ? 'bg-purple-100 border-l-4 border-l-purple-500'
+                                  : 'hover:bg-purple-50'
+                              }`}
+                            >
+                              <div className='font-semibold text-gray-800 text-xs md:text-sm'>{party.partyName}</div>
+                              <div className='text-[10px] md:text-xs text-gray-500'>
+                                {party.mobile && <span>{party.mobile}</span>}
+                                {party.address && <span className='ml-2'>| {party.address.substring(0, 30)}...</span>}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2004,6 +2250,173 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         imageUrl={rcImagePreview}
         title='RC Document Image'
       />
+
+      {/* Add Party Modal */}
+      {showAddPartyModal && (
+        <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-3 md:p-4'>
+          <div className='bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden'>
+            {/* Header */}
+            <div className='bg-purple-600 text-white px-4 py-3'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-2'>
+                  <div className='bg-white/20 p-1.5 rounded-lg'>
+                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z' />
+                    </svg>
+                  </div>
+                  <h3 className='text-base font-bold'>Add New Party</h3>
+                </div>
+                <button
+                  type='button'
+                  onClick={() => setShowAddPartyModal(false)}
+                  className='text-white/80 hover:text-white hover:bg-white/20 p-1.5 rounded-lg transition-all'
+                >
+                  <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Form */}
+            <div className='p-4 space-y-3 max-h-[65vh] overflow-y-auto'>
+              {/* Party Name */}
+              <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  Party Name <span className='text-red-500'>*</span>
+                </label>
+                <input
+                  type='text'
+                  name='partyName'
+                  ref={partyNameRef}
+                  value={newParty.partyName}
+                  onChange={handleNewPartyChange}
+                  onKeyDown={(e) => handlePartyKeyDown(e, partySWDRef)}
+                  placeholder='Enter party/company name'
+                  className='w-full px-3 py-2 text-sm bg-white border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all uppercase font-semibold text-gray-800 placeholder:font-normal placeholder-gray-400'
+                />
+              </div>
+
+              {/* Son/Wife/Daughter of */}
+              <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  S/o, W/o, D/o
+                </label>
+                <input
+                  type='text'
+                  name='sonWifeDaughterOf'
+                  ref={partySWDRef}
+                  value={newParty.sonWifeDaughterOf}
+                  onChange={handleNewPartyChange}
+                  onKeyDown={(e) => handlePartyKeyDown(e, partyMobileRef)}
+                  placeholder='Father/Husband name'
+                  className='w-full px-3 py-2 text-sm bg-white border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all uppercase font-semibold text-gray-800 placeholder:font-normal placeholder-gray-400'
+                />
+              </div>
+
+              {/* Mobile */}
+              <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  Mobile
+                </label>
+                <input
+                  type='tel'
+                  name='mobile'
+                  ref={partyMobileRef}
+                  value={newParty.mobile}
+                  onChange={handleNewPartyChange}
+                  onKeyDown={(e) => handlePartyKeyDown(e, partyEmailRef)}
+                  maxLength='10'
+                  placeholder='9876543210'
+                  className='w-full px-3 py-2 text-sm bg-white border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all font-semibold text-gray-800 placeholder:font-normal placeholder-gray-400'
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  Email
+                </label>
+                <input
+                  type='email'
+                  name='email'
+                  ref={partyEmailRef}
+                  value={newParty.email}
+                  onChange={handleNewPartyChange}
+                  onKeyDown={(e) => handlePartyKeyDown(e, partyAddressRef)}
+                  placeholder='email@example.com'
+                  className='w-full px-3 py-2 text-sm bg-white border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all font-semibold text-gray-800 placeholder:font-normal placeholder-gray-400'
+                />
+              </div>
+
+              {/* Address */}
+              <div>
+                <label className='block text-sm font-semibold text-gray-700 mb-1'>
+                  Address
+                </label>
+                <textarea
+                  name='address'
+                  ref={partyAddressRef}
+                  value={newParty.address}
+                  onChange={handleNewPartyChange}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      if (partySaveButtonRef.current) {
+                        partySaveButtonRef.current.focus()
+                      }
+                    }
+                  }}
+                  rows='2'
+                  placeholder='Complete address'
+                  className='w-full px-3 py-2 text-sm bg-white border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all uppercase font-semibold text-gray-800 placeholder:font-normal placeholder-gray-400 resize-none'
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className='flex gap-3 px-4 py-3 bg-gray-50 border-t border-gray-200'>
+              <button
+                type='button'
+                onClick={() => setShowAddPartyModal(false)}
+                className='flex-1 px-4 py-2 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50 transition-all'
+              >
+                Cancel
+              </button>
+              <button
+                type='button'
+                ref={partySaveButtonRef}
+                onClick={handleSaveParty}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleSaveParty()
+                  }
+                }}
+                disabled={savingParty || !newParty.partyName.trim()}
+                className='flex-1 px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
+              >
+                {savingParty ? (
+                  <>
+                    <svg className='animate-spin h-4 w-4' fill='none' viewBox='0 0 24 24'>
+                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                    </svg>
+                    Save Party
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

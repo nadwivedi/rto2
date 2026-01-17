@@ -1,4 +1,5 @@
 const VehicleRegistration = require('../models/VehicleRegistration')
+const Party = require('../models/Party')
 const Fitness = require('../models/Fitness')
 const Tax = require('../models/Tax')
 const Insurance = require('../models/Insurance')
@@ -37,8 +38,9 @@ exports.getAllRegistrations = async (req, res) => {
     const totalRecords = await VehicleRegistration.countDocuments(query)
     const totalPages = Math.ceil(totalRecords / limitNum)
 
-    // Get paginated results
+    // Get paginated results with party details
     const registrations = await VehicleRegistration.find(query)
+      .populate('partyId', 'partyName mobile email address')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
@@ -148,6 +150,7 @@ exports.exportAllRegistrations = async (req, res) => {
   try {
     // Get all registrations without pagination (only user's own data)
     const registrations = await VehicleRegistration.find({ userId: req.user.id })
+      .populate('partyId', 'partyName mobile')
       .sort({ createdAt: -1 })
 
     res.json({
@@ -197,7 +200,7 @@ exports.getRegistrationByNumber = async (req, res) => {
     const registration = await VehicleRegistration.findOne({
       registrationNumber: req.params.registrationNumber.toUpperCase(),
       userId: req.user.id
-    })
+    }).populate('partyId', 'partyName mobile email address')
 
     if (!registration) {
       return res.status(404).json({
@@ -237,7 +240,7 @@ exports.searchRegistrationByNumber = async (req, res) => {
       const exactMatch = await VehicleRegistration.findOne({
         registrationNumber: searchInput,
         userId: req.user.id
-      })
+      }).populate('partyId', 'partyName mobile')
       if (exactMatch) {
         registrations = [exactMatch]
       }
@@ -250,7 +253,7 @@ exports.searchRegistrationByNumber = async (req, res) => {
       registrations = await VehicleRegistration.find({
         registrationNumber: { $regex: searchInput + '$', $options: 'i' },
         userId: req.user.id
-      }).sort({ createdAt: -1 })
+      }).populate('partyId', 'partyName mobile').sort({ createdAt: -1 })
     }
 
     if (registrations.length === 0) {
@@ -306,7 +309,8 @@ exports.createRegistration = async (req, res) => {
       cubicCapacity,
       fuelType,
       bodyType,
-      wheelBase
+      wheelBase,
+      partyId
     } = req.body
 
     // Images are optional
@@ -358,6 +362,11 @@ exports.createRegistration = async (req, res) => {
       fuelType,
       bodyType,
       wheelBase
+    }
+
+    // Add partyId if provided
+    if (partyId) {
+      registrationData.partyId = partyId
     }
 
     // Only add images if they're provided (optional fields)
@@ -421,7 +430,8 @@ exports.updateRegistration = async (req, res) => {
       cubicCapacity,
       fuelType,
       bodyType,
-      wheelBase
+      wheelBase,
+      partyId
     } = req.body
 
     // Images are optional
@@ -467,6 +477,8 @@ exports.updateRegistration = async (req, res) => {
     if (fuelType !== undefined) registration.fuelType = fuelType
     if (bodyType !== undefined) registration.bodyType = bodyType
     if (wheelBase !== undefined) registration.wheelBase = wheelBase
+    // Handle partyId - can be null to remove party association
+    if (partyId !== undefined) registration.partyId = partyId || null
     // Handle optional image fields - can be empty string to remove image
     if (rcImage !== undefined) {
       registration.rcImage = rcImage || undefined

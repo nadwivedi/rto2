@@ -1,4 +1,5 @@
 const Insurance = require('../models/Insurance')
+const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
 
 // helper function to calculate status
@@ -31,7 +32,7 @@ const getInsuranceStatus = (validTo) => {
 // Create new insurance record
 exports.createInsurance = async (req, res) => {
   try {
-    const { policyNumber, policyHolderName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument } = req.body
+    const { policyNumber, policyHolderName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument, partyId: reqPartyId } = req.body
 
     // Validate required fields
 
@@ -75,6 +76,18 @@ exports.createInsurance = async (req, res) => {
     // Calculate status
     const status = getInsuranceStatus(validTo);
 
+    // Use partyId from request body if provided, otherwise auto-fetch from vehicle registration
+    let partyId = reqPartyId || null
+    if (!partyId) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id
+      }).select('partyId')
+      if (vehicle && vehicle.partyId) {
+        partyId = vehicle.partyId
+      }
+    }
+
     // Mark any existing non-renewed insurance records for this vehicle as expired and renewed
     await Insurance.updateMany(
       {
@@ -103,7 +116,8 @@ exports.createInsurance = async (req, res) => {
       balance,
       status,
       remarks,
-      userId: req.user.id
+      userId: req.user.id,
+      partyId
     }
 
     // Only add insuranceDocument if it's provided (optional field)
@@ -442,7 +456,7 @@ exports.getInsuranceByPolicyNumber = async (req, res) => {
 exports.updateInsurance = async (req, res) => {
   try {
     const { id } = req.params
-    const { policyNumber, policyHolderName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument } = req.body
+    const { policyNumber, policyHolderName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, remarks, insuranceDocument, partyId } = req.body
 
     const insurance = await Insurance.findOne({ _id: id, userId: req.user.id })
 
@@ -493,6 +507,7 @@ exports.updateInsurance = async (req, res) => {
     if (insuranceDocument !== undefined) {
       insurance.insuranceDocument = insuranceDocument || undefined
     }
+    if (partyId !== undefined) insurance.partyId = partyId
 
     await insurance.save()
 

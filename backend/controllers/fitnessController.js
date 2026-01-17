@@ -1,4 +1,5 @@
 const Fitness = require('../models/Fitness')
+const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
 
 // helper function to calculate status
@@ -324,7 +325,7 @@ exports.getFitnessById = async (req, res) => {
 // Create new fitness record
 exports.createFitness = async (req, res) => {
   try {
-    const { ownerName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, feeBreakup } = req.body
+    const { ownerName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, feeBreakup, partyId: reqPartyId } = req.body
 
     // Validate required fields
     if (!vehicleNumber ) {
@@ -356,6 +357,18 @@ exports.createFitness = async (req, res) => {
     // Calculate status
     const status = getFitnessStatus(validTo);
 
+    // Use partyId from request body if provided, otherwise auto-fetch from vehicle registration
+    let partyId = reqPartyId || null
+    if (!partyId) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id
+      }).select('partyId')
+      if (vehicle && vehicle.partyId) {
+        partyId = vehicle.partyId
+      }
+    }
+
     // Mark any existing non-renewed fitness records for this vehicle as expired and renewed
     await Fitness.updateMany(
       {
@@ -383,7 +396,8 @@ exports.createFitness = async (req, res) => {
       balance,
       feeBreakup,
       status,
-      userId: req.user.id
+      userId: req.user.id,
+      partyId
     })
 
     await fitness.save()
@@ -406,7 +420,7 @@ exports.createFitness = async (req, res) => {
 // Update fitness record
 exports.updateFitness = async (req, res) => {
   try {
-    const { ownerName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, feeBreakup } = req.body
+    const { ownerName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, feeBreakup, partyId } = req.body
 
     const fitness = await Fitness.findOne({ _id: req.params.id, userId: req.user.id })
 
@@ -452,6 +466,7 @@ exports.updateFitness = async (req, res) => {
     if (paid !== undefined) fitness.paid = paid
     if (balance !== undefined) fitness.balance = balance
     if (feeBreakup !== undefined) fitness.feeBreakup = feeBreakup
+    if (partyId !== undefined) fitness.partyId = partyId
 
     await fitness.save()
 

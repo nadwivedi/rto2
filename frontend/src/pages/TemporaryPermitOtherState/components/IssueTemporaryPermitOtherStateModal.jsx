@@ -24,6 +24,7 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
     permitHolder: '',
     vehicleNo: '',
     mobileNo: '',
+    partyId: '',
     validFrom: '',
     validTo: '',
     totalFee: '0',
@@ -156,13 +157,14 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number
+            // Single match found - auto-fill including full vehicle number and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
               vehicleNo: vehicleData.registrationNumber, // Replace partial input with full number
               permitHolder: vehicleData.ownerName || prev.permitHolder,
-              mobileNo: vehicleData.mobileNumber || prev.mobileNo
+              mobileNo: vehicleData.mobileNumber || prev.mobileNo,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -213,7 +215,8 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
       ...prev,
       vehicleNo: vehicle.registrationNumber,
       permitHolder: vehicle.ownerName || prev.permitHolder,
-      mobileNo: vehicle.mobileNumber || prev.mobileNo
+      mobileNo: vehicle.mobileNumber || prev.mobileNo,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])

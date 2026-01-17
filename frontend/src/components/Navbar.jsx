@@ -57,7 +57,7 @@ const Navbar = () => {
       description: "Temporary Permits",
     },
     {
-      name: "Temp Permit (Other State)",
+      name: "Temp Permit (Oth State)",
       icon: "🚗",
       path: "/temporary-permit-other-state",
       description: "Temporary Permits from Other States",

@@ -1,4 +1,5 @@
 const NationalPermit = require('../models/NationalPermit')
+const VehicleRegistration = require('../models/VehicleRegistration')
 
 // Helper function to parse date from string (DD-MM-YYYY or DD/MM/YYYY format)
 function parsePermitDate(dateString) {
@@ -82,7 +83,8 @@ exports.createPermit = async (req, res) => {
       totalFee,
       paid,
       balance,
-      notes
+      notes,
+      partyId
     } = req.body
 
     // Validate required fields
@@ -117,9 +119,22 @@ exports.createPermit = async (req, res) => {
     const partAStatus = getPartAStatus(partAValidTo)
     const partBStatus = getPartBStatus(partBValidTo)
 
+    // Get partyId - use provided or fetch from VehicleRegistration
+    let finalPartyId = partyId
+    if (!finalPartyId && vehicleNumber) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNumber.trim().toUpperCase(),
+        userId: req.user.id
+      })
+      if (vehicle && vehicle.partyId) {
+        finalPartyId = vehicle.partyId
+      }
+    }
+
     // Create new permit
     const newPermit = new NationalPermit({
       userId: req.user.id,
+      partyId: finalPartyId || undefined,
       vehicleNumber,
       mobileNumber,
 
@@ -375,6 +390,9 @@ exports.updatePermit = async (req, res) => {
 
     // Update notes
     if (updateData.notes !== undefined) permit.notes = updateData.notes
+
+    // Update partyId
+    if (updateData.partyId !== undefined) permit.partyId = updateData.partyId || null
 
     await permit.save()
 

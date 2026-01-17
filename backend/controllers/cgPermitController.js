@@ -1,4 +1,5 @@
 const CgPermit = require('../models/CgPermit')
+const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
 const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 
@@ -43,7 +44,8 @@ exports.createPermit = async (req, res) => {
       paid,
       balance,
       mobileNumber,
-      notes
+      notes,
+      partyId
     } = req.body
 
     // Validate required fields
@@ -153,6 +155,18 @@ exports.createPermit = async (req, res) => {
     // Calculate status
     const status = getCgPermitStatus(validTo);
 
+    // Get partyId - use provided or fetch from VehicleRegistration
+    let finalPartyId = partyId
+    if (!finalPartyId && vehicleNumber) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNumber.trim().toUpperCase(),
+        userId: req.user.id
+      })
+      if (vehicle && vehicle.partyId) {
+        finalPartyId = vehicle.partyId
+      }
+    }
+
     // Prepare validated permit data
     const permitData = {
       permitNumber: permitNumber ? permitNumber.trim() : undefined,
@@ -165,6 +179,7 @@ exports.createPermit = async (req, res) => {
       balance: Number(balance),
       mobileNumber: mobileNumber ? mobileNumber.trim() : undefined,
       notes: notes ? notes.trim() : undefined,
+      partyId: finalPartyId || undefined,
       status,
       userId: req.user.id
     }
@@ -531,7 +546,8 @@ exports.updatePermit = async (req, res) => {
       paid,
       balance,
       mobileNumber,
-      notes
+      notes,
+      partyId
     } = req.body
 
     // Validate required fields if provided
@@ -625,6 +641,7 @@ exports.updatePermit = async (req, res) => {
     if (balance !== undefined) updateData.balance = Number(balance)
     if (mobileNumber !== undefined) updateData.mobileNumber = mobileNumber ? mobileNumber.trim() : ''
     if (notes !== undefined) updateData.notes = notes ? notes.trim() : ''
+    if (partyId !== undefined) updateData.partyId = partyId || null
 
     const updatedPermit = await CgPermit.findOneAndUpdate(
       { _id: id, userId: req.user.id },

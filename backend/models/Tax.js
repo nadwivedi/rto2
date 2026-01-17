@@ -7,6 +7,11 @@ const taxSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  partyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Party',
+    index: true
+  },
   receiptNo: {
     type: String,
     trim: true,

@@ -1,4 +1,5 @@
 const Tax = require('../models/Tax')
+const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
 
 // helper function to calculate status
@@ -125,7 +126,7 @@ exports.getTaxById = async (req, res) => {
 // Create new tax record
 exports.createTax = async (req, res) => {
   try {
-    const { receiptNo, vehicleNumber, ownerName, mobileNumber, totalAmount, paidAmount, balanceAmount, taxAmount, taxFrom, taxTo } = req.body
+    const { receiptNo, vehicleNumber, ownerName, mobileNumber, totalAmount, paidAmount, balanceAmount, taxAmount, taxFrom, taxTo, partyId: reqPartyId } = req.body
 
     // Validate required fields
     if (!vehicleNumber || !taxFrom || !taxTo) {
@@ -151,6 +152,18 @@ exports.createTax = async (req, res) => {
 
     // Calculate status
     const status = getTaxStatus(taxTo);
+
+    // Use partyId from request body if provided, otherwise auto-fetch from vehicle registration
+    let partyId = reqPartyId || null
+    if (!partyId) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id
+      }).select('partyId')
+      if (vehicle && vehicle.partyId) {
+        partyId = vehicle.partyId
+      }
+    }
 
     // Mark any existing non-renewed tax records for this vehicle as expired and renewed
     await Tax.updateMany(
@@ -180,7 +193,8 @@ exports.createTax = async (req, res) => {
       taxFrom,
       taxTo,
       status,
-      userId: req.user.id
+      userId: req.user.id,
+      partyId
     })
 
     await tax.save()
@@ -203,7 +217,7 @@ exports.createTax = async (req, res) => {
 // Update tax record
 exports.updateTax = async (req, res) => {
   try {
-    const { receiptNo, vehicleNumber, ownerName, mobileNumber, totalAmount, paidAmount, balanceAmount, taxAmount, taxFrom, taxTo } = req.body
+    const { receiptNo, vehicleNumber, ownerName, mobileNumber, totalAmount, paidAmount, balanceAmount, taxAmount, taxFrom, taxTo, partyId } = req.body
 
     const tax = await Tax.findOne({ _id: req.params.id, userId: req.user.id })
 
@@ -250,6 +264,7 @@ exports.updateTax = async (req, res) => {
     if (paidAmount !== undefined) tax.paidAmount = paidAmount
     if (balanceAmount !== undefined) tax.balanceAmount = balanceAmount
     if (taxAmount !== undefined) tax.taxAmount = taxAmount
+    if (partyId !== undefined) tax.partyId = partyId
 
     await tax.save()
 

@@ -1,4 +1,5 @@
 const Puc = require('../models/Puc')
+const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
 
 // helper function to calculate status
@@ -324,7 +325,7 @@ exports.getPucById = async (req, res) => {
 // Create new PUC record
 exports.createPuc = async (req, res) => {
   try {
-    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance, partyId: reqPartyId } = req.body
 
     // Validate required fields
     if (!vehicleNumber ) {
@@ -356,6 +357,18 @@ exports.createPuc = async (req, res) => {
     // Calculate status
     const status = getPucStatus(validTo);
 
+    // Use partyId from request body if provided, otherwise auto-fetch from vehicle registration
+    let partyId = reqPartyId || null
+    if (!partyId) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNumber.toUpperCase().trim(),
+        userId: req.user.id
+      }).select('partyId')
+      if (vehicle && vehicle.partyId) {
+        partyId = vehicle.partyId
+      }
+    }
+
     // Mark any existing non-renewed PUC records for this vehicle as expired and renewed
     await Puc.updateMany(
       {
@@ -382,7 +395,8 @@ exports.createPuc = async (req, res) => {
       paid,
       balance,
       status,
-      userId: req.user.id
+      userId: req.user.id,
+      partyId
     })
 
     await puc.save()
@@ -405,7 +419,7 @@ exports.createPuc = async (req, res) => {
 // Update PUC record
 exports.updatePuc = async (req, res) => {
   try {
-    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance } = req.body
+    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance, partyId } = req.body
 
     const puc = await Puc.findOne({ _id: req.params.id, userId: req.user.id })
 
@@ -450,6 +464,7 @@ exports.updatePuc = async (req, res) => {
     if (totalFee !== undefined) puc.totalFee = totalFee
     if (paid !== undefined) puc.paid = paid
     if (balance !== undefined) puc.balance = balance
+    if (partyId !== undefined) puc.partyId = partyId
 
     await puc.save()
 

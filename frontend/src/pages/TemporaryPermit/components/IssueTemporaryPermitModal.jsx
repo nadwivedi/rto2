@@ -18,6 +18,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
 
     // Optional fields
     mobileNumber: '',
+    partyId: '',
 
     // Fees
     totalFee: '0',
@@ -55,6 +56,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
         validFrom: '',
         validTo: '',
         mobileNumber: '',
+        partyId: '',
         totalFee: '0',
         paid: '0',
         balance: '0'
@@ -98,7 +100,7 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number
+            // Single match found - auto-fill including full vehicle number and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
@@ -110,7 +112,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
               ladenWeight: vehicleData.ladenWeight || prev.ladenWeight,
               unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
               mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
-              email: vehicleData.email || prev.email
+              email: vehicleData.email || prev.email,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -305,7 +308,8 @@ const IssueTemporaryPermitModal = ({ isOpen, onClose, onSubmit, initialData = nu
       ladenWeight: vehicle.ladenWeight || prev.ladenWeight,
       unladenWeight: vehicle.unladenWeight || prev.unladenWeight,
       mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
-      email: vehicle.email || prev.email
+      email: vehicle.email || prev.email,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])

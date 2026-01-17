@@ -49,6 +49,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber
 
     // Contact
     mobileNumber: prefilledMobileNumber,
+    partyId: '',
 
     // Vehicle details
     vehicleNumber: prefilledVehicleNumber,
@@ -116,13 +117,14 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number
+            // Single match found - auto-fill including full vehicle number and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
               vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
               permitHolderName: vehicleData.ownerName || prev.permitHolderName,
-              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -237,7 +239,8 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
       permitHolderName: vehicle.ownerName || prev.permitHolderName,
-      mobileNumber: vehicle.mobileNumber || prev.mobileNumber
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])
@@ -570,6 +573,7 @@ const IssueNewPermitModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber
       partAValidFrom: formData.validFrom,
       partAValidTo: formData.validTo,
       mobileNumber: formData.mobileNumber,
+      partyId: formData.partyId || null,
       partBNumber: formData.authorizationNumber,
       partBValidFrom: formData.typeBValidFrom,
       partBValidTo: formData.typeBValidTo,

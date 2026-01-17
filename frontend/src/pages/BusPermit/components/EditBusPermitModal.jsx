@@ -29,6 +29,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
 
     // Optional fields
     mobileNumber: '',
+    partyId: '',
 
     // Fees
     totalFee: '',
@@ -50,6 +51,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
         routeTo: permit.routeTo || '',
         category: permit.category || 'AC',
         mobileNumber: permit.mobileNumber?.replace('+91 ', '') || '',
+        partyId: permit.partyId?._id || permit.partyId || '',
         totalFee: (permit.totalFee || permit.fees)?.toString() || '',
         paid: permit.paid?.toString() || '',
         balance: permit.balance?.toString() || ''
@@ -93,7 +95,7 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number
+            // Single match found - auto-fill including full vehicle number and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
@@ -105,7 +107,8 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
               ladenWeight: vehicleData.ladenWeight || prev.ladenWeight,
               unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
               mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
-              email: vehicleData.email || prev.email
+              email: vehicleData.email || prev.email,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -250,7 +253,8 @@ const EditBusPermitModal = ({ isOpen, onClose, onSubmit, permit }) => {
       ladenWeight: vehicle.ladenWeight || prev.ladenWeight,
       unladenWeight: vehicle.unladenWeight || prev.unladenWeight,
       mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
-      email: vehicle.email || prev.email
+      email: vehicle.email || prev.email,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])

@@ -12,6 +12,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
     vehicleNumber: prefilledVehicleNumber,
     ownerName: prefilledOwnerName,
     mobileNumber: prefilledMobileNumber,
+    partyId: '',
     validFrom: '',
     validTo: '',
     totalFee: '0',
@@ -42,6 +43,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
         vehicleNumber: prefilledVehicleNumber,
         ownerName: prefilledOwnerName,
         mobileNumber: prefilledMobileNumber,
+        partyId: '',
         validFrom: '',
         validTo: '',
         totalFee: '0',
@@ -146,13 +148,14 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
             setSelectedDropdownIndex(0); // Reset to first item
             setVehicleError('');
           } else {
-            // Single match found - auto-fill including full vehicle number and mobile number
+            // Single match found - auto-fill including full vehicle number, mobile number, and partyId
             const vehicleData = response.data.data;
             setFormData(prev => ({
               ...prev,
               vehicleNumber: vehicleData.registrationNumber, // Replace partial input with full number
               ownerName: vehicleData.ownerName || '',
-              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber
+              mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }));
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber);
@@ -203,7 +206,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
       ...prev,
       vehicleNumber: vehicle.registrationNumber,
       ownerName: vehicle.ownerName || '',
-      mobileNumber: vehicle.mobileNumber || prev.mobileNumber
+      mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }));
     setShowVehicleDropdown(false);
     setVehicleMatches([]);
@@ -469,6 +473,7 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
       vehicleNumber: formData.vehicleNumber,
       ownerName: formData.ownerName,
       mobileNumber: formData.mobileNumber,
+      partyId: formData.partyId || null,
       validFrom: formData.validFrom,
       validTo: formData.validTo,
       totalFee: parseFloat(formData.totalFee),
@@ -504,7 +509,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
     // Reset form
     setFormData({
       vehicleNumber: '',
+      ownerName: '',
       mobileNumber: '',
+      partyId: '',
       validFrom: '',
       validTo: '',
       totalFee: '0',

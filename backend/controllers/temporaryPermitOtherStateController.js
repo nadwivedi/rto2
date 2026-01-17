@@ -1,4 +1,5 @@
 const TemporaryPermitOtherState = require('../models/TemporaryPermitOtherState')
+const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
 const { logError, getUserFriendlyError, getSimplifiedTimestamp } = require('../utils/errorLogger')
 
@@ -32,7 +33,7 @@ const getTemporaryPermitOtherStateStatus = (validTo) => {
 // Create new temporary permit (other state)
 exports.createPermit = async (req, res) => {
   try {
-    const { permitNumber, permitHolder, vehicleNo, mobileNo, validFrom, validTo, totalFee, paid, balance, notes } = req.body
+    const { permitNumber, permitHolder, vehicleNo, mobileNo, validFrom, validTo, totalFee, paid, balance, notes, partyId } = req.body
 
     // Validate required fields
     // permitNumber is now optional, so no validation needed
@@ -91,6 +92,18 @@ exports.createPermit = async (req, res) => {
     // Calculate status
     const status = getTemporaryPermitOtherStateStatus(validTo);
 
+    // Get partyId - use provided or fetch from VehicleRegistration
+    let finalPartyId = partyId
+    if (!finalPartyId && vehicleNo) {
+      const vehicle = await VehicleRegistration.findOne({
+        registrationNumber: vehicleNo.toUpperCase().trim(),
+        userId: req.user.id
+      })
+      if (vehicle && vehicle.partyId) {
+        finalPartyId = vehicle.partyId
+      }
+    }
+
     // Mark any existing non-renewed temporary permits (other state) for this vehicle as expired and renewed
     await TemporaryPermitOtherState.updateMany(
       {
@@ -116,6 +129,7 @@ exports.createPermit = async (req, res) => {
       totalFee,
       paid,
       balance,
+      partyId: finalPartyId || undefined,
       status,
       userId: req.user.id
     }
@@ -416,7 +430,7 @@ exports.getPermitById = async (req, res) => {
 exports.updatePermit = async (req, res) => {
   try {
     const { id } = req.params
-    const { permitNumber, permitHolder, vehicleNo, mobileNo, validFrom, validTo, totalFee, paid, balance, notes } = req.body
+    const { permitNumber, permitHolder, vehicleNo, mobileNo, validFrom, validTo, totalFee, paid, balance, notes, partyId } = req.body
 
     const permit = await TemporaryPermitOtherState.findOne({ _id: id, userId: req.user.id })
 
@@ -463,6 +477,7 @@ exports.updatePermit = async (req, res) => {
     if (paid !== undefined) permit.paid = paid
     if (balance !== undefined) permit.balance = balance
     if (notes !== undefined) permit.notes = notes
+    if (partyId !== undefined) permit.partyId = partyId || null
 
     await permit.save()
 

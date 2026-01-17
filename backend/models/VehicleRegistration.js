@@ -7,6 +7,11 @@ const vehicleRegistrationSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  partyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Party',
+    index: true
+  },
   registrationNumber: {
     type: String,
     required: true,

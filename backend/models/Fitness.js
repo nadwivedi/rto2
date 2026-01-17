@@ -7,6 +7,11 @@ const fitnessSchema = new mongoose.Schema({
     required: true,
     index: true
   },
+  partyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Party',
+    index: true
+  },
   vehicleNumber: {
     type: String,
     ref: 'VehicleRegistration',

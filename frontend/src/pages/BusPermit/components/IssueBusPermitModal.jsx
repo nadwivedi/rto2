@@ -20,6 +20,7 @@ const IssueBusPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) 
 
     // Optional fields
     mobileNumber: '',
+    partyId: '',
 
     // Fees
     totalFee: '0',
@@ -57,6 +58,7 @@ const IssueBusPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) 
         routeTo: '',
         category: 'AC',
         mobileNumber: '',
+        partyId: '',
         totalFee: '0',
         paid: '0',
         balance: '0'
@@ -100,7 +102,7 @@ const IssueBusPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) 
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number
+            // Single match found - auto-fill including full vehicle number and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
@@ -112,7 +114,8 @@ const IssueBusPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) 
               ladenWeight: vehicleData.ladenWeight || prev.ladenWeight,
               unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
               mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
-              email: vehicleData.email || prev.email
+              email: vehicleData.email || prev.email,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -257,7 +260,8 @@ const IssueBusPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) 
       ladenWeight: vehicle.ladenWeight || prev.ladenWeight,
       unladenWeight: vehicle.unladenWeight || prev.unladenWeight,
       mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
-      email: vehicle.email || prev.email
+      email: vehicle.email || prev.email,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])
@@ -441,6 +445,7 @@ const IssueBusPermitModal = ({ isOpen, onClose, onSubmit, initialData = null }) 
       fatherName: '',
       address: '',
       mobileNumber: '',
+      partyId: '',
       email: '',
       chassisNumber: '',
       engineNumber: '',

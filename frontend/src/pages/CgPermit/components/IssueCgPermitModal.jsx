@@ -18,6 +18,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
 
     // Optional fields
     mobileNumber: prefilledMobileNumber,
+    partyId: '',
 
     // Fees
     totalFee: '0',
@@ -53,6 +54,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
         validFrom: '',
         validTo: '',
         mobileNumber: prefilledMobileNumber,
+        partyId: '',
         totalFee: '0',
         paid: '0',
         balance: '0'
@@ -112,7 +114,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number
+            // Single match found - auto-fill including full vehicle number and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
@@ -124,7 +126,8 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
               ladenWeight: vehicleData.ladenWeight || prev.ladenWeight,
               unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
               mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
-              email: vehicleData.email || prev.email
+              email: vehicleData.email || prev.email,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -269,7 +272,8 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
       ladenWeight: vehicle.ladenWeight || prev.ladenWeight,
       unladenWeight: vehicle.unladenWeight || prev.unladenWeight,
       mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
-      email: vehicle.email || prev.email
+      email: vehicle.email || prev.email,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])
@@ -444,6 +448,7 @@ const IssueCgPermitModal = ({ isOpen, onClose, onSubmit, initialData = null, pre
       validFrom: formData.validFrom,
       validTo: formData.validTo,
       mobileNumber: formData.mobileNumber,
+      partyId: formData.partyId || null,
       totalFee: parseFloat(formData.totalFee) || 0,
       paid: parseFloat(formData.paid) || 0,
       balance: parseFloat(formData.balance) || 0

@@ -18,6 +18,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
 
     // Optional fields
     mobileNumber: '',
+    partyId: '',
 
     // Fees
     totalFee: '1000',
@@ -46,6 +47,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
         validFrom: permitData.validFrom || '',
         validTo: permitData.validTill || '',
         mobileNumber: permitData.mobileNumber || '',
+        partyId: permitData.partyId?._id || permitData.partyId || '',
         totalFee: (permitData.totalFee || permitData.fees)?.toString() || '1000',
         paid: permitData.paid?.toString() || '0',
         balance: permitData.balance?.toString() || '1000'
@@ -66,6 +68,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
         validFrom: '',
         validTo: '',
         mobileNumber: '',
+        partyId: '',
         totalFee: '1000',
         paid: '0',
         balance: '1000'
@@ -110,7 +113,7 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
             setSelectedDropdownIndex(0) // Reset to first item
             setVehicleError('')
           } else {
-            // Single match found - auto-fill including full vehicle number
+            // Single match found - auto-fill including full vehicle number and partyId
             const vehicleData = response.data.data
             setFormData(prev => ({
               ...prev,
@@ -122,7 +125,8 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
               ladenWeight: vehicleData.ladenWeight || prev.ladenWeight,
               unladenWeight: vehicleData.unladenWeight || prev.unladenWeight,
               mobileNumber: vehicleData.mobileNumber || prev.mobileNumber,
-              email: vehicleData.email || prev.email
+              email: vehicleData.email || prev.email,
+              partyId: vehicleData.partyId?._id || vehicleData.partyId || ''
             }))
             // Validate the full vehicle number
             const validation = validateVehicleNumberRealtime(vehicleData.registrationNumber)
@@ -317,7 +321,8 @@ const EditTemporaryPermitModal = ({ isOpen, onClose, onSubmit, permitData = null
       ladenWeight: vehicle.ladenWeight || prev.ladenWeight,
       unladenWeight: vehicle.unladenWeight || prev.unladenWeight,
       mobileNumber: vehicle.mobileNumber || prev.mobileNumber,
-      email: vehicle.email || prev.email
+      email: vehicle.email || prev.email,
+      partyId: vehicle.partyId?._id || vehicle.partyId || ''
     }))
     setShowVehicleDropdown(false)
     setVehicleMatches([])
