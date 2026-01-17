@@ -11,7 +11,9 @@ const PartyDetail = () => {
   const theme = getTheme()
   const [loading, setLoading] = useState(true)
   const [data, setData] = useState(null)
-  const [activeTab, setActiveTab] = useState('pending')
+  const [showAllVehicles, setShowAllVehicles] = useState(false)
+  const [showAllWork, setShowAllWork] = useState(false)
+  const [showAllPending, setShowAllPending] = useState(false)
 
   useEffect(() => {
     fetchPartyData()
@@ -52,78 +54,116 @@ const PartyDetail = () => {
     }).format(amount)
   }
 
+  // Get all work records combined
+  const getAllWork = () => {
+    if (!data?.work) return []
+    const allWork = []
+
+    data.work.tax?.forEach(item => {
+      allWork.push({ ...item, type: 'Tax', typeColor: 'blue', dateField: item.validFrom })
+    })
+
+    data.work.fitness?.forEach(item => {
+      allWork.push({ ...item, type: 'Fitness', typeColor: 'green', dateField: item.applicationDate })
+    })
+
+    data.work.insurance?.forEach(item => {
+      allWork.push({ ...item, type: 'Insurance', typeColor: 'purple', dateField: item.validFrom })
+    })
+
+    data.work.puc?.forEach(item => {
+      allWork.push({ ...item, type: 'PUC', typeColor: 'orange', dateField: item.issueDate })
+    })
+
+    data.work.gps?.forEach(item => {
+      allWork.push({ ...item, type: 'GPS', typeColor: 'cyan', dateField: item.installationDate })
+    })
+
+    data.work.cgPermit?.forEach(item => {
+      allWork.push({ ...item, type: 'CG Permit', typeColor: 'red', dateField: item.issueDate })
+    })
+
+    data.work.nationalPermit?.forEach(item => {
+      allWork.push({ ...item, type: 'National Permit', typeColor: 'indigo', dateField: item.issueDate })
+    })
+
+    data.work.busPermit?.forEach(item => {
+      allWork.push({ ...item, type: 'Bus Permit', typeColor: 'pink', dateField: item.issueDate })
+    })
+
+    data.work.temporaryPermit?.forEach(item => {
+      allWork.push({ ...item, type: 'Temporary Permit', typeColor: 'amber', dateField: item.issueDate })
+    })
+
+    data.work.temporaryPermitOtherState?.forEach(item => {
+      allWork.push({ ...item, type: 'Temp Permit (OS)', typeColor: 'teal', dateField: item.issueDate })
+    })
+
+    return allWork.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  }
+
   // Get all pending payments (balance > 0)
   const getPendingPayments = () => {
     if (!data?.work) return []
     const pending = []
 
-    // Tax
     data.work.tax?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'Tax', typeColor: 'blue' })
       }
     })
 
-    // Fitness
     data.work.fitness?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'Fitness', typeColor: 'green' })
       }
     })
 
-    // Insurance
     data.work.insurance?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'Insurance', typeColor: 'purple' })
       }
     })
 
-    // PUC
     data.work.puc?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'PUC', typeColor: 'orange' })
       }
     })
 
-    // GPS
     data.work.gps?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'GPS', typeColor: 'cyan' })
       }
     })
 
-    // CG Permit
     data.work.cgPermit?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'CG Permit', typeColor: 'red' })
       }
     })
 
-    // National Permit
     data.work.nationalPermit?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'National Permit', typeColor: 'indigo' })
       }
     })
 
-    // Bus Permit
     data.work.busPermit?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'Bus Permit', typeColor: 'pink' })
       }
     })
 
-    // Temporary Permit
     data.work.temporaryPermit?.forEach(item => {
       if (item.balanceAmount > 0) {
         pending.push({ ...item, type: 'Temporary Permit', typeColor: 'amber' })
       }
     })
 
-    // Temporary Permit Other State
     data.work.temporaryPermitOtherState?.forEach(item => {
       if (item.balanceAmount > 0) {
-        pending.push({ ...item, type: 'Temp Permit (Other State)', typeColor: 'teal' })
+        pending.push({ ...item, type: 'Temp Permit (OS)', typeColor: 'teal' })
       }
     })
 
@@ -182,7 +222,13 @@ const PartyDetail = () => {
   }
 
   const pendingPayments = getPendingPayments()
+  const allWork = getAllWork()
   const totalPending = pendingPayments.reduce((sum, item) => sum + (item.balanceAmount || 0), 0)
+  const vehicles = data.vehicles || []
+
+  const displayedVehicles = showAllVehicles ? vehicles : vehicles.slice(0, 5)
+  const displayedWork = showAllWork ? allWork : allWork.slice(0, 5)
+  const displayedPending = showAllPending ? pendingPayments : pendingPayments.slice(0, 5)
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50'>
@@ -234,11 +280,11 @@ const PartyDetail = () => {
             <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mt-6'>
               <div className='bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200'>
                 <p className='text-xs text-blue-600 font-semibold uppercase'>Total Vehicles</p>
-                <p className='text-2xl font-bold text-blue-700'>{data.summary?.totalVehicles || 0}</p>
+                <p className='text-2xl font-bold text-blue-700'>{vehicles.length}</p>
               </div>
               <div className='bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200'>
-                <p className='text-xs text-green-600 font-semibold uppercase'>Total Records</p>
-                <p className='text-2xl font-bold text-green-700'>{data.summary?.totalRecords || 0}</p>
+                <p className='text-xs text-green-600 font-semibold uppercase'>Total Work</p>
+                <p className='text-2xl font-bold text-green-700'>{allWork.length}</p>
               </div>
               <div className='bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200'>
                 <p className='text-xs text-red-600 font-semibold uppercase'>Pending Entries</p>
@@ -252,586 +298,263 @@ const PartyDetail = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden'>
-          <div className='border-b border-gray-200'>
-            <div className='flex overflow-x-auto'>
-              <button
-                onClick={() => setActiveTab('pending')}
-                className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === 'pending'
-                    ? 'border-red-500 text-red-600 bg-red-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Pending Payments ({pendingPayments.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('vehicles')}
-                className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === 'vehicles'
-                    ? 'border-purple-500 text-purple-600 bg-purple-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Vehicles ({data.vehicles?.length || 0})
-              </button>
-              <button
-                onClick={() => setActiveTab('tax')}
-                className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === 'tax'
-                    ? 'border-blue-500 text-blue-600 bg-blue-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Tax ({data.work?.tax?.length || 0})
-              </button>
-              <button
-                onClick={() => setActiveTab('fitness')}
-                className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === 'fitness'
-                    ? 'border-green-500 text-green-600 bg-green-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Fitness ({data.work?.fitness?.length || 0})
-              </button>
-              <button
-                onClick={() => setActiveTab('insurance')}
-                className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === 'insurance'
-                    ? 'border-purple-500 text-purple-600 bg-purple-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Insurance ({data.work?.insurance?.length || 0})
-              </button>
-              <button
-                onClick={() => setActiveTab('puc')}
-                className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === 'puc'
-                    ? 'border-orange-500 text-orange-600 bg-orange-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                PUC ({data.work?.puc?.length || 0})
-              </button>
-              <button
-                onClick={() => setActiveTab('gps')}
-                className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === 'gps'
-                    ? 'border-cyan-500 text-cyan-600 bg-cyan-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                GPS ({data.work?.gps?.length || 0})
-              </button>
-              <button
-                onClick={() => setActiveTab('permits')}
-                className={`px-6 py-4 text-sm font-semibold whitespace-nowrap border-b-2 transition-colors ${
-                  activeTab === 'permits'
-                    ? 'border-indigo-500 text-indigo-600 bg-indigo-50'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Permits ({(data.work?.cgPermit?.length || 0) + (data.work?.nationalPermit?.length || 0) + (data.work?.busPermit?.length || 0) + (data.work?.temporaryPermit?.length || 0) + (data.work?.temporaryPermitOtherState?.length || 0)})
-              </button>
+        {/* Vehicles & Pending Payments Row */}
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
+          {/* Vehicles Section */}
+          <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden'>
+            <div className='px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center'>
+                    <svg className='w-5 h-5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z' />
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0' />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className='text-lg font-bold text-gray-900'>Vehicles</h2>
+                    <p className='text-xs text-gray-600'>{vehicles.length} vehicles registered</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className='p-4'>
+              {vehicles.length === 0 ? (
+                <div className='text-center py-8'>
+                  <p className='text-sm text-gray-600'>No vehicles found for this party.</p>
+                </div>
+              ) : (
+                <>
+                  <div className='overflow-x-auto'>
+                    <table className='w-full'>
+                      <thead className={theme.tableHeader}>
+                        <tr>
+                          <th className='px-3 py-2 text-left text-[10px] font-bold text-white uppercase'>Vehicle No.</th>
+                          <th className='px-3 py-2 text-left text-[10px] font-bold text-white uppercase'>Owner</th>
+                          <th className='px-3 py-2 text-left text-[10px] font-bold text-white uppercase'>Type</th>
+                        </tr>
+                      </thead>
+                      <tbody className='divide-y divide-gray-200'>
+                        {displayedVehicles.map((vehicle) => (
+                          <tr key={vehicle._id} className='hover:bg-gray-50'>
+                            <td className='px-3 py-2 text-xs font-bold text-gray-900'>{vehicle.registrationNumber}</td>
+                            <td className='px-3 py-2 text-xs text-gray-700'>{vehicle.ownerName || '-'}</td>
+                            <td className='px-3 py-2 text-xs text-gray-700'>{vehicle.vehicleType || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {vehicles.length > 5 && (
+                    <div className='mt-4 text-center'>
+                      <button
+                        onClick={() => setShowAllVehicles(!showAllVehicles)}
+                        className='inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-semibold rounded-lg hover:from-blue-600 hover:to-indigo-600 transition-all'
+                      >
+                        {showAllVehicles ? (
+                          <>
+                            <span>Show Less</span>
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' />
+                            </svg>
+                          </>
+                        ) : (
+                          <>
+                            <span>View All {vehicles.length}</span>
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
 
-          {/* Tab Content */}
-          <div className='p-6'>
-            {/* Pending Payments Tab */}
-            {activeTab === 'pending' && (
-              <div>
-                {pendingPayments.length === 0 ? (
-                  <div className='text-center py-12'>
-                    <svg className='mx-auto h-12 w-12 text-green-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+          {/* Pending Payments Section */}
+          <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden'>
+            <div className='px-6 py-4 bg-gradient-to-r from-red-50 to-orange-50 border-b border-gray-200'>
+              <div className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div className='w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 flex items-center justify-center'>
+                    <svg className='w-5 h-5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                     </svg>
-                    <p className='mt-2 text-sm font-semibold text-gray-600'>No pending payments!</p>
-                    <p className='text-xs text-gray-500'>All payments are cleared for this party.</p>
                   </div>
-                ) : (
+                  <div>
+                    <h2 className='text-lg font-bold text-gray-900'>Pending Payments</h2>
+                    <p className='text-xs text-gray-600'>{pendingPayments.length} pending • <span className='font-bold text-red-600'>{formatCurrency(totalPending)}</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className='p-4'>
+              {pendingPayments.length === 0 ? (
+                <div className='text-center py-8'>
+                  <svg className='mx-auto h-12 w-12 text-green-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                  <p className='mt-2 text-sm font-semibold text-gray-600'>No pending payments!</p>
+                  <p className='text-xs text-gray-500'>All payments cleared.</p>
+                </div>
+              ) : (
+                <>
                   <div className='overflow-x-auto'>
                     <table className='w-full'>
                       <thead className={theme.tableHeader}>
                         <tr>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Type</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Date</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Total</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Received</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Balance</th>
+                          <th className='px-3 py-2 text-left text-[10px] font-bold text-white uppercase'>Type</th>
+                          <th className='px-3 py-2 text-left text-[10px] font-bold text-white uppercase'>Vehicle</th>
+                          <th className='px-3 py-2 text-right text-[10px] font-bold text-white uppercase'>Balance</th>
                         </tr>
                       </thead>
                       <tbody className='divide-y divide-gray-200'>
-                        {pendingPayments.map((item, index) => (
-                          <tr key={`${item.type}-${item._id}`} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3'>
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColorClass(item.typeColor)}`}>
+                        {displayedPending.map((item) => (
+                          <tr key={`pending-${item.type}-${item._id}`} className='hover:bg-gray-50'>
+                            <td className='px-3 py-2'>
+                              <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded-full ${getTypeColorClass(item.typeColor)}`}>
                                 {item.type}
                               </span>
                             </td>
-                            <td className='px-4 py-3 text-sm font-semibold text-gray-900'>{item.vehicleNumber}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.createdAt)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                            <td className='px-4 py-3 text-sm text-green-600 text-right font-semibold'>{formatCurrency(item.receivedAmount || 0)}</td>
-                            <td className='px-4 py-3 text-sm text-red-600 text-right font-bold'>{formatCurrency(item.balanceAmount)}</td>
+                            <td className='px-3 py-2 text-xs font-semibold text-gray-900'>{item.vehicleNumber}</td>
+                            <td className='px-3 py-2 text-xs text-red-600 text-right font-bold'>{formatCurrency(item.balanceAmount)}</td>
                           </tr>
                         ))}
                       </tbody>
-                      <tfoot className='bg-gray-100'>
-                        <tr>
-                          <td colSpan='5' className='px-4 py-3 text-sm font-bold text-gray-900 text-right'>Total Pending:</td>
-                          <td className='px-4 py-3 text-sm font-bold text-red-600 text-right'>{formatCurrency(totalPending)}</td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Vehicles Tab */}
-            {activeTab === 'vehicles' && (
-              <div>
-                {!data.vehicles?.length ? (
-                  <div className='text-center py-12'>
-                    <p className='text-sm text-gray-600'>No vehicles found for this party.</p>
-                  </div>
-                ) : (
-                  <div className='overflow-x-auto'>
-                    <table className='w-full'>
-                      <thead className={theme.tableHeader}>
-                        <tr>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Owner Name</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Mobile</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle Type</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Registered On</th>
-                        </tr>
-                      </thead>
-                      <tbody className='divide-y divide-gray-200'>
-                        {data.vehicles.map((vehicle) => (
-                          <tr key={vehicle._id} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3 text-sm font-bold text-gray-900'>{vehicle.registrationNumber}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{vehicle.ownerName || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{vehicle.mobileNumber || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{vehicle.vehicleType || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(vehicle.createdAt)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Tax Tab */}
-            {activeTab === 'tax' && (
-              <div>
-                {!data.work?.tax?.length ? (
-                  <div className='text-center py-12'>
-                    <p className='text-sm text-gray-600'>No tax records found.</p>
-                  </div>
-                ) : (
-                  <div className='overflow-x-auto'>
-                    <table className='w-full'>
-                      <thead className={theme.tableHeader}>
-                        <tr>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Tax Type</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Valid From</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Valid To</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Total</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                        </tr>
-                      </thead>
-                      <tbody className='divide-y divide-gray-200'>
-                        {data.work.tax.map((item) => (
-                          <tr key={item._id} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{item.taxType || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.validFrom)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.validTo)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              {formatCurrency(item.balanceAmount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Fitness Tab */}
-            {activeTab === 'fitness' && (
-              <div>
-                {!data.work?.fitness?.length ? (
-                  <div className='text-center py-12'>
-                    <p className='text-sm text-gray-600'>No fitness records found.</p>
-                  </div>
-                ) : (
-                  <div className='overflow-x-auto'>
-                    <table className='w-full'>
-                      <thead className={theme.tableHeader}>
-                        <tr>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Fitness Type</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Application Date</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Expiry Date</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Total</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                        </tr>
-                      </thead>
-                      <tbody className='divide-y divide-gray-200'>
-                        {data.work.fitness.map((item) => (
-                          <tr key={item._id} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{item.fitnessType || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.applicationDate)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.expiryDate)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              {formatCurrency(item.balanceAmount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Insurance Tab */}
-            {activeTab === 'insurance' && (
-              <div>
-                {!data.work?.insurance?.length ? (
-                  <div className='text-center py-12'>
-                    <p className='text-sm text-gray-600'>No insurance records found.</p>
-                  </div>
-                ) : (
-                  <div className='overflow-x-auto'>
-                    <table className='w-full'>
-                      <thead className={theme.tableHeader}>
-                        <tr>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Company</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Policy No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Valid To</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Total</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                        </tr>
-                      </thead>
-                      <tbody className='divide-y divide-gray-200'>
-                        {data.work.insurance.map((item) => (
-                          <tr key={item._id} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{item.insuranceCompany || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{item.policyNumber || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.validTo)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              {formatCurrency(item.balanceAmount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* PUC Tab */}
-            {activeTab === 'puc' && (
-              <div>
-                {!data.work?.puc?.length ? (
-                  <div className='text-center py-12'>
-                    <p className='text-sm text-gray-600'>No PUC records found.</p>
-                  </div>
-                ) : (
-                  <div className='overflow-x-auto'>
-                    <table className='w-full'>
-                      <thead className={theme.tableHeader}>
-                        <tr>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Certificate No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Issue Date</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Expiry Date</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Total</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                        </tr>
-                      </thead>
-                      <tbody className='divide-y divide-gray-200'>
-                        {data.work.puc.map((item) => (
-                          <tr key={item._id} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{item.certificateNumber || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.issueDate)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.expiryDate)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              {formatCurrency(item.balanceAmount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* GPS Tab */}
-            {activeTab === 'gps' && (
-              <div>
-                {!data.work?.gps?.length ? (
-                  <div className='text-center py-12'>
-                    <p className='text-sm text-gray-600'>No GPS records found.</p>
-                  </div>
-                ) : (
-                  <div className='overflow-x-auto'>
-                    <table className='w-full'>
-                      <thead className={theme.tableHeader}>
-                        <tr>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Provider</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>IMEI</th>
-                          <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Installation Date</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Total</th>
-                          <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                        </tr>
-                      </thead>
-                      <tbody className='divide-y divide-gray-200'>
-                        {data.work.gps.map((item) => (
-                          <tr key={item._id} className='hover:bg-gray-50'>
-                            <td className='px-4 py-3 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{item.gpsProvider || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-700'>{item.imeiNumber || '-'}</td>
-                            <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.installationDate)}</td>
-                            <td className='px-4 py-3 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                            <td className={`px-4 py-3 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                              {formatCurrency(item.balanceAmount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Permits Tab */}
-            {activeTab === 'permits' && (
-              <div className='space-y-6'>
-                {/* CG Permit */}
-                {data.work?.cgPermit?.length > 0 && (
-                  <div>
-                    <h3 className='text-sm font-bold text-gray-700 mb-3 flex items-center gap-2'>
-                      <span className='w-3 h-3 bg-red-500 rounded-full'></span>
-                      CG Permit ({data.work.cgPermit.length})
-                    </h3>
-                    <div className='overflow-x-auto'>
-                      <table className='w-full'>
-                        <thead className='bg-gradient-to-r from-red-500 to-red-600'>
+                      {showAllPending && pendingPayments.length > 0 && (
+                        <tfoot className='bg-gray-100'>
                           <tr>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Permit Type</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Issue Date</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Expiry Date</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Total</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Balance</th>
+                            <td colSpan='2' className='px-3 py-2 text-xs font-bold text-gray-900 text-right'>Total:</td>
+                            <td className='px-3 py-2 text-xs font-bold text-red-600 text-right'>{formatCurrency(totalPending)}</td>
                           </tr>
-                        </thead>
-                        <tbody className='divide-y divide-gray-200'>
-                          {data.work.cgPermit.map((item) => (
-                            <tr key={item._id} className='hover:bg-gray-50'>
-                              <td className='px-4 py-2 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                              <td className='px-4 py-2 text-sm text-gray-700'>{item.permitType || '-'}</td>
-                              <td className='px-4 py-2 text-sm text-gray-600'>{formatDate(item.issueDate)}</td>
-                              <td className='px-4 py-2 text-sm text-gray-600'>{formatDate(item.expiryDate)}</td>
-                              <td className='px-4 py-2 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                              <td className={`px-4 py-2 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatCurrency(item.balanceAmount)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        </tfoot>
+                      )}
+                    </table>
                   </div>
-                )}
 
-                {/* National Permit */}
-                {data.work?.nationalPermit?.length > 0 && (
-                  <div>
-                    <h3 className='text-sm font-bold text-gray-700 mb-3 flex items-center gap-2'>
-                      <span className='w-3 h-3 bg-indigo-500 rounded-full'></span>
-                      National Permit ({data.work.nationalPermit.length})
-                    </h3>
-                    <div className='overflow-x-auto'>
-                      <table className='w-full'>
-                        <thead className='bg-gradient-to-r from-indigo-500 to-indigo-600'>
-                          <tr>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Permit No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Issue Date</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Expiry Date</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Total</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                          </tr>
-                        </thead>
-                        <tbody className='divide-y divide-gray-200'>
-                          {data.work.nationalPermit.map((item) => (
-                            <tr key={item._id} className='hover:bg-gray-50'>
-                              <td className='px-4 py-2 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                              <td className='px-4 py-2 text-sm text-gray-700'>{item.permitNumber || '-'}</td>
-                              <td className='px-4 py-2 text-sm text-gray-600'>{formatDate(item.issueDate)}</td>
-                              <td className='px-4 py-2 text-sm text-gray-600'>{formatDate(item.expiryDate)}</td>
-                              <td className='px-4 py-2 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                              <td className={`px-4 py-2 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatCurrency(item.balanceAmount)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                  {pendingPayments.length > 5 && (
+                    <div className='mt-4 text-center'>
+                      <button
+                        onClick={() => setShowAllPending(!showAllPending)}
+                        className='inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-sm font-semibold rounded-lg hover:from-red-600 hover:to-orange-600 transition-all'
+                      >
+                        {showAllPending ? (
+                          <>
+                            <span>Show Less</span>
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' />
+                            </svg>
+                          </>
+                        ) : (
+                          <>
+                            <span>View All {pendingPayments.length}</span>
+                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                            </svg>
+                          </>
+                        )}
+                      </button>
                     </div>
-                  </div>
-                )}
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
 
-                {/* Bus Permit */}
-                {data.work?.busPermit?.length > 0 && (
-                  <div>
-                    <h3 className='text-sm font-bold text-gray-700 mb-3 flex items-center gap-2'>
-                      <span className='w-3 h-3 bg-pink-500 rounded-full'></span>
-                      Bus Permit ({data.work.busPermit.length})
-                    </h3>
-                    <div className='overflow-x-auto'>
-                      <table className='w-full'>
-                        <thead className='bg-gradient-to-r from-pink-500 to-pink-600'>
-                          <tr>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Permit No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Route</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Expiry Date</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Total</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                          </tr>
-                        </thead>
-                        <tbody className='divide-y divide-gray-200'>
-                          {data.work.busPermit.map((item) => (
-                            <tr key={item._id} className='hover:bg-gray-50'>
-                              <td className='px-4 py-2 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                              <td className='px-4 py-2 text-sm text-gray-700'>{item.permitNumber || '-'}</td>
-                              <td className='px-4 py-2 text-sm text-gray-700'>{item.route || '-'}</td>
-                              <td className='px-4 py-2 text-sm text-gray-600'>{formatDate(item.expiryDate)}</td>
-                              <td className='px-4 py-2 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                              <td className={`px-4 py-2 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatCurrency(item.balanceAmount)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* Temporary Permit */}
-                {data.work?.temporaryPermit?.length > 0 && (
-                  <div>
-                    <h3 className='text-sm font-bold text-gray-700 mb-3 flex items-center gap-2'>
-                      <span className='w-3 h-3 bg-amber-500 rounded-full'></span>
-                      Temporary Permit ({data.work.temporaryPermit.length})
-                    </h3>
-                    <div className='overflow-x-auto'>
-                      <table className='w-full'>
-                        <thead className='bg-gradient-to-r from-amber-500 to-amber-600'>
-                          <tr>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Permit No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Issue Date</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Expiry Date</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Total</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                          </tr>
-                        </thead>
-                        <tbody className='divide-y divide-gray-200'>
-                          {data.work.temporaryPermit.map((item) => (
-                            <tr key={item._id} className='hover:bg-gray-50'>
-                              <td className='px-4 py-2 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                              <td className='px-4 py-2 text-sm text-gray-700'>{item.permitNumber || '-'}</td>
-                              <td className='px-4 py-2 text-sm text-gray-600'>{formatDate(item.issueDate)}</td>
-                              <td className='px-4 py-2 text-sm text-gray-600'>{formatDate(item.expiryDate)}</td>
-                              <td className='px-4 py-2 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                              <td className={`px-4 py-2 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatCurrency(item.balanceAmount)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* Temporary Permit Other State */}
-                {data.work?.temporaryPermitOtherState?.length > 0 && (
-                  <div>
-                    <h3 className='text-sm font-bold text-gray-700 mb-3 flex items-center gap-2'>
-                      <span className='w-3 h-3 bg-teal-500 rounded-full'></span>
-                      Temporary Permit (Other State) ({data.work.temporaryPermitOtherState.length})
-                    </h3>
-                    <div className='overflow-x-auto'>
-                      <table className='w-full'>
-                        <thead className='bg-gradient-to-r from-teal-500 to-teal-600'>
-                          <tr>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Permit No.</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>State</th>
-                            <th className='px-4 py-2 text-left text-xs font-bold text-white uppercase'>Expiry Date</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Total</th>
-                            <th className='px-4 py-2 text-right text-xs font-bold text-white uppercase'>Balance</th>
-                          </tr>
-                        </thead>
-                        <tbody className='divide-y divide-gray-200'>
-                          {data.work.temporaryPermitOtherState.map((item) => (
-                            <tr key={item._id} className='hover:bg-gray-50'>
-                              <td className='px-4 py-2 text-sm font-bold text-gray-900'>{item.vehicleNumber}</td>
-                              <td className='px-4 py-2 text-sm text-gray-700'>{item.permitNumber || '-'}</td>
-                              <td className='px-4 py-2 text-sm text-gray-700'>{item.state || '-'}</td>
-                              <td className='px-4 py-2 text-sm text-gray-600'>{formatDate(item.expiryDate)}</td>
-                              <td className='px-4 py-2 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
-                              <td className={`px-4 py-2 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatCurrency(item.balanceAmount)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* No permits message */}
-                {!data.work?.cgPermit?.length && !data.work?.nationalPermit?.length && !data.work?.busPermit?.length && !data.work?.temporaryPermit?.length && !data.work?.temporaryPermitOtherState?.length && (
-                  <div className='text-center py-12'>
-                    <p className='text-sm text-gray-600'>No permit records found.</p>
-                  </div>
-                )}
+        {/* All Work Section */}
+        <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden'>
+          <div className='px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-gray-200'>
+            <div className='flex items-center justify-between'>
+              <div className='flex items-center gap-3'>
+                <div className='w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center'>
+                  <svg className='w-5 h-5 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4' />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className='text-lg font-bold text-gray-900'>All Work</h2>
+                  <p className='text-xs text-gray-600'>{allWork.length} records (Tax, Fitness, Insurance, PUC, GPS, Permits)</p>
+                </div>
               </div>
+            </div>
+          </div>
+
+          <div className='p-4'>
+            {allWork.length === 0 ? (
+              <div className='text-center py-8'>
+                <p className='text-sm text-gray-600'>No work records found for this party.</p>
+              </div>
+            ) : (
+              <>
+                <div className='overflow-x-auto'>
+                  <table className='w-full'>
+                    <thead className={theme.tableHeader}>
+                      <tr>
+                        <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Type</th>
+                        <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Vehicle No.</th>
+                        <th className='px-4 py-3 text-left text-xs font-bold text-white uppercase'>Date</th>
+                        <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Total</th>
+                        <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Received</th>
+                        <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody className='divide-y divide-gray-200'>
+                      {displayedWork.map((item, index) => (
+                        <tr key={`${item.type}-${item._id}`} className='hover:bg-gray-50'>
+                          <td className='px-4 py-3'>
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColorClass(item.typeColor)}`}>
+                              {item.type}
+                            </span>
+                          </td>
+                          <td className='px-4 py-3 text-sm font-semibold text-gray-900'>{item.vehicleNumber}</td>
+                          <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.dateField || item.createdAt)}</td>
+                          <td className='px-4 py-3 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
+                          <td className='px-4 py-3 text-sm text-green-600 text-right font-semibold'>{formatCurrency(item.receivedAmount || 0)}</td>
+                          <td className={`px-4 py-3 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {formatCurrency(item.balanceAmount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {allWork.length > 5 && (
+                  <div className='mt-4 text-center'>
+                    <button
+                      onClick={() => setShowAllWork(!showAllWork)}
+                      className='inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm font-semibold rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all'
+                    >
+                      {showAllWork ? (
+                        <>
+                          <span>Show Less</span>
+                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 15l7-7 7 7' />
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          <span>View All {allWork.length} Records</span>
+                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
+
       </div>
     </div>
   )
