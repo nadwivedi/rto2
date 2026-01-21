@@ -1661,20 +1661,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
                   </svg>
                 </div>
-                <div>
+                  <div>
                   <h3 className='text-sm md:text-xl font-bold text-gray-800'>Owner Details</h3>
                   <p className='text-[10px] md:text-sm text-gray-500 hidden md:block'>Enter owner information</p>
                 </div>
-                <button
-                  type='button'
-                  onClick={() => setShowAddPartyModal(true)}
-                  className='flex items-center gap-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-2.5 py-1.5 md:px-3 md:py-1.5 rounded-lg text-xs md:text-sm font-medium shadow-md hover:shadow-lg transition-all duration-200'
-                >
-                  <svg className='w-3.5 h-3.5 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-                  </svg>
-                  <span>Add Party</span>
-                </button>
                 {selectedPartyName && (
                   <div className='flex items-center gap-1.5 bg-green-100 text-green-700 px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-medium'>
                     <svg className='w-3.5 h-3.5 md:w-4 md:h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

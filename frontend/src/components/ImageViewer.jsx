@@ -8,12 +8,14 @@ const ImageViewer = ({ isOpen, onClose, imageUrl, title = 'Image Viewer' }) => {
 
   if (!isOpen) return null
 
+  const isPDF = imageUrl && (imageUrl.toLowerCase().includes('.pdf') || imageUrl.startsWith('data:application/pdf'))
+
   const handleZoomIn = () => {
-    setZoom(prev => Math.min(prev + 0.25, 5)) // Max 5x zoom
+    setZoom(prev => Math.min(prev + 0.25, 5))
   }
 
   const handleZoomOut = () => {
-    setZoom(prev => Math.max(prev - 0.25, 0.5)) // Min 0.5x zoom
+    setZoom(prev => Math.max(prev - 0.25, 0.5))
   }
 
   const handleResetZoom = () => {
@@ -47,10 +49,17 @@ const ImageViewer = ({ isOpen, onClose, imageUrl, title = 'Image Viewer' }) => {
   const handleDownload = () => {
     const link = document.createElement('a')
     link.href = imageUrl
-    link.download = 'rc-document.webp'
+    link.download = isPDF ? 'document.pdf' : 'document.webp'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+  }
+
+  const handlePrint = () => {
+    window.open(imageUrl, '_blank')
+    setTimeout(() => {
+      window.print()
+    }, 500)
   }
 
   const handleClose = () => {
@@ -81,87 +90,126 @@ const ImageViewer = ({ isOpen, onClose, imageUrl, title = 'Image Viewer' }) => {
         </div>
       </div>
 
-      {/* Image Container */}
-      <div
-        className='relative w-full h-full flex items-center justify-center overflow-hidden'
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        style={{ cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
-      >
-        <img
-          src={imageUrl}
-          alt='RC Document'
-          className='max-w-full max-h-full object-contain select-none transition-transform duration-200'
-          style={{
-            transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
-            transformOrigin: 'center center'
-          }}
-          draggable={false}
-        />
+      {/* Content Container */}
+      <div className='relative w-full h-full flex items-center justify-center overflow-hidden'>
+        {isPDF ? (
+          <iframe
+            src={imageUrl}
+            title={title}
+            className='w-full h-full border-0 bg-white'
+            style={{ minHeight: 'calc(100vh - 80px)' }}
+          />
+        ) : (
+          <div
+            className='w-full h-full flex items-center justify-center overflow-hidden'
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            style={{ cursor: zoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+          >
+            <img
+              src={imageUrl}
+              alt='Document'
+              className='max-w-full max-h-full object-contain select-none transition-transform duration-200'
+              style={{
+                transform: `scale(${zoom}) translate(${position.x / zoom}px, ${position.y / zoom}px)`,
+                transformOrigin: 'center center'
+              }}
+              draggable={false}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Zoom Controls */}
+      {/* Controls */}
       <div className='absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-sm rounded-full px-4 py-3 flex items-center gap-3 shadow-2xl border border-white/20'>
-        {/* Zoom Out */}
-        <button
-          onClick={handleZoomOut}
-          disabled={zoom <= 0.5}
-          className='text-white hover:text-blue-400 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
-          title='Zoom Out'
-        >
-          <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7' />
-          </svg>
-        </button>
+        {isPDF ? (
+          <>
+            {/* Print */}
+            <button
+              onClick={handlePrint}
+              className='text-white hover:text-blue-400 transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
+              title='Print PDF'
+            >
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z' />
+              </svg>
+            </button>
 
-        {/* Zoom Level Display */}
-        <div className='text-white font-bold text-sm md:text-base min-w-[60px] text-center'>
-          {Math.round(zoom * 100)}%
-        </div>
+            {/* Download */}
+            <button
+              onClick={handleDownload}
+              className='text-white hover:text-purple-400 transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
+              title='Download PDF'
+            >
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' />
+              </svg>
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Zoom Out */}
+            <button
+              onClick={handleZoomOut}
+              disabled={zoom <= 0.5}
+              className='text-white hover:text-blue-400 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
+              title='Zoom Out'
+            >
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7' />
+              </svg>
+            </button>
 
-        {/* Zoom In */}
-        <button
-          onClick={handleZoomIn}
-          disabled={zoom >= 5}
-          className='text-white hover:text-blue-400 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
-          title='Zoom In'
-        >
-          <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
-          </svg>
-        </button>
+            {/* Zoom Level Display */}
+            <div className='text-white font-bold text-sm md:text-base min-w-[60px] text-center'>
+              {Math.round(zoom * 100)}%
+            </div>
 
-        {/* Divider */}
-        <div className='w-px h-6 bg-white/30 mx-1'></div>
+            {/* Zoom In */}
+            <button
+              onClick={handleZoomIn}
+              disabled={zoom >= 5}
+              className='text-white hover:text-blue-400 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
+              title='Zoom In'
+            >
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
+              </svg>
+            </button>
 
-        {/* Reset Zoom */}
-        <button
-          onClick={handleResetZoom}
-          disabled={zoom === 1 && position.x === 0 && position.y === 0}
-          className='text-white hover:text-green-400 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
-          title='Reset Zoom'
-        >
-          <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
-          </svg>
-        </button>
+            {/* Divider */}
+            <div className='w-px h-6 bg-white/30 mx-1'></div>
 
-        {/* Download */}
-        <button
-          onClick={handleDownload}
-          className='text-white hover:text-purple-400 transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
-          title='Download Image'
-        >
-          <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' />
-          </svg>
-        </button>
+            {/* Reset Zoom */}
+            <button
+              onClick={handleResetZoom}
+              disabled={zoom === 1 && position.x === 0 && position.y === 0}
+              className='text-white hover:text-green-400 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
+              title='Reset Zoom'
+            >
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+              </svg>
+            </button>
+
+            {/* Download */}
+            <button
+              onClick={handleDownload}
+              className='text-white hover:text-purple-400 transition-all duration-200 p-2 hover:bg-white/10 rounded-lg'
+              title='Download Image'
+            >
+              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4' />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Help Text */}
-      {zoom > 1 && (
+      {!isPDF && zoom > 1 && (
         <div className='absolute top-20 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-full animate-fadeIn'>
           Click and drag to move image
         </div>
