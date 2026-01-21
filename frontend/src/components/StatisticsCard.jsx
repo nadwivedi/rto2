@@ -57,8 +57,8 @@ const StatisticsCard = ({ title, value, icon, color, onClick, isActive, extraVal
     >
       <div className='flex items-center justify-between'>
         <div>
-          <p className='text-[8px] lg:text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-0.5 lg:mb-1 whitespace-nowrap'>{title}</p>
-          <h3 className='text-lg lg:text-2xl font-black text-gray-800'>{value}</h3>
+          <p className='text-[8px] lg:text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-0.5 lg:mb-1 whitespace-nowrap'>{title}</p>
+          <h3 className='text-lg lg:text-2xl font-black text-gray-900'>{value || value === 0 ? value : '-'}</h3>
           {extraValue && <p className='text-[8px] lg:text-xs text-orange-600 font-bold mt-0.5'>{extraValue}</p>}
           {subtext && <p className='text-[7px] lg:text-[9px] text-gray-400 mt-0.5'>{subtext}</p>}
         </div>

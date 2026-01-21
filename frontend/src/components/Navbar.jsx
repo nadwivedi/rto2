@@ -109,7 +109,7 @@ const Navbar = () => {
       description: "DL Applications",
     },
 
-    {
+{
       name: "Transfer",
       icon: "🔀",
       path: "/vehicle-transfer",
@@ -117,7 +117,7 @@ const Navbar = () => {
     },
 
      {
-      name: "Forms",
+       name: "Forms",
       icon: "📋",
       path: "/forms",
       description: "RTO Forms",
@@ -131,13 +131,19 @@ const Navbar = () => {
     },
   ];
 
-  // Dropdown items for desktop (Dashboard, Forms and Settings)
+// Dropdown items for desktop (Dashboard, Forms, Settings, Registration Renewal)
   const dropdownItems = [
     {
       name: "Dashboard",
       icon: "📊",
       path: "/",
       description: "Overview & Expiring Items",
+    },
+    {
+      name: "Registration Renewal",
+      icon: "🔄",
+      path: "/registration-renewal",
+      description: "Vehicle Registration Renewal",
     },
     {
       name: "Forms",

@@ -17,6 +17,7 @@ import VehicleRegistration from './pages/VehicleRegistration/VehicleRegistration
 import Insurance from './pages/Insurance/Insurance'
 import Fitness from './pages/Fitness/Fitness'
 import VehicleTransfer from './pages/VehicleTransfer/VehicleTransfer'
+import RegistrationRenewal from './pages/RegistrationRenewal/RegistrationRenewal'
 import DealerBill from './pages/DealerBill'
 import Tax from './pages/Tax/Tax'
 import Forms from './pages/forms/Forms'
@@ -65,7 +66,8 @@ function App() {
                         <Route path='/insurance' element={<Insurance />} />
                         <Route path='/fitness' element={<Fitness />} />
                         <Route path='/tax' element={<Tax />} />
-                        <Route path='/vehicle-transfer' element={<VehicleTransfer />} />
+<Route path='/vehicle-transfer' element={<VehicleTransfer />} />
+                        <Route path='/registration-renewal' element={<RegistrationRenewal />} />
                         <Route path='/forms' element={<Forms />} />
                         <Route path='/forms/form-20' element={<Form20 />} />
                         <Route path='/puc' element={<Puc />} />
