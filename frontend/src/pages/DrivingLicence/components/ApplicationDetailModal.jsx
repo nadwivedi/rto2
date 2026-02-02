@@ -111,29 +111,6 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
                   <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData?.fatherName || 'Ramesh Kumar'}</p>
                 </div>
 
-                {/* Blood Group - Show only if filled */}
-                {application.fullData?.bloodGroup && (
-                  <div className='bg-white/80 p-2 rounded-lg'>
-                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Blood Group</label>
-                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData.bloodGroup}</p>
-                  </div>
-                )}
-
-                {/* Mother's Name - Show only if filled */}
-                {application.fullData?.motherName && (
-                  <div className='bg-white/80 p-2 rounded-lg col-span-2'>
-                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Mother's Name</label>
-                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData.motherName}</p>
-                  </div>
-                )}
-
-                {/* Education - Show only if filled */}
-                {application.fullData?.qualification && (
-                  <div className='bg-white/80 p-2 rounded-lg'>
-                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>Education</label>
-                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{application.fullData.qualification}</p>
-                  </div>
-                )}
 
                 {/* Phone Number - Always show */}
                 <div className='bg-white/80 p-2 rounded-lg'>
@@ -183,7 +160,13 @@ const ApplicationDetailModal = ({ isOpen, onClose, application }) => {
                   </svg>
                   Learning License
                 </h3>
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-2'>
+                <div className='grid grid-cols-1 md:grid-cols-4 gap-2'>
+                  {/* LL Application Number */}
+                  <div className='bg-white/80 p-2 rounded-lg'>
+                    <label className='text-[10px] md:text-xs font-semibold text-gray-600'>LL Application No.</label>
+                    <p className='text-xs md:text-sm font-bold text-gray-900 mt-0.5 font-mono'>{application.fullData?.learningLicenseApplicationNumber || 'N/A'}</p>
+                  </div>
+
                   {/* LL Number */}
                   <div className='bg-white/80 p-2 rounded-lg'>
                     <label className='text-[10px] md:text-xs font-semibold text-gray-600'>LL Number</label>

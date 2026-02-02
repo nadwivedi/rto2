@@ -23,12 +23,12 @@ const convertToDate = (dateString) => {
 exports.createApplication = async (req, res) => {
   try {
     const {
-      name, dateOfBirth, gender, bloodGroup, fatherName, motherName,
+      name, dateOfBirth, gender, fatherName,
       mobileNumber, email, address, licenseClass,
       licenseNumber, licenseIssueDate, licenseExpiryDate,
-      learningLicenseNumber, learningLicenseIssueDate, learningLicenseExpiryDate,
+      learningLicenseApplicationNumber, learningLicenseNumber, learningLicenseIssueDate, learningLicenseExpiryDate,
       totalAmount, paidAmount, balanceAmount,
-      qualification, aadharNumber, documents
+      documents
     } = req.body
 
     // Validate required personal fields
@@ -110,9 +110,7 @@ exports.createApplication = async (req, res) => {
       name,
       dateOfBirth,
       gender,
-      bloodGroup,
       fatherName,
-      motherName,
       mobileNumber,
       email,
       address,
@@ -120,8 +118,6 @@ exports.createApplication = async (req, res) => {
       totalAmount,
       paidAmount,
       balanceAmount,
-      qualification,
-      aadharNumber,
       documents
     }
 
@@ -140,6 +136,10 @@ exports.createApplication = async (req, res) => {
     }
 
     // Learning license details
+    if (learningLicenseApplicationNumber !== undefined) {
+      applicationData.learningLicenseApplicationNumber = learningLicenseApplicationNumber
+    }
+
     if (learningLicenseNumber !== undefined) {
       applicationData.learningLicenseNumber = learningLicenseNumber
     }
@@ -329,12 +329,12 @@ exports.updateApplication = async (req, res) => {
   try {
     const { id } = req.params
     const {
-      name, dateOfBirth, gender, bloodGroup, fatherName, motherName,
+      name, dateOfBirth, gender, fatherName,
       mobileNumber, email, address, licenseClass,
       licenseNumber, licenseIssueDate, licenseExpiryDate,
-      learningLicenseNumber, learningLicenseIssueDate, learningLicenseExpiryDate,
+      learningLicenseApplicationNumber, learningLicenseNumber, learningLicenseIssueDate, learningLicenseExpiryDate,
       totalAmount, paidAmount, balanceAmount,
-      qualification, aadharNumber, documents
+      documents
     } = req.body
 
     const application = await Driving.findOne({ _id: id, userId: req.user.id })
@@ -371,9 +371,7 @@ exports.updateApplication = async (req, res) => {
     if (name !== undefined) application.name = name
     if (dateOfBirth !== undefined) application.dateOfBirth = dateOfBirth
     if (gender !== undefined) application.gender = gender
-    if (bloodGroup !== undefined) application.bloodGroup = bloodGroup
     if (fatherName !== undefined) application.fatherName = fatherName
-    if (motherName !== undefined) application.motherName = motherName
     if (mobileNumber !== undefined) application.mobileNumber = mobileNumber
     if (email !== undefined) application.email = email
     if (address !== undefined) application.address = address
@@ -381,8 +379,6 @@ exports.updateApplication = async (req, res) => {
     if (totalAmount !== undefined) application.totalAmount = totalAmount
     if (paidAmount !== undefined) application.paidAmount = paidAmount
     if (balanceAmount !== undefined) application.balanceAmount = balanceAmount
-    if (qualification !== undefined) application.qualification = qualification
-    if (aadharNumber !== undefined) application.aadharNumber = aadharNumber
     if (documents !== undefined) application.documents = documents
 
     // Map lowercase field names to uppercase (model field names)
@@ -400,6 +396,10 @@ exports.updateApplication = async (req, res) => {
     }
 
     // Learning license details
+    if (learningLicenseApplicationNumber !== undefined) {
+      application.learningLicenseApplicationNumber = learningLicenseApplicationNumber
+    }
+
     if (learningLicenseNumber !== undefined) {
       application.learningLicenseNumber = learningLicenseNumber
     }
@@ -867,9 +867,7 @@ exports.addDemoData = async (req, res) => {
         name: 'Rajesh Kumar Sharma',
         dateOfBirth: new Date('1995-03-15'),
         gender: 'Male',
-        bloodGroup: 'B+',
         fatherName: 'Vijay Kumar Sharma',
-        motherName: 'Sunita Sharma',
         mobileNumber: '9876543210',
         email: 'rajesh.sharma@gmail.com',
         address: '123, MG Road, Mumbai, Maharashtra - 400001',
@@ -882,16 +880,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1500,
         paidAmount: 1500,
         balanceAmount: 0,
-        qualification: '12th Pass',
-        aadharNumber: '1234-5678-9012'
       },
       {
         name: 'Priya Singh',
         dateOfBirth: new Date('1998-07-22'),
         gender: 'Female',
-        bloodGroup: 'A+',
         fatherName: 'Arun Singh',
-        motherName: 'Kavita Singh',
         mobileNumber: '9876543211',
         email: 'priya.singh@gmail.com',
         address: '456, Park Street, Kolkata, West Bengal - 700016',
@@ -904,16 +898,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1200,
         paidAmount: 1200,
         balanceAmount: 0,
-        qualification: 'Graduate',
-        aadharNumber: '2345-6789-0123'
       },
       {
         name: 'Amit Patel',
         dateOfBirth: new Date('1992-11-10'),
         gender: 'Male',
-        bloodGroup: 'O+',
         fatherName: 'Ramesh Patel',
-        motherName: 'Geeta Patel',
         mobileNumber: '9876543212',
         email: 'amit.patel@gmail.com',
         address: '789, CG Road, Ahmedabad, Gujarat - 380009',
@@ -926,16 +916,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 800,
         paidAmount: 800,
         balanceAmount: 0,
-        qualification: '10th Pass',
-        aadharNumber: '3456-7890-1234'
       },
       {
         name: 'Sneha Reddy',
         dateOfBirth: new Date('2000-05-18'),
         gender: 'Female',
-        bloodGroup: 'AB+',
         fatherName: 'Venkat Reddy',
-        motherName: 'Lakshmi Reddy',
         mobileNumber: '9876543213',
         email: 'sneha.reddy@gmail.com',
         address: '321, Banjara Hills, Hyderabad, Telangana - 500034',
@@ -948,16 +934,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1200,
         paidAmount: 800,
         balanceAmount: 400,
-        qualification: 'Graduate',
-        aadharNumber: '4567-8901-2345'
       },
       {
         name: 'Vikas Verma',
         dateOfBirth: new Date('1990-09-25'),
         gender: 'Male',
-        bloodGroup: 'B-',
         fatherName: 'Suresh Verma',
-        motherName: 'Meena Verma',
         mobileNumber: '9876543214',
         email: 'vikas.verma@gmail.com',
         address: '654, Connaught Place, New Delhi - 110001',
@@ -970,16 +952,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1500,
         paidAmount: 1500,
         balanceAmount: 0,
-        qualification: 'Post Graduate',
-        aadharNumber: '5678-9012-3456'
       },
       {
         name: 'Anjali Desai',
         dateOfBirth: new Date('1997-12-30'),
         gender: 'Female',
-        bloodGroup: 'A-',
         fatherName: 'Kiran Desai',
-        motherName: 'Rupa Desai',
         mobileNumber: '9876543215',
         email: 'anjali.desai@gmail.com',
         address: '987, FC Road, Pune, Maharashtra - 411005',
@@ -992,16 +970,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 800,
         paidAmount: 800,
         balanceAmount: 0,
-        qualification: '12th Pass',
-        aadharNumber: '6789-0123-4567'
       },
       {
         name: 'Rohit Mehta',
         dateOfBirth: new Date('1993-06-08'),
         gender: 'Male',
-        bloodGroup: 'O-',
         fatherName: 'Prakash Mehta',
-        motherName: 'Shobha Mehta',
         mobileNumber: '9876543216',
         email: 'rohit.mehta@gmail.com',
         address: '135, Brigade Road, Bangalore, Karnataka - 560001',
@@ -1014,16 +988,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1200,
         paidAmount: 1200,
         balanceAmount: 0,
-        qualification: 'Graduate',
-        aadharNumber: '7890-1234-5678'
       },
       {
         name: 'Neha Gupta',
         dateOfBirth: new Date('1999-02-14'),
         gender: 'Female',
-        bloodGroup: 'AB-',
         fatherName: 'Rajiv Gupta',
-        motherName: 'Pooja Gupta',
         mobileNumber: '9876543217',
         email: 'neha.gupta@gmail.com',
         address: '246, Mall Road, Lucknow, Uttar Pradesh - 226001',
@@ -1036,16 +1006,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1500,
         paidAmount: 1000,
         balanceAmount: 500,
-        qualification: 'Graduate',
-        aadharNumber: '8901-2345-6789'
       },
       {
         name: 'Sanjay Yadav',
         dateOfBirth: new Date('1991-08-19'),
         gender: 'Male',
-        bloodGroup: 'B+',
         fatherName: 'Ram Yadav',
-        motherName: 'Sarita Yadav',
         mobileNumber: '9876543218',
         email: 'sanjay.yadav@gmail.com',
         address: '369, Station Road, Jaipur, Rajasthan - 302001',
@@ -1058,16 +1024,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 800,
         paidAmount: 800,
         balanceAmount: 0,
-        qualification: '10th Pass',
-        aadharNumber: '9012-3456-7890'
       },
       {
         name: 'Divya Nair',
         dateOfBirth: new Date('1996-04-27'),
         gender: 'Female',
-        bloodGroup: 'A+',
         fatherName: 'Sunil Nair',
-        motherName: 'Latha Nair',
         mobileNumber: '9876543219',
         email: 'divya.nair@gmail.com',
         address: '741, MG Road, Kochi, Kerala - 682011',
@@ -1080,16 +1042,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1200,
         paidAmount: 1200,
         balanceAmount: 0,
-        qualification: 'Post Graduate',
-        aadharNumber: '0123-4567-8901'
       },
       {
         name: 'Arjun Iyer',
         dateOfBirth: new Date('1994-10-12'),
         gender: 'Male',
-        bloodGroup: 'O+',
         fatherName: 'Krishnan Iyer',
-        motherName: 'Radha Iyer',
         mobileNumber: '9876543220',
         email: 'arjun.iyer@gmail.com',
         address: '852, Anna Salai, Chennai, Tamil Nadu - 600002',
@@ -1102,16 +1060,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1500,
         paidAmount: 1500,
         balanceAmount: 0,
-        qualification: 'Graduate',
-        aadharNumber: '1234-5678-9013'
       },
       {
         name: 'Pooja Joshi',
         dateOfBirth: new Date('2001-01-05'),
         gender: 'Female',
-        bloodGroup: 'B-',
         fatherName: 'Mukesh Joshi',
-        motherName: 'Anita Joshi',
         mobileNumber: '9876543221',
         email: 'pooja.joshi@gmail.com',
         address: '963, Civil Lines, Nagpur, Maharashtra - 440001',
@@ -1124,16 +1078,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 800,
         paidAmount: 600,
         balanceAmount: 200,
-        qualification: '12th Pass',
-        aadharNumber: '2345-6789-0124'
       },
       {
         name: 'Karan Kapoor',
         dateOfBirth: new Date('1989-03-21'),
         gender: 'Male',
-        bloodGroup: 'AB+',
         fatherName: 'Ravi Kapoor',
-        motherName: 'Seema Kapoor',
         mobileNumber: '9876543222',
         email: 'karan.kapoor@gmail.com',
         address: '159, Mall Road, Chandigarh - 160001',
@@ -1146,16 +1096,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1200,
         paidAmount: 1200,
         balanceAmount: 0,
-        qualification: 'Graduate',
-        aadharNumber: '3456-7890-1235'
       },
       {
         name: 'Ritu Malhotra',
         dateOfBirth: new Date('1998-09-16'),
         gender: 'Female',
-        bloodGroup: 'A-',
         fatherName: 'Sandeep Malhotra',
-        motherName: 'Nisha Malhotra',
         mobileNumber: '9876543223',
         email: 'ritu.malhotra@gmail.com',
         address: '357, Sadar Bazaar, Indore, Madhya Pradesh - 452001',
@@ -1168,16 +1114,12 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 1500,
         paidAmount: 1500,
         balanceAmount: 0,
-        qualification: 'Post Graduate',
-        aadharNumber: '4567-8901-2346'
       },
       {
         name: 'Aditya Saxena',
         dateOfBirth: new Date('1995-11-28'),
         gender: 'Male',
-        bloodGroup: 'O+',
         fatherName: 'Deepak Saxena',
-        motherName: 'Rekha Saxena',
         mobileNumber: '9876543224',
         email: 'aditya.saxena@gmail.com',
         address: '753, Hazratganj, Lucknow, Uttar Pradesh - 226001',
@@ -1190,8 +1132,6 @@ exports.addDemoData = async (req, res) => {
         totalAmount: 800,
         paidAmount: 800,
         balanceAmount: 0,
-        qualification: '12th Pass',
-        aadharNumber: '5678-9012-3457'
       }
     ]
 

@@ -22,17 +22,9 @@ const DrivingSchema = new mongoose.Schema({
     required: true,
     enum: ['Male', 'Female', 'Other']
   },
-  bloodGroup: {
-    type: String,
-    enum: ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-']
-  },
   fatherName: {
     type: String,
     required: true,
-    trim: true
-  },
-  motherName: {
-    type: String,
     trim: true
   },
 
@@ -77,6 +69,10 @@ const DrivingSchema = new mongoose.Schema({
   },
 
   // Learning License Details
+  learningLicenseApplicationNumber: {
+    type: String,
+    trim: true
+  },
   learningLicenseNumber: {
     type: String,
     trim: true
@@ -106,18 +102,6 @@ const DrivingSchema = new mongoose.Schema({
   },
 
 
-  // Educational Information
-  qualification: {
-    type: String,
-    enum: ['Below 10th', '10th Pass', '12th Pass', 'Graduate', 'Post Graduate']
-  },
-
-  // Identification
-  aadharNumber: {
-    type: String,
-    trim: true
-  },
-  
 
   // Documents (store file paths or URLs)
   documents: {

@@ -39,9 +39,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
     name: '',
     dateOfBirth: '',
     gender: 'Male',
-    bloodGroup: '',
     fatherName: '',
-    motherName: '',
 
     // Contact Information
     mobileNumber: '',
@@ -61,15 +59,12 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
     drivingLicenseExpiryDate: '',
 
     // Learning License Information
+    learningLicenseApplicationNumber: '',
     learningLicenseNumber: '',
     learningLicenseIssueDate: '',
     learningLicenseExpiryDate: '',
 
-    // Educational Information
-    qualification: '',
-
     // Identification
-    aadharNumber: '',
     panNumber: '',
 
     // Emergency Contact
@@ -88,7 +83,6 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
     notes: ''
   })
 
-  const [showAllFields, setShowAllFields] = useState(false)
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
 
   // Validation states
@@ -122,9 +116,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
         name: appData.name || '',
         dateOfBirth: convertISOToDD_MM_YYYY(appData.dateOfBirth) || '',
         gender: appData.gender || 'Male',
-        bloodGroup: appData.bloodGroup || '',
         fatherName: appData.fatherName || '',
-        motherName: appData.motherName || '',
         mobileNumber: mobileNum,
         email: emailAddr,
         address: appData.address || '',
@@ -138,11 +130,10 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
         drivingLicenseNumber: appData.drivingLicenseNumber || '',
         drivingLicenseIssueDate: convertISOToDD_MM_YYYY(appData.drivingLicenseIssueDate) || '',
         drivingLicenseExpiryDate: convertISOToDD_MM_YYYY(appData.drivingLicenseExpiryDate) || '',
+        learningLicenseApplicationNumber: appData.learningLicenseApplicationNumber || '',
         learningLicenseNumber: appData.learningLicenseNumber || '',
         learningLicenseIssueDate: convertISOToDD_MM_YYYY(appData.learningLicenseIssueDate) || '',
         learningLicenseExpiryDate: convertISOToDD_MM_YYYY(appData.learningLicenseExpiryDate) || '',
-        qualification: appData.qualification || '',
-        aadharNumber: appData.aadharNumber || '',
         panNumber: appData.panNumber || '',
         emergencyContact: appData.emergencyContact || '',
         emergencyRelation: appData.emergencyRelation || 'Father',
@@ -367,7 +358,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
       }
     } else {
       // Convert to uppercase for text fields (name, father's name, mother's name, address, city, state, license numbers)
-      const uppercaseFields = ['name', 'fatherName', 'motherName', 'address', 'city', 'state', 'licenseNumber', 'learningLicenseNumber', 'drivingLicenseNumber']
+      const uppercaseFields = ['name', 'fatherName', 'address', 'city', 'state', 'licenseNumber', 'learningLicenseApplicationNumber', 'learningLicenseNumber', 'drivingLicenseNumber']
       const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
 
       setFormData(prev => ({
@@ -695,7 +686,22 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                   <div className='border-t border-yellow-300 pt-4'>
                     <h4 className='text-xs md:text-sm font-bold text-yellow-800 mb-3'>Learning License Details</h4>
 
-                    <div className='space-y-3'>
+                  <div className='space-y-3'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          LL Application No.
+                        </label>
+                        <input
+                          type='text'
+                          name='learningLicenseApplicationNumber'
+                          value={formData.learningLicenseApplicationNumber}
+                          onChange={handleChange}
+                          placeholder='Enter LL application number'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
+                        />
+                      </div>
+
                       <div>
                         <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                           LL Number
@@ -709,6 +715,7 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
                         />
                       </div>
+                    </div>
 
                       <div className='grid grid-cols-2 gap-3'>
                         <div>
@@ -869,106 +876,6 @@ const EditDLApplicationForm = ({ isOpen, onClose, onSubmit, application }) => {
               </div>
             </div>
 
-            {/* Expandable Additional Fields */}
-            <div className='border-2 border-gray-200 rounded-xl p-3 md:p-6'>
-              <button
-                type='button'
-                onClick={() => setShowAllFields(!showAllFields)}
-                className='flex items-center justify-between w-full text-left cursor-pointer'
-              >
-                <h3 className='text-base md:text-lg font-bold text-gray-800'>
-                  Additional Details (Optional)
-                </h3>
-                <svg
-                  className={`w-5 h-5 md:w-6 md:h-6 transition-transform ${showAllFields ? 'rotate-180' : ''}`}
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                </svg>
-              </button>
-
-              {showAllFields && (
-                <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
-                  {/* Grid for Mother's Name, Blood Group, Aadhar Number, and Qualification */}
-                  <div className='grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4'>
-                    {/* Mother's Name */}
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Mother's Name
-                      </label>
-                      <input
-                        type='text'
-                        name='motherName'
-                        value={formData.motherName}
-                        onChange={handleChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                      />
-                    </div>
-
-                    {/* Blood Group */}
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Blood Group
-                      </label>
-                      <select
-                        name='bloodGroup'
-                        value={formData.bloodGroup}
-                        onChange={handleChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                      >
-                        <option value=''>Select</option>
-                        <option value='A+'>A+</option>
-                        <option value='A-'>A-</option>
-                        <option value='B+'>B+</option>
-                        <option value='B-'>B-</option>
-                        <option value='O+'>O+</option>
-                        <option value='O-'>O-</option>
-                        <option value='AB+'>AB+</option>
-                        <option value='AB-'>AB-</option>
-                      </select>
-                    </div>
-
-                    {/* Aadhar Number */}
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Aadhar Number
-                      </label>
-                      <input
-                        type='text'
-                        name='aadharNumber'
-                        value={formData.aadharNumber}
-                        onChange={handleChange}
-                        placeholder='12 digits'
-                        maxLength='12'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                      />
-                    </div>
-
-                    {/* Qualification */}
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Qualification
-                      </label>
-                      <select
-                        name='qualification'
-                        value={formData.qualification}
-                        onChange={handleChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                      >
-                        <option value=''>Select</option>
-                        <option value='Below 10th'>Below 10th</option>
-                        <option value='10th Pass'>10th Pass</option>
-                        <option value='12th Pass'>12th Pass</option>
-                        <option value='Graduate'>Graduate</option>
-                        <option value='Post Graduate'>Post Graduate</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Footer Actions - Fixed at Bottom */}

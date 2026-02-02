@@ -17,9 +17,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
     name: '',
     dateOfBirth: '',
     gender: 'Male',
-    bloodGroup: '',
     fatherName: '',
-    motherName: '',
 
     // Contact Information
     mobileNumber: '',
@@ -36,15 +34,12 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
     licenseExpiryDate: '',
 
     // Learning License Information
+    learningLicenseApplicationNumber: '',
     learningLicenseNumber: '',
     learningLicenseIssueDate: '',
     learningLicenseExpiryDate: '',
 
-    // Educational Information
-    qualification: '',
-
     // Identification
-    aadharNumber: '',
     panNumber: '',
 
     // Emergency Contact
@@ -56,8 +51,6 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
     paidAmount: '2000',
     balanceAmount: 2000
   })
-
-  const [showAllFields, setShowAllFields] = useState(false)
 
   // Validation states
   const [mobileValidation, setMobileValidation] = useState({ isValid: false, message: '' })
@@ -257,7 +250,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
       }
     } else {
       // Convert to uppercase for text fields (name, father's name, mother's name, address, city, state, license numbers)
-      const uppercaseFields = ['name', 'fatherName', 'motherName', 'address', 'city', 'state', 'licenseNumber', 'learningLicenseNumber']
+      const uppercaseFields = ['name', 'fatherName', 'address', 'city', 'state', 'licenseNumber', 'learningLicenseApplicationNumber', 'learningLicenseNumber']
       const finalValue = uppercaseFields.includes(name) ? value.toUpperCase() : value
 
       setFormData(prev => ({
@@ -327,9 +320,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
       name: '',
       dateOfBirth: '',
       gender: 'Male',
-      bloodGroup: '',
       fatherName: '',
-      motherName: '',
       mobileNumber: '',
       email: '',
       address: '',
@@ -341,11 +332,10 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
       licenseNumber: '',
       licenseIssueDate: '',
       licenseExpiryDate: '',
+      learningLicenseApplicationNumber: '',
       learningLicenseNumber: '',
       learningLicenseIssueDate: '',
       learningLicenseExpiryDate: '',
-      qualification: '',
-      aadharNumber: '',
       panNumber: '',
       emergencyContact: '',
       emergencyRelation: 'Father',
@@ -383,7 +373,14 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className='flex flex-col flex-1 overflow-hidden'>
+        <style>{`
+          .dl-add-form input,
+          .dl-add-form select,
+          .dl-add-form textarea {
+            background-color: #ffffff;
+          }
+        `}</style>
+        <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className='dl-add-form flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
             {/* Essential Fields Section */}
             <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
@@ -616,7 +613,22 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                   <div className='border-t border-yellow-300 pt-4'>
                     <h4 className='text-xs md:text-sm font-bold text-yellow-800 mb-3'>Learning License Details</h4>
 
-                    <div className='space-y-3'>
+                  <div className='space-y-3'>
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
+                      <div>
+                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
+                          LL Application No.
+                        </label>
+                        <input
+                          type='text'
+                          name='learningLicenseApplicationNumber'
+                          value={formData.learningLicenseApplicationNumber}
+                          onChange={handleChange}
+                          placeholder='Enter LL application number'
+                          className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
+                        />
+                      </div>
+
                       <div>
                         <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
                           LL Number
@@ -630,6 +642,7 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
                           className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent'
                         />
                       </div>
+                    </div>
 
                       <div className='grid grid-cols-2 gap-3'>
                         <div>
@@ -787,148 +800,6 @@ const QuickDLApplicationForm = ({ isOpen, onClose, onSubmit }) => {
               </div>
             </div>
 
-            {/* Expandable Additional Fields */}
-            <div className='border-2 border-gray-200 rounded-xl p-3 md:p-6'>
-              <button
-                type='button'
-                onClick={() => setShowAllFields(!showAllFields)}
-                className='flex items-center justify-between w-full text-left cursor-pointer'
-              >
-                <h3 className='text-base md:text-lg font-bold text-gray-800'>
-                  Additional Details (Optional)
-                </h3>
-                <svg
-                  className={`w-5 h-5 md:w-6 md:h-6 transition-transform ${showAllFields ? 'rotate-180' : ''}`}
-                  fill='none'
-                  stroke='currentColor'
-                  viewBox='0 0 24 24'
-                >
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 9l-7 7-7-7' />
-                </svg>
-              </button>
-
-              {showAllFields && (
-                <div className='mt-4 md:mt-6 space-y-4 md:space-y-6'>
-                  {/* Grid for Mother's Name, Blood Group, Aadhar Number, and Qualification */}
-                  <div className='grid grid-cols-1 md:grid-cols-4 gap-3 md:gap-4'>
-                    {/* Mother's Name */}
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Mother's Name
-                      </label>
-                      <input
-                        type='text'
-                        name='motherName'
-                        value={formData.motherName}
-                        onChange={handleChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                      />
-                    </div>
-
-                    {/* Blood Group */}
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Blood Group
-                      </label>
-                      <select
-                        name='bloodGroup'
-                        value={formData.bloodGroup}
-                        onChange={handleChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                      >
-                        <option value=''>Select</option>
-                        <option value='A+'>A+</option>
-                        <option value='A-'>A-</option>
-                        <option value='B+'>B+</option>
-                        <option value='B-'>B-</option>
-                        <option value='O+'>O+</option>
-                        <option value='O-'>O-</option>
-                        <option value='AB+'>AB+</option>
-                        <option value='AB-'>AB-</option>
-                      </select>
-                    </div>
-
-                    {/* Aadhar Number */}
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Aadhar Number
-                      </label>
-                      <input
-                        type='text'
-                        name='aadharNumber'
-                        value={formData.aadharNumber}
-                        onChange={handleChange}
-                        placeholder='12 digits'
-                        maxLength='12'
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                      />
-                    </div>
-
-                    {/* Qualification */}
-                    <div>
-                      <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1'>
-                        Qualification
-                      </label>
-                      <select
-                        name='qualification'
-                        value={formData.qualification}
-                        onChange={handleChange}
-                        className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent'
-                      >
-                        <option value=''>Select</option>
-                        <option value='Below 10th'>Below 10th</option>
-                        <option value='10th Pass'>10th Pass</option>
-                        <option value='12th Pass'>12th Pass</option>
-                        <option value='Graduate'>Graduate</option>
-                        <option value='Post Graduate'>Post Graduate</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Document Uploads */}
-                  <div className='border-t border-gray-200 pt-4'>
-                    <h4 className='text-xs md:text-sm font-bold mb-3 uppercase text-indigo-600'>Document Uploads</h4>
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4'>
-                      {/* Aadhar Upload */}
-                      <div className='border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-indigo-500 transition cursor-pointer'>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2 cursor-pointer'>
-                          <div className='flex items-center gap-2'>
-                            <svg className='w-5 h-5 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
-                            </svg>
-                            <span>Upload Aadhar Card</span>
-                          </div>
-                        </label>
-                        <input
-                          type='file'
-                          accept='image/*,application/pdf'
-                          className='w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer'
-                        />
-                        <p className='text-xs text-gray-500 mt-2'>JPG, PNG, PDF (Max 2MB)</p>
-                      </div>
-
-                      {/* Signature Upload */}
-                      <div className='border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-indigo-500 transition cursor-pointer'>
-                        <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2 cursor-pointer'>
-                          <div className='flex items-center gap-2'>
-                            <svg className='w-5 h-5 text-indigo-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' />
-                            </svg>
-                            <span>Upload Signature</span>
-                          </div>
-                        </label>
-                        <input
-                          type='file'
-                          accept='image/*'
-                          className='w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer'
-                        />
-                        <p className='text-xs text-gray-500 mt-2'>JPG, PNG (Max 1MB)</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Footer Actions - Fixed at Bottom */}
