@@ -115,6 +115,12 @@ const Navbar = () => {
       path: "/vehicle-transfer",
       description: "Transfer Ownership",
     },
+    {
+      name: "NOC",
+      icon: "N",
+      path: "/noc",
+      description: "No Objection Certificate",
+    },
 
      {
        name: "Forms",
@@ -132,12 +138,18 @@ const Navbar = () => {
   ];
 
 // Dropdown items for desktop (Dashboard, Forms, Settings, Registration Renewal)
-  const dropdownItems = [
+    const dropdownItems = [
     {
       name: "Dashboard",
       icon: "📊",
       path: "/",
       description: "Overview & Expiring Items",
+    },
+    {
+      name: "NOC",
+      icon: "N",
+      path: "/noc",
+      description: "No Objection Certificate",
     },
     {
       name: "Registration Renewal",
@@ -161,7 +173,7 @@ const Navbar = () => {
 
   // Desktop menu items (all except Dashboard, Forms and Settings)
   const desktopMenuItems = menuItems.filter(
-    (item) => item.path !== "/" && item.path !== "/forms" && item.path !== "/setting"
+    (item) => item.path !== "/" && item.path !== "/forms" && item.path !== "/setting" && item.path !== "/noc"
   );
 
   const isActive = (path) => location.pathname === path;
@@ -448,3 +460,7 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
+

@@ -102,6 +102,7 @@ const gpsRoutes = require('./routes/gpsRoutes')
 const uploadRoutes = require('./routes/upload')
 const dashboardRoutes = require('./routes/dashboard')
 const partyRoutes = require('./routes/party')
+const nocRoutes = require('./routes/noc')
 
 // Use Routes
 
@@ -132,6 +133,7 @@ app.use('/api/registration-renewals', userAuth, registrationRenewalRoutes)
 app.use('/api/puc', userAuth, pucRoutes)
 app.use('/api/gps', userAuth, gpsRoutes)
 app.use('/api/parties', userAuth, partyRoutes)
+app.use('/api/noc', userAuth, nocRoutes)
 
 // Root route
 app.get('/', (req, res) => {
@@ -168,3 +170,4 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
 })
+

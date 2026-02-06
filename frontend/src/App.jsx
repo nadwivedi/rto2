@@ -28,6 +28,7 @@ import Dashboard from './pages/Dashboard/Dashboard'
 import Dashboard2 from './pages/Dashboard/Dashboard2'
 import Party from './pages/Party/Party'
 import PartyDetail from './pages/Party/PartyDetail'
+import Noc from './pages/Noc/Noc'
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
                         <Route path='/fitness' element={<Fitness />} />
                         <Route path='/tax' element={<Tax />} />
 <Route path='/vehicle-transfer' element={<VehicleTransfer />} />
+                        <Route path='/noc' element={<Noc />} />
                         <Route path='/registration-renewal' element={<RegistrationRenewal />} />
                         <Route path='/forms' element={<Forms />} />
                         <Route path='/forms/form-20' element={<Form20 />} />
@@ -90,3 +92,4 @@ function App() {
 }
 
 export default App
+
