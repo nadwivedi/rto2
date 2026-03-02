@@ -76,7 +76,6 @@ initEmailDataExportCron()
 
 // Import Middleware
 const userAuth = require('./middleware/userAuth')
-const adminAuth = require('./middleware/adminAuth')
 
 // Import Routes
 const authRoutes = require('./routes/auth')

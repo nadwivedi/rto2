@@ -454,24 +454,62 @@ exports.getExpiredTaxes = async (req, res) => {
       delete query.vehicleNumber
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit)
-
-    const sortOptions = {}
-    sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1
-
-    const taxRecords = await Tax.find(query)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(parseInt(limit))
+    const pageNumber = parseInt(page)
+    const limitNumber = parseInt(limit)
+    const skip = (pageNumber - 1) * limitNumber
+    const sortDirection = sortOrder === 'asc' ? 1 : -1
 
     const total = await Tax.countDocuments(query)
+
+    let taxRecords
+
+    if (sortBy === 'taxTo') {
+      const aggregateMatchQuery = {
+        ...query,
+        userId: new mongoose.Types.ObjectId(req.user.id)
+      }
+
+      taxRecords = await Tax.aggregate([
+        { $match: aggregateMatchQuery },
+        {
+          $addFields: {
+            taxToDate: {
+              $dateFromString: {
+                dateString: {
+                  $replaceAll: {
+                    input: '$taxTo',
+                    find: '/',
+                    replacement: '-'
+                  }
+                },
+                format: '%d-%m-%Y',
+                onError: new Date(0),
+                onNull: new Date(0)
+              }
+            }
+          }
+        },
+        { $sort: { taxToDate: sortDirection, _id: sortDirection } },
+        { $skip: skip },
+        { $limit: limitNumber },
+        { $project: { taxToDate: 0 } }
+      ])
+    } else {
+      const sortOptions = {}
+      sortOptions[sortBy] = sortDirection
+
+      taxRecords = await Tax.find(query)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limitNumber)
+    }
 
     res.json({
       success: true,
       data: taxRecords,
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / parseInt(limit)),
+        currentPage: pageNumber,
+        totalPages: Math.ceil(total / limitNumber),
         totalRecords: total,
         hasMore: skip + taxRecords.length < total
       }
