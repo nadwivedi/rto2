@@ -317,9 +317,15 @@ exports.getTaxStatistics = async (req, res) => {
     // Count permits by status (now using the indexed status field)
     const activeTax = await Tax.countDocuments({ status: 'active', userId: req.user.id })
 
-    // For expiring soon and expired, exclude vehicles that also have active tax (renewed vehicles)
+    // For expiring soon, exclude vehicles that also have active tax (renewed vehicles)
     const vehiclesWithActiveTax = await Tax.find({ status: 'active', userId: req.user.id })
       .distinct('vehicleNumber')
+
+    // For expired, exclude vehicles that have active OR expiring_soon tax
+    const vehiclesWithActiveOrExpiringTax = await Tax.find({
+      status: { $in: ['active', 'expiring_soon'] },
+      userId: req.user.id
+    }).distinct('vehicleNumber')
 
     const expiringSoonTax = await Tax.countDocuments({
       status: 'expiring_soon',
@@ -329,7 +335,7 @@ exports.getTaxStatistics = async (req, res) => {
 
     const expiredTax = await Tax.countDocuments({
       status: 'expired',
-      vehicleNumber: { $nin: vehiclesWithActiveTax },
+      vehicleNumber: { $nin: vehiclesWithActiveOrExpiringTax },
       userId: req.user.id
     })
 
@@ -434,21 +440,24 @@ exports.getExpiredTaxes = async (req, res) => {
   try {
     const { search, page = 1, limit = 20, sortBy = 'taxTo', sortOrder = 'desc' } = req.query
 
-    // Find all vehicle numbers that have active tax
-    // These vehicles have been renewed and should be excluded
-    const vehiclesWithActiveTax = await Tax.find({ status: 'active', userId: req.user.id })
+    // Find all vehicle numbers that have active OR expiring_soon tax.
+    // These vehicles should not appear in expired list.
+    const vehiclesWithActiveOrExpiringTax = await Tax.find({
+      status: { $in: ['active', 'expiring_soon'] },
+      userId: req.user.id
+    })
       .distinct('vehicleNumber')
 
     const query = {
       status: 'expired',
-      vehicleNumber: { $nin: vehiclesWithActiveTax },
+      vehicleNumber: { $nin: vehiclesWithActiveOrExpiringTax },
       userId: req.user.id
     }
 
     if (search) {
       // Update the vehicleNumber condition to work with search
       query.$and = [
-        { vehicleNumber: { $nin: vehiclesWithActiveTax } },
+        { vehicleNumber: { $nin: vehiclesWithActiveOrExpiringTax } },
         { vehicleNumber: { $regex: search, $options: 'i' } }
       ]
       delete query.vehicleNumber
