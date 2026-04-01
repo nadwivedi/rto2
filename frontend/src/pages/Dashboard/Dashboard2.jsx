@@ -118,7 +118,7 @@ const Dashboard2 = () => {
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 p-2 lg:p-8'>
       <div className='mx-auto'>
         {/* Module Sections */}
-        <div className='mt-16 grid grid-cols-2 gap-2 lg:gap-4'>
+        <div className='mt-6 grid grid-cols-2 gap-2 lg:gap-4'>
           <div className='col-span-2'>
             <DashboardSlider
               records={expiringRecords.fitness}

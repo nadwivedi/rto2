@@ -1324,7 +1324,7 @@ const Forms = () => {
   )
 
   return (
-    <div className="min-h-screen pt-16 lg:pt-20 px-4 pb-8 bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen pt-4 lg:pt-6 px-4 pb-8 bg-gradient-to-br from-gray-50 to-gray-100">
       <div className="max-w-6xl mx-auto">
         {/* Search Bar */}
         <div className="mb-8 mt-5">

@@ -125,7 +125,7 @@ const Dashboard = () => {
       
 
         {/* Statistics Cards */}
-        <div className='mt-16 lg:mt-14 grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-2 lg:gap-3 mb-4 lg:mb-8'>
+        <div className='mt-6 lg:mt-4 grid grid-cols-4 md:grid-cols-4 lg:grid-cols-8 gap-2 lg:gap-3 mb-4 lg:mb-8'>
           <StatisticsCard
             title='Fitness'
             value={statistics.fitness.expiringSoon || 0}

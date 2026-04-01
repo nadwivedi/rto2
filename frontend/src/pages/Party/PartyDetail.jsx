@@ -188,7 +188,7 @@ const PartyDetail = () => {
 
   if (loading) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50 pt-20'>
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50 pt-4 lg:pt-6'>
         <div className='w-full px-3 md:px-4 lg:px-6 py-8'>
           <div className='flex items-center justify-center h-64'>
             <div className='text-center'>
@@ -205,7 +205,7 @@ const PartyDetail = () => {
 
   if (!data) {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50 pt-20'>
+      <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50 pt-4 lg:pt-6'>
         <div className='w-full px-3 md:px-4 lg:px-6 py-8'>
           <div className='text-center py-12'>
             <p className='text-gray-600'>Party not found</p>
@@ -232,7 +232,7 @@ const PartyDetail = () => {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50'>
-      <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
+      <div className='w-full px-3 md:px-4 lg:px-6 pt-4 lg:pt-6 pb-8'>
         {/* Back Button & Party Header */}
         <div className='mb-6'>
           <button

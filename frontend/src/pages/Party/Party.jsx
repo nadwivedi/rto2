@@ -114,7 +114,7 @@ const Party = () => {
   return (
     <>
       <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50'>
-        <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
+        <div className='w-full px-3 md:px-4 lg:px-6 pt-4 lg:pt-6 pb-8'>
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-1 gap-2 lg:gap-3 mb-5 max-w-sm'>

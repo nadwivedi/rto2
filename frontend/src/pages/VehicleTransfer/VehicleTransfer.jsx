@@ -192,7 +192,7 @@ const VehicleTransfer = () => {
   return (
     <>
       <div className='min-h-screen bg-gradient-to-br from-gray-50 via-teal-50 to-cyan-50'>
-        <div className='w-full px-3 md:px-4 lg:px-6 pt-20 lg:pt-20 pb-8'>
+        <div className='w-full px-3 md:px-4 lg:px-6 pt-4 lg:pt-6 pb-8'>
           {/* Statistics Cards */}
           <div className='mb-2 mt-3'>
             <div className='grid grid-cols-2 lg:grid-cols-4 gap-2 lg:gap-3 mb-5'>

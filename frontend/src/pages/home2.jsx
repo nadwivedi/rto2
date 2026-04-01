@@ -19,7 +19,7 @@ const Home2 = () => {
   return (
     <div className='min-h-screen bg-slate-100 px-4 py-10 sm:px-6 lg:px-10'>
       <div className='mx-auto max-w-6xl'>
-        <div className='mt-20 grid gap-6 md:grid-cols-2'>
+        <div className='mt-6 grid gap-6 md:grid-cols-2'>
           {portalCards.map((card) => (
             <a
               key={card.title}

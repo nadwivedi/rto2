@@ -171,7 +171,7 @@ const Setting = () => {
   }
 
   return (
-    <div className='p-4 md:p-6 lg:p-8 pt-20 lg:pt-20 max-w-[1400px] mx-auto'>
+    <div className='p-4 md:p-6 lg:p-8 pt-4 lg:pt-6 max-w-[1400px] mx-auto'>
       {/* Header */}
       <div className='mb-6'>
         <h1 className='text-2xl font-black text-gray-800 mb-1'>Settings</h1>

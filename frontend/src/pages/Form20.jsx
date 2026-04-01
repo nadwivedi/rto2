@@ -88,7 +88,7 @@ const Form20 = () => {
   }
 
   return (
-    <div className="min-h-screen pt-16 lg:pt-20 px-4 pb-8 bg-gray-100">
+    <div className="min-h-screen pt-4 lg:pt-6 px-4 pb-8 bg-gray-100">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
