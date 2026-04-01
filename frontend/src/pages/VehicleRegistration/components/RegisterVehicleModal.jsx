@@ -324,6 +324,37 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     return () => clearTimeout(timer)
   }, [formData.registrationNumber, vehicleValidation.isValid, editData])
 
+  // Keyboard shortcut handling for modal dismissal
+  useEffect(() => {
+    const handleModalKeyDown = (e) => {
+      if (e.key !== 'Escape') return
+
+      if (showPartySuggestions && filteredParties.length > 0) {
+        e.preventDefault()
+        setShowPartySuggestions(false)
+        setHighlightedIndex(-1)
+        return
+      }
+
+      if (showAddPartyModal) {
+        e.preventDefault()
+        setShowAddPartyModal(false)
+        return
+      }
+
+      e.preventDefault()
+      onClose()
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleModalKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleModalKeyDown)
+    }
+  }, [isOpen, onClose, showPartySuggestions, filteredParties.length, showAddPartyModal])
+
   const handleChange = (e) => {
     const { name, value } = e.target
 

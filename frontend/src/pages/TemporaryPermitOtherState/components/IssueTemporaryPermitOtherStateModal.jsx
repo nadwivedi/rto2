@@ -209,6 +209,25 @@ const IssueTemporaryPermitOtherStateModal = ({ onClose, onPermitIssued }) => {
     }
   }, [selectedDropdownIndex, showVehicleDropdown])
 
+  // Keyboard shortcuts for modal actions
+  useEffect(() => {
+    const handleModalKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && !showVehicleDropdown) {
+        e.preventDefault()
+        document.querySelector('form')?.requestSubmit()
+        return
+      }
+
+      if (e.key === 'Escape' && !showVehicleDropdown) {
+        e.preventDefault()
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleModalKeyDown)
+    return () => document.removeEventListener('keydown', handleModalKeyDown)
+  }, [onClose, showVehicleDropdown])
+
   // Handle vehicle selection from dropdown
   const handleVehicleSelect = (vehicle) => {
     setFormData(prev => ({

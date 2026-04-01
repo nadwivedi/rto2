@@ -40,6 +40,24 @@ const AddDealerBillModal = ({ isOpen, onClose, onSuccess }) => {
     }
   }, [isOpen])
 
+  // Keyboard shortcut for closing the modal
+  useEffect(() => {
+    const handleModalKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleModalKeyDown)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleModalKeyDown)
+    }
+  }, [isOpen, onClose])
+
   const fetchUserProfile = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/auth/profile`, {
