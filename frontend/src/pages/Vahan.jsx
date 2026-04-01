@@ -1,17 +1,31 @@
 import { Link } from 'react-router-dom'
 
 const vahanOptions = [
-  { title: 'Manage Vehicle', path: '/vehicle-registration', note: 'Vehicle registration and record handling', image: '/buttons/add vehicle.png' },
-  { title: 'Add NP', path: '/national-permit', note: 'National permit work', image: '/buttons/add national permit.png' },
-  { title: 'Add CG Permit', path: '/cg-permit', note: 'CG state permit entries', image: '/buttons/add statepermit.png' },
-  { title: 'Add Temp Permit', path: '/temporary-permit', note: 'Temporary permit requests', image: '/buttons/add temporary permit.png' },
-  { title: 'Add Temp Other State', path: '/temporary-permit-other-state', note: 'Temporary permit requests for other states', image: '/buttons/add temp other state.png' },
-  { title: 'Add Fitness', path: '/fitness', note: 'Fitness certificate work', image: '/buttons/add fitness.png' },
-  { title: 'Add Tax', path: '/tax', note: 'Tax records and renewals', image: '/buttons/add tax.png' },
-  { title: 'PUC', path: '/puc', note: 'Pollution certificate records', image: '/buttons/add puc.png' },
-  { title: 'Add GPS', path: '/gps', note: 'GPS device and renewal work', image: '/buttons/add gps.png' },
-  { title: 'Insurance', path: '/insurance', note: 'Insurance details and renewals', image: '/buttons/addinsurance.png' },
-  { title: 'Bill', path: '/dealer-bill', note: 'Billing and dealer bills', image: '/buttons/add bill.png' }
+  { title: 'Manage Vehicle', path: '/vehicle-registration', note: 'Vehicle registration and record handling', image: '/buttons/add vehicle.png', category: 'vehicle', badgeTone: 'bg-sky-100 text-sky-700' },
+  { title: 'Add NP', path: '/national-permit', note: 'National permit work', image: '/buttons/add national permit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
+  { title: 'Add CG Permit', path: '/cg-permit', note: 'CG state permit entries', image: '/buttons/add statepermit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
+  { title: 'Add Temp Permit', path: '/temporary-permit', note: 'Temporary permit requests', image: '/buttons/add temporary permit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
+  { title: 'Add Temp Other State', path: '/temporary-permit-other-state', note: 'Temporary permit requests for other states', image: '/buttons/add temp other state.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
+  { title: 'Add Fitness', path: '/fitness', note: 'Fitness certificate work', image: '/buttons/add fitness.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
+  { title: 'Add Tax', path: '/tax', note: 'Tax records and renewals', image: '/buttons/add tax.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
+  { title: 'PUC', path: '/puc', note: 'Pollution certificate records', image: '/buttons/add puc.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
+  { title: 'Add GPS', path: '/gps', note: 'GPS device and renewal work', image: '/buttons/add gps.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
+  { title: 'Insurance', path: '/insurance', note: 'Insurance details and renewals', image: '/buttons/addinsurance.png', category: 'billing', badgeTone: 'bg-amber-100 text-amber-700' },
+  { title: 'Bill', path: '/dealer-bill', note: 'Billing and dealer bills', image: '/buttons/add bill.png', category: 'billing', badgeTone: 'bg-amber-100 text-amber-700' }
+]
+
+const quickButtons = [
+  { title: 'Manage Vehicle', shortLabel: 'Vehicle', tone: 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100' },
+  { title: 'Add NP', shortLabel: 'NP', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' },
+  { title: 'Add CG Permit', shortLabel: 'State Permit', tone: 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100' },
+  { title: 'Add Temp Permit', shortLabel: 'Temp Permit', tone: 'border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100' },
+  { title: 'Add Temp Other State', shortLabel: 'Temp Other State', tone: 'border-lime-200 bg-lime-50 text-lime-700 hover:bg-lime-100' },
+  { title: 'Insurance', shortLabel: 'Insurance', tone: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' },
+  { title: 'Add Fitness', shortLabel: 'Fitness', tone: 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100' },
+  { title: 'Add Tax', shortLabel: 'Tax', tone: 'border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-100' },
+  { title: 'PUC', shortLabel: 'PUC', tone: 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100' },
+  { title: 'Add GPS', shortLabel: 'GPS', tone: 'border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100' },
+  { title: 'Bill', shortLabel: 'Bill', tone: 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' }
 ]
 
 const Vahan = () => {
@@ -55,44 +69,28 @@ const Vahan = () => {
         </aside>
 
         <section className='lg:ml-[21rem] lg:flex-1'>
-          <div className='rounded-[32px] bg-white p-5 shadow-xl ring-1 ring-slate-200 sm:p-8'>
-            <div className='rounded-[28px] bg-gradient-to-br from-sky-50 via-white to-teal-50 p-6 ring-1 ring-sky-100'>
-              <p className='text-sm font-bold uppercase tracking-[0.35em] text-sky-700'>
-                Dashboard
-              </p>
-              <h2 className='mt-3 text-3xl font-black text-slate-900'>
-                Vahan related work list
-              </h2>
-              <p className='mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base'>
-                Use the fixed sidebar to move between vehicle registration, permits, fitness, tax, PUC, GPS, insurance and billing work.
-              </p>
-            </div>
+          <div className='w-full rounded-[28px] border border-slate-200/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(241,245,249,0.96))] shadow-[0_28px_70px_rgba(15,23,42,0.18)]'>
+            <div className='space-y-5 p-5 sm:p-6'>
+              <div className='rounded-[24px] border border-slate-200 bg-white p-4 sm:p-5'>
+                <p className='text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500'>Quick Access</p>
+                <div className='mt-3 flex flex-wrap gap-2'>
+                  {quickButtons.map((button) => {
+                    const option = vahanOptions.find((item) => item.title === button.title)
 
-            <div className='mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3'>
-              {vahanOptions.map((option) => (
-                <Link
-                  key={option.title}
-                  to={option.path}
-                  className={
-                    option.image
-                      ? 'transition duration-200 hover:-translate-y-1'
-                      : 'rounded-[24px] bg-slate-50 p-5 shadow-sm ring-1 ring-slate-200 transition duration-200 hover:-translate-y-1 hover:bg-white hover:shadow-lg'
-                  }
-                >
-                  {option.image ? (
-                    <img
-                      src={option.image}
-                      alt={option.title}
-                      className='mx-auto h-auto w-[92%] object-contain'
-                    />
-                  ) : (
-                    <>
-                      <h3 className='text-lg font-black text-slate-900'>{option.title}</h3>
-                      <p className='mt-2 text-sm leading-6 text-slate-600'>{option.note}</p>
-                    </>
-                  )}
-                </Link>
-              ))}
+                    if (!option) return null
+
+                    return (
+                      <Link
+                        key={button.title}
+                        to={option.path}
+                        className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${button.tone}`}
+                      >
+                        {button.shortLabel}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         </section>
