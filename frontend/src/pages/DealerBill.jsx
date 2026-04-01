@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import AddButton from '../components/AddButton'
 import SearchBar from '../components/SearchBar'
@@ -11,6 +12,8 @@ console.log(API_URL);
 
 
 const DealerBill = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
   const theme = getTheme()
   const [dealerBills, setDealerBills] = useState([])
   const [loading, setLoading] = useState(true)
@@ -29,6 +32,13 @@ const DealerBill = () => {
   useEffect(() => {
     fetchDealerBills()
   }, [currentPage, searchQuery])
+
+  useEffect(() => {
+    if (!location.state?.openAddModal) return
+
+    setIsAddModalOpen(true)
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [location.pathname, location.state, navigate])
 
   const fetchDealerBills = async () => {
     try {

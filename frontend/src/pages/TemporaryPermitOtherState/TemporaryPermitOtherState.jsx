@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
@@ -16,6 +17,8 @@ import { getStatusColor, getStatusText } from '../../utils/statusUtils';
 import { getVehicleNumberParts } from '../../utils/vehicleNoCheck';
 
 const TemporaryPermitOtherState = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
   const theme = getTheme()
   const vehicleDesign = getVehicleNumberDesign()
   const [permits, setPermits] = useState([])
@@ -66,6 +69,13 @@ const TemporaryPermitOtherState = () => {
     fetchPermits(1)
     fetchStatistics();
   }, [debouncedSearchQuery, statusFilter])
+
+  useEffect(() => {
+    if (!location.state?.openAddModal) return
+
+    setShowIssuePermitModal(true)
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [location.pathname, location.state, navigate])
 
   const fetchPermits = async (page = pagination.currentPage) => {
     try {

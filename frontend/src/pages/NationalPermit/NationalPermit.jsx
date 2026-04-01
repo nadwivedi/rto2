@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { getDaysRemaining, parseFormattedDate } from '../../utils/dateHelpers'
@@ -16,6 +17,8 @@ import { getVehicleNumberParts } from '../../utils/vehicleNoCheck'
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const NationalPermit = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
   const theme = getTheme()
   const vehicleDesign = getVehicleNumberDesign()
   const [permits, setPermits] = useState([])
@@ -225,6 +228,13 @@ const NationalPermit = () => {
     fetchPermits(1)
     fetchStatistics()
   }, [searchQuery, dateFilter, statusFilter]) // Re-fetch when filters change
+
+  useEffect(() => {
+    if (!location.state?.openAddModal) return
+
+    setShowIssuePermitModal(true)
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [location.pathname, location.state, navigate])
 
   const fetchPermits = async (page = pagination.currentPage) => {
     try {

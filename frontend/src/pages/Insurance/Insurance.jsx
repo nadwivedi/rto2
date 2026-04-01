@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Pagination from "../../components/Pagination";
@@ -15,6 +16,8 @@ import { getStatusColor, getStatusText } from "../../utils/statusUtils";
 import { getVehicleNumberParts } from "../../utils/vehicleNoCheck";
 
 const Insurance = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const theme = getTheme();
   const vehicleDesign = getVehicleNumberDesign();
   const [insurances, setInsurances] = useState([]);
@@ -40,6 +43,13 @@ const Insurance = () => {
     pendingPaymentCount: 0,
     pendingPaymentAmount: 0,
   });
+
+  useEffect(() => {
+    if (!location.state?.openAddModal) return;
+
+    setIsAddModalOpen(true);
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.pathname, location.state, navigate]);
 
   const fetchStatistics = async () => {
     try {

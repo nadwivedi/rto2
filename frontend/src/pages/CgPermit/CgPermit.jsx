@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
@@ -16,6 +17,8 @@ import { getStatusColor, getStatusText } from '../../utils/statusUtils';
 import { getVehicleNumberParts } from '../../utils/vehicleNoCheck';
 
 const CgPermit = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
   const theme = getTheme()
   const vehicleDesign = getVehicleNumberDesign()
   // Force recompile for debugging ReferenceError: loading is not defined
@@ -71,6 +74,13 @@ const CgPermit = () => {
     fetchPermits(1)
     fetchStatistics()
   }, [searchQuery, statusFilter])
+
+  useEffect(() => {
+    if (!location.state?.openAddModal) return
+
+    setShowIssuePermitModal(true)
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [location.pathname, location.state, navigate])
 
   // Page change handler
   const handlePageChange = (newPage) => {

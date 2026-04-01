@@ -1,4 +1,16 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import RegisterVehicleModal from './VehicleRegistration/components/RegisterVehicleModal'
+import IssueNewPermitModal from './NationalPermit/components/IssueNewPermitModal'
+import IssueCgPermitModal from './CgPermit/components/IssueCgPermitModal'
+import IssueTemporaryPermitModal from './TemporaryPermit/components/IssueTemporaryPermitModal'
+import IssueTemporaryPermitOtherStateModal from './TemporaryPermitOtherState/components/IssueTemporaryPermitOtherStateModal'
+import AddFitnessModal from './Fitness/components/AddFitnessModal'
+import AddTaxModal from './Tax/components/AddTaxModal'
+import AddPucModal from './Puc/components/AddPucModal'
+import AddGpsModal from './Gps/components/AddGpsModal'
+import AddInsuranceModal from './Insurance/components/AddInsuranceModal'
+import AddDealerBillModal from '../components/AddDealerBillModal'
 
 const vahanOptions = [
   { title: 'Manage Vehicle', path: '/vehicle-registartion', note: 'Vehicle registration and record handling', image: '/buttons/add vehicle.png', category: 'vehicle', badgeTone: 'bg-sky-100 text-sky-700' },
@@ -31,20 +43,27 @@ const quickButtons = [
 ]
 
 const Vahan = () => {
+  const [activeModal, setActiveModal] = useState(null)
+
+  const openModal = (title) => setActiveModal(title)
+  const closeModal = () => setActiveModal(null)
+
   return (
-    <div className='min-h-screen bg-slate-100 pt-4 lg:pt-6'>
+    <>
+      <div className='min-h-screen bg-slate-100 pt-4 lg:pt-6'>
       <div className='flex w-full flex-col gap-6 px-4 pb-8 lg:flex-row lg:px-6'>
         <aside className='lg:fixed lg:left-6 lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-80 lg:overflow-y-auto'>
           <div className='overflow-hidden rounded-[28px] bg-slate-900 text-white shadow-2xl'>
             <div className='space-y-2 p-4'>
               {vahanOptions.map((option, index) => (
-                <Link
+                <button
                   key={option.title}
-                  to={option.path}
+                  type='button'
+                  onClick={() => openModal(option.title)}
                   className={
                     option.image
-                      ? 'block transition duration-200 hover:opacity-95'
-                      : 'block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition duration-200 hover:bg-white/10 hover:shadow-lg'
+                      ? 'block w-full transition duration-200 hover:opacity-95'
+                      : 'block w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition duration-200 hover:bg-white/10 hover:shadow-lg'
                   }
                 >
                   {option.image ? (
@@ -64,7 +83,7 @@ const Vahan = () => {
                       </div>
                     </div>
                   )}
-                </Link>
+                </button>
               ))}
             </div>
           </div>
@@ -98,7 +117,96 @@ const Vahan = () => {
           </div>
         </section>
       </div>
-    </div>
+      </div>
+
+      {activeModal === 'Manage Vehicle' && (
+        <RegisterVehicleModal
+          isOpen={true}
+          onClose={closeModal}
+          onSuccess={closeModal}
+          editData={null}
+        />
+      )}
+
+      {activeModal === 'Add NP' && (
+        <IssueNewPermitModal
+          isOpen={true}
+          onClose={closeModal}
+          onSubmit={closeModal}
+        />
+      )}
+
+      {activeModal === 'Add CG Permit' && (
+        <IssueCgPermitModal
+          isOpen={true}
+          onClose={closeModal}
+          onSubmit={closeModal}
+        />
+      )}
+
+      {activeModal === 'Add Temp Permit' && (
+        <IssueTemporaryPermitModal
+          isOpen={true}
+          onClose={closeModal}
+          onSubmit={closeModal}
+        />
+      )}
+
+      {activeModal === 'Add Temp Other State' && (
+        <IssueTemporaryPermitOtherStateModal
+          onClose={closeModal}
+          onPermitIssued={closeModal}
+        />
+      )}
+
+      {activeModal === 'Add Fitness' && (
+        <AddFitnessModal
+          isOpen={true}
+          onClose={closeModal}
+          onSubmit={closeModal}
+        />
+      )}
+
+      {activeModal === 'Add Tax' && (
+        <AddTaxModal
+          isOpen={true}
+          onClose={closeModal}
+          onSubmit={closeModal}
+        />
+      )}
+
+      {activeModal === 'PUC' && (
+        <AddPucModal
+          isOpen={true}
+          onClose={closeModal}
+          onSubmit={closeModal}
+        />
+      )}
+
+      {activeModal === 'Add GPS' && (
+        <AddGpsModal
+          isOpen={true}
+          onClose={closeModal}
+          onSubmit={closeModal}
+        />
+      )}
+
+      {activeModal === 'Insurance' && (
+        <AddInsuranceModal
+          isOpen={true}
+          onClose={closeModal}
+          onSubmit={closeModal}
+        />
+      )}
+
+      {activeModal === 'Bill' && (
+        <AddDealerBillModal
+          isOpen={true}
+          onClose={closeModal}
+          onSuccess={closeModal}
+        />
+      )}
+    </>
   )
 }
 

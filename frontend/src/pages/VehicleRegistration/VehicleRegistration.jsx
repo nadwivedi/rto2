@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import Pagination from '../../components/Pagination'
@@ -14,6 +14,7 @@ import ViewVehicleRegistrationModal from './components/ViewVehicleRegistrationMo
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const VehicleRegistration = () => {
+  const location = useLocation()
   const navigate = useNavigate()
   const theme = getTheme()
   const vehicleDesign = getVehicleNumberDesign()
@@ -38,6 +39,14 @@ const VehicleRegistration = () => {
     fetchRegistrations(1)
     fetchStatistics()
   }, [searchTerm])
+
+  useEffect(() => {
+    if (!location.state?.openAddModal) return
+
+    setEditData(null)
+    setShowModal(true)
+    navigate(location.pathname, { replace: true, state: {} })
+  }, [location.pathname, location.state, navigate])
 
   const fetchRegistrations = async (page = pagination.currentPage) => {
     try {

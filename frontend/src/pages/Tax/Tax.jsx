@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import AddButton from "../../components/AddButton";
@@ -16,6 +17,8 @@ import { getStatusColor, getStatusText } from "../../utils/statusUtils";
 import { getVehicleNumberParts } from "../../utils/vehicleNoCheck";
 
 const Tax = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const theme = getTheme();
   const vehicleDesign = getVehicleNumberDesign();
   const [taxRecords, setTaxRecords] = useState([]);
@@ -39,6 +42,13 @@ const Tax = () => {
     pendingPaymentCount: 0,
     pendingPaymentAmount: 0,
   });
+
+  useEffect(() => {
+    if (!location.state?.openAddModal) return;
+
+    setIsAddModalOpen(true);
+    navigate(location.pathname, { replace: true, state: {} });
+  }, [location.pathname, location.state, navigate]);
 
   // Fetch tax statistics from API
   const fetchStatistics = async () => {
