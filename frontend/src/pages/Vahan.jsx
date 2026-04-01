@@ -1,17 +1,17 @@
 import { Link } from 'react-router-dom'
 
 const vahanOptions = [
-  { title: 'Manage Vehicle', path: '/vehicle-registration', note: 'Vehicle registration and record handling' },
+  { title: 'Manage Vehicle', path: '/vehicle-registration', note: 'Vehicle registration and record handling', image: '/buttons/add vehicle.png' },
   { title: 'Add NP', path: '/national-permit', note: 'National permit work', image: '/buttons/add national permit.png' },
-  { title: 'Add CG Permit', path: '/cg-permit', note: 'CG state permit entries' },
+  { title: 'Add CG Permit', path: '/cg-permit', note: 'CG state permit entries', image: '/buttons/add statepermit.png' },
   { title: 'Add Temp Permit', path: '/temporary-permit', note: 'Temporary permit requests', image: '/buttons/add temporary permit.png' },
   { title: 'Add Temp Other State', path: '/temporary-permit-other-state', note: 'Temporary permit requests for other states', image: '/buttons/add temp other state.png' },
   { title: 'Add Fitness', path: '/fitness', note: 'Fitness certificate work', image: '/buttons/add fitness.png' },
   { title: 'Add Tax', path: '/tax', note: 'Tax records and renewals', image: '/buttons/add tax.png' },
   { title: 'PUC', path: '/puc', note: 'Pollution certificate records', image: '/buttons/add puc.png' },
   { title: 'Add GPS', path: '/gps', note: 'GPS device and renewal work', image: '/buttons/add gps.png' },
-  { title: 'Insurance', path: '/insurance', note: 'Insurance details and renewals' },
-  { title: 'Bill', path: '/dealer-bill', note: 'Billing and dealer bills' }
+  { title: 'Insurance', path: '/insurance', note: 'Insurance details and renewals', image: '/buttons/addinsurance.png' },
+  { title: 'Bill', path: '/dealer-bill', note: 'Billing and dealer bills', image: '/buttons/add bill.png' }
 ]
 
 const Vahan = () => {
