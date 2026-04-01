@@ -4,7 +4,7 @@ const portalCards = [
     description: 'Vehicle registration, RC services, ownership and transport-related records.',
     accent: 'from-sky-500 via-cyan-500 to-teal-500',
     image: '/rto vahan.avif',
-    url: 'https://vahan.parivahan.gov.in/vahanservice/vahan/ui/statevalidation/homepage.xhtml'
+    url: '/vahan'
   },
   {
     title: 'RTO Sarthi',
@@ -24,16 +24,14 @@ const Home2 = () => {
             <a
               key={card.title}
               href={card.url}
-              target='_blank'
-              rel='noreferrer'
               className='group overflow-hidden rounded-[28px] bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-2xl'
               aria-label={card.title}
             >
-              <div className='relative h-64 overflow-hidden sm:h-72'>
+              <div className='relative h-40 overflow-hidden bg-slate-50 sm:h-72'>
                 <img
                   src={card.image}
                   alt={card.title}
-                  className='h-full w-full object-cover transition duration-500 group-hover:scale-105'
+                  className='h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105 sm:object-cover sm:p-0'
                 />
                 <div className={`absolute inset-x-0 top-0 h-2 bg-gradient-to-r ${card.accent}`} />
               </div>

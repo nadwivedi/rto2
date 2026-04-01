@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { AuthProvider } from './context/AuthContext'
@@ -30,6 +30,52 @@ import Party from './pages/Party/Party'
 import PartyDetail from './pages/Party/PartyDetail'
 import Noc from './pages/Noc/Noc'
 import Home2 from './pages/home2'
+import Vahan from './pages/Vahan'
+
+function ProtectedLayout() {
+  const location = useLocation()
+  const hideNavbar = location.pathname === '/home2'
+
+  return (
+    <ProtectedRoute>
+      <div className='min-h-screen bg-gray-50'>
+        {!hideNavbar && <Navbar />}
+
+        <div className='min-h-screen w-full'>
+          <main>
+            <Routes>
+              <Route path='/' element={<Dashboard />} />
+              <Route path='/home2' element={<Home2 />} />
+              <Route path='/vahan' element={<Vahan />} />
+              <Route path='/dashboard2' element={<Dashboard2 />} />
+              <Route path='/driving' element={<DrivingLicence />} />
+              <Route path='/setting' element={<Setting />} />
+              <Route path='/national-permit' element={<NationalPermit />} />
+              <Route path='/cg-permit' element={<CgPermit />} />
+              <Route path='/bus-permit' element={<BusPermit />} />
+              <Route path='/temporary-permit' element={<TemporaryPermit />} />
+              <Route path='/temporary-permit-other-state' element={<TemporaryPermitOtherState />} />
+              <Route path='/vehicle-registration' element={<VehicleRegistration />} />
+              <Route path='/insurance' element={<Insurance />} />
+              <Route path='/fitness' element={<Fitness />} />
+              <Route path='/tax' element={<Tax />} />
+              <Route path='/vehicle-transfer' element={<VehicleTransfer />} />
+              <Route path='/noc' element={<Noc />} />
+              <Route path='/registration-renewal' element={<RegistrationRenewal />} />
+              <Route path='/forms' element={<Forms />} />
+              <Route path='/forms/form-20' element={<Form20 />} />
+              <Route path='/puc' element={<Puc />} />
+              <Route path='/gps' element={<Gps />} />
+              <Route path='/dealer-bill' element={<DealerBill />} />
+              <Route path='/parties' element={<Party />} />
+              <Route path='/parties/:partyId' element={<PartyDetail />} />
+            </Routes>
+          </main>
+        </div>
+      </div>
+    </ProtectedRoute>
+  )
+}
 
 function App() {
   return (
@@ -44,47 +90,7 @@ function App() {
           {/* Protected Routes */}
           <Route
             path='/*'
-            element={
-              <ProtectedRoute>
-                <div className='min-h-screen bg-gray-50'>
-                  {/* Unified Navbar - handles both desktop and mobile navigation */}
-                  <Navbar />
-
-                  {/* Main Content - Full width without sidebar margin */}
-                  <div className='min-h-screen w-full'>
-                    {/* Page Content */}
-                    <main>
-                      <Routes>
-                        <Route path='/' element={<Dashboard />} />
-                        <Route path='/home2' element={<Home2 />} />
-                        <Route path='/dashboard2' element={<Dashboard2 />} />
-                        <Route path='/driving' element={<DrivingLicence />} />
-                        <Route path='/setting' element={<Setting />} />
-                        <Route path='/national-permit' element={<NationalPermit />} />
-                        <Route path='/cg-permit' element={<CgPermit />} />
-                        <Route path='/bus-permit' element={<BusPermit />} />
-                        <Route path='/temporary-permit' element={<TemporaryPermit />} />
-                        <Route path='/temporary-permit-other-state' element={<TemporaryPermitOtherState />} />
-                        <Route path='/vehicle-registration' element={<VehicleRegistration />} />
-                        <Route path='/insurance' element={<Insurance />} />
-                        <Route path='/fitness' element={<Fitness />} />
-                        <Route path='/tax' element={<Tax />} />
-<Route path='/vehicle-transfer' element={<VehicleTransfer />} />
-                        <Route path='/noc' element={<Noc />} />
-                        <Route path='/registration-renewal' element={<RegistrationRenewal />} />
-                        <Route path='/forms' element={<Forms />} />
-                        <Route path='/forms/form-20' element={<Form20 />} />
-                        <Route path='/puc' element={<Puc />} />
-                        <Route path='/gps' element={<Gps />} />
-                        <Route path='/dealer-bill' element={<DealerBill />} />
-                        <Route path='/parties' element={<Party />} />
-                        <Route path='/parties/:partyId' element={<PartyDetail />} />
-                      </Routes>
-                    </main>
-                  </div>
-                </div>
-              </ProtectedRoute>
-            }
+            element={<ProtectedLayout />}
           />
         </Routes>
         </ThemeProvider>
