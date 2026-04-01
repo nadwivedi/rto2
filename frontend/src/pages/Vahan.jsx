@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 
 const vahanOptions = [
-  { title: 'Manage Vehicle', path: '/vehicle-registration', note: 'Vehicle registration and record handling', image: '/buttons/add vehicle.png', category: 'vehicle', badgeTone: 'bg-sky-100 text-sky-700' },
+  { title: 'Manage Vehicle', path: '/vehicle-registartion', note: 'Vehicle registration and record handling', image: '/buttons/add vehicle.png', category: 'vehicle', badgeTone: 'bg-sky-100 text-sky-700' },
   { title: 'Add NP', path: '/national-permit', note: 'National permit work', image: '/buttons/add national permit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
   { title: 'Add CG Permit', path: '/cg-permit', note: 'CG state permit entries', image: '/buttons/add statepermit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
   { title: 'Add Temp Permit', path: '/temporary-permit', note: 'Temporary permit requests', image: '/buttons/add temporary permit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },

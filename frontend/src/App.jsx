@@ -1,10 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
-import Navbar from './components/Navbar'
 import Login from './pages/Login'
 import Setting from './pages/Setting'
 import DrivingLicence from './pages/DrivingLicence/DrivingLicence'
@@ -33,14 +32,9 @@ import Home2 from './pages/home2'
 import Vahan from './pages/Vahan'
 
 function ProtectedLayout() {
-  const location = useLocation()
-  const hideNavbar = ['/home2', '/vahan'].includes(location.pathname)
-
   return (
     <ProtectedRoute>
       <div className='min-h-screen bg-gray-50'>
-        {!hideNavbar && <Navbar />}
-
         <div className='min-h-screen w-full'>
           <main>
             <Routes>
@@ -55,6 +49,7 @@ function ProtectedLayout() {
               <Route path='/bus-permit' element={<BusPermit />} />
               <Route path='/temporary-permit' element={<TemporaryPermit />} />
               <Route path='/temporary-permit-other-state' element={<TemporaryPermitOtherState />} />
+              <Route path='/vehicle-registartion' element={<VehicleRegistration />} />
               <Route path='/vehicle-registration' element={<VehicleRegistration />} />
               <Route path='/insurance' element={<Insurance />} />
               <Route path='/fitness' element={<Fitness />} />
