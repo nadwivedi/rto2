@@ -389,3 +389,46 @@ export const formatDateToString = (date) => {
 
   return `${day}-${month}-${year}`
 }
+
+/**
+ * Normalizes an AI extracted format like "01-Mar-2026" or "1 Mar 26" into strictly "01-03-2026".
+ * Useful for filtering out conversational LLM date guesses before passing to handleSmartDateInput.
+ */
+export const normalizeAIExtractedDate = (dateStr) => {
+  if (!dateStr) return '';
+  const months = { jan: '01', feb: '02', 'mar': '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+  
+  let str = String(dateStr).toLowerCase().replace(/[^a-z0-9]/g, ' ');
+  let parts = str.split(/\s+/).filter(Boolean);
+  
+  if (parts.length >= 3) {
+     let day = parts[0];
+     let month = parts[1];
+     let year = parts[2];
+     
+     if (day.match(/[a-z]/)) {
+       // if they said "Mar 01 2026"
+       month = parts[0];
+       day = parts[1];
+     }
+     
+     // try to convert text month to number string
+     const mKey = Object.keys(months).find(k => month.startsWith(k));
+     if (mKey) {
+         month = months[mKey];
+     }
+
+     day = day.replace(/\D/g, '').padStart(2, '0');
+     month = month.replace(/\D/g, '').padStart(2, '0');
+     year = year.replace(/\D/g, '');
+     
+     if (year.length === 2 && parseInt(year) > 0) {
+         year = parseInt(year) <= 50 ? '20' + year : '19' + year;
+     }
+
+     return `${day}-${month}-${year}`;
+  }
+  
+  // if we can't parse it clearly, just strip non-alphanumerics so smart input can handle it
+  return String(dateStr).replace(/[^\d-]/g, '');
+}

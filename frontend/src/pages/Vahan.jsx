@@ -42,6 +42,11 @@ const quickButtons = [
   { title: 'Party Ledger', shortLabel: 'Party Ledger', tone: 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100', path: '/parties' }
 ]
 
+const actionNavbarButtons = [
+  { title: 'Manage Vehicle', type: 'button', tone: 'bg-sky-600 text-white hover:bg-sky-700' },
+  { title: 'Manage Party', type: 'link', path: '/parties', tone: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50' }
+]
+
 const Vahan = () => {
   const [activeModal, setActiveModal] = useState(null)
 
@@ -90,6 +95,31 @@ const Vahan = () => {
         </aside>
 
         <section className='lg:ml-[21rem] lg:flex-1'>
+          <div className='mb-4 flex justify-end'>
+            <div className='flex w-full flex-wrap justify-end gap-3 rounded-[22px] border border-slate-200/80 bg-white/90 p-3 shadow-[0_18px_40px_rgba(15,23,42,0.08)] backdrop-blur sm:w-auto'>
+              {actionNavbarButtons.map((item) => (
+                item.type === 'button' ? (
+                  <button
+                    key={item.title}
+                    type='button'
+                    onClick={() => openModal(item.title)}
+                    className={`inline-flex min-w-[160px] items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition ${item.tone}`}
+                  >
+                    {item.title}
+                  </button>
+                ) : (
+                  <Link
+                    key={item.title}
+                    to={item.path}
+                    className={`inline-flex min-w-[160px] items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition ${item.tone}`}
+                  >
+                    {item.title}
+                  </Link>
+                )
+              ))}
+            </div>
+          </div>
+
           <div className='w-full rounded-[28px] border border-slate-200/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(241,245,249,0.96))] shadow-[0_28px_70px_rgba(15,23,42,0.18)]'>
             <div className='space-y-5 p-5 sm:p-6'>
               <div className='rounded-[24px] border border-slate-200 bg-white p-4 sm:p-5'>

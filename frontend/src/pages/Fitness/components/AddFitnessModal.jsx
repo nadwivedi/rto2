@@ -3,7 +3,8 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck';
 import { handlePaymentCalculation } from '../../../utils/paymentValidation';
-import { handleSmartDateInput } from '../../../utils/dateFormatter';
+import { handleSmartDateInput, normalizeAIExtractedDate } from '../../../utils/dateFormatter';
+import DocumentScannerPreview from '../../../components/DocumentScannerPreview';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -35,6 +36,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0);
   const dropdownItemRefs = useRef([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [scanningFile, setScanningFile] = useState(null);
+  const [isExtractingFitness, setIsExtractingFitness] = useState(false);
 
   // Reset form when modal closes or when prefilled values change
   useEffect(() => {
@@ -64,6 +67,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
       setVehicleMatches([]);
       setShowVehicleDropdown(false);
       setSelectedDropdownIndex(0);
+      setScanningFile(null);
+      setIsExtractingFitness(false);
     }
   }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber]);
 
@@ -443,6 +448,96 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
     }));
   };
 
+  const handleFitnessExtractionUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type === 'application/pdf') {
+       // Direct upload to backend for parsing
+       e.target.value = '';
+       await processExtraction(file);
+    } else if (file.type.startsWith('image/')) {
+       // Send to scanner preview
+       setScanningFile(file);
+       e.target.value = '';
+    } else {
+       toast.error('Please upload an image or PDF file for extraction.', { position: 'top-right', autoClose: 3000 });
+       return;
+    }
+  }
+
+  const handleScannerConfirm = async (processedImageFile) => {
+    setScanningFile(null);
+    await processExtraction(processedImageFile);
+  }
+
+  const processExtraction = async (fileToProcess) => {
+    setIsExtractingFitness(true);
+    const updateToast = toast.info('Analyzing document, please wait...', { autoClose: false, isLoading: true });
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64String = reader.result;
+          const response = await axios.post(
+            `${API_URL}/api/ocr/fitness`,
+            { imageBase64: base64String },
+            { withCredentials: true }
+          );
+
+          if (response.data.success && response.data.data) {
+            const resultData = response.data.data;
+            
+            // Map the result properties to formData safely
+            setFormData(prev => {
+              const updated = { ...prev };
+              Object.keys(resultData).forEach(key => {
+                if (resultData[key] && Object.prototype.hasOwnProperty.call(updated, key)) {
+                  if (key === 'validFrom' || key === 'validTo') {
+                      const normalizedStr = normalizeAIExtractedDate(resultData[key]);
+                      const formatted = handleSmartDateInput(normalizedStr, '');
+                      if (formatted) updated[key] = formatted;
+                  } else {
+                      updated[key] = resultData[key].toUpperCase();
+                  }
+                }
+              });
+
+              // Trigger vehicle validation if registrationNumber changes
+              if (resultData.vehicleNumber) {
+                 const validation = validateVehicleNumberRealtime(resultData.vehicleNumber);
+                 setVehicleValidation(validation);
+              }
+              
+              return updated;
+            });
+            
+            toast.dismiss(updateToast);
+            toast.success('Fitness Details Extracted Successfully!', { position: 'top-right', autoClose: 3000 });
+
+          } else {
+            toast.dismiss(updateToast);
+            toast.error('Failed to extract data correctly.', { position: 'top-right', autoClose: 3000 });
+          }
+        } catch (err) {
+            console.error(err);
+            toast.dismiss(updateToast);
+            toast.error('Server error during OCR processing.', { position: 'top-right', autoClose: 3000 });
+        } finally {
+            setIsExtractingFitness(false);
+        }
+      };
+      
+      reader.readAsDataURL(fileToProcess);
+
+    } catch (err) {
+      toast.dismiss(updateToast);
+      toast.error('Error reading the file.', { position: 'top-right', autoClose: 3000 });
+      setIsExtractingFitness(false);
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -560,6 +655,53 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
         {/* Form Content */}
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+
+          {/* AI Fast Extraction Section */}
+          <div className='mb-4 md:mb-6 p-4 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border-2 border-dashed border-teal-200'>
+            <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
+              <div>
+                <h3 className='text-sm md:text-base font-bold text-teal-800 flex items-center gap-2'>
+                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
+                    </svg>
+                    AI Fast Extraction
+                </h3>
+                <p className='text-xs text-teal-600 mt-1'>Upload a Fitness Certificate (Image or PDF) to auto-fill details below.</p>
+               </div>
+               <div className='relative overflow-hidden'>
+                <button 
+                  type='button' 
+                  disabled={isExtractingFitness}
+                  className='relative px-4 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 transition disabled:opacity-50 flex items-center gap-2 text-sm max-w-full'
+                >
+                  {isExtractingFitness ? (
+                    <>
+                      <svg className='animate-spin h-4 w-4 text-white' fill='none' viewBox='0 0 24 24'>
+                         <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                         <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                      </svg>
+                      Extracting...
+                    </>
+                  ) : (
+                    <>
+                      <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'/>
+                      </svg>
+                      Upload Document
+                    </>
+                  )}
+                </button>
+                <input 
+                  type='file' 
+                  accept='image/*, application/pdf' 
+                  disabled={isExtractingFitness}
+                  onChange={handleFitnessExtractionUpload} 
+                  className='absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed' 
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Section 1: Vehicle Details */}
           <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-indigo-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
             <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
@@ -901,6 +1043,13 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
           </div>
         </form>
       </div>
+      {scanningFile && (
+        <DocumentScannerPreview
+          file={scanningFile}
+          onCancel={() => setScanningFile(null)}
+          onConfirm={handleScannerConfirm}
+        />
+      )}
     </div>
   );
 };

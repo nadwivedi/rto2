@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
-import { handleSmartDateInput } from '../../../utils/dateFormatter'
+import { handleSmartDateInput, normalizeAIExtractedDate } from '../../../utils/dateFormatter'
 import ImageViewer from '../../../components/ImageViewer'
 import DocumentScannerPreview from '../../../components/DocumentScannerPreview'
 
@@ -1086,7 +1086,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 if (resultData[key] && Object.prototype.hasOwnProperty.call(updated, key)) {
                   // Don't overwrite dateOfRegistration if already properly set, just take it if possible
                   if (key === 'dateOfRegistration') {
-                      const formatted = handleSmartDateInput(resultData[key], '');
+                      const normalizedStr = normalizeAIExtractedDate(resultData[key]);
+                      const formatted = handleSmartDateInput(normalizedStr, '');
                       if (formatted) updated[key] = formatted;
                   } else {
                       updated[key] = resultData[key].toUpperCase(); // usually we store uppercase
