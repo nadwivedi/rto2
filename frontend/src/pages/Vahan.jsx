@@ -19,6 +19,7 @@ const vahanOptions = [
   { title: 'Add Fitness', path: '/fitness', note: 'Fitness certificate work', image: '/buttons/add fitness.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
   { title: 'PUC', path: '/puc', note: 'Pollution certificate records', image: '/buttons/add puc.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
   { title: 'Add GPS', path: '/gps', note: 'GPS device and renewal work', image: '/buttons/add gps.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
+  { title: 'Money Received', path: '/parties', note: 'Party-wise money received entries', image: '/buttons/money received.png', category: 'billing', badgeTone: 'bg-amber-100 text-amber-700' },
   { title: 'Insurance', path: '/insurance', note: 'Insurance details and renewals', image: '/buttons/addinsurance.png', category: 'billing', badgeTone: 'bg-amber-100 text-amber-700' },
   { title: 'Bill', path: '/dealer-bill', note: 'Billing and dealer bills', image: '/buttons/add bill.png', category: 'billing', badgeTone: 'bg-amber-100 text-amber-700' }
 ]
@@ -193,6 +194,25 @@ const Vahan = () => {
                  Add Temporary Permit Other State
                </button>
              </div>
+          </div>
+        </div>
+      )}
+
+      {activeModal === 'Money Received' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden p-6 relative">
+            <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h3 className="text-xl font-bold text-slate-800 mb-3 text-center">Money Received</h3>
+            <p className="text-sm text-slate-600 text-center leading-6">
+              The backend model is ready. Form and party-wise ledger entry UI can be added next.
+            </p>
           </div>
         </div>
       )}
