@@ -13,9 +13,8 @@ import AddInsuranceModal from './Insurance/components/AddInsuranceModal'
 import AddDealerBillModal from '../components/AddDealerBillModal'
 
 const vahanOptions = [
-  { title: 'Add NP', path: '/national-permit', note: 'National permit work', image: '/buttons/add national permit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
-  { title: 'Add CG Permit', path: '/cg-permit', note: 'CG state permit entries', image: '/buttons/add statepermit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
-  { title: 'Add Temp Permit', path: '/temporary-permit', note: 'Temporary permit requests', image: '/buttons/add temporary permit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
+  { title: 'Manage Vehicle', path: '/vehicle-registration', note: 'Vehicle registration and master details', image: '/buttons/add vehicle.png', category: 'vehicle', badgeTone: 'bg-sky-100 text-sky-700' },
+  { title: 'Add Permit', path: '/national-permit', note: 'National, state, and temporary permits', image: '/buttons/add permit.png', category: 'permit', badgeTone: 'bg-emerald-100 text-emerald-700' },
   { title: 'Add Tax', path: '/tax', note: 'Tax records and renewals', image: '/buttons/add tax.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
   { title: 'Add Fitness', path: '/fitness', note: 'Fitness certificate work', image: '/buttons/add fitness.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
   { title: 'PUC', path: '/puc', note: 'Pollution certificate records', image: '/buttons/add puc.png', category: 'compliance', badgeTone: 'bg-violet-100 text-violet-700' },
@@ -26,10 +25,11 @@ const vahanOptions = [
 
 const quickButtons = [
   { title: 'Manage Vehicle', shortLabel: 'Vehicle', tone: 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100' },
-  { title: 'Add NP', shortLabel: 'NP', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' },
-  { title: 'Add CG Permit', shortLabel: 'State Permit', tone: 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100' },
-  { title: 'Add Temp Permit', shortLabel: 'Temp Permit', tone: 'border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100' },
-  { title: 'Add Temp Other State', shortLabel: 'Temp Other State', tone: 'border-lime-200 bg-lime-50 text-lime-700 hover:bg-lime-100' },
+  { title: 'Add Permit', shortLabel: 'Permit', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100', path: '/national-permit' },
+  { title: 'Add NP', shortLabel: 'NP', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100', path: '/national-permit' },
+  { title: 'Add CG Permit', shortLabel: 'State Permit', tone: 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100', path: '/cg-permit' },
+  { title: 'Add Temp Permit', shortLabel: 'Temp Permit', tone: 'border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100', path: '/temporary-permit' },
+  { title: 'Add Temp Other State', shortLabel: 'Temp Other State', tone: 'border-lime-200 bg-lime-50 text-lime-700 hover:bg-lime-100', path: '/temporary-permit-other-state' },
   { title: 'Insurance', shortLabel: 'Insurance', tone: 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100' },
   { title: 'Add Fitness', shortLabel: 'Fitness', tone: 'border-violet-200 bg-violet-50 text-violet-700 hover:bg-violet-100' },
   { title: 'Add Tax', shortLabel: 'Tax', tone: 'border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-100' },
@@ -155,6 +155,48 @@ const Vahan = () => {
         />
       )}
 
+      {activeModal === 'Add Permit' && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden p-6 relative">
+             <button
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+             >
+               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+               </svg>
+             </button>
+             <h3 className="text-xl font-bold text-slate-800 mb-4 text-center">Select Permit Type</h3>
+             <div className="space-y-3">
+               <button
+                 onClick={() => openModal('Add NP')}
+                 className="w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl font-semibold transition"
+               >
+                 Add National Permit
+               </button>
+               <button
+                 onClick={() => openModal('Add CG Permit')}
+                 className="w-full py-3 px-4 bg-green-50 hover:bg-green-100 border border-green-200 text-green-700 rounded-xl font-semibold transition"
+               >
+                 Add State Permit
+               </button>
+               <button
+                 onClick={() => openModal('Issue Temp Permit')}
+                 className="w-full py-3 px-4 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 rounded-xl font-semibold transition"
+               >
+                 Add Temporary Permit
+               </button>
+               <button
+                 onClick={() => openModal('Issue Temp Permit Other State')}
+                 className="w-full py-3 px-4 bg-lime-50 hover:bg-lime-100 border border-lime-200 text-lime-700 rounded-xl font-semibold transition"
+               >
+                 Add Temporary Permit Other State
+               </button>
+             </div>
+          </div>
+        </div>
+      )}
+
       {activeModal === 'Add NP' && (
         <IssueNewPermitModal
           isOpen={true}
@@ -169,36 +211,6 @@ const Vahan = () => {
           onClose={closeModal}
           onSubmit={closeModal}
         />
-      )}
-
-      {activeModal === 'Add Temp Permit' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden p-6 relative">
-             <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
-             >
-               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-               </svg>
-             </button>
-             <h3 className="text-xl font-bold text-slate-800 mb-4 text-center">Select Permit Type</h3>
-             <div className="space-y-3">
-               <button 
-                 onClick={() => openModal('Issue Temp Permit')}
-                 className="w-full py-3 px-4 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 rounded-xl font-semibold transition"
-               >
-                 Temporary Permit
-               </button>
-               <button 
-                 onClick={() => openModal('Issue Temp Permit Other State')}
-                 className="w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl font-semibold transition"
-               >
-                 Temporary Permit Other State
-               </button>
-             </div>
-          </div>
-        </div>
       )}
 
       {activeModal === 'Issue Temp Permit' && (
