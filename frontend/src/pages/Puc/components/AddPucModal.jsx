@@ -3,11 +3,13 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
-import { handleSmartDateInput } from '../../../utils/dateFormatter'
+import { handleSmartDateInput, normalizeAIExtractedDate } from '../../../utils/dateFormatter'
+import DocumentScannerPreview from '../../../components/DocumentScannerPreview'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
 const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', prefilledOwnerName = '', prefilledMobileNumber = '' }) => {
+  const isOcrUpdate = useRef(false)
   const [formData, setFormData] = useState({
     vehicleNumber: prefilledVehicleNumber,
     ownerName: prefilledOwnerName,
@@ -27,6 +29,8 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
   const dropdownItemRefs = useRef([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [scanningFile, setScanningFile] = useState(null)
+  const [isExtractingPuc, setIsExtractingPuc] = useState(false)
 
   // Reset form when modal closes or when prefilled values change
   useEffect(() => {
@@ -48,6 +52,8 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
       setVehicleMatches([])
       setShowVehicleDropdown(false)
       setSelectedDropdownIndex(0)
+      setScanningFile(null)
+      setIsExtractingPuc(false)
     }
   }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber])
 
@@ -69,6 +75,8 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
 
   // Calculate valid to date (6 months from valid from for PUC)
   useEffect(() => {
+    if (isOcrUpdate.current) return
+
     if (formData.validFrom) {
       const parts = formData.validFrom.split(/[/-]/)
       if (parts.length === 3) {
@@ -382,11 +390,122 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
     }
   }
 
+  const handlePucExtractionUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type === 'application/pdf') {
+      e.target.value = ''
+      await processExtraction(file)
+      return
+    }
+
+    if (file.type.startsWith('image/')) {
+      setScanningFile(file)
+      e.target.value = ''
+      return
+    }
+
+    toast.error('Please upload an image or PDF file for extraction.', { position: 'top-right', autoClose: 3000 })
+  }
+
+  const handleScannerConfirm = async (processedImageFile) => {
+    setScanningFile(null)
+    await processExtraction(processedImageFile)
+  }
+
+  const processExtraction = async (fileToProcess) => {
+    setIsExtractingPuc(true)
+    const updateToast = toast.info('Analyzing PUC document, please wait...', { autoClose: false, isLoading: true })
+
+    try {
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        try {
+          const base64String = reader.result
+          const response = await axios.post(
+            `${API_URL}/api/ocr/puc`,
+            { imageBase64: base64String },
+            { withCredentials: true }
+          )
+
+          if (response.data.success && response.data.data) {
+            const resultData = response.data.data
+
+            isOcrUpdate.current = true
+
+            setFormData(prev => {
+              const updated = { ...prev }
+
+              Object.keys(resultData).forEach(key => {
+                const value = resultData[key]
+                if (!value || !Object.prototype.hasOwnProperty.call(updated, key)) return
+
+                if (key === 'validFrom' || key === 'validTo') {
+                  const normalizedStr = normalizeAIExtractedDate(value)
+                  const formatted = handleSmartDateInput(normalizedStr, '')
+                  if (formatted) updated[key] = formatted
+                  return
+                }
+
+                if (key === 'vehicleNumber') {
+                  updated[key] = value.toUpperCase().replace(/\s+/g, '')
+                  return
+                }
+
+                updated[key] = value.toUpperCase()
+              })
+
+              if (resultData.vehicleNumber) {
+                const normalizedVehicleNumber = resultData.vehicleNumber.toUpperCase().replace(/\s+/g, '')
+                const validation = validateVehicleNumberRealtime(normalizedVehicleNumber)
+                setVehicleValidation(validation)
+              }
+
+              return updated
+            })
+
+            setTimeout(() => {
+              isOcrUpdate.current = false
+            }, 200)
+
+            toast.dismiss(updateToast)
+            toast.success('PUC details extracted successfully!', { position: 'top-right', autoClose: 3000 })
+          } else {
+            toast.dismiss(updateToast)
+            toast.error('Failed to extract data correctly.', { position: 'top-right', autoClose: 3000 })
+          }
+        } catch (err) {
+          console.error(err)
+          toast.dismiss(updateToast)
+          toast.error('Server error during OCR processing.', { position: 'top-right', autoClose: 3000 })
+        } finally {
+          setIsExtractingPuc(false)
+        }
+      }
+
+      reader.readAsDataURL(fileToProcess)
+    } catch (err) {
+      toast.dismiss(updateToast)
+      toast.error('Error reading the file.', { position: 'top-right', autoClose: 3000 })
+      setIsExtractingPuc(false)
+    }
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 md:p-4'>
-      <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
+    <>
+      {scanningFile && (
+        <DocumentScannerPreview
+          file={scanningFile}
+          onCancel={() => setScanningFile(null)}
+          onConfirm={handleScannerConfirm}
+        />
+      )}
+
+      <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 md:p-4'>
+        <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='bg-gradient-to-r from-green-600 to-emerald-600 p-2 md:p-3 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
@@ -410,8 +529,56 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
         </div>
 
         {/* Form Content */}
-        <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
-          <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+          <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
+            <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+              <div className='mb-4 md:mb-6 p-4 bg-gradient-to-r from-cyan-50 to-emerald-50 rounded-xl border-2 border-dashed border-cyan-200'>
+                <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
+                  <div>
+                    <h3 className='text-sm md:text-base font-bold text-cyan-800 flex items-center gap-2'>
+                      <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
+                      </svg>
+                      AI Fast Extraction
+                    </h3>
+                    <p className='text-xs text-cyan-700 mt-1'>
+                      Upload a PUC document in image or PDF format to auto-fill vehicle number, owner name, valid from, and valid to.
+                    </p>
+                  </div>
+
+                  <div className='relative overflow-hidden'>
+                    <button
+                      type='button'
+                      disabled={isExtractingPuc}
+                      className='relative px-4 py-2 bg-cyan-600 text-white font-semibold rounded-lg shadow-md hover:bg-cyan-700 transition disabled:opacity-50 flex items-center gap-2 text-sm max-w-full'
+                    >
+                      {isExtractingPuc ? (
+                        <>
+                          <svg className='animate-spin h-4 w-4 text-white' fill='none' viewBox='0 0 24 24'>
+                            <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                            <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                          </svg>
+                          Extracting...
+                        </>
+                      ) : (
+                        <>
+                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' />
+                          </svg>
+                          Upload PUC Document
+                        </>
+                      )}
+                    </button>
+                    <input
+                      type='file'
+                      accept='image/*, application/pdf'
+                      disabled={isExtractingPuc}
+                      onChange={handlePucExtractionUpload}
+                      className='absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed'
+                    />
+                  </div>
+                </div>
+              </div>
+
             {/* Section 1: Vehicle Details */}
             <div className='bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-emerald-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
@@ -665,50 +832,51 @@ const AddPucModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Footer Actions */}
-          <div className='border-t border-gray-200 p-3 md:p-4 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3 flex-shrink-0'>
-            <div className='text-xs md:text-sm text-gray-600'>
-              <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
             </div>
 
-            <div className='flex gap-2 md:gap-3 w-full md:w-auto'>
-              <button
-                type='button'
-                onClick={onClose}
-                className='flex-1 md:flex-none px-4 md:px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer'
-              >
-                Cancel
-              </button>
+            {/* Footer Actions */}
+            <div className='border-t border-gray-200 p-3 md:p-4 bg-gray-50 flex flex-col md:flex-row justify-between items-center gap-3 flex-shrink-0'>
+              <div className='text-xs md:text-sm text-gray-600'>
+                <kbd className='px-2 py-1 bg-gray-200 rounded text-xs font-mono'>Ctrl+Enter</kbd> to submit quickly
+              </div>
 
-              <button
-                type='submit'
-                disabled={isSubmitting}
-                className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className='animate-spin h-5 w-5 text-white' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
-                      <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
-                      <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
-                    </svg>
-                    Adding...
-                  </>
-                ) : (
-                  <>
-                    <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                    </svg>
-                    Add PUC
-                  </>
-                )}
-              </button>
+              <div className='flex gap-2 md:gap-3 w-full md:w-auto'>
+                <button
+                  type='button'
+                  onClick={onClose}
+                  className='flex-1 md:flex-none px-4 md:px-6 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-semibold transition cursor-pointer'
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type='submit'
+                  disabled={isSubmitting}
+                  className='flex-1 md:flex-none px-6 md:px-8 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:shadow-lg font-semibold transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed'
+                >
+                  {isSubmitting ? (
+                    <>
+                      <svg className='animate-spin h-5 w-5 text-white' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                        <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                      </svg>
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                      </svg>
+                      Add PUC
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

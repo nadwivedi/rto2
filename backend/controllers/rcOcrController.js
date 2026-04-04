@@ -185,3 +185,14 @@ exports.fitnessOcr = async (req, res) => {
 }`;
   return processOcrRequest(req, res, prompt, template);
 };
+
+exports.pucOcr = async (req, res) => {
+  const prompt = 'Extract the details from this vehicle PUC certificate/document. Extract vehicle number, owner name, valid from date, and valid to date only.';
+  const template = `{
+  "vehicleNumber": "",
+  "ownerName": "",
+  "validFrom": "",
+  "validTo": ""
+}`;
+  return processOcrRequest(req, res, prompt, template);
+};
