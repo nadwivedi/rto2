@@ -1,42 +1,107 @@
-const portalCards = [
-  {
-    title: 'RTO Vahan',
-    description: 'Vehicle registration, RC services, ownership and transport-related records.',
-    accent: 'from-sky-500 via-cyan-500 to-teal-500',
-    image: '/rto vahan.avif',
-    url: '/vahan'
-  },
-  {
-    title: 'RTO Sarthi',
-    description: 'Driving licence services, learner applications, appointments and licence workflows.',
-    accent: 'from-amber-500 via-orange-500 to-rose-500',
-    image: '/rto sarthi.avif',
-    url: 'https://sarathi.parivahan.gov.in/sarathiservice/stateSelection.do'
-  }
+const vahanServices = [
+  { name: 'Fitness', icon: '✅', desc: 'Certificate' },
+  { name: 'Tax', icon: '💰', desc: 'Token Tax' },
+  { name: 'Permit', icon: '📜', desc: 'Transport' },
+  { name: 'GPS', icon: '📍', desc: 'Tracking' },
+  { name: 'PUC', icon: '🌱', desc: 'Pollution' },
+  { name: 'Registration', icon: '📝', desc: 'New RC' }
 ]
 
+const sarthiServices = [
+  { name: 'DL', icon: '🚘', desc: 'Driving Licence' },
+  { name: 'Transfer', icon: '🔄', desc: 'Vehicle Transfer' },
+  { name: 'RC Renewal', icon: '🔁', desc: 'Renew RC' },
+  { name: 'NOC', icon: '📃', desc: 'Clearance' },
+  { name: 'LL', icon: '📗', desc: 'Learner Licence' },
+  { name: 'Dup RC', icon: '📋', desc: 'Duplicate RC' }
+]
+
+const ServiceCard = ({ service, color }) => (
+  <button
+    className={`group relative overflow-hidden rounded-xl border-2 border-transparent ${color.bg} p-2 sm:p-3 text-left transition-all duration-300 hover:border-current hover:shadow-lg hover:scale-[1.02]`}
+  >
+    <div className='relative flex flex-col items-center gap-1 sm:gap-2'>
+      <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-lg ${color.iconBg} text-base sm:text-xl shadow-sm`}>
+        {service.icon}
+      </div>
+      <div className='flex-1 min-w-0 text-center'>
+        <h3 className={`font-bold text-[10px] sm:text-xs ${color.text} truncate leading-tight`}>{service.name}</h3>
+        <p className={`text-[8px] sm:text-xs ${color.subtext} truncate leading-tight`}>{service.desc}</p>
+      </div>
+    </div>
+  </button>
+)
+
+const HeaderSection = ({ title, subtitle, gradient, icon }) => (
+  <div className={`relative overflow-hidden ${gradient} p-4 sm:p-6`}>
+    <div className='absolute right-0 top-0 h-20 w-20 translate-x-6 translate-y-[-1/2] rounded-full bg-white/10' />
+    <div className='absolute -bottom-6 -left-6 h-16 w-16 rounded-full bg-white/10' />
+    <div className='relative flex items-center gap-3'>
+      <div className='flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-white/20 text-2xl sm:text-3xl backdrop-blur-sm'>
+        {icon}
+      </div>
+      <div>
+        <h2 className='text-lg sm:text-2xl font-bold text-white'>{title}</h2>
+        <p className='text-[10px] sm:text-sm text-white/80 hidden sm:block'>{subtitle}</p>
+      </div>
+    </div>
+  </div>
+)
+
 const Home2 = () => {
+  const vahanColors = {
+    bg: 'bg-sky-50',
+    text: 'text-sky-700',
+    subtext: 'text-sky-500',
+    iconBg: 'bg-white shadow-sky-200/50',
+    accent: 'bg-sky-500',
+    border: 'border-sky-200'
+  }
+
+  const sarthiColors = {
+    bg: 'bg-orange-50',
+    text: 'text-orange-700',
+    subtext: 'text-orange-500',
+    iconBg: 'bg-white shadow-orange-200/50',
+    accent: 'bg-orange-500',
+    border: 'border-orange-200'
+  }
+
   return (
-    <div className='min-h-screen bg-slate-100 px-4 py-10 sm:px-6 lg:px-10'>
+    <div className='min-h-screen bg-slate-100 px-2 py-6 sm:px-6 lg:px-10'>
       <div className='mx-auto max-w-6xl'>
-        <div className='mt-6 grid gap-6 md:grid-cols-2'>
-          {portalCards.map((card) => (
-            <a
-              key={card.title}
-              href={card.url}
-              className='group overflow-hidden rounded-[28px] bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-2xl'
-              aria-label={card.title}
-            >
-              <div className='relative h-40 overflow-hidden bg-slate-50 sm:h-72'>
-                <img
-                  src={card.image}
-                  alt={card.title}
-                  className='h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105 sm:object-cover sm:p-0'
-                />
-                <div className={`absolute inset-x-0 top-0 h-2 bg-gradient-to-r ${card.accent}`} />
+        <div className='grid gap-8 md:grid-cols-2'>
+          <div className='group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl'>
+            <HeaderSection
+              title='RTO Vahan'
+              subtitle='Vehicle registration & transport services'
+              gradient='bg-gradient-to-r from-sky-600 via-cyan-600 to-teal-600'
+              icon='🚚'
+            />
+            <div className='p-2 sm:p-4'>
+              <div className='grid grid-cols-3 gap-2 sm:gap-3'>
+                {vahanServices.map((service) => (
+                  <ServiceCard key={service.name} service={service} color={vahanColors} />
+                ))}
               </div>
-            </a>
-          ))}
+            </div>
+          </div>
+
+          <div className='group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl'>
+            <HeaderSection
+              title='RTO Sarthi'
+              subtitle='Driving licence & learning services'
+              gradient='bg-gradient-to-r from-orange-600 via-amber-600 to-rose-600'
+              icon='🚗'
+            />
+            <div className='p-2 sm:p-4'>
+              <div className='grid grid-cols-3 gap-2 sm:gap-3'>
+                {sarthiServices.map((service) => (
+                  <ServiceCard key={service.name} service={service} color={sarthiColors} />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

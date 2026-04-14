@@ -396,10 +396,20 @@ export const formatDateToString = (date) => {
  */
 export const normalizeAIExtractedDate = (dateStr) => {
   if (!dateStr) return '';
-  const months = { jan: '01', feb: '02', 'mar': '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+  const months = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+  const weekdays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+  const parsedDate = new Date(dateStr);
+  if (!Number.isNaN(parsedDate.getTime())) {
+    return formatDateToString(parsedDate);
+  }
   
   let str = String(dateStr).toLowerCase().replace(/[^a-z0-9]/g, ' ');
   let parts = str.split(/\s+/).filter(Boolean);
+
+  if (parts.length >= 4 && weekdays.includes(parts[0])) {
+    parts = parts.slice(1);
+  }
   
   if (parts.length >= 3) {
      let day = parts[0];
@@ -410,6 +420,7 @@ export const normalizeAIExtractedDate = (dateStr) => {
        // if they said "Mar 01 2026"
        month = parts[0];
        day = parts[1];
+       year = parts.find(part => /^\d{2,4}$/.test(part)) || parts[2];
      }
      
      // try to convert text month to number string

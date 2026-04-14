@@ -196,3 +196,14 @@ exports.pucOcr = async (req, res) => {
 }`;
   return processOcrRequest(req, res, prompt, template);
 };
+
+exports.gpsOcr = async (req, res) => {
+  const prompt = 'Extract the details from this vehicle GPS or VLTD fitment certificate/document. Extract vehicle number, owner name, valid from date, and valid to date only. Map "VLTD Fitment Date" to "validFrom". Map "Valid Upto" or "Valid Up to" to "validTo". Preserve the actual date value even when it appears in formats like "03 Apr 2026" or "Mon Apr 03 06:09:38 UTC 2028". Do not invent dates.';
+  const template = `{
+  "vehicleNumber": "",
+  "ownerName": "",
+  "validFrom": "",
+  "validTo": ""
+}`;
+  return processOcrRequest(req, res, prompt, template);
+};

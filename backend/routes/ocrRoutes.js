@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { rcOcr, taxOcr, fitnessOcr, pucOcr } = require('../controllers/rcOcrController');
+const { rcOcr, taxOcr, fitnessOcr, pucOcr, gpsOcr } = require('../controllers/rcOcrController');
 
 // POST /api/ocr/rc
 router.post('/rc', rcOcr);
@@ -13,5 +13,8 @@ router.post('/fitness', fitnessOcr);
 
 // POST /api/ocr/puc
 router.post('/puc', pucOcr);
+
+// POST /api/ocr/gps
+router.post('/gps', gpsOcr);
 
 module.exports = router;

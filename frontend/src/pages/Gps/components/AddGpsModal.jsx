@@ -3,11 +3,13 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
-import { handleSmartDateInput } from '../../../utils/dateFormatter'
+import { handleSmartDateInput, normalizeAIExtractedDate } from '../../../utils/dateFormatter'
+import DocumentScannerPreview from '../../../components/DocumentScannerPreview'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
 const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', prefilledOwnerName = '', prefilledMobileNumber = '' }) => {
+  const isOcrUpdate = useRef(false)
   const [formData, setFormData] = useState({
     vehicleNumber: prefilledVehicleNumber,
     ownerName: prefilledOwnerName,
@@ -27,6 +29,18 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
   const [selectedDropdownIndex, setSelectedDropdownIndex] = useState(0)
   const dropdownItemRefs = useRef([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [scanningFile, setScanningFile] = useState(null)
+  const [isExtractingGps, setIsExtractingGps] = useState(false)
+  const [uploadedGpsDocument, setUploadedGpsDocument] = useState(null)
+  const [uploadedGpsFile, setUploadedGpsFile] = useState(null)
+
+  useEffect(() => {
+    return () => {
+      if (uploadedGpsDocument?.previewUrl) {
+        URL.revokeObjectURL(uploadedGpsDocument.previewUrl)
+      }
+    }
+  }, [uploadedGpsDocument])
 
   // Reset form when modal closes or when prefilled values change
   useEffect(() => {
@@ -48,6 +62,15 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
       setVehicleMatches([])
       setShowVehicleDropdown(false)
       setSelectedDropdownIndex(0)
+      setScanningFile(null)
+      setIsExtractingGps(false)
+      setUploadedGpsDocument(prev => {
+        if (prev?.previewUrl) {
+          URL.revokeObjectURL(prev.previewUrl)
+        }
+        return null
+      })
+      setUploadedGpsFile(null)
     }
   }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber])
 
@@ -69,6 +92,8 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
 
   // Calculate valid to date (2 years from valid from for GPS)
   useEffect(() => {
+    if (isOcrUpdate.current) return
+
     if (formData.validFrom) {
       const parts = formData.validFrom.split(/[/-]/)
       if (parts.length === 3) {
@@ -346,19 +371,31 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
       return
     }
 
-    const dataToSubmit = {
-      vehicleNumber: formData.vehicleNumber,
-      ownerName: formData.ownerName,
-      mobileNumber: formData.mobileNumber,
-      validFrom: formData.validFrom,
-      validTo: formData.validTo,
-      totalFee: parseFloat(formData.totalFee) || 0,
-      paid: parseFloat(formData.paid) || 0,
-      balance: parseFloat(formData.balance) || 0
-    }
-
     setIsSubmitting(true)
     try {
+      let gpsDocumentData = ''
+
+      if (uploadedGpsFile) {
+        gpsDocumentData = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result)
+          reader.onerror = reject
+          reader.readAsDataURL(uploadedGpsFile)
+        })
+      }
+
+      const dataToSubmit = {
+        vehicleNumber: formData.vehicleNumber,
+        ownerName: formData.ownerName,
+        mobileNumber: formData.mobileNumber,
+        validFrom: formData.validFrom,
+        validTo: formData.validTo,
+        totalFee: parseFloat(formData.totalFee) || 0,
+        paid: parseFloat(formData.paid) || 0,
+        balance: parseFloat(formData.balance) || 0,
+        gpsDocumentData
+      }
+
       const response = await axios.post(`${API_URL}/api/gps`, dataToSubmit, {
         withCredentials: true
       })
@@ -382,11 +419,144 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
     }
   }
 
+  const handleGpsExtractionUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.type === 'application/pdf') {
+      setUploadedGpsFile(file)
+      setUploadedGpsDocument(prev => {
+        if (prev?.previewUrl) {
+          URL.revokeObjectURL(prev.previewUrl)
+        }
+        return {
+          name: file.name,
+          type: 'pdf',
+          previewUrl: URL.createObjectURL(file)
+        }
+      })
+      e.target.value = ''
+      await processExtraction(file)
+      return
+    }
+
+    if (file.type.startsWith('image/')) {
+      setScanningFile(file)
+      e.target.value = ''
+      return
+    }
+
+    toast.error('Please upload an image or PDF file for extraction.', { position: 'top-right', autoClose: 3000 })
+  }
+
+  const handleScannerConfirm = async (processedImageFile) => {
+    setScanningFile(null)
+    setUploadedGpsFile(processedImageFile)
+    setUploadedGpsDocument(prev => {
+      if (prev?.previewUrl) {
+        URL.revokeObjectURL(prev.previewUrl)
+      }
+      return {
+        name: processedImageFile.name || 'gps-document.jpg',
+        type: 'image',
+        previewUrl: URL.createObjectURL(processedImageFile)
+      }
+    })
+    await processExtraction(processedImageFile)
+  }
+
+  const processExtraction = async (fileToProcess) => {
+    setIsExtractingGps(true)
+    const updateToast = toast.info('Analyzing GPS document, please wait...', { autoClose: false, isLoading: true })
+
+    try {
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        try {
+          const base64String = reader.result
+          const response = await axios.post(
+            `${API_URL}/api/ocr/gps`,
+            { imageBase64: base64String },
+            { withCredentials: true }
+          )
+
+          if (response.data.success && response.data.data) {
+            const resultData = response.data.data
+
+            isOcrUpdate.current = true
+
+            setFormData(prev => {
+              const updated = { ...prev }
+
+              Object.keys(resultData).forEach(key => {
+                const value = resultData[key]
+                if (!value || !Object.prototype.hasOwnProperty.call(updated, key)) return
+
+                if (key === 'validFrom' || key === 'validTo') {
+                  const normalizedStr = normalizeAIExtractedDate(value)
+                  const formatted = handleSmartDateInput(normalizedStr, '')
+                  if (formatted) updated[key] = formatted
+                  return
+                }
+
+                if (key === 'vehicleNumber') {
+                  updated[key] = value.toUpperCase().replace(/\s+/g, '')
+                  return
+                }
+
+                updated[key] = value.toUpperCase()
+              })
+
+              if (resultData.vehicleNumber) {
+                const normalizedVehicleNumber = resultData.vehicleNumber.toUpperCase().replace(/\s+/g, '')
+                const validation = validateVehicleNumberRealtime(normalizedVehicleNumber)
+                setVehicleValidation(validation)
+              }
+
+              return updated
+            })
+
+            setTimeout(() => {
+              isOcrUpdate.current = false
+            }, 200)
+
+            toast.dismiss(updateToast)
+            toast.success('GPS details extracted successfully!', { position: 'top-right', autoClose: 3000 })
+          } else {
+            toast.dismiss(updateToast)
+            toast.error('Failed to extract data correctly.', { position: 'top-right', autoClose: 3000 })
+          }
+        } catch (err) {
+          console.error(err)
+          toast.dismiss(updateToast)
+          toast.error('Server error during OCR processing.', { position: 'top-right', autoClose: 3000 })
+        } finally {
+          setIsExtractingGps(false)
+        }
+      }
+
+      reader.readAsDataURL(fileToProcess)
+    } catch (err) {
+      toast.dismiss(updateToast)
+      toast.error('Error reading the file.', { position: 'top-right', autoClose: 3000 })
+      setIsExtractingGps(false)
+    }
+  }
+
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 md:p-4'>
-      <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
+    <>
+      {scanningFile && (
+        <DocumentScannerPreview
+          file={scanningFile}
+          onCancel={() => setScanningFile(null)}
+          onConfirm={handleScannerConfirm}
+        />
+      )}
+
+      <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 md:p-4'>
+        <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='bg-gradient-to-r from-blue-600 to-cyan-600 p-2 md:p-3 text-white flex-shrink-0'>
           <div className='flex justify-between items-center'>
@@ -412,6 +582,54 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
         {/* Form Content */}
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
+            <div className='mb-4 md:mb-6 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border-2 border-dashed border-cyan-200'>
+              <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
+                <div>
+                  <h3 className='text-sm md:text-base font-bold text-cyan-800 flex items-center gap-2'>
+                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
+                    </svg>
+                    AI Fast Extraction
+                  </h3>
+                  <p className='text-xs text-cyan-700 mt-1'>
+                    Upload a GPS document in image or PDF format to auto-fill vehicle number, owner name, valid from, and valid to.
+                  </p>
+                </div>
+
+                <div className='relative overflow-hidden'>
+                  <button
+                    type='button'
+                    disabled={isExtractingGps}
+                    className='relative px-4 py-2 bg-cyan-600 text-white font-semibold rounded-lg shadow-md hover:bg-cyan-700 transition disabled:opacity-50 flex items-center gap-2 text-sm max-w-full'
+                  >
+                    {isExtractingGps ? (
+                      <>
+                        <svg className='animate-spin h-4 w-4 text-white' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                        </svg>
+                        Extracting...
+                      </>
+                    ) : (
+                      <>
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' />
+                        </svg>
+                        Upload GPS Document
+                      </>
+                    )}
+                  </button>
+                  <input
+                    type='file'
+                    accept='image/*, application/pdf'
+                    disabled={isExtractingGps}
+                    onChange={handleGpsExtractionUpload}
+                    className='absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed'
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Section 1: Vehicle Details */}
             <div className='bg-gradient-to-r from-blue-100 to-cyan-100 border-2 border-cyan-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
@@ -665,6 +883,40 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                 </div>
               )}
             </div>
+
+            {uploadedGpsDocument && (
+              <div className='bg-gradient-to-r from-slate-50 to-cyan-50 border-2 border-slate-200 rounded-xl p-3 md:p-6'>
+                <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>
+                  <span className='bg-slate-700 text-white w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm'>4</span>
+                  Uploaded GPS Document
+                </h3>
+
+                <div className='mb-3 flex items-center justify-between gap-3 rounded-lg bg-white/80 px-3 py-2 border border-slate-200'>
+                  <div className='min-w-0'>
+                    <p className='text-sm font-semibold text-slate-800 truncate'>{uploadedGpsDocument.name}</p>
+                    <p className='text-xs text-slate-500'>
+                      {uploadedGpsDocument.type === 'pdf' ? 'PDF preview' : 'Image preview'}
+                    </p>
+                  </div>
+                </div>
+
+                {uploadedGpsDocument.type === 'pdf' ? (
+                  <iframe
+                    src={uploadedGpsDocument.previewUrl}
+                    title='Uploaded GPS PDF'
+                    className='w-full h-80 rounded-xl border border-slate-200 bg-white'
+                  />
+                ) : (
+                  <div className='rounded-xl border border-slate-200 bg-white p-2'>
+                    <img
+                      src={uploadedGpsDocument.previewUrl}
+                      alt='Uploaded GPS document'
+                      className='w-full max-h-80 object-contain rounded-lg'
+                    />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer Actions */}
@@ -708,7 +960,8 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
           </div>
         </form>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 

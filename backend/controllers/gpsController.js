@@ -1,6 +1,63 @@
 const Gps = require('../models/Gps')
 const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
+const fs = require('fs')
+const path = require('path')
+
+const gpsUploadsDir = path.join(__dirname, '..', 'uploads', 'gps-documents')
+if (!fs.existsSync(gpsUploadsDir)) {
+  fs.mkdirSync(gpsUploadsDir, { recursive: true })
+}
+
+const saveGpsDocument = (imageData, vehicleNumber) => {
+  if (!imageData || !vehicleNumber) return ''
+
+  const imageFormatRegex = /^data:image\/(jpeg|jpg|png|webp);base64,/
+  const pdfFormatRegex = /^data:application\/pdf;base64,/
+
+  let fileExtension = null
+
+  const imageMatch = imageData.match(imageFormatRegex)
+  const pdfMatch = imageData.match(pdfFormatRegex)
+
+  if (imageMatch) {
+    fileExtension = imageMatch[1] === 'jpeg' ? 'jpg' : imageMatch[1]
+  } else if (pdfMatch) {
+    fileExtension = 'pdf'
+  } else {
+    throw new Error('Only JPG, JPEG, PNG, WebP, and PDF formats are accepted')
+  }
+
+  const base64Data = imageData.replace(/^data:(image\/[a-z]+|application\/pdf);base64,/, '')
+  const buffer = Buffer.from(base64Data, 'base64')
+
+  const fileSizeInMB = buffer.length / (1024 * 1024)
+  if (fileSizeInMB > 12) {
+    throw new Error(`File size (${fileSizeInMB.toFixed(2)}MB) exceeds the 12MB limit`)
+  }
+
+  const sanitizedVehicleNumber = vehicleNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+  const filename = `gps-${sanitizedVehicleNumber}.${fileExtension}`
+  const filePath = path.join(gpsUploadsDir, filename)
+
+  fs.writeFileSync(filePath, buffer)
+
+  return `/uploads/gps-documents/${filename}`
+}
+
+const deleteGpsDocument = (documentPath) => {
+  if (!documentPath) return
+
+  try {
+    const filename = path.basename(documentPath)
+    const filePath = path.join(gpsUploadsDir, filename)
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
+    }
+  } catch (err) {
+    console.error('Error deleting GPS document:', err)
+  }
+}
 
 // helper function to calculate status
 const getGpsStatus = (validTo) => {
@@ -321,7 +378,7 @@ exports.getGpsById = async (req, res) => {
 // Create new GPS record
 exports.createGps = async (req, res) => {
   try {
-    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance, partyId: reqPartyId } = req.body
+    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance, partyId: reqPartyId, gpsDocumentData } = req.body
 
     // Validate required fields
     if (!vehicleNumber ) {
@@ -352,12 +409,13 @@ exports.createGps = async (req, res) => {
 
     // Calculate status
     const status = getGpsStatus(validTo);
+    const normalizedVehicleNumber = vehicleNumber.toUpperCase().trim()
 
     // Use partyId from request body if provided, otherwise auto-fetch from vehicle registration
     let partyId = reqPartyId || null
     if (!partyId) {
       const vehicle = await VehicleRegistration.findOne({
-        registrationNumber: vehicleNumber.toUpperCase().trim(),
+        registrationNumber: normalizedVehicleNumber,
         userId: req.user.id
       }).select('partyId')
       if (vehicle && vehicle.partyId) {
@@ -368,7 +426,7 @@ exports.createGps = async (req, res) => {
     // Mark any existing non-renewed GPS records for this vehicle as expired and renewed
     await Gps.updateMany(
       {
-        vehicleNumber: vehicleNumber.toUpperCase().trim(),
+        vehicleNumber: normalizedVehicleNumber,
         userId: req.user.id,
         isRenewed: false
       },
@@ -380,11 +438,14 @@ exports.createGps = async (req, res) => {
       }
     )
 
+    const gpsDocument = gpsDocumentData ? saveGpsDocument(gpsDocumentData, normalizedVehicleNumber) : ''
+
     // Create new GPS record
     const gps = new Gps({
-      vehicleNumber,
+      vehicleNumber: normalizedVehicleNumber,
       ownerName,
       mobileNumber,
+      gpsDocument,
       validFrom,
       validTo,
       totalFee,
@@ -415,7 +476,7 @@ exports.createGps = async (req, res) => {
 // Update GPS record
 exports.updateGps = async (req, res) => {
   try {
-    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance, partyId } = req.body
+    const { vehicleNumber, ownerName, mobileNumber, validFrom, validTo, totalFee, paid, balance, partyId, gpsDocumentData } = req.body
 
     const gps = await Gps.findOne({ _id: req.params.id, userId: req.user.id })
 
@@ -451,6 +512,10 @@ exports.updateGps = async (req, res) => {
     if (vehicleNumber) gps.vehicleNumber = vehicleNumber
     if (ownerName !== undefined) gps.ownerName = ownerName
     if (mobileNumber !== undefined) gps.mobileNumber = mobileNumber
+    if (gpsDocumentData) {
+      deleteGpsDocument(gps.gpsDocument)
+      gps.gpsDocument = saveGpsDocument(gpsDocumentData, vehicleNumber || gps.vehicleNumber)
+    }
     if (validFrom) gps.validFrom = validFrom
     if (validTo) {
         gps.validTo = validTo
@@ -490,6 +555,8 @@ exports.deleteGps = async (req, res) => {
         message: 'GPS record not found'
       })
     }
+
+    deleteGpsDocument(gps.gpsDocument)
 
     await Gps.deleteOne({ _id: req.params.id })
 
