@@ -295,8 +295,15 @@ const VahanDashboard = () => {
                         </td>
                         <td className='px-3 py-2'>
                           <div className='space-y-0.5 text-xs font-semibold'>
-                            <div className='text-green-700'>From: {formatDate(record.validFrom)}</div>
-                            <div className='text-red-700'>To: {formatDate(record.validTo)} <span className='text-red-600'>({formatExpiryText(record.validTo)})</span></div>
+                            <div className='flex items-baseline'>
+                              <span className='w-9 shrink-0 text-gray-900'>From:</span>
+                              <span className='text-green-700'>{formatDate(record.validFrom)}</span>
+                            </div>
+                            <div className='flex items-baseline'>
+                              <span className='w-9 shrink-0 text-gray-900'>To:</span>
+                              <span className='text-red-700'>{formatDate(record.validTo)} </span>
+                              <span className='text-red-600'>({formatExpiryText(record.validTo)})</span>
+                            </div>
                           </div>
                         </td>
                       </tr>

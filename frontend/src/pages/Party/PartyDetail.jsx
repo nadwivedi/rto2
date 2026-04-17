@@ -37,11 +37,32 @@ const PartyDetail = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return '-'
-    return new Date(dateString).toLocaleDateString('en-IN', {
+
+    const rawValue = String(dateString).trim()
+    const numericMatch = rawValue.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/)
+    const parsedDate = numericMatch
+      ? new Date(Number(numericMatch[3]), Number(numericMatch[2]) - 1, Number(numericMatch[1]))
+      : new Date(rawValue)
+
+    if (Number.isNaN(parsedDate.getTime())) return '-'
+
+    return parsedDate.toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'short',
       year: 'numeric'
     })
+  }
+
+  const getDateTime = (dateString) => {
+    if (!dateString) return 0
+
+    const rawValue = String(dateString).trim()
+    const numericMatch = rawValue.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/)
+    const parsedDate = numericMatch
+      ? new Date(Number(numericMatch[3]), Number(numericMatch[2]) - 1, Number(numericMatch[1]))
+      : new Date(rawValue)
+
+    return Number.isNaN(parsedDate.getTime()) ? 0 : parsedDate.getTime()
   }
 
   const formatCurrency = (amount) => {
@@ -54,52 +75,93 @@ const PartyDetail = () => {
     }).format(amount)
   }
 
-  // Get all work records combined
+  const getWorkDate = (item) => (
+    item.taxFrom ||
+    item.validFrom ||
+    item.partBValidFrom ||
+    item.partAValidFrom ||
+    item.issueDate ||
+    item.applicationDate ||
+    item.installationDate ||
+    item.createdAt
+  )
+
+  const normalizeWorkItem = (item, type, typeColor) => {
+    const totalAmount = Number(item.totalAmount ?? item.totalFee ?? 0)
+    const receivedAmount = Number(item.paidAmount ?? item.paid ?? 0)
+    const balanceAmount = Number(item.balanceAmount ?? item.balance ?? Math.max(totalAmount - receivedAmount, 0))
+
+    return {
+      ...item,
+      type,
+      typeColor,
+      vehicleNumber: item.vehicleNumber || item.vehicleNo || '-',
+      dateField: getWorkDate(item),
+      totalAmount,
+      receivedAmount,
+      balanceAmount,
+      referenceNo: item.receiptNo || item.permitNumber || item.authNumber || item.policyNumber || ''
+    }
+  }
+
+  // Get all work records combined as party ledger rows
   const getAllWork = () => {
     if (!data?.work) return []
     const allWork = []
 
     data.work.tax?.forEach(item => {
-      allWork.push({ ...item, type: 'Tax', typeColor: 'blue', dateField: item.validFrom })
+      allWork.push(normalizeWorkItem(item, 'Tax', 'blue'))
     })
 
     data.work.fitness?.forEach(item => {
-      allWork.push({ ...item, type: 'Fitness', typeColor: 'green', dateField: item.applicationDate })
+      allWork.push(normalizeWorkItem(item, 'Fitness', 'green'))
     })
 
     data.work.insurance?.forEach(item => {
-      allWork.push({ ...item, type: 'Insurance', typeColor: 'purple', dateField: item.validFrom })
+      allWork.push(normalizeWorkItem(item, 'Insurance', 'purple'))
     })
 
     data.work.puc?.forEach(item => {
-      allWork.push({ ...item, type: 'PUC', typeColor: 'orange', dateField: item.issueDate })
+      allWork.push(normalizeWorkItem(item, 'PUC', 'orange'))
     })
 
     data.work.gps?.forEach(item => {
-      allWork.push({ ...item, type: 'GPS', typeColor: 'cyan', dateField: item.installationDate })
+      allWork.push(normalizeWorkItem(item, 'GPS', 'cyan'))
     })
 
     data.work.cgPermit?.forEach(item => {
-      allWork.push({ ...item, type: 'CG Permit', typeColor: 'red', dateField: item.issueDate })
+      allWork.push(normalizeWorkItem(item, 'CG Permit', 'red'))
     })
 
     data.work.nationalPermit?.forEach(item => {
-      allWork.push({ ...item, type: 'National Permit', typeColor: 'indigo', dateField: item.issueDate })
+      allWork.push(normalizeWorkItem(item, 'National Permit', 'indigo'))
     })
 
     data.work.busPermit?.forEach(item => {
-      allWork.push({ ...item, type: 'Bus Permit', typeColor: 'pink', dateField: item.issueDate })
+      allWork.push(normalizeWorkItem(item, 'Bus Permit', 'pink'))
     })
 
     data.work.temporaryPermit?.forEach(item => {
-      allWork.push({ ...item, type: 'Temporary Permit', typeColor: 'amber', dateField: item.issueDate })
+      allWork.push(normalizeWorkItem(item, 'Temporary Permit', 'amber'))
     })
 
     data.work.temporaryPermitOtherState?.forEach(item => {
-      allWork.push({ ...item, type: 'Temp Permit (OS)', typeColor: 'teal', dateField: item.issueDate })
+      allWork.push(normalizeWorkItem(item, 'Temp Permit (OS)', 'teal'))
     })
 
-    return allWork.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    let runningBalance = 0
+
+    const chronologicalRows = allWork
+      .sort((a, b) => getDateTime(a.dateField || a.createdAt) - getDateTime(b.dateField || b.createdAt))
+      .map((item) => {
+        runningBalance += item.balanceAmount
+        return {
+          ...item,
+          runningBalance
+        }
+      })
+
+    return chronologicalRows.reverse()
   }
 
   // Get all pending payments (balance > 0)
@@ -223,11 +285,19 @@ const PartyDetail = () => {
 
   const pendingPayments = getPendingPayments()
   const allWork = getAllWork()
-  const totalPending = pendingPayments.reduce((sum, item) => sum + (item.balanceAmount || 0), 0)
+  const ledgerTotals = allWork.reduce(
+    (totals, item) => ({
+      total: totals.total + (item.totalAmount || 0),
+      paid: totals.paid + (item.receivedAmount || 0),
+      balance: totals.balance + (item.balanceAmount || 0)
+    }),
+    { total: 0, paid: 0, balance: 0 }
+  )
+  const totalPending = ledgerTotals.balance
   const vehicles = data.vehicles || []
 
   const displayedVehicles = showAllVehicles ? vehicles : vehicles.slice(0, 5)
-  const displayedWork = showAllWork ? allWork : allWork.slice(0, 5)
+  const displayedWork = allWork
   const displayedPending = showAllPending ? pendingPayments : pendingPayments.slice(0, 5)
 
   return (
@@ -279,19 +349,19 @@ const PartyDetail = () => {
             {/* Summary Stats */}
             <div className='grid grid-cols-2 md:grid-cols-4 gap-4 mt-6'>
               <div className='bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200'>
-                <p className='text-xs text-blue-600 font-semibold uppercase'>Total Vehicles</p>
-                <p className='text-2xl font-bold text-blue-700'>{vehicles.length}</p>
+                <p className='text-xs text-blue-600 font-semibold uppercase'>Total Work</p>
+                <p className='text-2xl font-bold text-blue-700'>{allWork.length}</p>
               </div>
               <div className='bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200'>
-                <p className='text-xs text-green-600 font-semibold uppercase'>Total Work</p>
-                <p className='text-2xl font-bold text-green-700'>{allWork.length}</p>
+                <p className='text-xs text-green-600 font-semibold uppercase'>Total Paid</p>
+                <p className='text-2xl font-bold text-green-700'>{formatCurrency(ledgerTotals.paid)}</p>
               </div>
               <div className='bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200'>
-                <p className='text-xs text-red-600 font-semibold uppercase'>Pending Entries</p>
-                <p className='text-2xl font-bold text-red-700'>{pendingPayments.length}</p>
+                <p className='text-xs text-red-600 font-semibold uppercase'>Total Amount</p>
+                <p className='text-2xl font-bold text-red-700'>{formatCurrency(ledgerTotals.total)}</p>
               </div>
               <div className='bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200'>
-                <p className='text-xs text-orange-600 font-semibold uppercase'>Total Pending</p>
+                <p className='text-xs text-orange-600 font-semibold uppercase'>Total Balance</p>
                 <p className='text-2xl font-bold text-orange-700'>{formatCurrency(totalPending)}</p>
               </div>
             </div>
@@ -299,7 +369,7 @@ const PartyDetail = () => {
         </div>
 
         {/* Vehicles & Pending Payments Row */}
-        <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6'>
+        <div className='hidden'>
           {/* Vehicles Section */}
           <div className='bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden'>
             <div className='px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200'>
@@ -479,8 +549,8 @@ const PartyDetail = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className='text-lg font-bold text-gray-900'>All Work</h2>
-                  <p className='text-xs text-gray-600'>{allWork.length} records (Tax, Fitness, Insurance, PUC, GPS, Permits)</p>
+                  <h2 className='text-lg font-bold text-gray-900'>Party Ledger</h2>
+                  <p className='text-xs text-gray-600'>{allWork.length} records with total, paid, balance, and running balance</p>
                 </div>
               </div>
             </div>
@@ -503,15 +573,21 @@ const PartyDetail = () => {
                         <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Total</th>
                         <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Received</th>
                         <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Balance</th>
+                        <th className='px-4 py-3 text-right text-xs font-bold text-white uppercase'>Running Balance</th>
                       </tr>
                     </thead>
                     <tbody className='divide-y divide-gray-200'>
                       {displayedWork.map((item, index) => (
                         <tr key={`${item.type}-${item._id}`} className='hover:bg-gray-50'>
                           <td className='px-4 py-3'>
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColorClass(item.typeColor)}`}>
-                              {item.type}
-                            </span>
+                            <div className='flex flex-col gap-1'>
+                              <span className={`inline-flex w-fit px-2 py-1 text-xs font-semibold rounded-full ${getTypeColorClass(item.typeColor)}`}>
+                                {item.type}
+                              </span>
+                              {item.referenceNo && (
+                                <span className='text-[10px] font-semibold text-gray-500'>{item.referenceNo}</span>
+                              )}
+                            </div>
                           </td>
                           <td className='px-4 py-3 text-sm font-semibold text-gray-900'>{item.vehicleNumber}</td>
                           <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.dateField || item.createdAt)}</td>
@@ -520,13 +596,23 @@ const PartyDetail = () => {
                           <td className={`px-4 py-3 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
                             {formatCurrency(item.balanceAmount)}
                           </td>
+                          <td className='px-4 py-3 text-sm text-orange-700 text-right font-black'>{formatCurrency(item.runningBalance)}</td>
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot className='bg-gray-100 border-t-2 border-gray-300'>
+                      <tr>
+                        <td colSpan='3' className='px-4 py-3 text-sm font-black text-gray-900 text-right uppercase'>Ledger Total</td>
+                        <td className='px-4 py-3 text-sm font-black text-gray-900 text-right'>{formatCurrency(ledgerTotals.total)}</td>
+                        <td className='px-4 py-3 text-sm font-black text-green-700 text-right'>{formatCurrency(ledgerTotals.paid)}</td>
+                        <td className='px-4 py-3 text-sm font-black text-red-700 text-right'>{formatCurrency(ledgerTotals.balance)}</td>
+                        <td className='px-4 py-3 text-sm font-black text-orange-700 text-right'>{formatCurrency(ledgerTotals.balance)}</td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
 
-                {allWork.length > 5 && (
+                {false && allWork.length > 5 && (
                   <div className='mt-4 text-center'>
                     <button
                       onClick={() => setShowAllWork(!showAllWork)}

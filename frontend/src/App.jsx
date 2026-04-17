@@ -56,10 +56,11 @@ function ProtectedLayout() {
           '/tax',
           '/puc',
           '/gps',
-          '/dealer-bill'
+          '/dealer-bill',
+          '/parties'
         ];
         
-        if (vahanPages.includes(location.pathname)) {
+        if (vahanPages.includes(location.pathname) || location.pathname.startsWith('/parties/')) {
           navigate('/vahan');
         }
       }
