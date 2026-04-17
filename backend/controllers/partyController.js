@@ -536,7 +536,18 @@ exports.getPartyWisePendingSummary = async (req, res) => {
         }
 
         // Get pending amounts
-        const [taxPending, fitnessPending, insurancePending, pucPending] = await Promise.all([
+        const [
+          taxPending,
+          fitnessPending,
+          insurancePending,
+          pucPending,
+          gpsPending,
+          cgPermitPending,
+          nationalPermitPending,
+          busPermitPending,
+          temporaryPermitPending,
+          temporaryPermitOtherStatePending
+        ] = await Promise.all([
           Tax.aggregate([
             { $match: { vehicleNumber: { $in: partyVehicles }, userId: userId, balanceAmount: { $gt: 0 } } },
             { $group: { _id: null, total: { $sum: '$balanceAmount' } } }
@@ -552,6 +563,30 @@ exports.getPartyWisePendingSummary = async (req, res) => {
           Puc.aggregate([
             { $match: { vehicleNumber: { $in: partyVehicles }, userId: userId, balance: { $gt: 0 } } },
             { $group: { _id: null, total: { $sum: '$balance' } } }
+          ]),
+          Gps.aggregate([
+            { $match: { vehicleNumber: { $in: partyVehicles }, userId: userId, balance: { $gt: 0 } } },
+            { $group: { _id: null, total: { $sum: '$balance' } } }
+          ]),
+          CgPermit.aggregate([
+            { $match: { vehicleNumber: { $in: partyVehicles }, userId: userId, balance: { $gt: 0 } } },
+            { $group: { _id: null, total: { $sum: '$balance' } } }
+          ]),
+          NationalPermit.aggregate([
+            { $match: { vehicleNumber: { $in: partyVehicles }, userId: userId, balance: { $gt: 0 } } },
+            { $group: { _id: null, total: { $sum: '$balance' } } }
+          ]),
+          BusPermit.aggregate([
+            { $match: { vehicleNumber: { $in: partyVehicles }, userId: userId, balance: { $gt: 0 } } },
+            { $group: { _id: null, total: { $sum: '$balance' } } }
+          ]),
+          TemporaryPermit.aggregate([
+            { $match: { vehicleNumber: { $in: partyVehicles }, userId: userId, balance: { $gt: 0 } } },
+            { $group: { _id: null, total: { $sum: '$balance' } } }
+          ]),
+          TemporaryPermitOtherState.aggregate([
+            { $match: { vehicleNo: { $in: partyVehicles }, userId: userId, balance: { $gt: 0 } } },
+            { $group: { _id: null, total: { $sum: '$balance' } } }
           ])
         ])
 
@@ -559,7 +594,13 @@ exports.getPartyWisePendingSummary = async (req, res) => {
           (taxPending[0]?.total || 0) +
           (fitnessPending[0]?.total || 0) +
           (insurancePending[0]?.total || 0) +
-          (pucPending[0]?.total || 0)
+          (pucPending[0]?.total || 0) +
+          (gpsPending[0]?.total || 0) +
+          (cgPermitPending[0]?.total || 0) +
+          (nationalPermitPending[0]?.total || 0) +
+          (busPermitPending[0]?.total || 0) +
+          (temporaryPermitPending[0]?.total || 0) +
+          (temporaryPermitOtherStatePending[0]?.total || 0)
 
         return {
           partyId: party._id,
