@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { AuthProvider } from './context/AuthContext'
@@ -33,6 +34,41 @@ import Home2 from './pages/home2'
 import Vahan from './pages/Vahan'
 
 function ProtectedLayout() {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        const isModalOpen = document.querySelector('.bg-slate-900\\/60, .fixed.inset-0, [role="dialog"]') !== null;
+        if (isModalOpen) return;
+
+        const vahanPages = [
+          '/vehicle-registration',
+          '/vehicle-registartion',
+          '/national-permit',
+          '/cg-permit',
+          '/bus-permit',
+          '/temporary-permit',
+          '/temporary-permit-other-state',
+          '/insurance',
+          '/fitness',
+          '/tax',
+          '/puc',
+          '/gps',
+          '/dealer-bill'
+        ];
+        
+        if (vahanPages.includes(location.pathname)) {
+          navigate('/vahan');
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [location.pathname, navigate])
+
   return (
     <ProtectedRoute>
       <div className='min-h-screen bg-gray-50'>

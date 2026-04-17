@@ -364,9 +364,35 @@ exports.createRegistration = async (req, res) => {
       wheelBase
     }
 
+    let finalPartyId = partyId;
+
+    if (!finalPartyId && ownerName) {
+      const upperOwnerName = ownerName.trim().toUpperCase();
+      let party = await Party.findOne({
+        userId: req.user.id,
+        partyName: upperOwnerName
+      });
+
+      if (!party) {
+        party = await Party.create({
+          userId: req.user.id,
+          partyName: upperOwnerName,
+          sonWifeDaughterOf: sonWifeDaughterOf ? sonWifeDaughterOf.trim() : '',
+          address: address ? address.trim() : '',
+          mobile: mobileNumber ? mobileNumber.trim() : '',
+          email: email ? email.trim() : ''
+        });
+      }
+      finalPartyId = party._id;
+    }
+
     // Add partyId if provided
-    if (partyId) {
-      registrationData.partyId = partyId
+    if (finalPartyId) {
+      registrationData.partyId = finalPartyId
+    }
+
+    if (ownerName) {
+      registrationData.ownerName = ownerName.trim().toUpperCase();
     }
 
     // Only add images if they're provided (optional fields)
@@ -478,7 +504,31 @@ exports.updateRegistration = async (req, res) => {
     if (bodyType !== undefined) registration.bodyType = bodyType
     if (wheelBase !== undefined) registration.wheelBase = wheelBase
     // Handle partyId - can be null to remove party association
-    if (partyId !== undefined) registration.partyId = partyId || null
+    let finalPartyId = partyId;
+
+    if (!finalPartyId && ownerName) {
+      const upperOwnerName = ownerName.trim().toUpperCase();
+      let party = await Party.findOne({
+        userId: req.user.id,
+        partyName: upperOwnerName
+      });
+
+      if (!party) {
+        party = await Party.create({
+          userId: req.user.id,
+          partyName: upperOwnerName,
+          sonWifeDaughterOf: sonWifeDaughterOf ? sonWifeDaughterOf.trim() : '',
+          address: address ? address.trim() : '',
+          mobile: mobileNumber ? mobileNumber.trim() : '',
+          email: email ? email.trim() : ''
+        });
+      }
+      finalPartyId = party._id;
+    }
+
+    if (ownerName !== undefined) registration.ownerName = ownerName ? ownerName.trim().toUpperCase() : ownerName;
+
+    if (finalPartyId !== undefined) registration.partyId = finalPartyId || null
     // Handle optional image fields - can be empty string to remove image
     if (rcImage !== undefined) {
       registration.rcImage = rcImage || undefined

@@ -26,7 +26,6 @@ const vahanOptions = [
 
 const quickButtons = [
   { title: 'Manage Vehicle', shortLabel: 'Vehicle', tone: 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100' },
-  { title: 'Add Permit', shortLabel: 'Permit', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100', path: '/national-permit' },
   { title: 'Add NP', shortLabel: 'NP', tone: 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100', path: '/national-permit' },
   { title: 'Add CG Permit', shortLabel: 'State Permit', tone: 'border-green-200 bg-green-50 text-green-700 hover:bg-green-100', path: '/cg-permit' },
   { title: 'Add Temp Permit', shortLabel: 'Temp Permit', tone: 'border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100', path: '/temporary-permit' },
@@ -36,14 +35,12 @@ const quickButtons = [
   { title: 'Add Tax', shortLabel: 'Tax', tone: 'border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700 hover:bg-fuchsia-100' },
   { title: 'PUC', shortLabel: 'PUC', tone: 'border-sky-200 bg-sky-50 text-sky-700 hover:bg-sky-100' },
   { title: 'Add GPS', shortLabel: 'GPS', tone: 'border-cyan-200 bg-cyan-50 text-cyan-700 hover:bg-cyan-100' },
-  { title: 'Bill', shortLabel: 'Bill', tone: 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100' },
+  { title: 'Bill', shortLabel: 'Bill', tone: 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100', path: '/dealer-bill' },
+  { title: 'Party', shortLabel: 'Party', tone: 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100', path: '/parties' },
   { title: 'Day Book', shortLabel: 'Day Book', tone: 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100', path: '/day-book' }
 ]
 
-const actionNavbarButtons = [
-  { title: 'Manage Vehicle', type: 'button', tone: 'bg-sky-600 text-white hover:bg-sky-700' },
-  { title: 'Manage Party', type: 'link', path: '/parties', tone: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50' }
-]
+const actionNavbarButtons = []
 
 const Vahan = () => {
   const [activeModal, setActiveModal] = useState(null)
@@ -53,9 +50,40 @@ const Vahan = () => {
 
   return (
     <>
-      <div className='min-h-screen bg-slate-100 pt-4 lg:pt-6'>
-      <div className='flex w-full flex-col gap-6 px-4 pb-8 lg:flex-row lg:px-6'>
-        <aside className='lg:fixed lg:left-6 lg:top-6 lg:h-[calc(100vh-3rem)] lg:w-80 lg:overflow-y-auto'>
+      <nav className='sticky top-0 z-50 border-b border-slate-200 bg-white px-4 py-2 shadow-sm'>
+        <div className='flex flex-wrap items-center gap-2 lg:gap-3 xl:gap-4 2xl:gap-5'>
+          {quickButtons.map((button) => {
+            const option = vahanOptions.find((item) => item.title === button.title)
+            const targetPath = button.path || option?.path
+
+            if (!targetPath) {
+              return (
+                <button
+                  key={button.title}
+                  onClick={() => openModal(button.title)}
+                  className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${button.tone}`}
+                >
+                  {button.shortLabel}
+                </button>
+              )
+            }
+
+            return (
+              <Link
+                key={button.title}
+                to={targetPath}
+                className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${button.tone}`}
+              >
+                {button.shortLabel}
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+
+      <div className='min-h-screen bg-slate-100 px-4 pb-8 lg:px-6'>
+        <div className='flex w-full flex-col gap-6 lg:flex-row'>
+          <aside className='lg:fixed lg:left-0 lg:top-20 lg:h-[calc(100vh-5rem)] lg:w-60 xl:w-64 2xl:w-[19rem] lg:overflow-y-auto'>
           <div className='overflow-hidden rounded-[28px] bg-slate-900 text-white shadow-2xl'>
             <div className='space-y-2 p-4'>
               {vahanOptions.map((option, index) => (
@@ -91,61 +119,8 @@ const Vahan = () => {
             </div>
           </div>
         </aside>
-
-        <section className='lg:ml-[21rem] lg:flex-1'>
-          <div className='mb-4 flex justify-end'>
-            <div className='flex w-full flex-wrap justify-end gap-3 rounded-[22px] border border-slate-200/80 bg-white/90 p-3 shadow-[0_18px_40px_rgba(15,23,42,0.08)] backdrop-blur sm:w-auto'>
-              {actionNavbarButtons.map((item) => (
-                item.type === 'button' ? (
-                  <button
-                    key={item.title}
-                    type='button'
-                    onClick={() => openModal(item.title)}
-                    className={`inline-flex min-w-[160px] items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition ${item.tone}`}
-                  >
-                    {item.title}
-                  </button>
-                ) : (
-                  <Link
-                    key={item.title}
-                    to={item.path}
-                    className={`inline-flex min-w-[160px] items-center justify-center rounded-xl px-4 py-2.5 text-sm font-semibold transition ${item.tone}`}
-                  >
-                    {item.title}
-                  </Link>
-                )
-              ))}
-            </div>
-          </div>
-
-          <div className='w-full rounded-[28px] border border-slate-200/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(241,245,249,0.96))] shadow-[0_28px_70px_rgba(15,23,42,0.18)]'>
-            <div className='space-y-5 p-5 sm:p-6'>
-              <div className='rounded-[24px] border border-slate-200 bg-white p-4 sm:p-5'>
-                <p className='text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500'>Quick Access</p>
-                <div className='mt-3 flex flex-wrap gap-2'>
-                  {quickButtons.map((button) => {
-                    const option = vahanOptions.find((item) => item.title === button.title)
-                    const targetPath = button.path || option?.path
-
-                    if (!targetPath) return null
-
-                    return (
-                      <Link
-                        key={button.title}
-                        to={targetPath}
-                        className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 text-[11px] font-semibold transition sm:text-xs ${button.tone}`}
-                      >
-                        {button.shortLabel}
-                      </Link>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
-      </div>
+    </div>
 
       {activeModal === 'Manage Vehicle' && (
         <RegisterVehicleModal

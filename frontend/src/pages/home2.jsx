@@ -16,8 +16,9 @@ const sarthiServices = [
   { name: 'Dup RC', icon: '📋', desc: 'Duplicate RC' }
 ]
 
-const ServiceCard = ({ service, color }) => (
+const ServiceCard = ({ service, color, onClick }) => (
   <button
+    onClick={onClick}
     className={`group relative overflow-hidden rounded-xl border-2 border-transparent ${color.bg} p-2 sm:p-3 text-left transition-all duration-300 hover:border-current hover:shadow-lg hover:scale-[1.02]`}
   >
     <div className='relative flex flex-col items-center gap-1 sm:gap-2'>
@@ -48,7 +49,10 @@ const HeaderSection = ({ title, subtitle, gradient, icon }) => (
   </div>
 )
 
+import { useNavigate } from 'react-router-dom'
+
 const Home2 = () => {
+  const navigate = useNavigate()
   const vahanColors = {
     bg: 'bg-sky-50',
     text: 'text-sky-700',
@@ -71,7 +75,10 @@ const Home2 = () => {
     <div className='min-h-screen bg-slate-100 px-2 py-6 sm:px-6 lg:px-10'>
       <div className='mx-auto max-w-6xl'>
         <div className='grid gap-8 md:grid-cols-2'>
-          <div className='group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl'>
+          <button
+            onClick={() => navigate('/vahan')}
+            className='group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl text-left'
+          >
             <HeaderSection
               title='RTO Vahan'
               subtitle='Vehicle registration & transport services'
@@ -85,7 +92,7 @@ const Home2 = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </button>
 
           <div className='group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl'>
             <HeaderSection
