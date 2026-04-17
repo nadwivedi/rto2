@@ -256,20 +256,20 @@ const VahanDashboard = () => {
           </div>
 
           {loading ? (
-            <div className='animate-pulse space-y-2'>
+            <div className='mt-4 animate-pulse space-y-2'>
               {[...Array(5)].map((_, i) => (
                 <div key={i} className='h-12 rounded-lg bg-gray-100'></div>
               ))}
             </div>
           ) : filteredRecords.length === 0 ? (
-            <div className='rounded-lg border border-gray-200 bg-white py-10 text-center'>
+            <div className='mt-4 rounded-lg border border-gray-200 bg-white py-10 text-center'>
               <svg className='mx-auto mb-3 h-10 w-10 text-green-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
               </svg>
               <p className='font-medium text-gray-500'>No documents expiring soon</p>
             </div>
           ) : (
-            <div className='overflow-hidden rounded-lg border border-gray-200 bg-white'>
+            <div className='mt-4 overflow-hidden rounded-lg border border-gray-200 bg-white'>
               <div className='overflow-x-auto'>
                 <table className='w-full'>
                   <thead className='border-b border-gray-200 bg-gray-50'>
