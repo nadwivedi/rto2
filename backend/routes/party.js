@@ -11,6 +11,9 @@ router.get('/statistics', partyController.getPartyStatistics)
 // GET party-wise pending payment summary (all parties)
 router.get('/pending-summary', partyController.getPartyWisePendingSummary)
 
+// POST add money received entry
+router.post('/money-received', partyController.createMoneyReceived)
+
 // GET single party by ID
 router.get('/:id', partyController.getPartyById)
 

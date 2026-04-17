@@ -109,6 +109,21 @@ const PartyDetail = () => {
     if (!data?.work) return []
     const allWork = []
 
+    data.work.moneyReceived?.forEach(item => {
+      const amount = Number(item.amount || 0)
+      allWork.push({
+        ...item,
+        type: 'Money Received',
+        typeColor: 'green',
+        vehicleNumber: '-',
+        dateField: item.moneyReceivedDate || item.createdAt,
+        totalAmount: 0,
+        receivedAmount: amount,
+        balanceAmount: -amount,
+        referenceNo: ''
+      })
+    })
+
     data.work.tax?.forEach(item => {
       allWork.push(normalizeWorkItem(item, 'Tax', 'blue'))
     })
@@ -303,18 +318,8 @@ const PartyDetail = () => {
   return (
     <div className='min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50'>
       <div className='w-full px-3 md:px-4 lg:px-6 pt-4 lg:pt-6 pb-8'>
-        {/* Back Button & Party Header */}
+        {/* Party Header */}
         <div className='mb-6'>
-          <button
-            onClick={() => navigate('/parties')}
-            className='flex items-center gap-2 text-gray-600 hover:text-purple-600 mb-4 transition-colors'
-          >
-            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M10 19l-7-7m0 0l7-7m-7 7h18' />
-            </svg>
-            <span className='font-semibold'>Back to Parties</span>
-          </button>
-
           {/* Party Info Card */}
           <div className='bg-white rounded-2xl shadow-lg border border-gray-200 p-6'>
             <div className='flex items-start gap-4'>

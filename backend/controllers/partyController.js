@@ -10,6 +10,7 @@ const NationalPermit = require('../models/NationalPermit')
 const BusPermit = require('../models/BusPermit')
 const TemporaryPermit = require('../models/TemporaryPermit')
 const TemporaryPermitOtherState = require('../models/TemporaryPermitOtherState')
+const MoneyReceived = require('../models/MoneyReceived')
 const { logError, getUserFriendlyError } = require('../utils/errorLogger')
 
 // Get all parties
@@ -374,6 +375,66 @@ exports.getPartyStatistics = async (req, res) => {
   }
 }
 
+// Create party money received entry
+exports.createMoneyReceived = async (req, res) => {
+  try {
+    const { partyId, amount, moneyReceivedDate } = req.body
+
+    if (!partyId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Party is required'
+      })
+    }
+
+    const receivedAmount = Number(amount)
+    if (!Number.isFinite(receivedAmount) || receivedAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be greater than zero'
+      })
+    }
+
+    if (!moneyReceivedDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Money received date is required'
+      })
+    }
+
+    const party = await Party.findOne({ _id: partyId, userId: req.user.id }).select('_id').lean()
+    if (!party) {
+      return res.status(404).json({
+        success: false,
+        message: 'Party not found'
+      })
+    }
+
+    const moneyReceived = await MoneyReceived.create({
+      userId: req.user.id,
+      partyId,
+      amount: receivedAmount,
+      moneyReceivedDate
+    })
+
+    res.status(201).json({
+      success: true,
+      message: 'Money received entry added successfully',
+      data: moneyReceived
+    })
+  } catch (error) {
+    logError(error, req)
+    const userError = getUserFriendlyError(error)
+    res.status(400).json({
+      success: false,
+      message: userError.message,
+      errors: userError.details,
+      errorCount: userError.errorCount,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
 // Get all vehicles by party
 exports.getVehiclesByParty = async (req, res) => {
   try {
@@ -654,6 +715,10 @@ exports.getAllWorkByParty = async (req, res) => {
       })
     }
 
+    const moneyReceivedRecords = await MoneyReceived.find({ partyId, userId })
+      .sort({ moneyReceivedDate: -1, createdAt: -1 })
+      .lean()
+
     // Get all vehicles for this party
     const vehicles = await VehicleRegistration.find({
       partyId: partyId,
@@ -669,6 +734,7 @@ exports.getAllWorkByParty = async (req, res) => {
           party,
           vehicles: [],
           work: {
+            moneyReceived: moneyReceivedRecords,
             tax: [],
             fitness: [],
             insurance: [],
@@ -682,7 +748,7 @@ exports.getAllWorkByParty = async (req, res) => {
           },
           summary: {
             totalVehicles: 0,
-            totalRecords: 0,
+            totalRecords: moneyReceivedRecords.length,
             totalPending: 0
           }
         }
@@ -739,6 +805,7 @@ exports.getAllWorkByParty = async (req, res) => {
         party,
         vehicles,
         work: {
+          moneyReceived: moneyReceivedRecords,
           tax: taxRecords,
           fitness: fitnessRecords,
           insurance: insuranceRecords,
@@ -764,7 +831,7 @@ exports.getAllWorkByParty = async (req, res) => {
         },
         summary: {
           totalVehicles: vehicles.length,
-          totalRecords,
+          totalRecords: totalRecords + moneyReceivedRecords.length,
           totalPending
         }
       }

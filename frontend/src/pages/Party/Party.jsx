@@ -281,8 +281,7 @@ const Party = () => {
                       <tr>
                         <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Party Name</th>
                         <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>S/o, W/o, D/o</th>
-                        <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Mobile</th>
-                        <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Email</th>
+                        <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Contact</th>
                         <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Address</th>
                         <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                       </tr>
@@ -302,10 +301,8 @@ const Party = () => {
                             <span className='text-[11px] 2xl:text-sm text-gray-700'>{party.sonWifeDaughterOf || '-'}</span>
                           </td>
                           <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
-                            <span className='text-[11px] 2xl:text-sm font-semibold text-gray-900'>{party.mobile || '-'}</span>
-                          </td>
-                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
-                            <span className='text-[11px] 2xl:text-sm text-gray-700 lowercase'>{party.email || '-'}</span>
+                            <span className='block text-[11px] 2xl:text-sm font-semibold text-gray-900'>{party.mobile || '-'}</span>
+                            <span className='mt-1 block text-[11px] 2xl:text-sm text-gray-700 lowercase'>{party.email || '-'}</span>
                           </td>
                           <td className='px-4 2xl:px-6 py-3 2xl:py-4 max-w-xs'>
                             <div className='space-y-1'>
