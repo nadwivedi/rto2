@@ -94,7 +94,10 @@ const Home2 = () => {
             </div>
           </button>
 
-          <div className='group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl'>
+          <button
+            onClick={() => navigate('/sarthi')}
+            className='group overflow-hidden rounded-2xl sm:rounded-3xl bg-white shadow-lg ring-1 ring-slate-200 transition duration-300 hover:-translate-y-1 hover:shadow-xl text-left'
+          >
             <HeaderSection
               title='RTO Sarthi'
               subtitle='Driving licence & learning services'
@@ -108,7 +111,7 @@ const Home2 = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </button>
         </div>
       </div>
     </div>

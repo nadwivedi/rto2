@@ -24,14 +24,13 @@ import Forms from './pages/forms/Forms'
 import Form20 from './pages/Form20'
 import Puc from './pages/Puc/Puc'
 import Gps from './pages/Gps/Gps'
-import Dashboard from './pages/Dashboard/Dashboard'
-import Dashboard2 from './pages/Dashboard/Dashboard2'
+import Home2 from './pages/home2'
 import DayBook from './pages/DayBook'
 import Party from './pages/Party/Party'
 import PartyDetail from './pages/Party/PartyDetail'
 import Noc from './pages/Noc/Noc'
-import Home2 from './pages/home2'
 import Vahan from './pages/Vahan'
+import Sarthi from './pages/Sarthi'
 
 function ProtectedLayout() {
   const navigate = useNavigate()
@@ -43,7 +42,11 @@ function ProtectedLayout() {
         const isModalOpen = document.querySelector('.bg-slate-900\\/60, .fixed.inset-0, [role="dialog"]') !== null;
         if (isModalOpen) return;
 
-        const vahanPages = [
+        const vahanHubPages = ['/vahan'];
+        const sarthiHubPages = ['/sarthi'];
+        const sarthiSubPages = ['/driving', '/vehicle-transfer', '/noc', '/registration-renewal'];
+
+        const vahanSubPages = [
           '/vehicle-registration',
           '/vehicle-registartion',
           '/national-permit',
@@ -60,8 +63,12 @@ function ProtectedLayout() {
           '/parties'
         ];
         
-        if (vahanPages.includes(location.pathname) || location.pathname.startsWith('/parties/')) {
+        if (vahanHubPages.includes(location.pathname) || sarthiHubPages.includes(location.pathname)) {
+          navigate('/');
+        } else if (vahanSubPages.includes(location.pathname) || location.pathname.startsWith('/parties/')) {
           navigate('/vahan');
+        } else if (sarthiSubPages.includes(location.pathname)) {
+          navigate('/sarthi');
         }
       }
     }
@@ -76,10 +83,9 @@ function ProtectedLayout() {
         <div className='min-h-screen w-full'>
           <main>
             <Routes>
-              <Route path='/' element={<Dashboard />} />
-              <Route path='/home2' element={<Home2 />} />
+              <Route path='/' element={<Home2 />} />
               <Route path='/vahan' element={<Vahan />} />
-              <Route path='/dashboard2' element={<Dashboard2 />} />
+              <Route path='/sarthi' element={<Sarthi />} />
               <Route path='/driving' element={<DrivingLicence />} />
               <Route path='/setting' element={<Setting />} />
               <Route path='/national-permit' element={<NationalPermit />} />
@@ -118,15 +124,9 @@ function App() {
         <ThemeProvider>
           <ToastContainer />
           <Routes>
-          {/* Public Routes */}
-          <Route path='/login' element={<Login />} />
-
-          {/* Protected Routes */}
-          <Route
-            path='/*'
-            element={<ProtectedLayout />}
-          />
-        </Routes>
+            <Route path='/login' element={<Login />} />
+            <Route path='/*' element={<ProtectedLayout />} />
+          </Routes>
         </ThemeProvider>
       </AuthProvider>
     </Router>
@@ -134,4 +134,3 @@ function App() {
 }
 
 export default App
-

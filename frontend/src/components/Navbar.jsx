@@ -140,10 +140,22 @@ const Navbar = () => {
 // Dropdown items for desktop (Dashboard, Forms, Settings, Registration Renewal)
     const dropdownItems = [
     {
-      name: "Dashboard",
-      icon: "📊",
+      name: "Home",
+      icon: "🏠",
       path: "/",
-      description: "Overview & Expiring Items",
+      description: "Main Menu",
+    },
+    {
+      name: "Vahan",
+      icon: "🚚",
+      path: "/vahan",
+      description: "Vehicle Services",
+    },
+    {
+      name: "Sarthi",
+      icon: "🚗",
+      path: "/sarthi",
+      description: "Driving License Services",
     },
     {
       name: "NOC",
