@@ -84,7 +84,7 @@ const Vahan = () => {
 
       <div className='min-h-screen bg-slate-100 px-4 pb-8 lg:px-6'>
         <div className='flex w-full flex-col gap-6 lg:flex-row'>
-          <aside className='lg:fixed lg:left-0 lg:top-20 lg:h-[calc(100vh-5rem)] lg:w-60 xl:w-64 2xl:w-[19rem] lg:overflow-y-auto'>
+          <aside className='lg:fixed lg:left-0 lg:top-14 lg:h-[calc(100vh-3.5rem)] lg:w-60 xl:w-64 2xl:w-[19rem] lg:overflow-y-auto'>
             <div className='overflow-hidden rounded-[28px] bg-slate-900 text-white shadow-2xl'>
               <div className='space-y-2 p-4'>
                 {vahanOptions.map((option, index) => (
