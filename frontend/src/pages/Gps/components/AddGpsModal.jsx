@@ -559,7 +559,7 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
         <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col'>
         {/* Header */}
         <div className='bg-gradient-to-r from-blue-600 to-cyan-600 p-2 md:p-3 text-white flex-shrink-0'>
-          <div className='flex justify-between items-center'>
+          <div className='flex items-center justify-between gap-3'>
             <div>
               <h2 className='text-lg md:text-2xl font-bold'>
                 Add New GPS Tracking
@@ -568,68 +568,53 @@ const AddGpsModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '', p
                 Add GPS tracking system record
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className='text-white hover:bg-white/20 rounded-lg p-1.5 md:p-2 transition cursor-pointer'
-            >
-              <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-              </svg>
-            </button>
+            <div className='flex shrink-0 items-center gap-2'>
+              <div className='relative overflow-hidden rounded-lg'>
+                <button
+                  type='button'
+                  disabled={isExtractingGps}
+                  className='flex max-w-full items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white shadow-sm ring-1 ring-white/30 transition hover:bg-white/25 disabled:opacity-60 md:px-4 md:py-2 md:text-sm'
+                >
+                  {isExtractingGps ? (
+                    <>
+                      <svg className='h-4 w-4 animate-spin text-white' fill='none' viewBox='0 0 24 24'>
+                        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                        <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                      </svg>
+                      Extracting
+                    </>
+                  ) : (
+                    <>
+                      <svg className='h-4 w-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' />
+                      </svg>
+                      AI Upload
+                    </>
+                  )}
+                </button>
+                <input
+                  type='file'
+                  accept='image/*, application/pdf'
+                  disabled={isExtractingGps}
+                  onChange={handleGpsExtractionUpload}
+                  className='absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
+                />
+              </div>
+              <button
+                onClick={onClose}
+                className='text-white hover:bg-white/20 rounded-lg p-1.5 md:p-2 transition cursor-pointer'
+              >
+                <svg className='w-5 h-5 md:w-6 md:h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Form Content */}
         <form onSubmit={handleSubmit} className='flex flex-col flex-1 overflow-hidden'>
           <div className='flex-1 overflow-y-auto p-3 md:p-6'>
-            <div className='mb-4 md:mb-6 p-4 bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl border-2 border-dashed border-cyan-200'>
-              <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
-                <div>
-                  <h3 className='text-sm md:text-base font-bold text-cyan-800 flex items-center gap-2'>
-                    <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
-                    </svg>
-                    AI Fast Extraction
-                  </h3>
-                  <p className='text-xs text-cyan-700 mt-1'>
-                    Upload a GPS document in image or PDF format to auto-fill vehicle number, owner name, valid from, and valid to.
-                  </p>
-                </div>
-
-                <div className='relative overflow-hidden'>
-                  <button
-                    type='button'
-                    disabled={isExtractingGps}
-                    className='relative px-4 py-2 bg-cyan-600 text-white font-semibold rounded-lg shadow-md hover:bg-cyan-700 transition disabled:opacity-50 flex items-center gap-2 text-sm max-w-full'
-                  >
-                    {isExtractingGps ? (
-                      <>
-                        <svg className='animate-spin h-4 w-4 text-white' fill='none' viewBox='0 0 24 24'>
-                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
-                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
-                        </svg>
-                        Extracting...
-                      </>
-                    ) : (
-                      <>
-                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12' />
-                        </svg>
-                        Upload GPS Document
-                      </>
-                    )}
-                  </button>
-                  <input
-                    type='file'
-                    accept='image/*, application/pdf'
-                    disabled={isExtractingGps}
-                    onChange={handleGpsExtractionUpload}
-                    className='absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed'
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* Section 1: Vehicle Details */}
             <div className='bg-gradient-to-r from-blue-100 to-cyan-100 border-2 border-cyan-200 rounded-xl p-3 md:p-6 mb-4 md:mb-6'>
               <h3 className='text-base md:text-lg font-bold text-gray-800 mb-3 md:mb-4 flex items-center gap-2'>

@@ -1218,67 +1218,55 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 </p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className='text-white/90 hover:text-white hover:bg-white/20 p-1.5 md:p-2 rounded-lg transition-all duration-200 hover:rotate-90'
-            >
-              <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
-              </svg>
-            </button>
+            <div className='flex shrink-0 items-center gap-2'>
+              {!editData && (
+                <div className='relative overflow-hidden rounded-lg'>
+                  <button
+                    type='button'
+                    disabled={isExtractingRc}
+                    className='flex max-w-full items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white shadow-sm ring-1 ring-white/30 transition hover:bg-white/25 disabled:opacity-60 md:px-4 md:py-2 md:text-sm'
+                  >
+                    {isExtractingRc ? (
+                      <>
+                        <svg className='h-4 w-4 animate-spin text-white' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                        </svg>
+                        Extracting
+                      </>
+                    ) : (
+                      <>
+                        <svg className='h-4 w-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'/>
+                        </svg>
+                        AI Upload
+                      </>
+                    )}
+                  </button>
+                  <input
+                    type='file'
+                    accept='image/*'
+                    disabled={isExtractingRc}
+                    onChange={handleRcExtractionUpload}
+                    className='absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
+                  />
+                </div>
+              )}
+              <button
+                onClick={onClose}
+                className='text-white/90 hover:text-white hover:bg-white/20 p-1.5 md:p-2 rounded-lg transition-all duration-200 hover:rotate-90'
+              >
+                <svg className='w-4 h-4 md:w-5 md:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Form */}
         <div className='overflow-y-auto max-h-[calc(98vh-100px)] md:max-h-[calc(95vh-140px)] custom-scrollbar'>
           <form id='vehicle-registration-form' onSubmit={handleSubmit} className='p-3 md:p-8'>
-            {/* RC Extraction Section */}
-            {!editData && (
-              <div className='mb-4 md:mb-6 p-4 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border-2 border-dashed border-teal-200'>
-                <div className='flex flex-col sm:flex-row items-center justify-between gap-4'>
-                  <div>
-                    <h3 className='text-sm md:text-base font-bold text-teal-800 flex items-center gap-2'>
-                        <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M13 10V3L4 14h7v7l9-11h-7z' />
-                        </svg>
-                        AI Fast Extraction
-                    </h3>
-                    <p className='text-xs text-teal-600 mt-1'>Upload an RC photo to automatically fill in the details below.</p>
-                   </div>
-                   <div className='relative overflow-hidden'>
-                    <button 
-                      type='button' 
-                      disabled={isExtractingRc}
-                      className='relative px-4 py-2 bg-teal-600 text-white font-semibold rounded-lg shadow-md hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm max-w-full'
-                    >
-                      {isExtractingRc ? (
-                        <>
-                          <svg className='animate-spin h-4 w-4 text-white' fill='none' viewBox='0 0 24 24'>
-                            <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
-                            <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
-                          </svg>
-                          Extracting...
-                        </>
-                      ) : (
-                        <>
-                          <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'/>
-                          </svg>
-                          Upload RC Image
-                        </>
-                      )}
-                    </button>
-                    <input 
-                      type='file' 
-                      accept='image/*' 
-                      disabled={isExtractingRc}
-                      onChange={handleRcExtractionUpload} 
-                      className='absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed' 
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
             {error && (
               <div className='mb-3 md:mb-6 p-2.5 md:p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-lg flex items-start gap-2 md:gap-3 animate-shake'>
                 <svg className='w-4 h-4 md:w-5 md:h-5 text-red-500 flex-shrink-0 mt-0.5' fill='currentColor' viewBox='0 0 20 20'>

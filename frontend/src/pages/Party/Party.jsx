@@ -276,14 +276,14 @@ const Party = () => {
 
                 {/* Desktop Table View */}
                 <div className='hidden lg:block overflow-x-auto'>
-                  <table className='w-full'>
+                  <table className='w-full table-fixed'>
                     <thead className={theme.tableHeader}>
                       <tr>
-                        <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Party Name</th>
-                        <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>S/o, W/o, D/o</th>
-                        <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Contact</th>
-                        <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Address</th>
-                        <th className='px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
+                        <th className='w-[27%] px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Party Name</th>
+                        <th className='w-[22%] px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Contact</th>
+                        <th className='w-[27%] px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Address</th>
+                        <th className='w-[14%] px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Balance</th>
+                        <th className='w-[10%] px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                       </tr>
                     </thead>
                     <tbody className='divide-y divide-gray-200'>
@@ -294,26 +294,23 @@ const Party = () => {
                               <div className='w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0'>
                                 {party.partyName?.charAt(0)?.toUpperCase() || 'P'}
                               </div>
-                              <div className='text-[12px] 2xl:text-sm font-semibold text-gray-900 group-hover:text-purple-600'>{party.partyName}</div>
+                              <div className='min-w-0'>
+                                <div className='text-[12px] 2xl:text-sm font-semibold text-gray-900 group-hover:text-purple-600'>{party.partyName}</div>
+                                <div className='mt-0.5 text-[11px] 2xl:text-xs text-gray-500'>{party.sonWifeDaughterOf || '-'}</div>
+                              </div>
                             </div>
-                          </td>
-                          <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
-                            <span className='text-[11px] 2xl:text-sm text-gray-700'>{party.sonWifeDaughterOf || '-'}</span>
                           </td>
                           <td className='px-4 2xl:px-6 py-3 2xl:py-4'>
                             <span className='block text-[11px] 2xl:text-sm font-semibold text-gray-900'>{party.mobile || '-'}</span>
                             <span className='mt-1 block text-[11px] 2xl:text-sm text-gray-700 lowercase'>{party.email || '-'}</span>
                           </td>
                           <td className='px-4 2xl:px-6 py-3 2xl:py-4 max-w-xs'>
-                            <div className='space-y-1'>
-                              <span className='block text-[11px] 2xl:text-sm text-gray-700 line-clamp-2'>{party.address || '-'}</span>
-                              <div className='text-[11px] 2xl:text-sm'>
-                                <span className='font-semibold text-gray-500'>Party Balance: </span>
-                                <span className={party.totalPending > 0 ? 'font-bold text-red-600' : 'font-bold text-green-600'}>
-                                  {formatCurrency(party.totalPending)}
-                                </span>
-                              </div>
-                            </div>
+                            <span className='block text-[11px] 2xl:text-sm text-gray-700 line-clamp-2'>{party.address || '-'}</span>
+                          </td>
+                          <td className='px-4 2xl:px-6 py-3 2xl:py-4 text-center'>
+                            <span className={`text-[11px] 2xl:text-sm ${party.totalPending > 0 ? 'font-bold text-red-600' : 'font-bold text-green-600'}`}>
+                              {formatCurrency(party.totalPending)}
+                            </span>
                           </td>
                           <td className='px-4 2xl:px-6 py-3 2xl:py-4' onClick={(e) => e.stopPropagation()}>
                             <div className='flex items-center justify-center gap-0.5'>
