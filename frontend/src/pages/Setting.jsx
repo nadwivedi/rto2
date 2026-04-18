@@ -5,6 +5,7 @@ import axios from 'axios'
 import { toast } from 'react-toastify'
 import { getAllThemes, getAllVehicleNumberDesigns } from '../context/ThemeContext'
 import EmployeeManagement from './Setting/EmployeeManagement'
+import WhatsAppSettings from './Setting/WhatsAppSettings'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -215,6 +216,8 @@ const Setting = () => {
             </div>
           </div>
         </div>
+
+        {user?.type !== 'staff' && <WhatsAppSettings />}
 
 
 

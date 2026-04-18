@@ -64,6 +64,10 @@ const { initTemporaryPermitOtherStateStatusCron } = require('./jobs/updateTempor
 const { initPucStatusCron } = require('./jobs/updatePucStatus')
 const { initEmailDataExportCron } = require('./jobs/emailDataExport')
 
+// Whatsapp Jobs
+const { initWhatsAppDailyChecker } = require('./jobs/whatsappDailyExpiryChecker')
+const { initWhatsAppMessageSender } = require('./jobs/whatsappMessageSender')
+
 initTemporaryPermitStatusCron()
 initCgPermitStatusCron()
 initNationalPermitStatusCron()
@@ -73,6 +77,10 @@ initInsuranceStatusCron()
 initTemporaryPermitOtherStateStatusCron()
 initPucStatusCron()
 initEmailDataExportCron()
+
+// Whatsapp jobs
+initWhatsAppDailyChecker()
+initWhatsAppMessageSender()
 
 // Import Middleware
 const userAuth = require('./middleware/userAuth')
@@ -105,6 +113,8 @@ const partyRoutes = require('./routes/party')
 const nocRoutes = require('./routes/noc')
 const ocrRoutes = require('./routes/ocrRoutes')
 const employeeRoutes = require('./routes/employeeRoutes')
+const whatsappRoutes = require('./routes/whatsapp')
+const whatsappSettingsRoutes = require('./routes/whatsappSettings')
 
 // Use Routes
 
@@ -139,6 +149,8 @@ app.use('/api/parties', userAuth, partyRoutes)
 app.use('/api/noc', userAuth, nocRoutes)
 app.use('/api/ocr', userAuth, ocrRoutes)
 app.use('/api/employees', userAuth, employeeRoutes)
+app.use('/api/whatsapp', userAuth, whatsappRoutes)
+app.use('/api/whatsapp-settings', userAuth, whatsappSettingsRoutes)
 
 // Root route
 app.get('/', (req, res) => {

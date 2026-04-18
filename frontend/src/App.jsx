@@ -31,6 +31,7 @@ import PartyDetail from './pages/Party/PartyDetail'
 import Noc from './pages/Noc/Noc'
 import Vahan from './pages/Vahan'
 import Sarthi from './pages/Sarthi'
+import WhatsApp from './pages/WhatsApp/WhatsApp'
 
 function ProtectedLayout() {
   const navigate = useNavigate()
@@ -128,6 +129,7 @@ function ProtectedLayout() {
               <Route path='/day-book' element={<DayBook />} />
               <Route path='/parties' element={<Party />} />
               <Route path='/parties/:partyId' element={<PartyDetail />} />
+              <Route path='/whatsapp' element={<WhatsApp />} />
             </Routes>
           </main>
         </div>

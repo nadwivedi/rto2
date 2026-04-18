@@ -1,0 +1,52 @@
+const mongoose = require('mongoose')
+
+const messageLogSchema = new mongoose.Schema({
+  documentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    index: true
+  },
+  documentType: {
+    type: String,
+    enum: ['Tax', 'Fitness', 'Puc', 'Gps', 'Insurance'],
+    required: true
+  },
+  targetNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  messageBody: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'sent', 'failed'],
+    default: 'pending',
+    index: true
+  },
+  scheduledFor: {
+    type: Date,
+    required: true,
+    index: true
+  },
+  sentAt: {
+    type: Date
+  },
+  errorReason: {
+    type: String
+  },
+  whatsappMessageId: {
+    type: String
+  }
+}, {
+  timestamps: true
+})
+
+// Index for grabbing pending messages scheduled for past/present
+messageLogSchema.index({ status: 1, scheduledFor: 1 })
+// Index for checking how many sent today
+messageLogSchema.index({ status: 1, sentAt: 1 })
+
+module.exports = mongoose.model('MessageLog', messageLogSchema)

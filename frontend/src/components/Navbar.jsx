@@ -178,6 +178,18 @@ const Navbar = () => {
       description: "RTO Forms",
     },
     {
+      name: "WhatsApp",
+      icon: "💬",
+      path: "/whatsapp",
+      description: "Automated Messaging",
+    },
+    {
+      name: "WhatsApp",
+      icon: "💬",
+      path: "/whatsapp",
+      description: "Automated Messaging",
+    },
+    {
       name: "setting",
       icon: "⚙️",
       path: "/setting",
