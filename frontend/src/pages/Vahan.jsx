@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import RegisterVehicleModal from './VehicleRegistration/components/RegisterVehicleModal'
 import IssueNewPermitModal from './NationalPermit/components/IssueNewPermitModal'
@@ -43,6 +43,83 @@ const quickButtons = [
 ]
 
 const actionNavbarButtons = []
+
+const PermitTypeSelectModal = ({ onClose, openModal }) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const options = [
+    { id: 'Add NP', label: 'Add National Permit', icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z', colorClass: 'text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100 ring-emerald-400' },
+    { id: 'Add CG Permit', label: 'Add State Permit', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z', colorClass: 'text-green-700 bg-green-50 border-green-200 hover:bg-green-100 ring-green-400' },
+    { id: 'Issue Temp Permit', label: 'Add Temporary Permit', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', colorClass: 'text-teal-700 bg-teal-50 border-teal-200 hover:bg-teal-100 ring-teal-400' },
+    { id: 'Issue Temp Permit Other State', label: 'Add Temporary Permit Other State', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', colorClass: 'text-lime-700 bg-lime-50 border-lime-200 hover:bg-lime-100 ring-lime-400' }
+  ];
+
+  /* global document */
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev < options.length - 1 ? prev + 1 : 0));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIndex(prev => (prev > 0 ? prev - 1 : options.length - 1));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        openModal(options[selectedIndex].id);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedIndex, onClose, openModal]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden relative transform transition-all scale-100">
+        <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+          <h3 className="text-xl font-bold text-slate-800">Select Permit Type</h3>
+          <button
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 hover:bg-slate-200 p-1.5 rounded-full transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-6 space-y-3">
+          {options.map((opt, idx) => {
+            const isSelected = selectedIndex === idx;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => openModal(opt.id)}
+                onMouseEnter={() => setSelectedIndex(idx)}
+                className={`w-full flex items-center text-left py-3 px-4 border rounded-xl font-semibold transition-all duration-200 ${opt.colorClass} ${
+                  isSelected ? 'ring-2 ring-offset-2 scale-[1.02] shadow-md' : 'shadow-sm opacity-90'
+                }`}
+              >
+                <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/60 mr-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={opt.icon} />
+                  </svg>
+                </span>
+                {opt.label}
+              </button>
+            );
+          })}
+          <div className="text-center mt-4 pt-2 text-xs text-slate-400 flex justify-center gap-4">
+            <span>Use <kbd className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-sm text-slate-500 mx-1">↑</kbd> <kbd className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-sm text-slate-500 mx-1">↓</kbd> to navigate</span>
+            <span><kbd className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-sm text-slate-500 mr-1">Enter</kbd> to select</span>
+            <span><kbd className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 shadow-sm text-slate-500 mr-1">Esc</kbd> to close</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Vahan = () => {
   const [activeModal, setActiveModal] = useState(null)
@@ -140,45 +217,7 @@ const Vahan = () => {
       )}
 
       {activeModal === 'Add Permit' && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden p-6 relative">
-             <button
-              onClick={closeModal}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
-             >
-               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-               </svg>
-             </button>
-             <h3 className="text-xl font-bold text-slate-800 mb-4 text-center">Select Permit Type</h3>
-             <div className="space-y-3">
-               <button
-                 onClick={() => openModal('Add NP')}
-                 className="w-full py-3 px-4 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 rounded-xl font-semibold transition"
-               >
-                 Add National Permit
-               </button>
-               <button
-                 onClick={() => openModal('Add CG Permit')}
-                 className="w-full py-3 px-4 bg-green-50 hover:bg-green-100 border border-green-200 text-green-700 rounded-xl font-semibold transition"
-               >
-                 Add State Permit
-               </button>
-               <button
-                 onClick={() => openModal('Issue Temp Permit')}
-                 className="w-full py-3 px-4 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 rounded-xl font-semibold transition"
-               >
-                 Add Temporary Permit
-               </button>
-               <button
-                 onClick={() => openModal('Issue Temp Permit Other State')}
-                 className="w-full py-3 px-4 bg-lime-50 hover:bg-lime-100 border border-lime-200 text-lime-700 rounded-xl font-semibold transition"
-               >
-                 Add Temporary Permit Other State
-               </button>
-             </div>
-          </div>
-        </div>
+        <PermitTypeSelectModal onClose={closeModal} openModal={openModal} />
       )}
 
       {activeModal === 'Money Received' && (
