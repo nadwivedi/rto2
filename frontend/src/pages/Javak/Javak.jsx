@@ -4,6 +4,7 @@ import { toast } from 'react-toastify'
 import { enforceVehicleNumberFormat } from '../../utils/vehicleNoCheck'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+const inputClass = 'w-full px-3 py-2 border border-slate-200/80 rounded-lg bg-white/90 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none text-sm transition-all shadow-sm shadow-slate-200/50'
 
 // Component for Inline Editing
 const EditableCell = ({ value, onSave, onCancel, uppercase }) => {
@@ -14,7 +15,7 @@ const EditableCell = ({ value, onSave, onCancel, uppercase }) => {
     <input
       autoFocus
       type='text'
-      className={`w-full px-2 py-1 text-sm border-2 border-amber-400 focus:ring-2 focus:ring-amber-200 rounded outline-none shadow-sm ${uppercase ? 'uppercase' : ''}`}
+      className={`w-full px-2 py-1 text-sm border-2 border-cyan-400 bg-white focus:ring-2 focus:ring-cyan-200 rounded-lg outline-none shadow-sm ${uppercase ? 'uppercase' : ''}`}
       value={val}
       onChange={e => setVal(uppercase ? e.target.value.toUpperCase() : e.target.value)}
       onBlur={handleSave}
@@ -187,25 +188,25 @@ const Javak = () => {
   const sortedDates = Object.keys(groupedJavaks).sort((a, b) => new Date(b) - new Date(a))
 
   return (
-    <div className='min-h-screen bg-slate-50 px-4 pb-8 pt-4 lg:px-8 lg:pt-6'>
+    <div className='min-h-screen bg-gray-100 px-4 pb-8 pt-4 lg:px-8 lg:pt-6'>
       <div className='max-w-7xl mx-auto space-y-6'>
         
         {/* Combined Header & Quick Add Row */}
-        <div className='bg-white rounded-2xl shadow-lg border border-amber-200 overflow-hidden ring-4 ring-amber-50/50 relative z-10'>
-          <div className='bg-gradient-to-r from-amber-100 to-amber-50 px-6 py-4 border-b border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
+        <div className='bg-white/90 rounded-lg shadow-xl shadow-cyan-950/10 border border-white/80 overflow-hidden ring-1 ring-cyan-100/80 relative z-10 backdrop-blur'>
+          <div className='bg-gradient-to-r from-cyan-600 via-teal-500 to-amber-400 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white'>
             <div>
-              <h1 className='text-2xl font-bold text-slate-800 tracking-tight'>Javak Register</h1>
+              <h1 className='text-2xl font-bold tracking-tight'>Javak Register</h1>
               <div className='flex items-center gap-2 mt-0.5'>
-                <span className='w-2 h-2 bg-amber-500 rounded-full animate-pulse'></span>
-                <h2 className='text-[10px] font-bold text-amber-700 uppercase tracking-widest'>Quick Add Task</h2>
+                <span className='w-2 h-2 bg-white rounded-full animate-pulse shadow-sm'></span>
+                <h2 className='text-[10px] font-bold text-white/90 uppercase tracking-widest'>Quick Add Task</h2>
               </div>
             </div>
-            <div className='text-xs text-amber-800 font-medium bg-white/60 px-3 py-2 rounded-xl border border-amber-200/50 shadow-sm'>
-              Press <kbd className='bg-white border-amber-300 text-amber-900 border px-1.5 py-0.5 rounded shadow-sm mx-1 font-bold font-mono text-[10px]'>ENTER ↵</kbd> on Remark to save
+            <div className='text-xs text-white font-medium bg-white/20 px-3 py-2 rounded-lg border border-white/30 shadow-sm backdrop-blur'>
+              Press <kbd className='bg-white text-cyan-800 border border-white/80 px-1.5 py-0.5 rounded shadow-sm mx-1 font-bold font-mono text-[10px]'>ENTER</kbd> on Remark to save
             </div>
           </div>
           
-          <div className='px-6 py-4 overflow-x-auto'>
+          <div className='px-6 py-5 overflow-x-auto bg-gradient-to-br from-white via-cyan-50/70 to-amber-50/60'>
             {/* We align headers with inputs for seamless excel feel */}
             <div className='min-w-[800px] flex gap-3'>
               <div className='w-40 shrink-0'>
@@ -217,7 +218,7 @@ const Javak = () => {
                   value={newEntry.date}
                   onChange={handleEntryChange}
                   onKeyDown={(e) => handleKeyDown(e, vehicleNoRef)}
-                  className='w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm transition-all shadow-sm'
+                  className={inputClass}
                 />
               </div>
               
@@ -232,7 +233,7 @@ const Javak = () => {
                   onChange={handleEntryChange}
                   onKeyDown={(e) => handleKeyDown(e, partyNameRef)}
                   placeholder='Ex: CG04...'
-                  className='w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-sm uppercase transition-all shadow-sm'
+                  className={`${inputClass} uppercase`}
                 />
               </div>
               
@@ -246,7 +247,7 @@ const Javak = () => {
                   onChange={handleEntryChange}
                   onKeyDown={(e) => handleKeyDown(e, purposeRef)}
                   placeholder='Type Party Name'
-                  className='w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm uppercase transition-all shadow-sm placeholder:normal-case'
+                  className={`${inputClass} uppercase placeholder:normal-case`}
                 />
               </div>
               
@@ -260,7 +261,7 @@ const Javak = () => {
                   onChange={handleEntryChange}
                   onKeyDown={(e) => handleKeyDown(e, remarkRef)}
                   placeholder='Permit, Tax, etc.'
-                  className='w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm transition-all shadow-sm'
+                  className={inputClass}
                 />
               </div>
               
@@ -275,7 +276,7 @@ const Javak = () => {
                     onChange={handleEntryChange}
                     onKeyDown={(e) => handleKeyDown(e, null, true)}
                     placeholder='Notes... (Press Enter to Save)'
-                    className='w-full pl-3 pr-10 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none text-sm transition-all shadow-sm bg-yellow-50/30'
+                    className={`${inputClass} pl-3 pr-10 bg-amber-50/70`}
                   />
                   <div className='absolute right-2 top-0 h-full flex items-center justify-center opacity-40'>
                     <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M14 5l7 7m0 0l-7 7m7-7H3'/></svg>
@@ -285,75 +286,78 @@ const Javak = () => {
             </div>
           </div>
           {isSaving && (
-            <div className="absolute top-0 left-0 w-full h-1 bg-blue-100 overflow-hidden">
-               <div className="h-full bg-blue-500 animate-[moveIndeterminate_1s_infinite_linear] w-1/3"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-cyan-100 overflow-hidden">
+               <div className="h-full bg-gradient-to-r from-cyan-500 to-amber-400 animate-[moveIndeterminate_1s_infinite_linear] w-1/3"></div>
             </div>
           )}
         </div>
 
         {/* Data List grouped by date */}
         {loading ? (
-          <div className='flex justify-center items-center h-64'>
-            <div className='w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin'></div>
+          <div className='flex justify-center items-center h-64 rounded-lg border border-gray-200 bg-white'>
+            <div className='w-12 h-12 border-4 border-cyan-600 border-t-transparent rounded-full animate-spin'></div>
           </div>
         ) : sortedDates.length === 0 ? (
-          <div className='bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center'>
+          <div className='rounded-lg border border-gray-200 bg-white p-12 text-center'>
+            <div className='mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-gray-500'>
+              <svg className='h-6 w-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M12 4v16m8-8H4' /></svg>
+            </div>
             <h3 className='text-lg font-bold text-slate-800 mb-1'>No tracked tasks yet</h3>
             <p className='text-slate-500'>Type into the boxes above and press Enter to save your first task!</p>
           </div>
         ) : (
           <div className='space-y-6'>
             {sortedDates.map(date => (
-              <div key={date} className='bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden'>
-                <div className='bg-slate-100/90 px-6 py-2.5 border-b border-slate-200/80'>
-                  <h2 className='text-md font-bold text-slate-700 flex items-center gap-2'>
+              <div key={date} className='overflow-hidden rounded-lg border border-gray-200 bg-white'>
+                <div className='border-b border-gray-200 bg-white px-3 py-2'>
+                  <h2 className='text-sm font-bold text-gray-800 flex items-center gap-2'>
                     {formatDateHeader(date)}
-                    <span className='bg-white px-2 py-0.5 rounded-full text-[10px] text-slate-500 border border-slate-200'>{groupedJavaks[date].length}</span>
+                    <span className='rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-semibold text-gray-600'>{groupedJavaks[date].length}</span>
                   </h2>
                 </div>
                 
                 <div className='overflow-x-auto'>
                   <table className='w-full'>
                     <thead>
-                      <tr className='border-b border-slate-100 bg-slate-50/50 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider'>
-                        <th className='px-6 py-3 w-44'>Vehicle No</th>
-                        <th className='px-6 py-3 flex-1'>Party Name</th>
-                        <th className='px-6 py-3 w-48'>Purpose</th>
-                        <th className='px-6 py-3 w-64'>Remark</th>
-                        <th className='px-6 py-3 w-32 text-center'>Status</th>
-                        <th className='px-6 py-3 w-24 text-right'>Action</th>
+                      <tr className='border-b border-gray-200 bg-gray-50 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-600'>
+                        <th className='px-3 py-2 w-44'>Vehicle No</th>
+                        <th className='px-3 py-2 flex-1'>Party Name</th>
+                        <th className='px-3 py-2 w-48'>Purpose</th>
+                        <th className='px-3 py-2 w-64'>Remark</th>
+                        <th className='px-3 py-2 w-32 text-center'>Status</th>
+                        <th className='px-3 py-2 w-24 text-right'>Action</th>
                       </tr>
                     </thead>
-                    <tbody className='divide-y divide-slate-100'>
+                    <tbody className='divide-y divide-gray-200'>
                       {groupedJavaks[date].map((task) => (
-                        <tr key={task._id} className='hover:bg-slate-50/50 transition-colors group'>
-                          <td className='px-6 py-4 text-sm font-bold text-slate-700 w-44 cursor-pointer hover:bg-amber-50' onClick={() => setEditingCell({ id: task._id, field: 'vehicleNo'})}>
+                        <tr key={task._id} className='transition-colors hover:bg-gray-50 group'>
+                          <td className='px-3 py-2 text-xs font-bold text-blue-900 w-44 cursor-pointer hover:bg-gray-100' onClick={() => setEditingCell({ id: task._id, field: 'vehicleNo'})}>
                             {editingCell?.id === task._id && editingCell?.field === 'vehicleNo' ? 
                               <EditableCell uppercase value={task.vehicleNo} onCancel={() => setEditingCell(null)} onSave={(val) => handleCellSave(task._id, 'vehicleNo', val)} /> : 
                               (task.vehicleNo || '-')}
                           </td>
-                          <td className='px-6 py-4 text-sm font-semibold text-slate-800 flex-1 cursor-pointer hover:bg-amber-50' onClick={() => setEditingCell({ id: task._id, field: 'partyName'})}>
+                          <td className='px-3 py-2 text-xs font-semibold text-gray-800 flex-1 cursor-pointer hover:bg-gray-100' onClick={() => setEditingCell({ id: task._id, field: 'partyName'})}>
                             {editingCell?.id === task._id && editingCell?.field === 'partyName' ? 
                               <EditableCell uppercase value={task.partyName} onCancel={() => setEditingCell(null)} onSave={(val) => handleCellSave(task._id, 'partyName', val)} /> : 
                               task.partyName}
                           </td>
-                          <td className='px-6 py-4 text-sm text-slate-600 w-48 cursor-pointer hover:bg-amber-50' onClick={() => setEditingCell({ id: task._id, field: 'purpose'})}>
+                          <td className='px-3 py-2 text-xs text-gray-600 w-48 cursor-pointer hover:bg-gray-100' onClick={() => setEditingCell({ id: task._id, field: 'purpose'})}>
                             {editingCell?.id === task._id && editingCell?.field === 'purpose' ? 
                               <EditableCell value={task.purpose} onCancel={() => setEditingCell(null)} onSave={(val) => handleCellSave(task._id, 'purpose', val)} /> : 
                               (task.purpose || '-')}
                           </td>
-                          <td className='px-6 py-4 text-sm text-slate-600 w-64 max-w-xs truncate cursor-pointer hover:bg-amber-50' title={task.remark} onClick={() => setEditingCell({ id: task._id, field: 'remark'})}>
+                          <td className='px-3 py-2 text-xs text-gray-600 w-64 max-w-xs truncate cursor-pointer hover:bg-gray-100' title={task.remark} onClick={() => setEditingCell({ id: task._id, field: 'remark'})}>
                             {editingCell?.id === task._id && editingCell?.field === 'remark' ? 
                               <EditableCell value={task.remark} onCancel={() => setEditingCell(null)} onSave={(val) => handleCellSave(task._id, 'remark', val)} /> : 
                               (task.remark || '-')}
                           </td>
-                          <td className='px-6 py-4 text-center w-32'>
+                          <td className='px-3 py-2 text-center w-32'>
                             <button
                               onClick={() => handleToggleStatus(task._id, task.isWorkDone)}
                               className={`inline-flex items-center justify-center w-10 h-10 rounded-full transition-all flex-shrink-0 ${
                                 task.isWorkDone 
-                                  ? 'bg-green-100 text-green-600 hover:bg-green-200 shadow-sm shadow-green-100' 
-                                  : 'bg-red-50 text-red-400 hover:bg-red-100'
+                                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 shadow-sm shadow-emerald-100' 
+                                  : 'bg-rose-50 text-rose-500 hover:bg-rose-100'
                               }`}
                               title={task.isWorkDone ? "Mark as Not Done" : "Mark as Done"}
                             >
@@ -364,10 +368,10 @@ const Javak = () => {
                               )}
                             </button>
                           </td>
-                          <td className='px-6 py-4 text-right w-24'>
+                          <td className='px-3 py-2 text-right w-24'>
                             <div className='flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity'>
 
-                              <button onClick={() => handleDelete(task._id)} className='p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors' title='Delete'>
+                              <button onClick={() => handleDelete(task._id)} className='p-1.5 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors' title='Delete'>
                                 <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' /></svg>
                               </button>
                             </div>
