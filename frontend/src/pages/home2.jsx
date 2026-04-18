@@ -74,6 +74,24 @@ const Home2 = () => {
   return (
     <div className='min-h-screen bg-slate-100 px-2 py-6 sm:px-6 lg:px-10'>
       <div className='mx-auto max-w-6xl'>
+        {/* Top Navbar Options */}
+        <div className='flex justify-end gap-3 mb-8'>
+          <button
+            onClick={() => navigate('/whatsapp')}
+            className='flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl shadow-md hover:bg-emerald-600 transition-all duration-300 font-bold'
+          >
+            <span className='text-xl'>💬</span>
+            WhatsApp
+          </button>
+          <button
+            onClick={() => navigate('/setting')}
+            className='flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-xl shadow-md hover:bg-slate-800 transition-all duration-300 font-bold'
+          >
+            <span className='text-xl'>⚙️</span>
+            Setting
+          </button>
+        </div>
+
         <div className='grid gap-8 md:grid-cols-2'>
           <button
             onClick={() => navigate('/vahan')}
