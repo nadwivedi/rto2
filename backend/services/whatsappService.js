@@ -5,220 +5,252 @@ const path = require('path')
 const fs = require('fs')
 
 const AUTH_DATA_PATH = process.env.WHATSAPP_AUTH_DIR || '.wwebjs_auth'
+const SESSION_ID = 'rto_system_admin'
 
 class WhatsappService {
-  constructor () {
-    this.client = null;
-    this.sessionRecordId = null;
-    this.starting = false;
-    // "stopped" flag: if true, cron sender skips sending
-    this.isStopped = false;
+  constructor() {
+    this.client = null          // set BEFORE initialize (like working system)
+    this.startingPromise = null // in-flight dedup guard
+    this.isStopped = false
+    this.authReceived = false   // blocks stale QR events after scan
   }
 
-  async getMasterSessionId() {
-    let session = await WaSession.findOne()
-    if (!session) {
-      session = await WaSession.create({ sessionId: 'rto_system' })
-    }
-    return session._id
-  }
+  // ─── Status DB helpers ────────────────────────────────────────────────
 
-  async updateStatus(status, updateData = {}) {
-    if (!this.sessionRecordId) {
-      this.sessionRecordId = await this.getMasterSessionId()
-    }
-    await WaSession.findByIdAndUpdate(this.sessionRecordId, {
-      status,
-      ...updateData
-    })
+  async updateStatus(status, extra = {}) {
+    await WaSession.findOneAndUpdate(
+      {},
+      { status, ...extra },
+      { upsert: true, new: true }
+    )
     console.log(`[WHATSAPP] Status -> ${status}`)
   }
 
-  async startClient() {
-    // Already running
-    if (this.client) {
-      console.log('[WHATSAPP] Client already running.')
-      return
-    }
-    // Prevent double-start race
-    if (this.starting) {
-      console.log('[WHATSAPP] Already starting, skipping.')
-      return
-    }
-
-    this.starting = true
-    this.isStopped = false
-    this.sessionRecordId = await this.getMasterSessionId()
-    await this.updateStatus('initializing', { qrCodeDataUrl: null, lastError: null })
-
-    console.log('[WHATSAPP] Creating WhatsApp client...')
-
-    const client = new Client({
-      authStrategy: new LocalAuth({
-        clientId: 'rto_system_admin',
-        dataPath: AUTH_DATA_PATH
-      }),
-      puppeteer: {
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu'
-        ]
-      }
-    })
-
-    client.on('qr', async (qr) => {
-      try {
-        console.log('[WHATSAPP] QR code received')
-        const qrCodeDataUrl = await QRCode.toDataURL(qr, { width: 300 })
-        await this.updateStatus('qr_ready', { qrCodeDataUrl, lastError: null })
-      } catch (error) {
-        console.error('[WHATSAPP] QR Code Error:', error.message)
-      }
-    })
-
-    client.on('loading_screen', (percent, message) => {
-      console.log(`[WHATSAPP] Loading: ${percent}% - ${message}`)
-    })
-
-    client.on('authenticated', async () => {
-      console.log('[WHATSAPP] Authenticated! Session saved. Waiting for ready...')
-      // Keep initializing status — ready event will set it to authenticated
-    })
-
-    client.on('ready', async () => {
-      // Assign client only after fully ready so status checks are reliable
-      this.client = client
-      this.starting = false
-      const phoneNumber = client?.info?.wid?.user || null
-      console.log(`[WHATSAPP] ✅ READY! Phone: ${phoneNumber}`)
-      await this.updateStatus('authenticated', {
-        qrCodeDataUrl: null,
-        phoneNumber,
-        lastConnectedAt: new Date(),
-        lastError: null
-      })
-    })
-
-    client.on('auth_failure', async msg => {
-      console.error('[WHATSAPP] Auth failure:', msg)
-      this.client = null
-      this.starting = false
-      await this.updateStatus('auth_failure', { lastError: String(msg) })
-    })
-
-    client.on('disconnected', async (reason) => {
-      console.log('[WHATSAPP] Disconnected:', reason)
-      this.client = null
-      this.starting = false
-      await this.updateStatus('disconnected', { qrCodeDataUrl: null, lastError: String(reason) })
-    })
-
-    // Non-blocking initialize — events drive state changes
-    client.initialize().catch(async (error) => {
-      console.error('[WHATSAPP] Initialize error:', error.message)
-      this.client = null
-      this.starting = false
-      await this.updateStatus('disconnected', { lastError: error.message })
-    })
+  async getStatus() {
+    let session = await WaSession.findOne()
+    if (!session) session = await WaSession.create({ sessionId: SESSION_ID })
+    return session
   }
 
-  /**
-   * STOP: Destroys the browser session but keeps auth data on disk.
-   * Next startClient() call won't need QR scan.
-   * Also sets isStopped = true to pause cron message sender.
-   */
-  async stopClient() {
-    console.log('[WHATSAPP] Stopping client (keeping session on disk)...')
-    this.isStopped = true
-    if (this.client) {
-      try {
-        await this.client.destroy()
-      } catch (err) {
-        console.log('[WHATSAPP] Destroy error (ignored):', err.message)
-      }
-      this.client = null
-      this.starting = false
-    }
-    if (this.sessionRecordId) {
-      await this.updateStatus('disconnected', { qrCodeDataUrl: null, lastError: 'Manually stopped' })
-    }
-  }
+  // ─── Lock file cleanup (orphaned Chrome after nodemon restart) ────────
 
-  /**
-   * LOGOUT: Destroys the browser AND clears saved auth data from disk.
-   * Next startClient() will need a fresh QR scan.
-   */
-  async logoutClient() {
-    console.log('[WHATSAPP] Logging out and clearing session data...')
-    this.isStopped = true
-    if (this.client) {
-      try {
-        await this.client.logout()
-      } catch (err) {
-        console.log('[WHATSAPP] Logout error (ignored):', err.message)
-      }
-      try {
-        await this.client.destroy()
-      } catch (err) {
-        // ignore
-      }
-      this.client = null
-      this.starting = false
-    }
-
-    // Also delete the LocalAuth directory from disk to force fresh QR
+  clearChromeLock() {
     try {
-      const authDir = path.join(AUTH_DATA_PATH, 'session-rto_system_admin')
-      if (fs.existsSync(authDir)) {
-        fs.rmSync(authDir, { recursive: true, force: true })
-        console.log('[WHATSAPP] Auth session data cleared from disk.')
+      const sessionDir = path.resolve(AUTH_DATA_PATH, `session-${SESSION_ID}`)
+      for (const f of ['SingletonLock', 'SingletonSocket', 'SingletonCookie']) {
+        const p = path.join(sessionDir, f)
+        if (fs.existsSync(p)) {
+          fs.rmSync(p, { force: true })
+          console.log(`[WHATSAPP] Cleared lock: ${f}`)
+        }
       }
     } catch (err) {
-      console.error('[WHATSAPP] Failed to clear auth data:', err.message)
+      console.warn('[WHATSAPP] Lock clear warning:', err.message)
     }
-
-    await this.updateStatus('disconnected', { qrCodeDataUrl: null, phoneNumber: null, lastError: null })
   }
 
-  async getStatus() {
-    const sessionRecordId = await this.getMasterSessionId()
-    return await WaSession.findById(sessionRecordId)
+  isProfileLockedError(error) {
+    return String(error?.message || '').includes('already running')
+  }
+
+  // ─── Start: matches working system pattern exactly ───────────────────
+
+  startClient() {
+    if (this.startingPromise) {
+      console.log('[WHATSAPP] Already starting, skip.')
+      return
+    }
+    if (this.client) {
+      console.log('[WHATSAPP] Client already active, skip.')
+      return
+    }
+
+    this.isStopped = false
+    this.authReceived = false
+    this.clearChromeLock()
+
+    this.startingPromise = this._doStart().finally(() => {
+      this.startingPromise = null
+    })
+  }
+
+  async _doStart() {
+    try {
+      await this.updateStatus('initializing', { qrCodeDataUrl: null, lastError: null })
+      console.log('[WHATSAPP] Starting session...')
+
+      const client = new Client({
+        authStrategy: new LocalAuth({
+          clientId: SESSION_ID,
+          dataPath: AUTH_DATA_PATH
+        }),
+        puppeteer: {
+          headless: true,
+          args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--disable-gpu',
+            '--disable-features=site-per-process',
+            '--disable-web-security'
+          ]
+        },
+        // Don't wait for full page load before firing events
+        webVersionCache: { type: 'none' }
+      })
+
+      // ── Store client in memory immediately (like working system) ──────
+      this.client = client
+
+      // QR event — ignore if scan already accepted
+      client.on('qr', async (qr) => {
+        if (this.authReceived) {
+          console.log('[WHATSAPP] Ignoring stale QR (already authenticated)')
+          return
+        }
+        try {
+          console.log('[WHATSAPP] QR received — generating data URL...')
+          const qrCodeDataUrl = await QRCode.toDataURL(qr, { width: 300 })
+          await this.updateStatus('qr_ready', { qrCodeDataUrl, lastError: null })
+        } catch (err) {
+          console.error('[WHATSAPP] QR error:', err.message)
+        }
+      })
+
+      client.on('loading_screen', (pct, msg) => {
+        console.log(`[WHATSAPP] Loading ${pct}% — ${msg}`)
+      })
+
+      // Authenticated: scan accepted — mark as connected immediately
+      // (ready fires later once WhatsApp fully loads in browser)
+      client.on('authenticated', async () => {
+        this.authReceived = true
+        console.log('[WHATSAPP] ✓ Authenticated — session saved!')
+        // Set to authenticated immediately so UI shows Connected without waiting for ready
+        await this.updateStatus('authenticated', {
+          qrCodeDataUrl: null,
+          lastError: null
+        })
+      })
+
+      // Ready: fully connected and usable
+      client.on('ready', async () => {
+        this.authReceived = true
+        const phoneNumber = client?.info?.wid?.user || null
+        console.log(`[WHATSAPP] ✅ READY! Phone: ${phoneNumber}`)
+        await this.updateStatus('authenticated', {
+          qrCodeDataUrl: null,
+          phoneNumber,
+          lastConnectedAt: new Date(),
+          lastError: null
+        })
+      })
+
+      client.on('auth_failure', async (msg) => {
+        console.error('[WHATSAPP] Auth failure:', msg)
+        this.client = null
+        this.authReceived = false
+        await this.updateStatus('auth_failure', { lastError: String(msg) })
+      })
+
+      client.on('disconnected', async (reason) => {
+        console.log('[WHATSAPP] Disconnected:', reason)
+        this.client = null
+        this.authReceived = false
+        await this.updateStatus('disconnected', {
+          qrCodeDataUrl: null,
+          lastError: String(reason)
+        })
+      })
+
+      // ── initialize() AWAITED inside try/catch (like working system) ───
+      // It blocks until 'ready' event fires or throws on error.
+      await client.initialize()
+
+    } catch (error) {
+      const errMsg = String(error?.message || error)
+      console.error('[WHATSAPP] Session error:', errMsg)
+
+      if (this.isProfileLockedError(error)) {
+        console.warn('[WHATSAPP] Profile locked — clearing lock and retrying in 2s...')
+        this.client = null
+        this.authReceived = false
+        this.clearChromeLock()
+        await new Promise(r => setTimeout(r, 2000))
+        // Retry once after clearing lock
+        return this._doStart()
+      }
+
+      this.client = null
+      this.authReceived = false
+      await this.updateStatus('disconnected', { lastError: errMsg })
+    }
+  }
+
+  // ─── Stop: kill browser, keep auth on disk ────────────────────────────
+
+  async stopClient() {
+    console.log('[WHATSAPP] Stopping...')
+    this.isStopped = true
+    this.authReceived = false
+    const c = this.client
+    this.client = null
+    if (c) try { await c.destroy() } catch (_) {}
+    await this.updateStatus('disconnected', {
+      qrCodeDataUrl: null,
+      lastError: 'Manually stopped'
+    })
+  }
+
+  // ─── Logout: kill browser AND wipe auth data from disk ───────────────
+
+  async logoutClient() {
+    console.log('[WHATSAPP] Logging out — clearing session data...')
+    this.isStopped = true
+    this.authReceived = false
+    const c = this.client
+    this.client = null
+    if (c) {
+      try { await c.logout() } catch (_) {}
+      try { await c.destroy() } catch (_) {}
+    }
+    try {
+      const authDir = path.resolve(AUTH_DATA_PATH, `session-${SESSION_ID}`)
+      if (fs.existsSync(authDir)) {
+        fs.rmSync(authDir, { recursive: true, force: true })
+        console.log('[WHATSAPP] Auth data cleared:', authDir)
+      }
+    } catch (err) {
+      console.error('[WHATSAPP] Could not wipe auth:', err.message)
+    }
+    await this.updateStatus('disconnected', {
+      qrCodeDataUrl: null,
+      phoneNumber: null,
+      lastError: null
+    })
   }
 
   isClientConnected() {
     return !!this.client && !this.isStopped
   }
 
-  // Used by Cron
+  // ─── Send (used by cron) ──────────────────────────────────────────────
+
   async sendMessage(targetNumber, text) {
-    if (this.isStopped) {
-      throw new Error("Message sending is paused (stopped). Resume the session first.")
-    }
-    if (!this.client) {
-      throw new Error("WhatsApp client not initialized.")
-    }
+    if (this.isStopped) throw new Error('Sending paused. Resume session first.')
+    if (!this.client) throw new Error('WhatsApp not initialized.')
 
     const state = await this.client.getState().catch(() => null)
-    if (state !== 'CONNECTED') {
-      throw new Error(`WhatsApp client is not connected. State: ${state}`)
-    }
+    if (state !== 'CONNECTED') throw new Error(`Not connected. State: ${state}`)
 
-    let formattedNumber = targetNumber.replace(/\D/g, '')
-    if (formattedNumber.length === 10) {
-      formattedNumber = '91' + formattedNumber
-    }
-    const chatId = `${formattedNumber}@c.us`
+    let num = targetNumber.replace(/\D/g, '')
+    if (num.length === 10) num = '91' + num
+    const chatId = `${num}@c.us`
 
     const isRegistered = await this.client.isRegisteredUser(chatId)
-    if (!isRegistered) {
-      throw new Error(`Number ${formattedNumber} is not registered on WhatsApp`)
-    }
+    if (!isRegistered) throw new Error(`${num} is not on WhatsApp`)
 
     const result = await this.client.sendMessage(chatId, text)
     return { success: true, messageId: result?.id?._serialized }
