@@ -190,21 +190,18 @@ const Javak = () => {
     <div className='min-h-screen bg-slate-50 px-4 pb-8 pt-4 lg:px-8 lg:pt-6'>
       <div className='max-w-7xl mx-auto space-y-6'>
         
-        {/* Header */}
-        <div>
-          <h1 className='text-3xl font-bold text-slate-800 tracking-tight'>Javak Register</h1>
-          <p className='text-slate-500 mt-1'>Type and press Enter to navigate. Saving is automatic on the final box.</p>
-        </div>
-
-        {/* Excel-Style Input Row */}
+        {/* Combined Header & Quick Add Row */}
         <div className='bg-white rounded-2xl shadow-lg border border-amber-200 overflow-hidden ring-4 ring-amber-50/50 relative z-10'>
-          <div className='bg-gradient-to-r from-amber-100 to-amber-50 px-6 py-3 border-b border-amber-200 flex items-center justify-between'>
-            <h2 className='text-sm font-bold text-amber-900 flex items-center gap-2 uppercase tracking-wide'>
-              <span className='w-6 h-6 flex items-center justify-center bg-amber-500 text-white rounded-full text-xs shadow-sm'>+</span>
-              Quick Add Task
-            </h2>
-            <div className='text-xs text-amber-700 font-medium'>
-              Press <kbd className='bg-white border-amber-200 text-amber-900 border px-1.5 py-0.5 rounded shadow-sm mx-1'>Enter ↵</kbd> to jump boxes
+          <div className='bg-gradient-to-r from-amber-100 to-amber-50 px-6 py-4 border-b border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4'>
+            <div>
+              <h1 className='text-2xl font-bold text-slate-800 tracking-tight'>Javak Register</h1>
+              <div className='flex items-center gap-2 mt-0.5'>
+                <span className='w-2 h-2 bg-amber-500 rounded-full animate-pulse'></span>
+                <h2 className='text-[10px] font-bold text-amber-700 uppercase tracking-widest'>Quick Add Task</h2>
+              </div>
+            </div>
+            <div className='text-xs text-amber-800 font-medium bg-white/60 px-3 py-2 rounded-xl border border-amber-200/50 shadow-sm'>
+              Press <kbd className='bg-white border-amber-300 text-amber-900 border px-1.5 py-0.5 rounded shadow-sm mx-1 font-bold font-mono text-[10px]'>ENTER ↵</kbd> on Remark to save
             </div>
           </div>
           
