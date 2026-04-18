@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
+  const { user } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -184,7 +186,21 @@ const Navbar = () => {
   ];
 
   // Desktop menu items (all except Dashboard, Forms and Settings)
-  const desktopMenuItems = menuItems.filter(
+  // Filter out restricted items for staff
+  let filteredMenuItems = menuItems;
+  let filteredDropdownItems = dropdownItems;
+  
+  if (user?.type === 'staff') {
+    filteredMenuItems = menuItems.filter(item => 
+      !['Forms', 'whatsapp'].includes(item.name) && !['/forms', '/whatsapp'].includes(item.path)
+    );
+    filteredDropdownItems = dropdownItems.filter(item => 
+      !['Forms', 'whatsapp'].includes(item.name) && !['/forms', '/whatsapp'].includes(item.path)
+    );
+  }
+
+  // Desktop menu items (all except Dashboard, Forms and Settings)
+  const desktopMenuItems = filteredMenuItems.filter(
     (item) => item.path !== "/" && item.path !== "/forms" && item.path !== "/setting" && item.path !== "/noc"
   );
 
@@ -281,7 +297,7 @@ const Navbar = () => {
 
         {/* Mobile Menu Items */}
         <nav className="p-3 space-y-2 overflow-y-auto h-[calc(100vh-80px)]">
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
@@ -425,7 +441,7 @@ const Navbar = () => {
           <div className="h-2 w-full"></div>
 
           <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 rounded-lg shadow-2xl border border-purple-400/20 w-[150px] overflow-hidden">
-            {dropdownItems.map((item) => (
+            {filteredDropdownItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}

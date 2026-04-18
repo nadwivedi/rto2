@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const Employee = require('../models/Employee')
 const jwt = require('jsonwebtoken')
 
 // Helper function to validate mobile number
@@ -134,9 +135,124 @@ exports.login = async (req, res) => {
   }
 }
 
+// Staff Login (using mobile + password)
+exports.staffLogin = async (req, res) => {
+  try {
+    const { identifier, password } = req.body
+
+    if (!identifier || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide mobile number and password'
+      })
+    }
+
+    const trimmedIdentifier = identifier.trim()
+
+    const employee = await Employee.findOne({ mobile: trimmedIdentifier }).populate('adminId', '_id')
+
+    if (!employee) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      })
+    }
+
+    if (!employee.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your account has been deactivated. Please contact admin.'
+      })
+    }
+
+    const isPasswordValid = await employee.comparePassword(password)
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      })
+    }
+
+    await Employee.updateOne({ _id: employee._id }, { lastLogin: new Date() })
+
+    // If employee has a named adminId use it, otherwise fall back to first user in DB
+    let adminId = employee.adminId ? employee.adminId._id || employee.adminId : null
+    if (!adminId) {
+      const User = require('../models/User')
+      const adminUser = await User.findOne({}).select('_id')
+      adminId = adminUser ? adminUser._id : null
+      // Save for future logins
+      if (adminId) await Employee.updateOne({ _id: employee._id }, { adminId })
+    }
+
+    const token = jwt.sign(
+      {
+        id: employee._id,
+        adminId: adminId,
+        mobile: employee.mobile,
+        name: employee.name,
+        type: 'staff',
+        permissions: employee.permissions
+      },
+      process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
+      { expiresIn: '30d' }
+    )
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+    })
+
+    res.json({
+      success: true,
+      message: 'Staff login successful',
+      data: {
+        user: {
+          id: employee._id,
+          name: employee.name,
+          mobile: employee.mobile,
+          type: 'staff',
+          permissions: employee.permissions,
+          lastLogin: employee.lastLogin
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Staff login error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred during staff login'
+    })
+  }
+}
+
 // Get current user profile
 exports.getProfile = async (req, res) => {
   try {
+    if (req.user.type === 'staff') {
+      const employee = await Employee.findById(req.user.id).select('-password')
+      if (!employee) {
+        return res.status(404).json({ success: false, message: 'Staff profile not found' })
+      }
+      if (!employee.isActive) {
+        return res.status(403).json({ success: false, message: 'Your account has been deactivated' })
+      }
+      return res.json({
+        success: true,
+        data: {
+          user: {
+            id: employee._id,
+            name: employee.name,
+            mobile: employee.mobile,
+            type: 'staff',
+            permissions: employee.permissions
+          }
+        }
+      })
+    }
+
     const user = await User.findById(req.user.id).select('-password')
 
     if (!user) {
@@ -167,6 +283,7 @@ exports.getProfile = async (req, res) => {
           rto: user.rto,
           billName: user.billName,
           billDescription: user.billDescription,
+          type: 'user'
         }
       }
     })

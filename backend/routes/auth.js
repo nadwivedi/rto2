@@ -5,6 +5,7 @@ const userAuthMiddleware = require('../middleware/userAuth')
 
 // User authentication routes
 router.post('/login', authController.login)
+router.post('/staff-login', authController.staffLogin)
 router.get('/profile', userAuthMiddleware, authController.getProfile)
 router.post('/logout', userAuthMiddleware, authController.logout)
 

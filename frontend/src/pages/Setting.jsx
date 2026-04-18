@@ -4,12 +4,13 @@ import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { getAllThemes, getAllVehicleNumberDesigns } from '../context/ThemeContext'
+import EmployeeManagement from './Setting/EmployeeManagement'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const Setting = () => {
   const navigate = useNavigate()
-  const { logout } = useAuth()
+  const { user, logout } = useAuth()
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -34,6 +35,8 @@ const Setting = () => {
     await logout()
     navigate('/login')
   }
+
+
 
 
 
@@ -145,7 +148,8 @@ const Setting = () => {
           </div>
         </div>
 
-
+        {/* Employee Management Section */}
+        {user?.type !== 'staff' && <EmployeeManagement />}
 
         {/* Change Password */}
         <div className='bg-white rounded-xl p-6 shadow-lg border border-gray-200'>

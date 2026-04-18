@@ -12,6 +12,7 @@ const Login = () => {
     identifier: '',
     password: ''
   })
+  const [loginType, setLoginType] = useState('admin') // 'admin' or 'staff'
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -42,7 +43,8 @@ const Login = () => {
     setLoading(true)
 
     try {
-      const response = await axios.post(`${BACKEND_URL}/api/auth/login`, {
+      const endpoint = loginType === 'staff' ? '/api/auth/staff-login' : '/api/auth/login'
+      const response = await axios.post(`${BACKEND_URL}${endpoint}`, {
         identifier: formData.identifier,
         password: formData.password
       }, {
@@ -90,7 +92,7 @@ const Login = () => {
         {/* Login Card */}
         <div className='bg-white rounded-2xl shadow-2xl p-8'>
           {/* Logo/Header */}
-          <div className='text-center mb-8'>
+          <div className='text-center mb-6'>
             <div className='w-20 h-20 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg'>
               <svg className='w-10 h-10 text-white' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
@@ -99,6 +101,31 @@ const Login = () => {
             <h1 className='text-3xl font-black text-gray-800 mb-2'>RTO Login</h1>
             <p className='text-gray-500 text-sm'>Sign in to access your account</p>
           </div>
+
+          {/* Login Type Toggle */}
+          <div className='flex p-1 mb-6 bg-gray-100 rounded-xl'>
+            <button
+              onClick={() => { setLoginType('admin'); setError(''); }}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                loginType === 'admin'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Admin Login
+            </button>
+            <button
+              onClick={() => { setLoginType('staff'); setError(''); }}
+              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
+                loginType === 'staff'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Staff Login
+            </button>
+          </div>
+
 
           {/* Error Message */}
           {error && (

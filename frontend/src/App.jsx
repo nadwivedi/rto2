@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from
 import { useEffect } from 'react'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { AuthProvider } from './context/AuthContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
@@ -35,6 +35,25 @@ import Sarthi from './pages/Sarthi'
 function ProtectedLayout() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user } = useAuth()
+
+  useEffect(() => {
+    if (user?.type === 'staff') {
+      document.body.classList.add('is-staff');
+      if (!user?.permissions?.edit) {
+        document.body.classList.add('no-edit-permissions');
+      } else {
+        document.body.classList.remove('no-edit-permissions');
+      }
+      if (!user?.permissions?.add) {
+        document.body.classList.add('no-add-permissions');
+      } else {
+        document.body.classList.remove('no-add-permissions');
+      }
+    } else {
+      document.body.classList.remove('is-staff', 'no-edit-permissions', 'no-add-permissions');
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {

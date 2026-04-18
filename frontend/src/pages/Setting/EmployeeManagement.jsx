@@ -1,0 +1,256 @@
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import { toast } from 'react-toastify'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+
+const EmployeeManagement = () => {
+  const [employees, setEmployees] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
+  const [editingId, setEditingId] = useState(null)
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    mobile: '',
+    password: '',
+    isActive: true,
+    permissions: {
+      view: true,
+      add: false,
+      edit: false
+    }
+  })
+
+  // Fetch all employees
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true)
+      const res = await axios.get(`${API_URL}/api/employees`, { withCredentials: true })
+      if (res.data.success) {
+        setEmployees(res.data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching employees:', error)
+      toast.error('Failed to load employees')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchEmployees()
+  }, [])
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target
+    if (name.startsWith('perm_')) {
+      const permName = name.replace('perm_', '')
+      setFormData({
+        ...formData,
+        permissions: {
+          ...formData.permissions,
+          [permName]: checked
+        }
+      })
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value
+      })
+    }
+  }
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      mobile: '',
+      password: '',
+      isActive: true,
+      permissions: { view: true, add: false, edit: false }
+    })
+    setEditingId(null)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!formData.name || !formData.mobile || (!editingId && !formData.password)) {
+      toast.error('Name, mobile, and password are required.')
+      return
+    }
+
+    try {
+      if (editingId) {
+        const payload = { ...formData }
+        if (!payload.password) delete payload.password // don't send empty string if unchanged
+        
+        await axios.put(`${API_URL}/api/employees/${editingId}`, payload, { withCredentials: true })
+        toast.success('Employee updated successfully')
+      } else {
+        await axios.post(`${API_URL}/api/employees`, formData, { withCredentials: true })
+        toast.success('Employee created successfully')
+      }
+      
+      fetchEmployees()
+      setShowModal(false)
+      resetForm()
+    } catch (error) {
+      console.error('Error saving employee:', error)
+      toast.error(error.response?.data?.message || 'Failed to save employee')
+    }
+  }
+
+  const handleEdit = (emp) => {
+    setFormData({
+      name: emp.name,
+      mobile: emp.mobile,
+      password: '', // leave blank unless they want to change
+      isActive: emp.isActive,
+      permissions: emp.permissions || { view: true, add: false, edit: false }
+    })
+    setEditingId(emp._id)
+    setShowModal(true)
+  }
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to delete this employee?')) {
+      try {
+        await axios.delete(`${API_URL}/api/employees/${id}`, { withCredentials: true })
+        toast.success('Employee deleted successfully')
+        fetchEmployees()
+      } catch (error) {
+        toast.error('Failed to delete employee')
+      }
+    }
+  }
+
+  return (
+    <div className='bg-white rounded-xl p-6 shadow-lg border border-gray-200'>
+      <div className='flex items-center justify-between mb-4'>
+        <div className='flex items-center gap-3'>
+          <div className='w-10 h-10 bg-gradient-to-br from-teal-500 to-green-600 rounded-lg flex items-center justify-center text-white text-xl'>
+            👥
+          </div>
+          <div>
+            <h2 className='text-lg font-bold text-gray-800'>Employee Management</h2>
+            <p className='text-xs text-gray-500'>Create and manage staff accounts and permissions</p>
+          </div>
+        </div>
+        <button
+          onClick={() => { resetForm(); setShowModal(true); }}
+          className='bg-teal-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-teal-700 transition'
+        >
+          + Add Employee
+        </button>
+      </div>
+
+      {loading ? (
+        <div className='text-center py-4'>Loading employees...</div>
+      ) : (
+        <div className='overflow-x-auto'>
+          <table className='w-full text-sm text-left border'>
+            <thead className='bg-gray-50 text-gray-600 font-semibold border-b'>
+              <tr>
+                <th className='px-4 py-3'>Name</th>
+                <th className='px-4 py-3'>Mobile</th>
+                <th className='px-4 py-3'>Status</th>
+                <th className='px-4 py-3'>Permissions</th>
+                <th className='px-4 py-3 text-right'>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {employees.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className='text-center py-4 text-gray-500'>No employees found.</td>
+                </tr>
+              ) : (
+                employees.map(emp => (
+                  <tr key={emp._id} className='border-b hover:bg-gray-50'>
+                    <td className='px-4 py-3 font-medium text-gray-900'>{emp.name}</td>
+                    <td className='px-4 py-3'>{emp.mobile}</td>
+                    <td className='px-4 py-3'>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${emp.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {emp.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className='px-4 py-3'>
+                      <div className='flex gap-1 text-xs'>
+                        <span className={`px-1.5 py-0.5 rounded ${emp.permissions?.view ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400'}`}>View</span>
+                        <span className={`px-1.5 py-0.5 rounded ${emp.permissions?.add ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>Add</span>
+                        <span className={`px-1.5 py-0.5 rounded ${emp.permissions?.edit ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-400'}`}>Edit</span>
+                      </div>
+                    </td>
+                    <td className='px-4 py-3 text-right'>
+                      <button onClick={() => handleEdit(emp)} className='text-blue-600 hover:text-blue-800 mr-3 font-medium'>Edit</button>
+                      <button onClick={() => handleDelete(emp._id)} className='text-red-500 hover:text-red-700 font-medium'>Delete</button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Modal for Add/Edit */}
+      {showModal && (
+        <div className='fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm'>
+          <div className='bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl'>
+            <div className='bg-gradient-to-r from-teal-600 to-green-600 p-4 text-white flex justify-between items-center'>
+              <h3 className='font-bold text-lg'>{editingId ? 'Edit Employee' : 'Add New Employee'}</h3>
+              <button onClick={() => setShowModal(false)} className='text-white/80 hover:text-white'>✕</button>
+            </div>
+            <div className='p-6'>
+              <form onSubmit={handleSubmit} className='space-y-4'>
+                <div>
+                  <label className='block text-sm font-semibold text-gray-700 mb-1'>Name *</label>
+                  <input type='text' name='name' value={formData.name} onChange={handleInputChange} required className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 text-sm' />
+                </div>
+                <div>
+                  <label className='block text-sm font-semibold text-gray-700 mb-1'>Mobile Number *</label>
+                  <input type='text' name='mobile' value={formData.mobile} onChange={handleInputChange} required className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 text-sm' />
+                </div>
+                <div>
+                  <label className='block text-sm font-semibold text-gray-700 mb-1'>Password {editingId && '(Leave blank to keep current)'}</label>
+                  <input type='password' name='password' value={formData.password} onChange={handleInputChange} required={!editingId} className='w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 text-sm' />
+                </div>
+                
+                <div className='pt-2'>
+                  <label className='block text-sm font-semibold text-gray-700 mb-2'>Permissions</label>
+                  <div className='flex gap-4'>
+                    <label className='flex items-center gap-2 text-sm'>
+                      <input type='checkbox' name='perm_view' checked={formData.permissions.view} onChange={handleInputChange} className='rounded text-teal-600 focus:ring-teal-500' />
+                      View Data
+                    </label>
+                    <label className='flex items-center gap-2 text-sm'>
+                      <input type='checkbox' name='perm_add' checked={formData.permissions.add} onChange={handleInputChange} className='rounded text-teal-600 focus:ring-teal-500' />
+                      Add New
+                    </label>
+                    <label className='flex items-center gap-2 text-sm'>
+                      <input type='checkbox' name='perm_edit' checked={formData.permissions.edit} onChange={handleInputChange} className='rounded text-teal-600 focus:ring-teal-500' />
+                      Edit Existing
+                    </label>
+                  </div>
+                </div>
+
+                <div className='pt-2'>
+                  <label className='flex items-center gap-2 text-sm font-semibold text-gray-700'>
+                    <input type='checkbox' name='isActive' checked={formData.isActive} onChange={handleInputChange} className='rounded text-teal-600 focus:ring-teal-500' />
+                    Account is Active
+                  </label>
+                </div>
+
+                <div className='flex gap-3 pt-4 border-t mt-4'>
+                  <button type='button' onClick={() => setShowModal(false)} className='flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-semibold text-sm'>Cancel</button>
+                  <button type='submit' className='flex-1 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition font-semibold text-sm'>Save Employee</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default EmployeeManagement

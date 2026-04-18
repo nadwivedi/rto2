@@ -50,9 +50,11 @@ const HeaderSection = ({ title, subtitle, gradient, icon }) => (
 )
 
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Home2 = () => {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const vahanColors = {
     bg: 'bg-sky-50',
     text: 'text-sky-700',
@@ -76,13 +78,15 @@ const Home2 = () => {
       <div className='mx-auto max-w-6xl'>
         {/* Top Navbar Options */}
         <div className='flex justify-end gap-3 mb-8'>
-          <button
-            onClick={() => navigate('/whatsapp')}
-            className='flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl shadow-md hover:bg-emerald-600 transition-all duration-300 font-bold'
-          >
-            <span className='text-xl'>💬</span>
-            WhatsApp
-          </button>
+          {user?.type !== 'staff' && (
+            <button
+              onClick={() => navigate('/whatsapp')}
+              className='flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl shadow-md hover:bg-emerald-600 transition-all duration-300 font-bold'
+            >
+              <span className='text-xl'>💬</span>
+              WhatsApp
+            </button>
+          )}
           <button
             onClick={() => navigate('/setting')}
             className='flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-xl shadow-md hover:bg-slate-800 transition-all duration-300 font-bold'

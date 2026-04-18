@@ -97,3 +97,21 @@ input[type='number'] {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(to bottom, #6366f1, #9333ea);
 }
+
+/* Role-Based Access Control (RBAC) Globals */
+body.is-staff [title="Delete Record"], 
+body.is-staff [title*="Delete"],
+body.is-staff button:has(svg):contains("Delete") {
+  display: none !important;
+}
+
+body.no-edit-permissions [title="Edit Record"],
+body.no-edit-permissions [title*="Edit"] {
+  display: none !important;
+}
+
+body.no-add-permissions [title="Add New"],
+body.no-add-permissions [title*="Add "],
+body.no-add-permissions .add-btn {
+  display: none !important;
+}

@@ -22,8 +22,8 @@ const userAuthMiddleware = (req, res, next) => {
       process.env.JWT_SECRET || 'your-secret-key-change-this-in-production'
     )
 
-    // Check if token is for a user (not admin)
-    if (decoded.type !== 'user') {
+    // Check if token is for a user or staff
+    if (decoded.type !== 'user' && decoded.type !== 'staff') {
       return res.status(401).json({
         success: false,
         message: 'Invalid token type',
@@ -35,6 +35,13 @@ const userAuthMiddleware = (req, res, next) => {
 
     // Add user info to request
     req.user = decoded
+
+    // KEY RBAC FIX: If staff, use adminId for all DB queries
+    // so staff sees the exact same data as their admin, no changes needed elsewhere
+    if (decoded.type === 'staff' && decoded.adminId) {
+      req.user.id = decoded.adminId
+    }
+
     next()
   } catch (error) {
     logError(error, req) // Fire and forget

@@ -104,6 +104,7 @@ const dayBookRoutes = require('./routes/dayBook')
 const partyRoutes = require('./routes/party')
 const nocRoutes = require('./routes/noc')
 const ocrRoutes = require('./routes/ocrRoutes')
+const employeeRoutes = require('./routes/employeeRoutes')
 
 // Use Routes
 
@@ -137,6 +138,7 @@ app.use('/api/gps', userAuth, gpsRoutes)
 app.use('/api/parties', userAuth, partyRoutes)
 app.use('/api/noc', userAuth, nocRoutes)
 app.use('/api/ocr', userAuth, ocrRoutes)
+app.use('/api/employees', userAuth, employeeRoutes)
 
 // Root route
 app.get('/', (req, res) => {
