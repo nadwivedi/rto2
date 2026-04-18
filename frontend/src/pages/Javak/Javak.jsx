@@ -309,8 +309,11 @@ const Javak = () => {
           <div className='space-y-6'>
             {sortedDates.map(date => (
               <div key={date} className='overflow-hidden rounded-lg border border-gray-200 bg-white'>
-                <div className='border-b border-gray-200 bg-white px-3 py-2'>
-                  <h2 className='text-sm font-bold text-gray-800 flex items-center gap-2'>
+                <div className='border-b border-gray-200 bg-white px-5 py-3'>
+                  <h2 className='flex items-center justify-start gap-2 text-left text-sm font-bold text-gray-800'>
+                    <svg className='h-4 w-4 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M8 7V3m8 4V3M5 11h14M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z' />
+                    </svg>
                     {formatDateHeader(date)}
                     <span className='rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-semibold text-gray-600'>{groupedJavaks[date].length}</span>
                   </h2>
