@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { enforceVehicleNumberFormat } from '../../utils/vehicleNoCheck'
-import AddJavakModal from './components/AddJavakModal'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
@@ -30,8 +29,6 @@ const EditableCell = ({ value, onSave, onCancel, uppercase }) => {
 const Javak = () => {
   const [javaks, setJavaks] = useState([])
   const [loading, setLoading] = useState(true)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editData, setEditData] = useState(null)
   
   // Inline entry state
   const [newEntry, setNewEntry] = useState({
@@ -112,10 +109,7 @@ const Javak = () => {
     }
   }
 
-  const openEditModal = (data) => {
-    setEditData(data)
-    setIsModalOpen(true)
-  }
+
 
   // --- Inline Entry Logic ---
   const handleEntryChange = (e) => {
@@ -375,9 +369,7 @@ const Javak = () => {
                           </td>
                           <td className='px-6 py-4 text-right w-24'>
                             <div className='flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity'>
-                              <button onClick={() => openEditModal(task)} className='p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors' title='Edit'>
-                                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' /></svg>
-                              </button>
+
                               <button onClick={() => handleDelete(task._id)} className='p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors' title='Delete'>
                                 <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' /></svg>
                               </button>
@@ -394,15 +386,7 @@ const Javak = () => {
         )}
       </div>
 
-      <AddJavakModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          setIsModalOpen(false)
-          fetchJavaks()
-        }}
-        editData={editData}
-      />
+
       
       {/* Simple animation definition for the loader */}
       <style dangerouslySetInnerHTML={{__html: `
