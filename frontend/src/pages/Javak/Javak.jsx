@@ -4,7 +4,7 @@ import { toast } from 'react-toastify'
 import { enforceVehicleNumberFormat } from '../../utils/vehicleNoCheck'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
-const inputClass = 'w-full px-3 py-2 border border-slate-200/80 rounded-lg bg-white/90 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 outline-none text-sm transition-all shadow-sm shadow-slate-200/50'
+const inputClass = 'w-full px-3 py-2 border border-slate-400/80 rounded-lg bg-white/95 focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-600 outline-none text-sm transition-all shadow-sm shadow-slate-200/60'
 
 // Component for Inline Editing
 const EditableCell = ({ value, onSave, onCancel, uppercase }) => {
@@ -193,7 +193,7 @@ const Javak = () => {
         
         {/* Combined Header & Quick Add Row */}
         <div className='bg-white/90 rounded-lg shadow-xl shadow-cyan-950/10 border border-white/80 overflow-hidden ring-1 ring-cyan-100/80 relative z-10 backdrop-blur'>
-          <div className='bg-gradient-to-r from-cyan-600 via-teal-500 to-amber-400 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white'>
+          <div className='bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-400 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white'>
             <div>
               <h1 className='text-2xl font-bold tracking-tight'>Javak Register</h1>
               <div className='flex items-center gap-2 mt-0.5'>
@@ -206,7 +206,7 @@ const Javak = () => {
             </div>
           </div>
           
-          <div className='px-6 py-5 overflow-x-auto bg-gradient-to-br from-white via-cyan-50/70 to-amber-50/60'>
+          <div className='px-6 py-5 overflow-x-auto bg-gradient-to-br from-white via-sky-50/80 to-emerald-50/70'>
             {/* We align headers with inputs for seamless excel feel */}
             <div className='min-w-[800px] flex gap-3'>
               <div className='w-40 shrink-0'>
@@ -309,13 +309,13 @@ const Javak = () => {
           <div className='space-y-6'>
             {sortedDates.map(date => (
               <div key={date} className='overflow-hidden rounded-lg border border-gray-200 bg-white'>
-                <div className='border-b border-gray-200 bg-white px-5 py-3'>
-                  <h2 className='flex items-center justify-start gap-2 text-left text-sm font-bold text-gray-800'>
-                    <svg className='h-4 w-4 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <div className='border-b border-blue-100 bg-blue-50 px-5 py-3'>
+                  <h2 className='flex items-center justify-start gap-2 text-left text-sm font-bold text-blue-900'>
+                    <svg className='h-4 w-4 text-blue-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                       <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M8 7V3m8 4V3M5 11h14M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z' />
                     </svg>
                     {formatDateHeader(date)}
-                    <span className='rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-semibold text-gray-600'>{groupedJavaks[date].length}</span>
+                    <span className='rounded bg-white px-1.5 py-0.5 text-[11px] font-semibold text-blue-700 border border-blue-100'>{groupedJavaks[date].length}</span>
                   </h2>
                 </div>
                 
@@ -324,9 +324,9 @@ const Javak = () => {
                     <thead>
                       <tr className='border-b border-gray-200 bg-gray-50 text-left text-[11px] font-semibold uppercase tracking-wider text-gray-600'>
                         <th className='px-3 py-2 w-44'>Vehicle No</th>
-                        <th className='px-3 py-2 flex-1'>Party Name</th>
-                        <th className='px-3 py-2 w-48'>Purpose</th>
-                        <th className='px-3 py-2 w-64'>Remark</th>
+                        <th className='px-3 py-2 w-64'>Party Name</th>
+                        <th className='px-3 py-2 w-56'>Purpose</th>
+                        <th className='px-3 py-2 w-56'>Remark</th>
                         <th className='px-3 py-2 w-32 text-center'>Status</th>
                         <th className='px-3 py-2 w-24 text-right'>Action</th>
                       </tr>
@@ -339,17 +339,17 @@ const Javak = () => {
                               <EditableCell uppercase value={task.vehicleNo} onCancel={() => setEditingCell(null)} onSave={(val) => handleCellSave(task._id, 'vehicleNo', val)} /> : 
                               (task.vehicleNo || '-')}
                           </td>
-                          <td className='px-3 py-2 text-xs font-semibold text-gray-800 flex-1 cursor-pointer hover:bg-gray-100' onClick={() => setEditingCell({ id: task._id, field: 'partyName'})}>
+                          <td className='px-3 py-2 text-xs font-semibold text-gray-800 w-64 cursor-pointer hover:bg-gray-100' onClick={() => setEditingCell({ id: task._id, field: 'partyName'})}>
                             {editingCell?.id === task._id && editingCell?.field === 'partyName' ? 
                               <EditableCell uppercase value={task.partyName} onCancel={() => setEditingCell(null)} onSave={(val) => handleCellSave(task._id, 'partyName', val)} /> : 
                               task.partyName}
                           </td>
-                          <td className='px-3 py-2 text-xs text-gray-600 w-48 cursor-pointer hover:bg-gray-100' onClick={() => setEditingCell({ id: task._id, field: 'purpose'})}>
+                          <td className='px-3 py-2 text-sm text-gray-700 w-56 cursor-pointer hover:bg-gray-100' onClick={() => setEditingCell({ id: task._id, field: 'purpose'})}>
                             {editingCell?.id === task._id && editingCell?.field === 'purpose' ? 
                               <EditableCell value={task.purpose} onCancel={() => setEditingCell(null)} onSave={(val) => handleCellSave(task._id, 'purpose', val)} /> : 
                               (task.purpose || '-')}
                           </td>
-                          <td className='px-3 py-2 text-xs text-gray-600 w-64 max-w-xs truncate cursor-pointer hover:bg-gray-100' title={task.remark} onClick={() => setEditingCell({ id: task._id, field: 'remark'})}>
+                          <td className='px-3 py-2 text-sm text-gray-700 w-56 max-w-xs truncate cursor-pointer hover:bg-gray-100' title={task.remark} onClick={() => setEditingCell({ id: task._id, field: 'remark'})}>
                             {editingCell?.id === task._id && editingCell?.field === 'remark' ? 
                               <EditableCell value={task.remark} onCancel={() => setEditingCell(null)} onSave={(val) => handleCellSave(task._id, 'remark', val)} /> : 
                               (task.remark || '-')}
