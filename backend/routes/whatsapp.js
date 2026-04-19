@@ -112,4 +112,20 @@ router.get('/logs', async (req, res) => {
   }
 })
 
+// DELETE a specific log
+router.delete('/logs/:id', async (req, res) => {
+  try {
+    const userId = req.user.id
+    const logId = req.params.id
+    
+    const result = await MessageLog.findOneAndDelete({ _id: logId, userId })
+    if (!result) {
+      return res.status(404).json({ message: 'Log not found or not authorized' })
+    }
+    res.json({ message: 'Message log deleted successfully' })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
 module.exports = router

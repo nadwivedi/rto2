@@ -101,6 +101,17 @@ const WhatsApp = () => {
     }
   }
 
+  const handleDeleteLog = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this log?')) return
+    try {
+      await axios.delete(`${API_URL}/api/whatsapp/logs/${id}`, { withCredentials: true })
+      toast.success('Log deleted')
+      setLogs((prev) => prev.filter((log) => log._id !== id))
+    } catch (error) {
+      toast.error(`Failed to delete: ${error?.response?.data?.message || error.message}`)
+    }
+  }
+
   const currentStatus = statusInfo?.status || 'disconnected'
   const config = statusConfig[currentStatus] || statusConfig.disconnected
   const isConnected = currentStatus === 'authenticated'
@@ -271,13 +282,14 @@ const WhatsApp = () => {
                   <th className='py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider'>Document</th>
                   <th className='py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider'>Message Preview</th>
                   <th className='py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider'>Status</th>
+                  <th className='py-3 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center'>Action</th>
                 </tr>
               </thead>
               <tbody className='divide-y divide-gray-100'>
                 {loading ? (
-                  <tr><td colSpan='5' className='py-8 text-center text-sm text-gray-400'>Loading...</td></tr>
+                  <tr><td colSpan='6' className='py-8 text-center text-sm text-gray-400'>Loading...</td></tr>
                 ) : logs.length === 0 ? (
-                  <tr><td colSpan='5' className='py-8 text-center text-sm text-gray-400'>No messages logged yet. They will appear here once alerts are triggered.</td></tr>
+                  <tr><td colSpan='6' className='py-8 text-center text-sm text-gray-400'>No messages logged yet. They will appear here once alerts are triggered.</td></tr>
                 ) : (
                   logs.map((log) => {
                     const d = new Date(log.createdAt);
@@ -321,6 +333,15 @@ const WhatsApp = () => {
                             {log.errorReason}
                           </div>
                         )}
+                      </td>
+                      <td className='py-3 px-4 text-center border-l border-gray-100'>
+                        <button
+                          onClick={() => handleDeleteLog(log._id)}
+                          className='text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 transition p-1.5 rounded-md'
+                          title='Delete Log'
+                        >
+                          🗑️
+                        </button>
                       </td>
                     </tr>
                     );
