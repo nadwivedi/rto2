@@ -7,14 +7,11 @@ const MessageLog = require('../models/MessageLog')
 router.get('/status', async (req, res) => {
   try {
     const userId = req.user.id
-    const session = await whatsappService.getStatus(userId)
+    const session = await whatsappService.getSessionStatus(userId)
 
-    // If DB shows authenticated/initializing but client is gone (server restart), auto-restore
-    if ((session?.status === 'authenticated' || session?.status === 'initializing') && !whatsappService.isClientConnected(userId)) {
-      console.log(`[WHATSAPP] Status endpoint: DB=authenticated/initializing but client null — auto-restoring for user ${userId}...`)
-      whatsappService.startClient(userId)
-    }
-
+    // With the new low-memory architecture, the client might purposely be null (sleeping)
+    // We do NOT auto-restore here to save RAM. It will auto-restore on the next send request.
+    
     res.json({
       ...(session ? session.toObject() : {}),
       isStopped: whatsappService.isClientStopped(userId),
@@ -29,8 +26,26 @@ router.get('/status', async (req, res) => {
 router.post('/start', async (req, res) => {
   try {
     const userId = req.user.id
-    whatsappService.startClient(userId) // async, non-blocking
+    whatsappService.initializeSession(userId) // non-blocking queue initiation
     res.json({ message: 'Session start initiated. Check status for QR or connection update.' })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
+// POST Send a singular ad-hoc message manually easily
+router.post('/send', async (req, res) => {
+  try {
+    const userId = req.user.id
+    const { chatId, text } = req.body
+    
+    if (!chatId || !text) {
+      return res.status(400).json({ message: 'Please provide chatId/targetNumber and text payload' })
+    }
+
+    // Call the robust queued sender (which cold starts if needed)
+    const result = await whatsappService.sendWhatsAppMessage(userId, chatId, text)
+    res.json({ message: 'Dynamic send successful', result })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -40,7 +55,7 @@ router.post('/start', async (req, res) => {
 router.post('/stop', async (req, res) => {
   try {
     const userId = req.user.id
-    await whatsappService.stopClient(userId)
+    await whatsappService.destroySession(userId, true) // Pass true to manually pause it permanently
     res.json({ message: 'WhatsApp session stopped. Auth saved. Tap Start to resume.' })
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -51,7 +66,7 @@ router.post('/stop', async (req, res) => {
 router.post('/logout', async (req, res) => {
   try {
     const userId = req.user.id
-    await whatsappService.logoutClient(userId)
+    await whatsappService.logoutSession(userId)
     res.json({ message: 'Logged out and session data cleared. You will need to scan QR again.' })
   } catch (error) {
     res.status(500).json({ message: error.message })

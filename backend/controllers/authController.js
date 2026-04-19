@@ -1,6 +1,7 @@
 const User = require('../models/User')
 const Employee = require('../models/Employee')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 
 // Helper function to validate mobile number
 const isValidMobile = (mobile) => {
@@ -75,13 +76,22 @@ exports.login = async (req, res) => {
     }
 
     // Verify password
-    const isPasswordValid = await user.comparePassword(password)
+    let isPasswordValid = await user.comparePassword(password)
 
     if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      })
+      if (user.password === password) {
+        // Plaintext fallback (due to bug)
+        isPasswordValid = true
+        // Auto-fix: hash and save
+        const salt = await bcrypt.genSalt(10)
+        user.password = await bcrypt.hash(password, salt)
+        await user.save()
+      } else {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid credentials'
+        })
+      }
     }
 
     // Update last login (using updateOne to avoid triggering pre-save hooks)
@@ -165,12 +175,20 @@ exports.staffLogin = async (req, res) => {
       })
     }
 
-    const isPasswordValid = await employee.comparePassword(password)
+    let isPasswordValid = await employee.comparePassword(password)
     if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials'
-      })
+      if (employee.password === password) {
+        // Plaintext fallback
+        isPasswordValid = true
+        const salt = await bcrypt.genSalt(10)
+        employee.password = await bcrypt.hash(password, salt)
+        await employee.save()
+      } else {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid credentials'
+        })
+      }
     }
 
     await Employee.updateOne({ _id: employee._id }, { lastLogin: new Date() })
@@ -339,10 +357,15 @@ exports.changePassword = async (req, res) => {
 
     const isMatch = await account.comparePassword(currentPassword)
     if (!isMatch) {
-      return res.status(400).json({ success: false, message: 'Incorrect current password' })
+      // Small fallback: if the current password was saved in plaintext due to the bug, it won't match bcrypt.compare.
+      // We can check if the current password exactly equals the stored string as a bailout, so the user isn't permanently locked out.
+      if (account.password !== currentPassword) {
+        return res.status(400).json({ success: false, message: 'Incorrect current password' })
+      }
     }
 
-    account.password = newPassword
+    const salt = await bcrypt.genSalt(10)
+    account.password = await bcrypt.hash(newPassword, salt)
     await account.save()
 
     res.json({ success: true, message: 'Password updated successfully' })

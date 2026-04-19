@@ -6,16 +6,30 @@ const whatsappService = require('../services/whatsappService')
 const processPendingMessagesForUser = async (userId) => {
     try {
         const uid = userId.toString()
-        if (!whatsappService.isClientConnected(uid)) {
-            console.log(`[WHATSAPP-SENDER:${uid}] Client not connected yet, skipping this run.`)
+        
+        // Removed the early exit `if (!whatsappService.isClientConnected()) return` 
+        // because whatsappService now starts completely on-demand.
+        if (whatsappService.isClientStopped(uid)) {
+            console.log(`[WHATSAPP-SENDER:${uid}] User has manually stopped sending. Skipping...`)
             return
         }
 
         console.log(`[WHATSAPP-SENDER:${uid}] Checking for pending messages...`)
 
         let setting = await WhatsAppSetting.findOne({ userId: uid })
-        const maxPerDay = setting ? setting.maxMessagesPerDay : 30
-        const maxPerHour = setting ? setting.maxMessagesPerHour : 5
+        const maxPerDay = setting ? setting.maxMessagesPerDay : 25
+        const maxPerHour = setting ? setting.maxMessagesPerHour : 4
+
+        // 1. Check strict IST time window (9 AM to 8 PM)
+        const now = new Date()
+        // Convert to IST (UTC + 5:30)
+        const istTime = new Date(now.getTime() + (5.5 * 60 * 60 * 1000))
+        const hourIST = istTime.getUTCHours()
+
+        if (hourIST < 9 || hourIST >= 20) {
+            console.log(`[WHATSAPP-SENDER:${uid}] Outside sending window (9 AM - 8 PM IST). Current IST hour: ${hourIST}. Skipping.`)
+            return
+        }
 
         const startOfDay = new Date()
         startOfDay.setHours(0, 0, 0, 0)
@@ -34,6 +48,7 @@ const processPendingMessagesForUser = async (userId) => {
             console.log(`[WHATSAPP-SENDER:${uid}] Reset ${resetResult.modifiedCount} failed message(s) back to pending for retry.`)
         }
 
+        // 2. Check Daily Limit
         const sentTodayCount = await MessageLog.countDocuments({
             userId: uid,
             status: 'sent',
@@ -41,12 +56,39 @@ const processPendingMessagesForUser = async (userId) => {
         })
 
         if (sentTodayCount >= maxPerDay) {
-            console.log(`[WHATSAPP-SENDER:${uid}] Daily limit reached (${sentTodayCount}/${maxPerDay}). Skipping.`)
+            console.log(`[WHATSAPP-SENDER:${uid}] Daily limit reached (${sentTodayCount}/${maxPerDay}). Closing session for the rest of the day.`)
+            // Terminate session gracefully & prevent any new spawns inherently
+            if (whatsappService.isClientConnected(uid)) {
+                await whatsappService.destroySession(uid, false) // false = don't set manual stop flag, just kill RAM
+            }
             return
         }
 
-        const remainingQuota = maxPerDay - sentTodayCount
-        const limitToFetch = Math.min(maxPerHour, remainingQuota)
+        // 3. Check Hourly Limit
+        const startOfHourIST = new Date(istTime)
+        startOfHourIST.setUTCMinutes(0, 0, 0) 
+        // Convert back to UTC for MongoDB $gte query
+        const startOfHourUTC = new Date(startOfHourIST.getTime() - (5.5 * 60 * 60 * 1000))
+
+        const sentThisHourCount = await MessageLog.countDocuments({
+            userId: uid,
+            status: 'sent',
+            sentAt: { $gte: startOfHourUTC }
+        })
+
+        if (sentThisHourCount >= maxPerHour) {
+            console.log(`[WHATSAPP-SENDER:${uid}] Hourly limit reached (${sentThisHourCount}/${maxPerHour}). Waiting for next hour.`)
+            if (whatsappService.isClientConnected(uid)) {
+                await whatsappService.destroySession(uid, false)
+            }
+            return
+        }
+
+        const remainingQuotaDay = maxPerDay - sentTodayCount
+        const remainingQuotaHour = maxPerHour - sentThisHourCount
+        
+        // Fetch up to the remaining hourly/daily limit
+        const limitToFetch = Math.min(remainingQuotaHour, remainingQuotaDay)
 
         if (limitToFetch <= 0) return
 
@@ -58,11 +100,12 @@ const processPendingMessagesForUser = async (userId) => {
 
         if (messages.length === 0) return
 
-        console.log(`[WHATSAPP-SENDER:${uid}] Found ${messages.length} pending message(s). Sending...`)
+        console.log(`[WHATSAPP-SENDER:${uid}] Found ${messages.length} pending message(s) within cycle limit. Queueing...`)
 
+        // The sendWhatsAppMessage call will internally queue them up one by one and cold-start browser if needed
         for (const msg of messages) {
             try {
-                const result = await whatsappService.sendMessage(uid, msg.targetNumber, msg.messageBody)
+                const result = await whatsappService.sendWhatsAppMessage(uid, msg.targetNumber, msg.messageBody)
                 msg.status = 'sent'
                 msg.sentAt = new Date()
                 msg.whatsappMessageId = result.messageId
@@ -75,6 +118,12 @@ const processPendingMessagesForUser = async (userId) => {
                 msg.errorReason = err.message
                 await msg.save()
             }
+        }
+        
+        // Immediately close session to free RAM as requested
+        if (whatsappService.isClientConnected(uid)) {
+            console.log(`[WHATSAPP-SENDER:${uid}] Batch complete. Closing session immediately to free RAM.`)
+            await whatsappService.destroySession(uid, false)
         }
     } catch (error) {
         console.error(`[WHATSAPP-SENDER:${userId}] Error in message sender:`, error)
