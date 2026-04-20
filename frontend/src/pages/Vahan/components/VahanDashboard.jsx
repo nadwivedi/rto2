@@ -108,12 +108,33 @@ const VahanDashboard = () => {
       })
 
       ;(data.expiringRecords.nationalPermit || []).forEach(r => {
-        records.push({
-          ...r,
-          docType: 'National Permit',
-          validFrom: r.validFrom || r.partBValidFrom || r.partAValidFrom,
-          validTo: r.validTo || r.permitExpiryDate || r.partBValidTo || r.partAValidTo
-        })
+        if (r.partAStatus === 'expiring_soon') {
+          records.push({
+            ...r,
+            docType: 'NP (Part A)',
+            ownerName: r.permitHolder || r.partyName,
+            validFrom: r.partAValidFrom,
+            validTo: r.partAValidTo
+          })
+        }
+        if (r.partBStatus === 'expiring_soon') {
+          records.push({
+            ...r,
+            docType: 'NP (Part B)',
+            ownerName: r.permitHolder || r.partyName,
+            validFrom: r.partBValidFrom,
+            validTo: r.partBValidTo
+          })
+        }
+        if (!r.partAStatus && !r.partBStatus) {
+          records.push({
+            ...r,
+            docType: 'National Permit',
+            ownerName: r.permitHolder || r.partyName,
+            validFrom: r.validFrom || r.partAValidFrom,
+            validTo: r.validTo || r.permitExpiryDate || r.partAValidTo
+          })
+        }
       })
 
       ;(data.expiringRecords.cgPermit || []).forEach(r => {
@@ -151,7 +172,12 @@ const VahanDashboard = () => {
         })
       })
 
-      setAllRecords(records)
+      const nonExpiredRecords = records.filter(r => {
+        const days = getDaysRemaining(r.validTo)
+        return days !== null && days >= 0
+      })
+
+      setAllRecords(nonExpiredRecords)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -181,10 +207,12 @@ const VahanDashboard = () => {
     'PUC': 3,
     'GPS': 4,
     'National Permit': 5,
-    'State Permit': 6,
-    'Bus Permit': 7,
-    'Temp Permit': 8,
-    'Temp Permit Other': 9
+    'NP (Part A)': 6,
+    'NP (Part B)': 7,
+    'State Permit': 8,
+    'Bus Permit': 9,
+    'Temp Permit': 10,
+    'Temp Permit Other': 11
   }
 
   const filteredRecords = useMemo(() => {
@@ -196,7 +224,7 @@ const VahanDashboard = () => {
         'tax': 'Tax',
         'puc': 'PUC',
         'gps': 'GPS',
-        'permit': ['National Permit', 'State Permit', 'Bus Permit', 'Temp Permit', 'Temp Permit Other']
+        'permit': ['National Permit', 'NP (Part A)', 'NP (Part B)', 'State Permit', 'Bus Permit', 'Temp Permit', 'Temp Permit Other']
       }
       const targetType = filterMap[filter]
       if (Array.isArray(targetType)) {
@@ -228,6 +256,8 @@ const VahanDashboard = () => {
       'PUC': 'bg-teal-100 text-teal-700',
       'GPS': 'bg-purple-100 text-purple-700',
       'National Permit': 'bg-emerald-100 text-emerald-700',
+      'NP (Part A)': 'bg-emerald-100 text-emerald-700',
+      'NP (Part B)': 'bg-emerald-100 text-emerald-700',
       'State Permit': 'bg-green-100 text-green-700',
       'Bus Permit': 'bg-amber-100 text-amber-700',
       'Temp Permit': 'bg-yellow-100 text-yellow-700',
@@ -251,7 +281,7 @@ const VahanDashboard = () => {
     fitness: allRecords.filter(r => r.docType === 'Fitness').length,
     puc: allRecords.filter(r => r.docType === 'PUC').length,
     gps: allRecords.filter(r => r.docType === 'GPS').length,
-    permit: allRecords.filter(r => ['National Permit', 'State Permit', 'Bus Permit', 'Temp Permit', 'Temp Permit Other'].includes(r.docType)).length
+    permit: allRecords.filter(r => ['National Permit', 'NP (Part A)', 'NP (Part B)', 'State Permit', 'Bus Permit', 'Temp Permit', 'Temp Permit Other'].includes(r.docType)).length
   }
 
   return (

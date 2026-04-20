@@ -71,9 +71,25 @@ exports.getDashboardData = async (req, res) => {
       ]),
       BusPermit.find({ userId, status: 'expiring_soon' }).sort({ permitExpiryDate: 1 }),
 
-      // National Permit (dummy data for now as logic is more complex)
-      Promise.resolve({ total: 0, partAExpiringSoon: 0, partBExpiringSoon: 0 }),
-      Promise.resolve([]),
+      // National Permit
+      NationalPermit.aggregate([
+        { $match: { userId } },
+        { 
+          $group: { 
+            _id: null, 
+            total: { $sum: 1 },
+            partAExpiringSoon: { $sum: { $cond: [{ $eq: ['$partAStatus', 'expiring_soon'] }, 1, 0] } },
+            partBExpiringSoon: { $sum: { $cond: [{ $eq: ['$partBStatus', 'expiring_soon'] }, 1, 0] } }
+          } 
+        }
+      ]),
+      NationalPermit.find({ 
+        userId, 
+        $or: [
+          { partAStatus: 'expiring_soon' },
+          { partBStatus: 'expiring_soon' }
+        ] 
+      }),
 
       // CG Permit
       CgPermit.aggregate([
@@ -126,7 +142,9 @@ exports.getDashboardData = async (req, res) => {
           gps: formatStats(gpsStats),
           tax: { ...formatStats(taxStats), expiring: formatStats(taxStats).expiringSoon },
           busPermit: formatStats(busPermitStats),
-          nationalPermit: nationalPermitStats,
+          nationalPermit: Array.isArray(nationalPermitStats) 
+            ? (nationalPermitStats[0] || { total: 0, partAExpiringSoon: 0, partBExpiringSoon: 0 }) 
+            : nationalPermitStats,
           cgPermit: formatStats(cgPermitStats),
           insurance: formatStats(insuranceStats),
           temporaryPermit: formatStats(temporaryPermitStats),
