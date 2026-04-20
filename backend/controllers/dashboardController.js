@@ -6,6 +6,8 @@ const BusPermit = require('../models/BusPermit');
 const NationalPermit = require('../models/NationalPermit');
 const CgPermit = require('../models/CgPermit');
 const Insurance = require('../models/Insurance');
+const TemporaryPermit = require('../models/TemporaryPermit');
+const TemporaryPermitOtherState = require('../models/TemporaryPermitOtherState');
 const mongoose = require('mongoose');
 
 exports.getDashboardData = async (req, res) => {
@@ -29,6 +31,10 @@ exports.getDashboardData = async (req, res) => {
       cgPermitExpiring,
       insuranceStats,
       insuranceExpiring,
+      temporaryPermitStats,
+      temporaryPermitExpiring,
+      temporaryPermitOtherStateStats,
+      temporaryPermitOtherStateExpiring,
     ] = await Promise.all([
       // Fitness
       Fitness.aggregate([
@@ -82,6 +88,20 @@ exports.getDashboardData = async (req, res) => {
         { $group: { _id: '$status', count: { $sum: 1 } } }
       ]),
       Insurance.find({ userId, status: 'expiring_soon' }).sort({ validTo: 1 }),
+
+      // Temporary Permit
+      TemporaryPermit.aggregate([
+        { $match: { userId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      TemporaryPermit.find({ userId, status: 'expiring_soon' }).sort({ validTo: 1 }),
+
+      // Temporary Permit Other State
+      TemporaryPermitOtherState.aggregate([
+        { $match: { userId } },
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      TemporaryPermitOtherState.find({ userId, status: 'expiring_soon' }).sort({ validTo: 1 }),
     ]);
 
     const formatStats = (stats) => {
@@ -109,6 +129,8 @@ exports.getDashboardData = async (req, res) => {
           nationalPermit: nationalPermitStats,
           cgPermit: formatStats(cgPermitStats),
           insurance: formatStats(insuranceStats),
+          temporaryPermit: formatStats(temporaryPermitStats),
+          temporaryPermitOtherState: formatStats(temporaryPermitOtherStateStats),
         },
         expiringRecords: {
           fitness: fitnessExpiring,
@@ -119,6 +141,8 @@ exports.getDashboardData = async (req, res) => {
           nationalPermit: nationalPermitExpiring,
           cgPermit: cgPermitExpiring,
           insurance: insuranceExpiring,
+          temporaryPermit: temporaryPermitExpiring,
+          temporaryPermitOtherState: temporaryPermitOtherStateExpiring,
         },
       },
     });

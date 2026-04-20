@@ -132,6 +132,25 @@ const VahanDashboard = () => {
         })
       })
 
+      ;(data.expiringRecords.temporaryPermit || []).forEach(r => {
+        records.push({
+          ...r,
+          docType: 'Temp Permit',
+          ownerName: r.permitHolder || r.partyName,
+          validTo: r.validTo
+        })
+      })
+
+      ;(data.expiringRecords.temporaryPermitOtherState || []).forEach(r => {
+        records.push({
+          ...r,
+          docType: 'Temp Permit Other',
+          ownerName: r.permitHolder || r.partyName,
+          vehicleNumber: r.vehicleNo || r.vehicleNumber,
+          validTo: r.validTo
+        })
+      })
+
       setAllRecords(records)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -163,7 +182,9 @@ const VahanDashboard = () => {
     'GPS': 4,
     'National Permit': 5,
     'State Permit': 6,
-    'Bus Permit': 7
+    'Bus Permit': 7,
+    'Temp Permit': 8,
+    'Temp Permit Other': 9
   }
 
   const filteredRecords = useMemo(() => {
@@ -175,7 +196,7 @@ const VahanDashboard = () => {
         'tax': 'Tax',
         'puc': 'PUC',
         'gps': 'GPS',
-        'permit': ['National Permit', 'State Permit', 'Bus Permit']
+        'permit': ['National Permit', 'State Permit', 'Bus Permit', 'Temp Permit', 'Temp Permit Other']
       }
       const targetType = filterMap[filter]
       if (Array.isArray(targetType)) {
@@ -208,7 +229,9 @@ const VahanDashboard = () => {
       'GPS': 'bg-purple-100 text-purple-700',
       'National Permit': 'bg-emerald-100 text-emerald-700',
       'State Permit': 'bg-green-100 text-green-700',
-      'Bus Permit': 'bg-amber-100 text-amber-700'
+      'Bus Permit': 'bg-amber-100 text-amber-700',
+      'Temp Permit': 'bg-yellow-100 text-yellow-700',
+      'Temp Permit Other': 'bg-orange-100 text-orange-700'
     }
     return styles[docType] || 'bg-gray-100 text-gray-700'
   }
@@ -228,7 +251,7 @@ const VahanDashboard = () => {
     fitness: allRecords.filter(r => r.docType === 'Fitness').length,
     puc: allRecords.filter(r => r.docType === 'PUC').length,
     gps: allRecords.filter(r => r.docType === 'GPS').length,
-    permit: allRecords.filter(r => ['National Permit', 'State Permit', 'Bus Permit'].includes(r.docType)).length
+    permit: allRecords.filter(r => ['National Permit', 'State Permit', 'Bus Permit', 'Temp Permit', 'Temp Permit Other'].includes(r.docType)).length
   }
 
   return (
