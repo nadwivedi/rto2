@@ -49,6 +49,7 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, o
   }
 
   const rcImageUrl = getImageUrl(selectedRegistration.rcImage)
+  const rcBackImageUrl = getImageUrl(selectedRegistration.rcBackImage)
   const aadharImageUrl = getImageUrl(selectedRegistration.aadharImage)
   const panImageUrl = getImageUrl(selectedRegistration.panImage)
   const speedGovernorImageUrl = getImageUrl(selectedRegistration.speedGovernorImage)
@@ -98,7 +99,7 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, o
         {/* Content */}
         <div className='overflow-y-auto max-h-[calc(98vh-100px)] md:max-h-[calc(95vh-130px)] p-3 md:p-5'>
           {/* Document Images Section */}
-          {(rcImageUrl || aadharImageUrl || panImageUrl || speedGovernorImageUrl) && (
+          {(rcImageUrl || rcBackImageUrl || aadharImageUrl || panImageUrl || speedGovernorImageUrl) && (
             <div className='mb-4 bg-gradient-to-br from-green-50 to-emerald-50 p-3 md:p-4 rounded-lg md:rounded-xl border-2 border-green-200'>
               <h3 className='text-sm md:text-base font-bold text-green-900 mb-3 flex items-center gap-2'>
                 <svg className='w-4 h-4 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -107,14 +108,14 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, o
                 Document Images
               </h3>
               <div className='grid grid-cols-2 lg:grid-cols-4 gap-3'>
-                {/* RC Image */}
+                {/* RC Front Image */}
                 {rcImageUrl && (
                   <div className='bg-white rounded-lg p-2 border-2 border-blue-300 group relative'>
-                    <div className='text-[10px] font-bold text-blue-800 mb-2 text-center uppercase tracking-wide'>RC {isPDF(rcImageUrl) ? 'PDF' : 'Image'}</div>
+                    <div className='text-[10px] font-bold text-blue-800 mb-2 text-center uppercase tracking-wide'>RC Front {isPDF(rcImageUrl) ? 'PDF' : 'Image'}</div>
                     <div className='relative'>
                       {isPDF(rcImageUrl) ? (
                         <div
-                          onClick={() => handleImageClick(rcImageUrl, 'RC Document PDF')}
+                          onClick={() => handleImageClick(rcImageUrl, 'RC Front PDF')}
                           className='w-full h-32 bg-red-50 rounded cursor-pointer hover:bg-red-100 transition-colors flex items-center justify-center border-2 border-red-200'
                           title='Click to view PDF'
                         >
@@ -125,13 +126,49 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, o
                       ) : (
                         <img
                           src={rcImageUrl}
-                          alt='RC Document'
-                          onClick={() => handleImageClick(rcImageUrl, 'RC Document Image')}
+                          alt='RC Front'
+                          onClick={() => handleImageClick(rcImageUrl, 'RC Front Image')}
                           className='w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity'
                           title='Click to view full image with zoom'
                         />
                       )}
-                      <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => handleImageClick(rcImageUrl, isPDF(rcImageUrl) ? 'RC Document PDF' : 'RC Document Image')}>
+                      <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => handleImageClick(rcImageUrl, isPDF(rcImageUrl) ? 'RC Front PDF' : 'RC Front Image')}>
+                        <div className='bg-white text-gray-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1'>
+                          <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
+                          </svg>
+                          View
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* RC Back Image */}
+                {rcBackImageUrl && (
+                  <div className='bg-white rounded-lg p-2 border-2 border-sky-300 group relative'>
+                    <div className='text-[10px] font-bold text-sky-800 mb-2 text-center uppercase tracking-wide'>RC Back {isPDF(rcBackImageUrl) ? 'PDF' : 'Image'}</div>
+                    <div className='relative'>
+                      {isPDF(rcBackImageUrl) ? (
+                        <div
+                          onClick={() => handleImageClick(rcBackImageUrl, 'RC Back PDF')}
+                          className='w-full h-32 bg-red-50 rounded cursor-pointer hover:bg-red-100 transition-colors flex items-center justify-center border-2 border-red-200'
+                          title='Click to view PDF'
+                        >
+                          <svg className='w-10 h-10 text-red-500' fill='currentColor' viewBox='0 0 20 20'>
+                            <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
+                          </svg>
+                        </div>
+                      ) : (
+                        <img
+                          src={rcBackImageUrl}
+                          alt='RC Back'
+                          onClick={() => handleImageClick(rcBackImageUrl, 'RC Back Image')}
+                          className='w-full h-32 object-cover rounded cursor-pointer hover:opacity-80 transition-opacity'
+                          title='Click to view full image with zoom'
+                        />
+                      )}
+                      <div className='absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded cursor-pointer' onClick={() => handleImageClick(rcBackImageUrl, isPDF(rcBackImageUrl) ? 'RC Back PDF' : 'RC Back Image')}>
                         <div className='bg-white text-gray-800 px-2 py-1 rounded text-xs font-bold flex items-center gap-1'>
                           <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7' />
