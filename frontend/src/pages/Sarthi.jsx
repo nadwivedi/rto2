@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import QuickDLApplicationForm from './DrivingLicence/components/QuickDLApplicationForm'
+import axios from 'axios'
+import { toast } from 'react-toastify'
 import AddVehicleTransferModal from './VehicleTransfer/components/AddVehicleTransferModal'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 import AddNocModal from './Noc/components/AddNocModal'
 import AddRegistrationRenewalModal from './RegistrationRenewal/components/AddRegistrationRenewalModal'
 import SarthiDashboard from './Sarthi/components/SarthiDashboard'
@@ -49,6 +53,55 @@ const Sarthi = () => {
 
   const openModal = (title) => setActiveModal(title)
   const closeModal = () => setActiveModal(null)
+
+  const handleDlSubmit = async (formData) => {
+    try {
+      const convertDateToISO = (dateStr) => {
+        if (!dateStr) return null
+        const [day, month, year] = dateStr.split('-')
+        return `${year}-${month}-${day}`
+      }
+
+      const applicationData = {
+        name: formData.name,
+        dateOfBirth: convertDateToISO(formData.dateOfBirth),
+        gender: formData.gender,
+        fatherName: formData.fatherName,
+        mobileNumber: formData.mobileNumber,
+        email: formData.email,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        pincode: formData.pincode,
+        licenseClass: formData.licenseClass,
+        licenseNumber: formData.licenseNumber,
+        licenseIssueDate: formData.licenseIssueDate,
+        licenseExpiryDate: formData.licenseExpiryDate,
+        learningLicenseApplicationNumber: formData.learningLicenseApplicationNumber,
+        learningLicenseNumber: formData.learningLicenseNumber,
+        learningLicenseIssueDate: formData.learningLicenseIssueDate,
+        learningLicenseExpiryDate: formData.learningLicenseExpiryDate,
+        panNumber: formData.panNumber,
+        emergencyContact: formData.emergencyContact,
+        emergencyRelation: formData.emergencyRelation,
+        totalAmount: parseFloat(formData.totalAmount) || 0,
+        paidAmount: parseFloat(formData.paidAmount) || 0,
+        balanceAmount: parseFloat(formData.balanceAmount) || 0,
+        applicationStatus: 'pending',
+        documents: formData.documents
+      }
+
+      const response = await axios.post(`${API_URL}/api/driving-licenses`, applicationData, { withCredentials: true })
+
+      if (response.data.success) {
+        toast.success('Application submitted successfully!', { autoClose: 700 })
+        closeModal()
+      }
+    } catch (error) {
+      console.error('Error submitting application:', error)
+      toast.error('Failed to submit application. Please try again.', { autoClose: 700 })
+    }
+  }
 
   return (
     <>
@@ -111,7 +164,7 @@ const Sarthi = () => {
         <QuickDLApplicationForm
           isOpen={true}
           onClose={closeModal}
-          onSubmit={closeModal}
+          onSubmit={handleDlSubmit}
         />
       )}
 
