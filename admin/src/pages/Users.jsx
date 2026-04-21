@@ -3,6 +3,21 @@ import { useState, useEffect } from 'react'
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'https://api.rtosarthi.com'
 console.log(BACKEND_URL);
 
+const formatDateTime = (value) => {
+  if (!value) return 'Never'
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Never'
+
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 const INDIAN_STATES = [
   'Andaman and Nicobar Islands',
   'Andhra Pradesh',
@@ -261,9 +276,10 @@ const Users = () => {
                 <thead className='bg-gray-50 border-b'>
                   <tr>
                     <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Name</th>
-                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Mobile</th>
-                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Email</th>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Contact</th>
                     <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Status</th>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Last Login</th>
+                    <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Last Activity</th>
                     <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Created</th>
                     <th className='px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase'>Actions</th>
                   </tr>
@@ -294,14 +310,28 @@ const Users = () => {
                           </div>
                         </div>
                       </td>
-                      <td className='px-6 py-4 text-sm text-gray-700'>{user.mobile1}</td>
-                      <td className='px-6 py-4 text-sm text-gray-700'>{user.email || '-'}</td>
+                      <td className='px-6 py-4'>
+                        <div className='flex flex-col'>
+                          <span className='text-sm font-medium text-gray-800'>{user.mobile1}</span>
+                          <span className='text-xs text-gray-500 mt-0.5'>{user.email || '-'}</span>
+                        </div>
+                      </td>
                       <td className='px-6 py-4 text-sm'>
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-semibold ${
                           user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
                           {user.isActive ? 'Active' : 'Inactive'}
                         </span>
+                      </td>
+                      <td className='px-6 py-4 text-xs text-gray-700'>
+                        <div className={user.lastLogin ? 'text-gray-700' : 'text-gray-400'}>
+                          {formatDateTime(user.lastLogin)}
+                        </div>
+                      </td>
+                      <td className='px-6 py-4 text-xs text-gray-700'>
+                        <div className={user.lastActivity ? 'text-gray-700' : 'text-gray-400'}>
+                          {formatDateTime(user.lastActivity)}
+                        </div>
                       </td>
                       <td className='px-6 py-4 text-sm text-gray-700'>
                         {new Date(user.createdAt).toLocaleDateString()}
@@ -353,20 +383,23 @@ const Users = () => {
                           )}
                         </button>
                       </div>
-                      <p className='text-sm text-gray-600 mt-1'>
-                        {user.mobile1}{user.email && ` • ${user.email}`}
-                      </p>
+                      <div className='text-sm text-gray-600 mt-1'>
+                        <div className='font-medium text-gray-700'>{user.mobile1}</div>
+                        <div className='text-xs text-gray-500'>{user.email || '-'}</div>
+                      </div>
                     </div>
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold whitespace-nowrap ${
                       user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                     }`}>
                       {user.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                   <div className='flex justify-between items-center pt-2 border-t border-gray-100'>
-                    <span className='text-xs text-gray-500'>
-                      Created: {new Date(user.createdAt).toLocaleDateString()}
-                    </span>
+                    <div className='text-[11px] text-gray-500 space-y-0.5'>
+                      <div>Last Login: <span className={user.lastLogin ? 'text-gray-700 font-medium' : 'text-gray-400'}>{formatDateTime(user.lastLogin)}</span></div>
+                      <div>Last Activity: <span className={user.lastActivity ? 'text-gray-700 font-medium' : 'text-gray-400'}>{formatDateTime(user.lastActivity)}</span></div>
+                      <div>Created: {new Date(user.createdAt).toLocaleDateString()}</div>
+                    </div>
                     <div className='flex gap-2'>
                       <button
                         onClick={() => handleEdit(user)}

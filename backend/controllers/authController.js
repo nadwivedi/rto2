@@ -94,8 +94,12 @@ exports.login = async (req, res) => {
       }
     }
 
-    // Update last login (using updateOne to avoid triggering pre-save hooks)
-    await User.updateOne({ _id: user._id }, { lastLogin: new Date() })
+    const loginAt = new Date()
+
+    // Update login/activity timestamps (using updateOne to avoid triggering pre-save hooks)
+    await User.updateOne({ _id: user._id }, { lastLogin: loginAt, lastActivity: loginAt })
+    user.lastLogin = loginAt
+    user.lastActivity = loginAt
 
     // Generate JWT token
     const token = jwt.sign(
@@ -132,7 +136,8 @@ exports.login = async (req, res) => {
           address: user.address,
           state: user.state,
           rto: user.rto,
-          lastLogin: user.lastLogin
+          lastLogin: user.lastLogin,
+          lastActivity: user.lastActivity
         }
       }
     })
@@ -191,7 +196,10 @@ exports.staffLogin = async (req, res) => {
       }
     }
 
-    await Employee.updateOne({ _id: employee._id }, { lastLogin: new Date() })
+    const loginAt = new Date()
+    await Employee.updateOne({ _id: employee._id }, { lastLogin: loginAt, lastActivity: loginAt })
+    employee.lastLogin = loginAt
+    employee.lastActivity = loginAt
 
     // Resolve adminId - use the stored one or find the first admin in the DB
     let adminId = employee.adminId ? employee.adminId.toString() : null
@@ -232,7 +240,8 @@ exports.staffLogin = async (req, res) => {
           mobile: employee.mobile,
           type: 'staff',
           permissions: employee.permissions,
-          lastLogin: employee.lastLogin
+          lastLogin: employee.lastLogin,
+          lastActivity: employee.lastActivity
         }
       }
     })
@@ -258,6 +267,9 @@ exports.getProfile = async (req, res) => {
       if (!employee.isActive) {
         return res.status(403).json({ success: false, message: 'Your account has been deactivated' })
       }
+      const activityAt = new Date()
+      await Employee.updateOne({ _id: employee._id }, { lastActivity: activityAt })
+      employee.lastActivity = activityAt
       return res.json({
         success: true,
         data: {
@@ -266,7 +278,9 @@ exports.getProfile = async (req, res) => {
             name: employee.name,
             mobile: employee.mobile,
             type: 'staff',
-            permissions: employee.permissions
+            permissions: employee.permissions,
+            lastLogin: employee.lastLogin,
+            lastActivity: employee.lastActivity
           }
         }
       })
@@ -288,6 +302,10 @@ exports.getProfile = async (req, res) => {
       })
     }
 
+    const activityAt = new Date()
+    await User.updateOne({ _id: user._id }, { lastActivity: activityAt })
+    user.lastActivity = activityAt
+
     res.json({
       success: true,
       data: {
@@ -302,7 +320,9 @@ exports.getProfile = async (req, res) => {
           rto: user.rto,
           billName: user.billName,
           billDescription: user.billDescription,
-          type: 'user'
+          type: 'user',
+          lastLogin: user.lastLogin,
+          lastActivity: user.lastActivity
         }
       }
     })

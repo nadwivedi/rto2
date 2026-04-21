@@ -44,6 +44,9 @@ const employeeSchema = new mongoose.Schema({
   lastLogin: {
     type: Date
   },
+  lastActivity: {
+    type: Date
+  },
   adminId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
