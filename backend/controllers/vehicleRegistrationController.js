@@ -315,6 +315,7 @@ exports.createRegistration = async (req, res) => {
 
     // Images are optional
     const rcImage = req.body.rcImage
+    const rcBackImage = req.body.rcBackImage
     const aadharImage = req.body.aadharImage
     const panImage = req.body.panImage
     const speedGovernorImage = req.body.speedGovernorImage
@@ -399,6 +400,9 @@ exports.createRegistration = async (req, res) => {
     if (rcImage) {
       registrationData.rcImage = rcImage
     }
+    if (rcBackImage) {
+      registrationData.rcBackImage = rcBackImage
+    }
     if (aadharImage) {
       registrationData.aadharImage = aadharImage
     }
@@ -462,6 +466,7 @@ exports.updateRegistration = async (req, res) => {
 
     // Images are optional
     const rcImage = req.body.rcImage
+    const rcBackImage = req.body.rcBackImage
     const aadharImage = req.body.aadharImage
     const panImage = req.body.panImage
     const speedGovernorImage = req.body.speedGovernorImage
@@ -532,6 +537,9 @@ exports.updateRegistration = async (req, res) => {
     // Handle optional image fields - can be empty string to remove image
     if (rcImage !== undefined) {
       registration.rcImage = rcImage || undefined
+    }
+    if (rcBackImage !== undefined) {
+      registration.rcBackImage = rcBackImage || undefined
     }
     if (aadharImage !== undefined) {
       registration.aadharImage = aadharImage || undefined

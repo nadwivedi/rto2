@@ -35,6 +35,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     manufactureYear: '',
     vehicleCategory: '',
     rcImage: '',
+    rcBackImage: '',
     aadharImage: '',
     panImage: '',
     speedGovernorImage: '',
@@ -95,6 +96,38 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [isExtractingRc, setIsExtractingRc] = useState(false)
   const [scanningFile, setScanningFile] = useState(null)
   const [scanningBackFile, setScanningBackFile] = useState(null)
+
+  const uploadRcDocument = async (imageData, side = 'front', vehicleNumberOverride = '') => {
+    const vehicleNumber = (vehicleNumberOverride || formData.registrationNumber || '').trim().toUpperCase()
+
+    if (!vehicleNumber) {
+      toast.error('Vehicle registration number is required before saving RC image.', { position: 'top-right', autoClose: 3000 })
+      return null
+    }
+
+    const endpoint = side === 'back' ? 'rc-back-image' : 'rc-image'
+    const response = await axios.post(
+      `${API_URL}/api/upload/${endpoint}`,
+      {
+        imageData,
+        vehicleRegistrationId: editData?._id || null,
+        vehicleNumber
+      },
+      { withCredentials: true }
+    )
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to upload RC document')
+    }
+
+    const imagePath = response.data.data.path
+    setFormData(prev => ({
+      ...prev,
+      [side === 'back' ? 'rcBackImage' : 'rcImage']: imagePath
+    }))
+
+    return response.data.data
+  }
 
   // Handle Enter key to move to next field in order and arrow keys for party suggestions
   const handleKeyDown = (e) => {
@@ -281,6 +314,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         manufactureYear: '',
         vehicleCategory: '',
         rcImage: '',
+        rcBackImage: '',
         aadharImage: '',
         panImage: '',
         speedGovernorImage: '',
@@ -1088,6 +1122,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
             );
             if (response.data.success && response.data.data) {
               const resultData = response.data.data;
+              const uploadData = await uploadRcDocument(base64String, 'front', resultData.registrationNumber);
               setFormData(prev => {
                 const updated = { ...prev };
                 Object.keys(resultData).forEach(key => {
@@ -1107,8 +1142,12 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 }
                 return updated;
               });
+              setRcImagePreview(base64String);
               toast.dismiss(updateToast);
-              toast.success('RC Details Extracted Successfully!', { position: 'top-right', autoClose: 3000 });
+              toast.success(
+                uploadData ? `RC Details Extracted and PDF saved! (${uploadData.sizeInMB}MB)` : 'RC Details Extracted Successfully!',
+                { position: 'top-right', autoClose: 3000 }
+              );
             } else {
               toast.dismiss(updateToast);
               toast.error('Failed to extract data correctly.', { position: 'top-right', autoClose: 3000 });
@@ -1161,6 +1200,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
           if (response.data.success && response.data.data) {
             const resultData = response.data.data;
+            const uploadData = await uploadRcDocument(frontBase64, 'front', resultData.registrationNumber);
             setFormData(prev => {
               const updated = { ...prev };
               Object.keys(resultData).forEach(key => {
@@ -1185,7 +1225,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
             // and so the Back upload slot becomes visible
             setRcImagePreview(frontBase64);
             toast.dismiss(updateToast);
-            toast.success('RC Details Extracted Successfully!', { position: 'top-right', autoClose: 3000 });
+            toast.success(
+              uploadData ? `RC Details Extracted and Front saved! (${uploadData.sizeInMB}MB)` : 'RC Details Extracted Successfully!',
+              { position: 'top-right', autoClose: 3000 }
+            );
           } else {
             toast.dismiss(updateToast);
             toast.error('Failed to extract data correctly.', { position: 'top-right', autoClose: 3000 });
@@ -1246,9 +1289,12 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         )
       ]);
 
+      let backUploadSaved = false;
+
       // Handle upload result
       if (uploadResult.status === 'fulfilled' && uploadResult.value.data.success) {
         setFormData(prev => ({ ...prev, rcBackImage: uploadResult.value.data.data.path }));
+        backUploadSaved = true;
         toast.success(`RC Back uploaded! (${uploadResult.value.data.data.sizeInMB}MB)`, {
           position: 'top-right', autoClose: 2000
         });
@@ -1260,6 +1306,20 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       // Handle OCR result — fill only empty fields so front-side data isn't overwritten
       if (ocrResult.status === 'fulfilled' && ocrResult.value.data.success && ocrResult.value.data.data) {
         const resultData = ocrResult.value.data.data;
+        if (!backUploadSaved && resultData.registrationNumber) {
+          try {
+            const uploadData = await uploadRcDocument(base64String, 'back', resultData.registrationNumber);
+            if (uploadData) {
+              backUploadSaved = true;
+              setRcBackImagePreview(base64String);
+              toast.success(`RC Back saved! (${uploadData.sizeInMB}MB)`, {
+                position: 'top-right', autoClose: 2000
+              });
+            }
+          } catch (uploadError) {
+            console.error('Error saving RC back after OCR:', uploadError);
+          }
+        }
         setFormData(prev => {
           const updated = { ...prev };
           Object.keys(resultData).forEach(key => {
@@ -1297,24 +1357,14 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64String = reader.result;
-        // Upload back image to server
-        const response = await axios.post(
-          `${API_URL}/api/upload/rc-back-image`,
-          {
-            imageData: base64String,
-            vehicleRegistrationId: editData?._id || null,
-            vehicleNumber: formData.registrationNumber
-          },
-          { withCredentials: true }
-        );
-        if (response.data.success) {
-          setFormData(prev => ({ ...prev, rcBackImage: response.data.data.path }));
+        const uploadData = await uploadRcDocument(base64String, 'back');
+        if (uploadData) {
           setRcBackImagePreview(base64String);
-          toast.success(`RC Back uploaded! (${response.data.data.sizeInMB}MB, ${response.data.data.format})`, {
+          toast.success(`RC Back uploaded! (${uploadData.sizeInMB}MB, ${uploadData.format})`, {
             position: 'top-right', autoClose: 2000
           });
         } else {
-          toast.error(response.data.message || 'Failed to upload RC back image', {
+          toast.error('Failed to upload RC back image', {
             position: 'top-right', autoClose: 3000
           });
         }
@@ -1356,6 +1406,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       // Only include rcImage if it has a value (optional field)
       if (!submitData.rcImage) {
         delete submitData.rcImage
+      }
+      if (!submitData.rcBackImage) {
+        delete submitData.rcBackImage
       }
 
       let response
