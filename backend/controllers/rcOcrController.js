@@ -121,6 +121,13 @@ ${jsonTemplate}`;
         });
     }
 
+    if (typeof extractedData.registrationNumber === 'string') {
+      extractedData.registrationNumber = extractedData.registrationNumber.replace(/\s+/g, '');
+    }
+    if (typeof extractedData.vehicleNumber === 'string') {
+      extractedData.vehicleNumber = extractedData.vehicleNumber.replace(/\s+/g, '');
+    }
+
     res.json({
       success: true,
       data: extractedData
