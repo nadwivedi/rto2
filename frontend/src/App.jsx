@@ -84,9 +84,11 @@ function ProtectedLayout() {
           '/parties'
         ];
         
-        if (vahanHubPages.includes(location.pathname) || sarthiHubPages.includes(location.pathname)) {
+        if (location.pathname.startsWith('/parties/')) {
+          navigate('/parties');
+        } else if (vahanHubPages.includes(location.pathname) || sarthiHubPages.includes(location.pathname)) {
           navigate('/');
-        } else if (vahanSubPages.includes(location.pathname) || location.pathname.startsWith('/parties/')) {
+        } else if (vahanSubPages.includes(location.pathname)) {
           navigate('/vahan');
         } else if (sarthiSubPages.includes(location.pathname)) {
           navigate('/sarthi');
