@@ -268,6 +268,11 @@ const Party = () => {
                               {formatCurrency(party.totalPending)}
                             </p>
                           </div>
+
+                          <div>
+                            <p className='text-[10px] text-gray-500 font-semibold uppercase'>Total Vehicle</p>
+                            <p className='text-xs font-bold text-indigo-700'>{party.truckCount || 0}</p>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -281,7 +286,8 @@ const Party = () => {
                       <tr>
                         <th className='w-[27%] px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Party Name</th>
                         <th className='w-[22%] px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Contact</th>
-                        <th className='w-[27%] px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Address</th>
+                        <th className='w-[22%] px-4 2xl:px-6 py-3 2xl:py-4 text-left text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Address</th>
+                        <th className='w-[9%] px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Total Vehicle</th>
                         <th className='w-[14%] px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Balance</th>
                         <th className='w-[10%] px-4 2xl:px-6 py-3 2xl:py-4 text-center text-[10px] 2xl:text-xs font-bold text-white uppercase tracking-wide'>Actions</th>
                       </tr>
@@ -306,6 +312,11 @@ const Party = () => {
                           </td>
                           <td className='px-4 2xl:px-6 py-3 2xl:py-4 max-w-xs'>
                             <span className='block text-[11px] 2xl:text-sm text-gray-700 line-clamp-2'>{party.address || '-'}</span>
+                          </td>
+                          <td className='px-4 2xl:px-6 py-3 2xl:py-4 text-center'>
+                            <span className='inline-flex min-w-10 justify-center rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] 2xl:text-sm font-bold text-indigo-700 ring-1 ring-indigo-100'>
+                              {party.truckCount || 0}
+                            </span>
                           </td>
                           <td className='px-4 2xl:px-6 py-3 2xl:py-4 text-center'>
                             <span className={`text-[11px] 2xl:text-sm ${party.totalPending > 0 ? 'font-bold text-red-600' : 'font-bold text-green-600'}`}>

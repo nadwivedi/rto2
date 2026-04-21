@@ -79,6 +79,7 @@ exports.getAllParties = async (req, res) => {
         if (vehicleNumbers.length === 0) {
           return {
             ...party,
+            truckCount: 0,
             totalPending: 0
           }
         }
@@ -151,6 +152,7 @@ exports.getAllParties = async (req, res) => {
 
         return {
           ...party,
+          truckCount: vehicleNumbers.length,
           totalPending
         }
       })
