@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ImageViewer from '../../../components/ImageViewer'
 import AddFitnessModal from '../../Fitness/components/AddFitnessModal'
 import AddTaxModal from '../../Tax/components/AddTaxModal'
@@ -23,6 +23,16 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, o
   const [showAddInsuranceModal, setShowAddInsuranceModal] = useState(false)
   const [showAddCgPermitModal, setShowAddCgPermitModal] = useState(false)
   const [showAddNationalPermitModal, setShowAddNationalPermitModal] = useState(false)
+
+  // ESC key closes the popup
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
 
   if (!isOpen || !selectedRegistration) {
     return null
