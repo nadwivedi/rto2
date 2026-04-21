@@ -500,6 +500,49 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     setHighlightedIndex(-1)
   }
 
+  const normalizePartyName = (value = '') =>
+    String(value).trim().toUpperCase().replace(/\s+/g, ' ')
+
+  const findMatchingParty = (partyName) => {
+    const normalizedPartyName = normalizePartyName(partyName)
+    if (!normalizedPartyName) return null
+
+    return parties.find(party => normalizePartyName(party.partyName) === normalizedPartyName) || null
+  }
+
+  const mergeExtractedRcData = (previousData, extractedData, options = {}) => {
+    const { onlyEmpty = false, matchedParty = null } = options
+    const updated = { ...previousData }
+    const partyControlledFields = ['ownerName', 'sonWifeDaughterOf', 'address', 'mobileNumber', 'email', 'partyId']
+
+    Object.keys(extractedData).forEach(key => {
+      if (!extractedData[key] || !Object.prototype.hasOwnProperty.call(updated, key)) return
+      if (matchedParty && partyControlledFields.includes(key)) return
+      if (onlyEmpty && updated[key]) return
+
+      if (key === 'dateOfRegistration') {
+        const normalizedStr = normalizeAIExtractedDate(extractedData[key])
+        const formatted = handleSmartDateInput(normalizedStr, '')
+        if (formatted) updated[key] = formatted
+      } else {
+        updated[key] = String(extractedData[key]).toUpperCase()
+      }
+    })
+
+    if (matchedParty) {
+      updated.ownerName = matchedParty.partyName
+      updated.sonWifeDaughterOf = matchedParty.sonWifeDaughterOf || ''
+      updated.mobileNumber = matchedParty.mobile || ''
+      updated.email = matchedParty.email || ''
+      updated.address = matchedParty.address || ''
+      updated.partyId = matchedParty._id
+    } else if (extractedData.ownerName) {
+      updated.partyId = ''
+    }
+
+    return updated
+  }
+
   // Clear party selection
   const clearPartySelection = () => {
     setFormData(prev => ({
@@ -1160,19 +1203,14 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
             if (response.data.success && response.data.data) {
               const resultData = response.data.data;
               const uploadData = await uploadRcDocument(base64String, 'front', resultData.registrationNumber);
+              const matchedParty = findMatchingParty(resultData.ownerName);
+              if (matchedParty) {
+                setSelectedPartyName(matchedParty.partyName);
+              } else if (resultData.ownerName) {
+                setSelectedPartyName('');
+              }
               setFormData(prev => {
-                const updated = { ...prev };
-                Object.keys(resultData).forEach(key => {
-                  if (resultData[key] && Object.prototype.hasOwnProperty.call(updated, key)) {
-                    if (key === 'dateOfRegistration') {
-                      const normalizedStr = normalizeAIExtractedDate(resultData[key]);
-                      const formatted = handleSmartDateInput(normalizedStr, '');
-                      if (formatted) updated[key] = formatted;
-                    } else {
-                      updated[key] = resultData[key].toUpperCase();
-                    }
-                  }
-                });
+                const updated = mergeExtractedRcData(prev, resultData, { matchedParty });
                 if (resultData.registrationNumber) {
                   const validation = validateVehicleNumberRealtime(resultData.registrationNumber);
                   setVehicleValidation(validation);
@@ -1238,19 +1276,14 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
           if (response.data.success && response.data.data) {
             const resultData = response.data.data;
             const uploadData = await uploadRcDocument(frontBase64, 'front', resultData.registrationNumber);
+            const matchedParty = findMatchingParty(resultData.ownerName);
+            if (matchedParty) {
+              setSelectedPartyName(matchedParty.partyName);
+            } else if (resultData.ownerName) {
+              setSelectedPartyName('');
+            }
             setFormData(prev => {
-              const updated = { ...prev };
-              Object.keys(resultData).forEach(key => {
-                if (resultData[key] && Object.prototype.hasOwnProperty.call(updated, key)) {
-                  if (key === 'dateOfRegistration') {
-                    const normalizedStr = normalizeAIExtractedDate(resultData[key]);
-                    const formatted = handleSmartDateInput(normalizedStr, '');
-                    if (formatted) updated[key] = formatted;
-                  } else {
-                    updated[key] = resultData[key].toUpperCase();
-                  }
-                }
-              });
+              const updated = mergeExtractedRcData(prev, resultData, { matchedParty });
               if (resultData.registrationNumber) {
                 const validation = validateVehicleNumberRealtime(resultData.registrationNumber);
                 setVehicleValidation(validation);
@@ -1343,6 +1376,12 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       // Handle OCR result — fill only empty fields so front-side data isn't overwritten
       if (ocrResult.status === 'fulfilled' && ocrResult.value.data.success && ocrResult.value.data.data) {
         const resultData = ocrResult.value.data.data;
+        const matchedParty = findMatchingParty(resultData.ownerName);
+        if (matchedParty) {
+          setSelectedPartyName(matchedParty.partyName);
+        } else if (resultData.ownerName) {
+          setSelectedPartyName('');
+        }
         if (!backUploadSaved && resultData.registrationNumber) {
           try {
             const uploadData = await uploadRcDocument(base64String, 'back', resultData.registrationNumber);
@@ -1358,19 +1397,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
           }
         }
         setFormData(prev => {
-          const updated = { ...prev };
-          Object.keys(resultData).forEach(key => {
-            if (resultData[key] && Object.prototype.hasOwnProperty.call(updated, key) && !updated[key]) {
-              // Only fill fields that are currently empty
-              if (key === 'dateOfRegistration') {
-                const normalizedStr = normalizeAIExtractedDate(resultData[key]);
-                const formatted = handleSmartDateInput(normalizedStr, '');
-                if (formatted) updated[key] = formatted;
-              } else {
-                updated[key] = resultData[key].toUpperCase();
-              }
-            }
-          });
+          const updated = mergeExtractedRcData(prev, resultData, { onlyEmpty: true, matchedParty });
           if (resultData.registrationNumber && !updated.registrationNumber) {
             const validation = validateVehicleNumberRealtime(resultData.registrationNumber);
             setVehicleValidation(validation);
