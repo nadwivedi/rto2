@@ -335,15 +335,35 @@ exports.createRegistration = async (req, res) => {
       })
     }
 
+    if (!partyId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select a party or create a new party before registering the vehicle'
+      })
+    }
+
+    const party = await Party.findOne({
+      _id: partyId,
+      userId: req.user.id
+    })
+
+    if (!party) {
+      return res.status(400).json({
+        success: false,
+        message: 'Selected party was not found'
+      })
+    }
+
     // Create vehicle registration with userId
     // Build the registration object, only include rcImage if it's provided
     const registrationData = {
       userId: req.user.id,
+      partyId: party._id,
       registrationNumber,
       dateOfRegistration,
       chassisNumber,
       engineNumber,
-      ownerName,
+      ownerName: party.partyName,
       sonWifeDaughterOf,
       address,
       mobileNumber,
@@ -363,37 +383,6 @@ exports.createRegistration = async (req, res) => {
       fuelType,
       bodyType,
       wheelBase
-    }
-
-    let finalPartyId = partyId;
-
-    if (!finalPartyId && ownerName) {
-      const upperOwnerName = ownerName.trim().toUpperCase();
-      let party = await Party.findOne({
-        userId: req.user.id,
-        partyName: upperOwnerName
-      });
-
-      if (!party) {
-        party = await Party.create({
-          userId: req.user.id,
-          partyName: upperOwnerName,
-          sonWifeDaughterOf: sonWifeDaughterOf ? sonWifeDaughterOf.trim() : '',
-          address: address ? address.trim() : '',
-          mobile: mobileNumber ? mobileNumber.trim() : '',
-          email: email ? email.trim() : ''
-        });
-      }
-      finalPartyId = party._id;
-    }
-
-    // Add partyId if provided
-    if (finalPartyId) {
-      registrationData.partyId = finalPartyId
-    }
-
-    if (ownerName) {
-      registrationData.ownerName = ownerName.trim().toUpperCase();
     }
 
     // Only add images if they're provided (optional fields)
@@ -488,7 +477,6 @@ exports.updateRegistration = async (req, res) => {
     if (dateOfRegistration !== undefined) registration.dateOfRegistration = dateOfRegistration
     if (chassisNumber !== undefined) registration.chassisNumber = chassisNumber
     if (engineNumber !== undefined) registration.engineNumber = engineNumber
-    if (ownerName !== undefined) registration.ownerName = ownerName
     if (sonWifeDaughterOf !== undefined) registration.sonWifeDaughterOf = sonWifeDaughterOf
     if (address !== undefined) registration.address = address
     if (mobileNumber !== undefined) registration.mobileNumber = mobileNumber
@@ -508,32 +496,30 @@ exports.updateRegistration = async (req, res) => {
     if (fuelType !== undefined) registration.fuelType = fuelType
     if (bodyType !== undefined) registration.bodyType = bodyType
     if (wheelBase !== undefined) registration.wheelBase = wheelBase
-    // Handle partyId - can be null to remove party association
-    let finalPartyId = partyId;
 
-    if (!finalPartyId && ownerName) {
-      const upperOwnerName = ownerName.trim().toUpperCase();
-      let party = await Party.findOne({
-        userId: req.user.id,
-        partyName: upperOwnerName
-      });
-
-      if (!party) {
-        party = await Party.create({
-          userId: req.user.id,
-          partyName: upperOwnerName,
-          sonWifeDaughterOf: sonWifeDaughterOf ? sonWifeDaughterOf.trim() : '',
-          address: address ? address.trim() : '',
-          mobile: mobileNumber ? mobileNumber.trim() : '',
-          email: email ? email.trim() : ''
-        });
-      }
-      finalPartyId = party._id;
+    const finalPartyId = partyId !== undefined ? partyId : registration.partyId
+    if (!finalPartyId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select a party or create a new party before updating the vehicle'
+      })
     }
 
-    if (ownerName !== undefined) registration.ownerName = ownerName ? ownerName.trim().toUpperCase() : ownerName;
+    const party = await Party.findOne({
+      _id: finalPartyId,
+      userId: req.user.id
+    })
 
-    if (finalPartyId !== undefined) registration.partyId = finalPartyId || null
+    if (!party) {
+      return res.status(400).json({
+        success: false,
+        message: 'Selected party was not found'
+      })
+    }
+
+    registration.partyId = party._id
+    registration.ownerName = party.partyName
+
     // Handle optional image fields - can be empty string to remove image
     if (rcImage !== undefined) {
       registration.rcImage = rcImage || undefined

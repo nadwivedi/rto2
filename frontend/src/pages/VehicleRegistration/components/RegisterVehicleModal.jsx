@@ -133,8 +133,14 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const handleKeyDown = (e) => {
     const currentFieldName = e.target.name
 
-    // Handle arrow keys for party suggestions dropdown (only for ownerName field)
-    if (currentFieldName === 'ownerName' && showPartySuggestions && filteredParties.length > 0) {
+    if (e.altKey && e.key.toLowerCase() === 'n') {
+      e.preventDefault()
+      openAddPartyModal()
+      return
+    }
+
+    // Handle arrow keys for party suggestions dropdown.
+    if (currentFieldName === 'partySearch' && showPartySuggestions && filteredParties.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         setHighlightedIndex(prev =>
@@ -185,11 +191,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         'fuelType',
         'bodyType',
         'wheelBase',
-        'ownerName',
-        'sonWifeDaughterOf',
-        'address',
-        'mobileNumber',
-        'email',
+        'partySearch',
         'subPartyName',
         'subPartyMobile'
       ]
@@ -249,6 +251,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       // Set selected party name if party is linked
       if (editData.partyId?.partyName) {
         setSelectedPartyName(editData.partyId.partyName)
+      } else if (editData.partyId && editData.ownerName) {
+        setSelectedPartyName(editData.ownerName)
       } else {
         setSelectedPartyName('')
       }
@@ -381,6 +385,12 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   // Keyboard shortcut handling for modal dismissal
   useEffect(() => {
     const handleModalKeyDown = (e) => {
+      if (e.altKey && e.key.toLowerCase() === 'n' && !showAddPartyModal) {
+        e.preventDefault()
+        openAddPartyModal()
+        return
+      }
+
       if (e.key !== 'Escape') return
 
       if (showPartySuggestions && filteredParties.length > 0) {
@@ -407,7 +417,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     return () => {
       document.removeEventListener('keydown', handleModalKeyDown)
     }
-  }, [isOpen, onClose, showPartySuggestions, filteredParties.length, showAddPartyModal])
+  }, [isOpen, onClose, showPartySuggestions, filteredParties.length, showAddPartyModal, formData.ownerName])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -441,7 +451,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   // Handle owner name change with party suggestions
   const handleOwnerNameChange = (e) => {
     const value = e.target.value.toUpperCase()
-    setFormData(prev => ({ ...prev, ownerName: value }))
+    setFormData(prev => ({ ...prev, ownerName: value, partyId: '' }))
+    setSelectedPartyName('')
 
     // Filter parties based on input (start from 1 character)
     if (value.length >= 1) {
@@ -456,6 +467,21 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       setFilteredParties([])
       setHighlightedIndex(-1)
     }
+  }
+
+  const handlePartySearchFocus = () => {
+    setFilteredParties(parties)
+    setShowPartySuggestions(parties.length > 0)
+    setHighlightedIndex(parties.length > 0 ? 0 : -1)
+  }
+
+  const openAddPartyModal = () => {
+    setNewParty(prev => ({
+      ...prev,
+      partyName: selectedPartyName || formData.ownerName || prev.partyName
+    }))
+    setShowPartySuggestions(false)
+    setShowAddPartyModal(true)
   }
 
   // Handle party selection from suggestions
@@ -478,9 +504,17 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const clearPartySelection = () => {
     setFormData(prev => ({
       ...prev,
+      ownerName: '',
+      sonWifeDaughterOf: '',
+      mobileNumber: '',
+      email: '',
+      address: '',
       partyId: ''
     }))
     setSelectedPartyName('')
+    setFilteredParties([])
+    setShowPartySuggestions(false)
+    setHighlightedIndex(-1)
   }
 
   // Handle new party form change
@@ -525,6 +559,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       setSavingParty(false)
     }
   }
+
+  const partyDetailInputClass = 'w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-gray-100 border-2 border-gray-200 rounded-lg md:rounded-xl font-semibold text-gray-700 placeholder-gray-400 cursor-not-allowed uppercase'
+  const partyDetailInputClassNormalCase = 'w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-gray-100 border-2 border-gray-200 rounded-lg md:rounded-xl font-semibold text-gray-700 placeholder-gray-400 cursor-not-allowed'
 
   const handleDateChange = (e) => {
     const { name, value } = e.target
@@ -1393,6 +1430,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       return
     }
 
+    if (!formData.partyId) {
+      toast.error('Please select a party from the dropdown or create a new party with Alt+N.')
+      return
+    }
+
     setLoading(true)
     setError('')
 
@@ -2099,9 +2141,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' />
                   </svg>
                 </div>
-                  <div>
-                  <h3 className='text-sm md:text-xl font-bold text-gray-800'>Owner Details</h3>
-                  <p className='text-[10px] md:text-sm text-gray-500 hidden md:block'>Enter owner information</p>
+                <div>
+                  <h3 className='text-sm md:text-xl font-bold text-gray-800'>Party / Owner Details</h3>
                 </div>
                 {selectedPartyName && (
                   <div className='flex items-center gap-1.5 bg-green-100 text-green-700 px-2.5 py-1.5 rounded-lg text-xs md:text-sm font-medium'>
@@ -2123,12 +2164,24 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 )}
               </div>
               <div className='bg-gradient-to-br from-purple-50 to-pink-50 p-3 md:p-6 rounded-xl md:rounded-2xl border border-purple-100'>
-                {/* Row 1: Owner Name and Son/Wife/Daughter of */}
+                {/* Row 1: Party and Son/Wife/Daughter of */}
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-5 mb-3 md:mb-5'>
-                  {/* Owner Name with Party Suggestions */}
+                  {/* Party selector */}
                   <div className='group'>
-                    <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
-                      Owner Name <span className='text-purple-500 text-[10px] md:text-xs font-normal'>(Type to search parties)</span>
+                    <label className='flex items-center justify-between gap-2 text-xs md:text-sm font-semibold text-gray-700 mb-1.5 md:mb-2'>
+                      <span>
+                        Party / Owner <span className='text-red-500'>*</span>
+                        <span className='text-purple-500 text-[10px] md:text-xs font-normal'> (select from dropdown)</span>
+                      </span>
+                      <button
+                        type='button'
+                        onClick={openAddPartyModal}
+                        className='hidden shrink-0 items-center gap-2 rounded-lg border border-purple-200 bg-white px-2.5 py-1 text-[10px] font-bold text-purple-700 shadow-sm transition hover:bg-purple-50 md:flex md:text-xs'
+                        title='Create new party (Alt+N)'
+                      >
+                        <kbd className='rounded border border-purple-200 bg-purple-50 px-1.5 py-0.5 font-mono text-[10px] text-purple-800'>Alt+N</kbd>
+                        <span>Create Party</span>
+                      </button>
                     </label>
                     <div className='relative'>
                       <div className='absolute inset-y-0 left-0 pl-2.5 md:pl-4 flex items-center pointer-events-none'>
@@ -2138,14 +2191,17 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                       </div>
                       <input
                         type='text'
-                        name='ownerName'
+                        name='partySearch'
                         value={formData.ownerName}
                         onChange={handleOwnerNameChange}
                         onKeyDown={handleKeyDown}
+                        onFocus={handlePartySearchFocus}
                         onBlur={() => setTimeout(() => setShowPartySuggestions(false), 200)}
-                        placeholder='Enter full name of owner or search party'
+                        placeholder='Choose party from dropdown'
                         autoComplete='off'
-                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                        className={`w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400 ${
+                          formData.partyId ? 'border-green-300 bg-green-50' : 'border-gray-200'
+                        }`}
                       />
                       {/* Party Suggestions Dropdown */}
                       {showPartySuggestions && filteredParties.length > 0 && (
@@ -2174,6 +2230,21 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                           ))}
                         </div>
                       )}
+                      {formData.ownerName && !formData.partyId && !showPartySuggestions && (
+                        <div className='mt-1.5 flex items-start justify-between gap-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-[10px] text-amber-700 md:text-xs'>
+                          <span>Select a party from the dropdown. Typed text will not be saved as owner.</span>
+                          <button
+                            type='button'
+                            onMouseDown={(e) => {
+                              e.preventDefault()
+                              openAddPartyModal()
+                            }}
+                            className='shrink-0 font-bold text-amber-800 hover:text-amber-900'
+                          >
+                            Create
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2192,10 +2263,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='text'
                         name='sonWifeDaughterOf'
                         value={formData.sonWifeDaughterOf}
-                        onChange={handleChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder='Enter father/husband/parent name'
-                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                        readOnly
+                        tabIndex={-1}
+                        placeholder='Selected party detail'
+                        className={partyDetailInputClass}
                       />
                     </div>
                   </div>
@@ -2219,10 +2290,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='text'
                         name='address'
                         value={formData.address}
-                        onChange={handleChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder='Enter complete address with pin code'
-                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 uppercase font-semibold text-gray-800 placeholder-gray-400'
+                        readOnly
+                        tabIndex={-1}
+                        placeholder='Selected party address'
+                        className={partyDetailInputClass}
                       />
                     </div>
                   </div>
@@ -2242,11 +2313,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='tel'
                         name='mobileNumber'
                         value={formData.mobileNumber}
-                        onChange={handleChange}
-                        onKeyDown={handleKeyDown}
+                        readOnly
+                        tabIndex={-1}
                         maxLength='10'
-                        placeholder='Enter 10-digit mobile number'
-                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        placeholder='Selected party mobile'
+                        className={partyDetailInputClassNormalCase}
                       />
                     </div>
                   </div>
@@ -2266,10 +2337,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='email'
                         name='email'
                         value={formData.email}
-                        onChange={handleChange}
-                        onKeyDown={handleKeyDown}
-                        placeholder='Enter email address'
-                        className='w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-gray-200 rounded-lg md:rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 font-semibold text-gray-800 placeholder-gray-400'
+                        readOnly
+                        tabIndex={-1}
+                        placeholder='Selected party email'
+                        className={partyDetailInputClassNormalCase}
                       />
                     </div>
                   </div>
