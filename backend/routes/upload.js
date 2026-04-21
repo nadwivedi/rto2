@@ -4,6 +4,7 @@ const uploadController = require('../controllers/uploadController')
 
 // POST upload RC image/PDF (base64, max 12MB)
 router.post('/rc-image', uploadController.uploadRCImage)
+router.post('/rc-back-image', uploadController.uploadRCBackImage)
 
 // DELETE RC image
 router.delete('/rc-image', uploadController.deleteRCImage)

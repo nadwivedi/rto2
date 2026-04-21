@@ -83,15 +83,18 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [rcImagePreview, setRcImagePreview] = useState(null)
+  const [rcBackImagePreview, setRcBackImagePreview] = useState(null)
   const [aadharImagePreview, setAadharImagePreview] = useState(null)
   const [panImagePreview, setPanImagePreview] = useState(null)
   const [speedGovernorImagePreview, setSpeedGovernorImagePreview] = useState(null)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingBackImage, setUploadingBackImage] = useState(false)
   const [uploadingAadhar, setUploadingAadhar] = useState(false)
   const [uploadingPan, setUploadingPan] = useState(false)
   const [uploadingSpeedGovernor, setUploadingSpeedGovernor] = useState(false)
   const [isExtractingRc, setIsExtractingRc] = useState(false)
   const [scanningFile, setScanningFile] = useState(null)
+  const [scanningBackFile, setScanningBackFile] = useState(null)
 
   // Handle Enter key to move to next field in order and arrow keys for party suggestions
   const handleKeyDown = (e) => {
@@ -230,6 +233,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         setRcImagePreview(null)
       }
 
+      // Set RC Back image preview if exists
+      if (editData.rcBackImage) {
+        setRcBackImagePreview(`${API_URL}${editData.rcBackImage}`)
+      } else {
+        setRcBackImagePreview(null)
+      }
+
       // Set Aadhar image preview if exists
       if (editData.aadharImage) {
         setAadharImagePreview(`${API_URL}${editData.aadharImage}`)
@@ -284,6 +294,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       setVehicleValidation({ isValid: false, message: '' })
       setSelectedPartyName('')
       setRcImagePreview(null)
+      setRcBackImagePreview(null)
       setAadharImagePreview(null)
       setPanImagePreview(null)
       setSpeedGovernorImagePreview(null)
@@ -1052,93 +1063,268 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     toast.info('Speed Governor document removed', { position: 'top-right', autoClose: 2000 })
   }
 
-  // Handle RC extraction
   const handleRcExtractionUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file for extraction.', { position: 'top-right', autoClose: 3000 });
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      toast.error('Please upload an image or PDF file for extraction.', { position: 'top-right', autoClose: 3000 });
       return;
     }
 
+    // PDF: no scanner step, send directly
+    if (file.type === 'application/pdf') {
+      setIsExtractingRc(true);
+      const updateToast = toast.info('Analyzing RC PDF, please wait...', { autoClose: false, isLoading: true });
+      try {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64String = reader.result;
+          try {
+            const response = await axios.post(
+              `${API_URL}/api/ocr/rc`,
+              { imageBase64: base64String },
+              { withCredentials: true }
+            );
+            if (response.data.success && response.data.data) {
+              const resultData = response.data.data;
+              setFormData(prev => {
+                const updated = { ...prev };
+                Object.keys(resultData).forEach(key => {
+                  if (resultData[key] && Object.prototype.hasOwnProperty.call(updated, key)) {
+                    if (key === 'dateOfRegistration') {
+                      const normalizedStr = normalizeAIExtractedDate(resultData[key]);
+                      const formatted = handleSmartDateInput(normalizedStr, '');
+                      if (formatted) updated[key] = formatted;
+                    } else {
+                      updated[key] = resultData[key].toUpperCase();
+                    }
+                  }
+                });
+                if (resultData.registrationNumber) {
+                  const validation = validateVehicleNumberRealtime(resultData.registrationNumber);
+                  setVehicleValidation(validation);
+                }
+                return updated;
+              });
+              toast.dismiss(updateToast);
+              toast.success('RC Details Extracted Successfully!', { position: 'top-right', autoClose: 3000 });
+            } else {
+              toast.dismiss(updateToast);
+              toast.error('Failed to extract data correctly.', { position: 'top-right', autoClose: 3000 });
+            }
+          } catch (err) {
+            console.error(err);
+            toast.dismiss(updateToast);
+            toast.error('Server error during OCR processing.', { position: 'top-right', autoClose: 3000 });
+          } finally {
+            setIsExtractingRc(false);
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (err) {
+        toast.dismiss(updateToast);
+        toast.error('Error reading the PDF file.', { position: 'top-right', autoClose: 3000 });
+        setIsExtractingRc(false);
+      }
+      return;
+    }
+
+    // Image: open scanner preview
     setScanningFile(file);
-    e.target.value = ''; // reset file input
+    e.target.value = '';
   }
 
   const handleScannerConfirm = async (processedFile) => {
     setScanningFile(null);
     setIsExtractingRc(true);
-    const updateToast = toast.info('Analyzing RC image, please wait...', { autoClose: false, isLoading: true });
+    const updateToast = toast.info('Analyzing RC front image, please wait...', { autoClose: false, isLoading: true });
 
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
         try {
-          const base64String = reader.result;
+          const frontBase64 = reader.result;
+
+          // Check if there is a back image preview already
+          let backToUse = null;
+          if (rcBackImagePreview && !rcBackImagePreview.startsWith('http')) {
+            // local preview (base64)
+            backToUse = rcBackImagePreview;
+          }
+
           const response = await axios.post(
             `${API_URL}/api/ocr/rc`,
-            { imageBase64: base64String },
+            { imageBase64: frontBase64, backImageBase64: backToUse },
             { withCredentials: true }
           );
 
           if (response.data.success && response.data.data) {
             const resultData = response.data.data;
-            
-            // Map the result properties to formData safely
             setFormData(prev => {
               const updated = { ...prev };
               Object.keys(resultData).forEach(key => {
                 if (resultData[key] && Object.prototype.hasOwnProperty.call(updated, key)) {
-                  // Don't overwrite dateOfRegistration if already properly set, just take it if possible
                   if (key === 'dateOfRegistration') {
-                      const normalizedStr = normalizeAIExtractedDate(resultData[key]);
-                      const formatted = handleSmartDateInput(normalizedStr, '');
-                      if (formatted) updated[key] = formatted;
+                    const normalizedStr = normalizeAIExtractedDate(resultData[key]);
+                    const formatted = handleSmartDateInput(normalizedStr, '');
+                    if (formatted) updated[key] = formatted;
                   } else {
-                      updated[key] = resultData[key].toUpperCase(); // usually we store uppercase
+                    updated[key] = resultData[key].toUpperCase();
                   }
                 }
               });
-
-              // Also ensure vehicle validation is triggered if registrationNumber changes
               if (resultData.registrationNumber) {
-                 const validation = validateVehicleNumberRealtime(resultData.registrationNumber);
-                 setVehicleValidation(validation);
+                const validation = validateVehicleNumberRealtime(resultData.registrationNumber);
+                setVehicleValidation(validation);
               }
-              
               return updated;
             });
-            
-            // Set the RC image preview as well so user sees what they uploaded in the normal documents section
-            if(!formData.rcImage) {
-                setRcImagePreview(base64String);
-                toast.dismiss(updateToast);
-                toast.success('RC Details Extracted Successfully!', { position: 'top-right', autoClose: 3000 });
-            } else {
-                toast.dismiss(updateToast);
-                toast.success('RC Details Extracted Successfully!', { position: 'top-right', autoClose: 3000 });
-            }
 
+            // Always set the front preview after AI extraction so user can see the image
+            // and so the Back upload slot becomes visible
+            setRcImagePreview(frontBase64);
+            toast.dismiss(updateToast);
+            toast.success('RC Details Extracted Successfully!', { position: 'top-right', autoClose: 3000 });
           } else {
             toast.dismiss(updateToast);
             toast.error('Failed to extract data correctly.', { position: 'top-right', autoClose: 3000 });
           }
         } catch (err) {
-            console.error(err);
-            toast.dismiss(updateToast);
-            toast.error('Server error during OCR processing.', { position: 'top-right', autoClose: 3000 });
+          console.error(err);
+          toast.dismiss(updateToast);
+          toast.error('Server error during OCR processing.', { position: 'top-right', autoClose: 3000 });
         } finally {
-            setIsExtractingRc(false);
+          setIsExtractingRc(false);
         }
       };
-      
       reader.readAsDataURL(processedFile);
-
     } catch (err) {
       toast.dismiss(updateToast);
       toast.error('Error reading the image file.', { position: 'top-right', autoClose: 3000 });
       setIsExtractingRc(false);
+    }
+  }
+
+  // Handle RC Back image upload (direct, no scanner step) + OCR extraction
+  const handleBackImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('Back side must be an image file.', { position: 'top-right', autoClose: 3000 });
+      return;
+    }
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error('File size should be less than 12MB', { position: 'top-right', autoClose: 3000 });
+      return;
+    }
+    e.target.value = '';
+    setUploadingBackImage(true);
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result;
+      // Show local preview immediately
+      setRcBackImagePreview(base64String);
+
+      // Run upload + OCR in parallel
+      const [uploadResult, ocrResult] = await Promise.allSettled([
+        // 1. Upload to server
+        axios.post(
+          `${API_URL}/api/upload/rc-back-image`,
+          {
+            imageData: base64String,
+            vehicleRegistrationId: editData?._id || null,
+            vehicleNumber: formData.registrationNumber
+          },
+          { withCredentials: true }
+        ),
+        // 2. OCR: send back image as primary image to extract any remaining fields
+        axios.post(
+          `${API_URL}/api/ocr/rc`,
+          { imageBase64: base64String },
+          { withCredentials: true }
+        )
+      ]);
+
+      // Handle upload result
+      if (uploadResult.status === 'fulfilled' && uploadResult.value.data.success) {
+        setFormData(prev => ({ ...prev, rcBackImage: uploadResult.value.data.data.path }));
+        toast.success(`RC Back uploaded! (${uploadResult.value.data.data.sizeInMB}MB)`, {
+          position: 'top-right', autoClose: 2000
+        });
+      } else {
+        toast.error('Failed to upload RC back image', { position: 'top-right', autoClose: 3000 });
+        setRcBackImagePreview(null);
+      }
+
+      // Handle OCR result — fill only empty fields so front-side data isn't overwritten
+      if (ocrResult.status === 'fulfilled' && ocrResult.value.data.success && ocrResult.value.data.data) {
+        const resultData = ocrResult.value.data.data;
+        setFormData(prev => {
+          const updated = { ...prev };
+          Object.keys(resultData).forEach(key => {
+            if (resultData[key] && Object.prototype.hasOwnProperty.call(updated, key) && !updated[key]) {
+              // Only fill fields that are currently empty
+              if (key === 'dateOfRegistration') {
+                const normalizedStr = normalizeAIExtractedDate(resultData[key]);
+                const formatted = handleSmartDateInput(normalizedStr, '');
+                if (formatted) updated[key] = formatted;
+              } else {
+                updated[key] = resultData[key].toUpperCase();
+              }
+            }
+          });
+          if (resultData.registrationNumber && !updated.registrationNumber) {
+            const validation = validateVehicleNumberRealtime(resultData.registrationNumber);
+            setVehicleValidation(validation);
+          }
+          return updated;
+        });
+        toast.info('Back side data also extracted!', { position: 'top-right', autoClose: 2000 });
+      }
+
+      setUploadingBackImage(false);
+    };
+    reader.readAsDataURL(file);
+  }
+
+
+
+  const handleBackScannerConfirm = async (processedFile) => {
+    setScanningBackFile(null);
+    setUploadingBackImage(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result;
+        // Upload back image to server
+        const response = await axios.post(
+          `${API_URL}/api/upload/rc-back-image`,
+          {
+            imageData: base64String,
+            vehicleRegistrationId: editData?._id || null,
+            vehicleNumber: formData.registrationNumber
+          },
+          { withCredentials: true }
+        );
+        if (response.data.success) {
+          setFormData(prev => ({ ...prev, rcBackImage: response.data.data.path }));
+          setRcBackImagePreview(base64String);
+          toast.success(`RC Back uploaded! (${response.data.data.sizeInMB}MB, ${response.data.data.format})`, {
+            position: 'top-right', autoClose: 2000
+          });
+        } else {
+          toast.error(response.data.message || 'Failed to upload RC back image', {
+            position: 'top-right', autoClose: 3000
+          });
+        }
+        setUploadingBackImage(false);
+      };
+      reader.readAsDataURL(processedFile);
+    } catch (err) {
+      console.error(err);
+      toast.error('Error uploading RC back image.', { position: 'top-right', autoClose: 3000 });
+      setUploadingBackImage(false);
     }
   }
 
@@ -1225,35 +1411,69 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               </div>
             </div>
             <div className='flex shrink-0 items-center gap-2'>
-              {!editData && (
+              {/* Upload Front RC button */}
+              <div className='relative overflow-hidden rounded-lg'>
+                <button
+                  type='button'
+                  disabled={isExtractingRc || uploadingImage}
+                  className='flex max-w-full items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white shadow-sm ring-1 ring-white/30 transition hover:bg-white/25 disabled:opacity-60 md:px-4 md:py-2 md:text-sm'
+                >
+                  {(isExtractingRc || uploadingImage) ? (
+                    <>
+                      <svg className='h-3.5 w-3.5 animate-spin text-white' fill='none' viewBox='0 0 24 24'>
+                        <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                        <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <svg className='h-3.5 w-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'/>
+                      </svg>
+                      {rcImagePreview ? 'Change Front' : 'Upload Front'}
+                    </>
+                  )}
+                </button>
+                <input
+                  type='file'
+                  accept='image/*,application/pdf'
+                  disabled={isExtractingRc || uploadingImage}
+                  onChange={handleRcExtractionUpload}
+                  className='absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
+                />
+              </div>
+
+              {/* Upload Back RC button — only when not a PDF */}
+              {(!rcImagePreview || (!rcImagePreview.startsWith('data:application/pdf') && !rcImagePreview.includes('.pdf'))) && (
                 <div className='relative overflow-hidden rounded-lg'>
                   <button
                     type='button'
-                    disabled={isExtractingRc}
-                    className='flex max-w-full items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white shadow-sm ring-1 ring-white/30 transition hover:bg-white/25 disabled:opacity-60 md:px-4 md:py-2 md:text-sm'
+                    disabled={uploadingBackImage}
+                    className='flex max-w-full items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold text-white shadow-sm ring-1 ring-white/20 transition hover:bg-white/20 disabled:opacity-60 md:px-4 md:py-2 md:text-sm'
                   >
-                    {isExtractingRc ? (
+                    {uploadingBackImage ? (
                       <>
-                        <svg className='h-4 w-4 animate-spin text-white' fill='none' viewBox='0 0 24 24'>
-                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
-                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                        <svg className='h-3.5 w-3.5 animate-spin text-white' fill='none' viewBox='0 0 24 24'>
+                          <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
+                          <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
                         </svg>
-                        Extracting
+                        Uploading...
                       </>
                     ) : (
                       <>
-                        <svg className='h-4 w-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                        <svg className='h-3.5 w-3.5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                           <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12'/>
                         </svg>
-                        AI Upload
+                        {rcBackImagePreview ? 'Change Back' : 'Upload Back'}
                       </>
                     )}
                   </button>
                   <input
                     type='file'
                     accept='image/*'
-                    disabled={isExtractingRc}
-                    onChange={handleRcExtractionUpload}
+                    disabled={uploadingBackImage}
+                    onChange={handleBackImageUpload}
                     className='absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed'
                   />
                 </div>
@@ -2084,86 +2304,78 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               </div>
               <div className='bg-gradient-to-br from-green-50 to-emerald-50 p-3 md:p-6 rounded-xl md:rounded-2xl border border-green-100'>
                 <div className='grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6'>
-                  {/* RC Document Upload */}
-                  <div className='flex flex-col'>
+                  {/* RC Document — Preview Section */}
+                  <div className='flex flex-col md:col-span-2'>
                     <label className='block text-xs md:text-sm font-semibold text-gray-700 mb-2'>
-                      RC Document {rcImagePreview && <span className='text-green-600'>(Uploaded)</span>}
+                      RC Document
+                      {rcImagePreview && <span className='text-green-600 ml-1'>(Front ✓)</span>}
+                      {rcBackImagePreview && <span className='text-blue-600 ml-1'>(Back ✓)</span>}
+                      {!rcImagePreview && !rcBackImagePreview && <span className='text-gray-400 text-[10px] ml-1'>Use Upload Front / Back buttons above</span>}
                     </label>
-                    <div className='relative flex-1'>
-                      {!rcImagePreview ? (
-                        <>
-                          <input
-                            type='file'
-                            accept='image/*,application/pdf'
-                            onChange={handleImageUpload}
-                            disabled={uploadingImage}
-                            className='hidden'
-                            id='rcImageInput'
-                          />
-                          <label
-                            htmlFor='rcImageInput'
-                            className={`flex flex-col items-center justify-center w-full h-32 md:h-40 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-200 ${
-                              uploadingImage
-                                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
-                                : 'border-green-300 bg-white hover:bg-green-50 hover:border-green-400'
-                            }`}
-                          >
-                            {uploadingImage ? (
-                              <div className='flex flex-col items-center'>
-                                <svg className='animate-spin h-8 w-8 text-green-600 mb-2' fill='none' viewBox='0 0 24 24'>
-                                  <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
-                                  <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
-                                </svg>
-                                <p className='text-sm text-gray-600 font-semibold'>Uploading...</p>
-                              </div>
-                            ) : (
-                              <>
-                                <svg className='w-10 h-10 md:w-12 md:h-12 text-green-400 mb-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12' />
-                                </svg>
-                                <p className='text-xs md:text-sm text-gray-600 font-semibold mb-1'>Upload RC</p>
-                                <p className='text-[10px] md:text-xs text-gray-500'>Image or PDF</p>
-                                <p className='text-[10px] text-green-600 font-semibold mt-1'>Max 12MB</p>
-                              </>
-                            )}
-                          </label>
-                        </>
-                      ) : (
-                        <div className='relative'>
+                    <div className='flex gap-3 min-h-[80px]'>
+                      {/* Front preview */}
+                      {rcImagePreview ? (
+                        <div className='relative flex-1'>
+                          <p className='text-[10px] text-center font-bold text-green-700 mb-1'>FRONT</p>
                           {rcImagePreview.startsWith('data:application/pdf') || rcImagePreview.includes('.pdf') ? (
-                            <div className='w-full h-32 md:h-40 flex flex-col items-center justify-center bg-white rounded-lg border-2 border-green-300'>
-                              <svg className='w-12 h-12 md:w-16 md:h-16 text-red-500 mb-2' fill='currentColor' viewBox='0 0 20 20'>
+                            <div className='w-full h-28 md:h-36 flex flex-col items-center justify-center bg-white rounded-lg border-2 border-green-300'>
+                              <svg className='w-8 h-8 text-red-500 mb-1' fill='currentColor' viewBox='0 0 20 20'>
                                 <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
                               </svg>
-                              <p className='text-xs md:text-sm font-semibold text-gray-600'>RC PDF</p>
-                              <a
-                                href={rcImagePreview}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                                className='text-xs text-blue-600 hover:underline mt-1'
-                              >
-                                View PDF
-                              </a>
+                              <p className='text-xs font-semibold text-gray-600'>RC PDF</p>
+                              <a href={rcImagePreview} target='_blank' rel='noopener noreferrer' className='text-xs text-blue-600 hover:underline mt-1'>View PDF</a>
                             </div>
                           ) : (
                             <img
                               src={rcImagePreview}
-                              alt='RC Preview'
+                              alt='RC Front'
                               onClick={() => setShowImageViewer(true)}
-                              className='w-full h-32 md:h-40 object-contain bg-white rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-500 transition-all'
+                              className='w-full h-28 md:h-36 object-contain bg-white rounded-lg border-2 border-green-300 cursor-pointer hover:border-green-500 transition-all'
                             />
                           )}
                           <button
                             type='button'
                             onClick={handleRemoveImage}
-                            className='absolute -top-2 -right-2 bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-all shadow-lg'
-                            title='Delete RC document'
+                            className='absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-all shadow-lg'
+                            title='Remove RC front'
                           >
-                            <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16' />
+                            <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
                             </svg>
                           </button>
                         </div>
+                      ) : (
+                        <div className='flex-1 flex items-center justify-center h-28 md:h-36 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50'>
+                          <p className='text-[10px] text-gray-400 text-center px-2'>No front uploaded yet</p>
+                        </div>
+                      )}
+
+                      {/* Back preview — only for images */}
+                      {!rcImagePreview?.includes('.pdf') && !rcImagePreview?.startsWith('data:application/pdf') && (
+                        rcBackImagePreview ? (
+                          <div className='relative flex-1'>
+                            <p className='text-[10px] text-center font-bold text-blue-700 mb-1'>BACK</p>
+                            <img
+                              src={rcBackImagePreview}
+                              alt='RC Back'
+                              className='w-full h-28 md:h-36 object-contain bg-white rounded-lg border-2 border-blue-300 cursor-pointer hover:border-blue-500 transition-all'
+                            />
+                            <button
+                              type='button'
+                              onClick={() => { setRcBackImagePreview(null); setFormData(prev => ({ ...prev, rcBackImage: '' })) }}
+                              className='absolute -top-2 -right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-all shadow-lg'
+                              title='Remove RC back'
+                            >
+                              <svg className='w-3 h-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className='flex-1 flex items-center justify-center h-28 md:h-36 border-2 border-dashed border-gray-200 rounded-lg bg-gray-50'>
+                            <p className='text-[10px] text-gray-400 text-center px-2'>No back uploaded yet</p>
+                          </div>
+                        )
                       )}
                     </div>
                   </div>
@@ -2643,6 +2855,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
           file={scanningFile}
           onCancel={() => setScanningFile(null)}
           onConfirm={handleScannerConfirm}
+        />
+      )}
+      {scanningBackFile && (
+        <DocumentScannerPreview
+          file={scanningBackFile}
+          onCancel={() => setScanningBackFile(null)}
+          onConfirm={handleBackScannerConfirm}
         />
       )}
     </div>

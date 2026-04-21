@@ -101,6 +101,10 @@ const vehicleRegistrationSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  rcBackImage: {
+    type: String,
+    trim: true
+  },
   aadharImage: {
     type: String,
     trim: true

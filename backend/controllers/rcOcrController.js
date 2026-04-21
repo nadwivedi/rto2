@@ -1,7 +1,7 @@
 const axios = require('axios');
 const pdfParse = require('pdf-parse');
 
-const callGroqAPI = async (imageBase64, textPrompt, isPdf = false) => {
+const callGroqAPI = async (imageBase64, textPrompt, isPdf = false, backImageBase64 = null) => {
   if (isPdf) {
     // If PDF, imageBase64 is actually raw text extracted by pdf-parse
     const response = await axios.post(
@@ -30,10 +30,32 @@ const callGroqAPI = async (imageBase64, textPrompt, isPdf = false) => {
     );
     return response;
   } else {
-    // Standard vision model
-    const formattedImage = imageBase64.startsWith('data:image') 
-      ? imageBase64 
+    // Standard vision model - support front + optional back image
+    const formattedImage = imageBase64.startsWith('data:image')
+      ? imageBase64
       : `data:image/jpeg;base64,${imageBase64}`;
+
+    const contentArray = [
+      {
+        type: 'text',
+        text: textPrompt
+      },
+      {
+        type: 'image_url',
+        image_url: { url: formattedImage }
+      }
+    ];
+
+    // If back image is provided, append it to the content
+    if (backImageBase64) {
+      const formattedBack = backImageBase64.startsWith('data:image')
+        ? backImageBase64
+        : `data:image/jpeg;base64,${backImageBase64}`;
+      contentArray.push({
+        type: 'image_url',
+        image_url: { url: formattedBack }
+      });
+    }
 
     const response = await axios.post(
       'https://api.groq.com/openai/v1/chat/completions',
@@ -42,18 +64,7 @@ const callGroqAPI = async (imageBase64, textPrompt, isPdf = false) => {
         messages: [
           {
             role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: textPrompt
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: formattedImage
-                }
-              }
-            ]
+            content: contentArray
           }
         ],
         temperature: 0.1,
@@ -72,8 +83,8 @@ const callGroqAPI = async (imageBase64, textPrompt, isPdf = false) => {
 
 const processOcrRequest = async (req, res, promptText, jsonTemplate) => {
   try {
-    const { imageBase64 } = req.body;
-    
+    const { imageBase64, backImageBase64 } = req.body;
+
     if (!imageBase64) {
       return res.status(400).json({ success: false, message: 'Document base64 string is required' });
     }
@@ -94,10 +105,10 @@ const processOcrRequest = async (req, res, promptText, jsonTemplate) => {
 Respond ONLY with a valid JSON object matching this structure exactly (use empty string "" if a field is not found):
 ${jsonTemplate}`;
 
-    const response = await callGroqAPI(payload, fullPrompt, isPdf);
+    const response = await callGroqAPI(payload, fullPrompt, isPdf, backImageBase64);
 
     const messageContent = response.data.choices[0].message.content;
-    
+
     let jsonStr = messageContent;
     const jsonMatch = messageContent.match(/```(?:json)?\n([\s\S]*?)\n```/);
     if (jsonMatch) {
@@ -144,7 +155,7 @@ ${jsonTemplate}`;
 };
 
 exports.rcOcr = async (req, res) => {
-  const prompt = "Extract the details from this vehicle registration certificate (RC).";
+  const prompt = "Extract the details from this vehicle registration certificate (RC). If two images are provided, they are the front and back of the same RC - extract data from both.";
   const template = `{
   "registrationNumber": "", 
   "dateOfRegistration": "", 
