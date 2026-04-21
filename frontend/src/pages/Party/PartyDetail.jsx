@@ -568,10 +568,12 @@ const PartyDetail = () => {
                           </td>
                           <td className='px-4 py-3 text-sm font-semibold text-gray-900'>{item.vehicleNumber}</td>
                           <td className='px-4 py-3 text-sm text-gray-600'>{formatDate(item.dateField || item.createdAt)}</td>
-                          <td className='px-4 py-3 text-sm text-gray-900 text-right'>{formatCurrency(item.totalAmount)}</td>
+                          <td className='px-4 py-3 text-sm text-gray-900 text-right'>
+                            {item.type === 'Money Received' ? '-' : formatCurrency(item.totalAmount)}
+                          </td>
                           <td className='px-4 py-3 text-sm text-green-600 text-right font-semibold'>{formatCurrency(item.receivedAmount || 0)}</td>
                           <td className={`px-4 py-3 text-sm text-right font-semibold ${item.balanceAmount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                            {formatCurrency(item.balanceAmount)}
+                            {item.type === 'Money Received' ? '-' : formatCurrency(item.balanceAmount)}
                           </td>
                           <td className='px-4 py-3 text-sm text-orange-700 text-right font-black'>{formatCurrency(item.runningBalance)}</td>
                         </tr>
