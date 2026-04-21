@@ -231,13 +231,26 @@ exports.createParty = async (req, res) => {
       })
     }
 
+    const normalizedPartyName = partyName.trim().toUpperCase().replace(/\s+/g, ' ')
+    const existingParty = await Party.findOne({
+      userId: req.user.id,
+      partyName: normalizedPartyName
+    })
+
+    if (existingParty) {
+      return res.status(400).json({
+        success: false,
+        message: 'Already exists this party. Please choose it from the dropdown.'
+      })
+    }
+
     const partyData = {
       userId: req.user.id,
-      partyName,
-      sonWifeDaughterOf,
+      partyName: normalizedPartyName,
+      sonWifeDaughterOf: sonWifeDaughterOf ? sonWifeDaughterOf.trim().toUpperCase() : '',
       mobile,
       email,
-      address
+      address: address ? address.trim().toUpperCase() : ''
     }
 
     const party = await Party.create(partyData)

@@ -575,6 +575,14 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       return
     }
 
+    const existingParty = findMatchingParty(newParty.partyName)
+    if (existingParty) {
+      toast.error('Already exists this party. Please choose it from the dropdown.', { position: 'top-right', autoClose: 3000 })
+      handlePartySelect(existingParty)
+      setShowAddPartyModal(false)
+      return
+    }
+
     setSavingParty(true)
     try {
       const response = await axios.post(`${API_URL}/api/parties`, newParty, { withCredentials: true })
