@@ -2306,6 +2306,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                           </button>
                         </div>
                       )}
+                      {formData.partyId && (
+                        <div className='mt-1.5 rounded-lg border border-purple-100 bg-white/80 px-2.5 py-1.5 text-[10px] md:text-xs font-mono font-semibold text-purple-700 break-all'>
+                          Party ID: {formData.partyId}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -2330,6 +2335,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         className={partyDetailInputClass}
                       />
                     </div>
+                    {formData.partyId && (
+                      <div className='mt-1.5 rounded-lg border border-purple-100 bg-white/80 px-2.5 py-1.5 text-[10px] md:text-xs font-mono font-semibold text-purple-700 break-all'>
+                        Party ID: {formData.partyId}
+                      </div>
+                    )}
                   </div>
                 </div>
 

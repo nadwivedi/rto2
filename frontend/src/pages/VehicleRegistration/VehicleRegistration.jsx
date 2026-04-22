@@ -13,6 +13,11 @@ import ViewVehicleRegistrationModal from './components/ViewVehicleRegistrationMo
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
+const getPartyDisplayId = (registration) => {
+  if (!registration?.partyId) return ''
+  return typeof registration.partyId === 'object' ? registration.partyId._id || '' : registration.partyId
+}
+
 const VehicleRegistration = () => {
   const location = useLocation()
   const navigate = useNavigate()
@@ -245,6 +250,11 @@ const VehicleRegistration = () => {
                               })()}
                             </div>
                             <div className='text-xs text-gray-600 truncate'>{registration.ownerName || '-'}</div>
+                            {getPartyDisplayId(registration) && (
+                              <div className='mt-0.5 text-[10px] font-mono font-semibold text-purple-600 truncate'>
+                                Party ID: {getPartyDisplayId(registration)}
+                              </div>
+                            )}
                           </div>
 
                           {/* Action Buttons */}
@@ -320,6 +330,11 @@ const VehicleRegistration = () => {
                             <div className='pt-2 border-t border-gray-100'>
                               <p className='text-[10px] text-gray-500 font-semibold uppercase'>S/W/D of</p>
                               <p className='text-xs font-semibold text-gray-700'>{registration.sonWifeDaughterOf}</p>
+                              {getPartyDisplayId(registration) && (
+                                <p className='mt-0.5 text-[10px] font-mono font-semibold text-purple-600 break-all'>
+                                  Party ID: {getPartyDisplayId(registration)}
+                                </p>
+                              )}
                             </div>
                           )}
 
@@ -450,6 +465,11 @@ const VehicleRegistration = () => {
                             <div className='text-[11px] 2xl:text-sm font-semibold text-gray-900'>{registration.ownerName || 'N/A'}</div>
                             {registration.sonWifeDaughterOf && (
                               <div className='text-[10px] 2xl:text-xs text-gray-500 mt-0.5'>S/W/D of {registration.sonWifeDaughterOf}</div>
+                            )}
+                            {getPartyDisplayId(registration) && (
+                              <div className='text-[10px] 2xl:text-xs font-mono font-semibold text-purple-600 mt-0.5 break-all'>
+                                Party ID: {getPartyDisplayId(registration)}
+                              </div>
                             )}
                           </div>
                         </td>

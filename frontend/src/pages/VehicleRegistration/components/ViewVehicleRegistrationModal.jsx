@@ -10,6 +10,11 @@ import IssueNewPermitModal from '../../NationalPermit/components/IssueNewPermitM
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
+const getPartyDisplayId = (registration) => {
+  if (!registration?.partyId) return ''
+  return typeof registration.partyId === 'object' ? registration.partyId._id || '' : registration.partyId
+}
+
 const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, onRefresh }) => {
   const [showImageViewer, setShowImageViewer] = useState(false)
   const [currentImageUrl, setCurrentImageUrl] = useState('')
@@ -53,6 +58,7 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, o
   const aadharImageUrl = getImageUrl(selectedRegistration.aadharImage)
   const panImageUrl = getImageUrl(selectedRegistration.panImage)
   const speedGovernorImageUrl = getImageUrl(selectedRegistration.speedGovernorImage)
+  const partyDisplayId = getPartyDisplayId(selectedRegistration)
 
   const handleImageClick = (url, title) => {
     setCurrentImageUrl(url)
@@ -638,12 +644,22 @@ const ViewVehicleRegistrationModal = ({ isOpen, onClose, selectedRegistration, o
                   <div className='bg-white/80 p-2 rounded-lg'>
                     <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Owner Name</div>
                     <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.ownerName}</div>
+                    {partyDisplayId && (
+                      <div className='mt-1 text-[10px] md:text-xs font-mono font-semibold text-purple-600 break-all'>
+                        Party ID: {partyDisplayId}
+                      </div>
+                    )}
                   </div>
                 )}
                 {selectedRegistration.sonWifeDaughterOf && (
                   <div className='bg-white/80 p-2 rounded-lg'>
                     <div className='text-[10px] md:text-xs font-semibold text-gray-600'>Son/Wife/Daughter of</div>
                     <div className='text-xs md:text-sm font-bold text-gray-900 mt-0.5'>{selectedRegistration.sonWifeDaughterOf}</div>
+                    {partyDisplayId && (
+                      <div className='mt-1 text-[10px] md:text-xs font-mono font-semibold text-purple-600 break-all'>
+                        Party ID: {partyDisplayId}
+                      </div>
+                    )}
                   </div>
                 )}
                 {selectedRegistration.address && (
