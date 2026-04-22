@@ -12,6 +12,7 @@ const services = [
   { key: 'nationalPermit', label: 'NP' },
   { key: 'statePermit', label: 'State Permit' },
   { key: 'busPermit', label: 'Bus Permit' },
+  { key: 'temporaryPermit', label: 'Temp Permit' },
   { key: 'insurance', label: 'Insurance' }
 ]
 
@@ -288,15 +289,16 @@ const WhatsAppSettings = () => {
                   </div>
 
                   <div className={!rule.enabled ? 'opacity-50 pointer-events-none' : ''}>
-                    <label className='block text-[10px] font-bold uppercase text-gray-600 mb-2'>After Expiry Days</label>
-                    <label className='mb-2 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700'>
-                      <input
-                        type='checkbox'
-                        checked={rule.sendAfterExpiry}
-                        onChange={(e) => updateRule(service.key, { sendAfterExpiry: e.target.checked })}
-                        className='w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500'
-                      />
-                      Send after expiry
+                    <label className='mb-2 flex items-center gap-2 text-[10px] font-bold uppercase text-gray-600'>
+                      <span>After Expiry Days</span>
+                      <span className='inline-flex items-center rounded border border-gray-200 bg-gray-50 p-0.5'>
+                        <input
+                          type='checkbox'
+                          checked={rule.sendAfterExpiry}
+                          onChange={(e) => updateRule(service.key, { sendAfterExpiry: e.target.checked })}
+                          className='w-2.5 h-2.5 rounded border-gray-300 text-green-600 focus:ring-green-500'
+                        />
+                      </span>
                     </label>
                     <div className={`space-y-2 ${!rule.sendAfterExpiry ? 'opacity-50 pointer-events-none' : ''}`}>
                       <div className='flex flex-wrap gap-2'>

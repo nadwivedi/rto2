@@ -6,6 +6,7 @@ const WHATSAPP_ALERT_SERVICES = [
   { key: 'nationalPermit', label: 'NP' },
   { key: 'statePermit', label: 'State Permit' },
   { key: 'busPermit', label: 'Bus Permit' },
+  { key: 'temporaryPermit', label: 'Temp Permit' },
   { key: 'insurance', label: 'Insurance' }
 ]
 

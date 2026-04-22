@@ -9,6 +9,7 @@ const Insurance = require('../models/Insurance')
 const NationalPermit = require('../models/NationalPermit')
 const CgPermit = require('../models/CgPermit')
 const BusPermit = require('../models/BusPermit')
+const TemporaryPermit = require('../models/TemporaryPermit')
 const { normalizeAlertSettings } = require('../utils/whatsappAlertSettings')
 
 const parseDocDate = (dateStr) => {
@@ -26,15 +27,22 @@ const parseDocDate = (dateStr) => {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
+const escapeRegExp = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 const alertSources = [
   { key: 'fitness', name: 'Fitness', documentType: 'Fitness', model: Fitness, dateField: 'validTo', ownerField: 'ownerName' },
   { key: 'tax', name: 'Tax', documentType: 'Tax', model: Tax, dateField: 'taxTo', ownerField: 'ownerName' },
   { key: 'puc', name: 'PUC', documentType: 'Puc', model: Puc, dateField: 'validTo', ownerField: 'ownerName' },
   { key: 'gps', name: 'GPS', documentType: 'Gps', model: Gps, dateField: 'validTo', ownerField: 'ownerName' },
   { key: 'insurance', name: 'Insurance', documentType: 'Insurance', model: Insurance, dateField: 'validTo', ownerField: 'ownerName' },
-  { key: 'nationalPermit', name: 'NP', documentType: 'NationalPermit', model: NationalPermit, dateField: 'partBValidTo', ownerField: 'permitHolder', query: { isRenewed: false } },
   { key: 'statePermit', name: 'State Permit', documentType: 'CgPermit', model: CgPermit, dateField: 'validTo', ownerField: 'permitHolder', query: { isRenewed: false } },
-  { key: 'busPermit', name: 'Bus Permit', documentType: 'BusPermit', model: BusPermit, dateField: 'validTo', ownerField: 'permitHolder', query: { isRenewed: false } }
+  { key: 'busPermit', name: 'Bus Permit', documentType: 'BusPermit', model: BusPermit, dateField: 'validTo', ownerField: 'permitHolder', query: { isRenewed: false } },
+  { key: 'temporaryPermit', name: 'Temp Permit', documentType: 'TemporaryPermit', model: TemporaryPermit, dateField: 'validTo', ownerField: 'permitHolder', query: { isRenewed: false } }
+]
+
+const nationalPermitParts = [
+  { partKey: 'partA', partLabel: 'Part A', dateField: 'partAValidTo' },
+  { partKey: 'partB', partLabel: 'Part B', dateField: 'partBValidTo' }
 ]
 
 const getAlertForDay = (diffDays, rule) => {
@@ -81,6 +89,35 @@ const buildMessage = ({ alert, serviceName, vehicleNo, expiryDate }) => {
   }
 
   return `Dear Customer,\n\nYour *${serviceName}* document for vehicle *${vehicleNo}* expired on *${expiryDate}* (${alert.label}).\n\nPlease renew immediately to avoid heavy fines.\n\n- RTO Services`
+}
+
+const getNationalPermitPartLine = ({ partLabel, alert, expiryText }) => {
+  if (alert.type === 'upcoming') {
+    return `- *${partLabel}* will expire on *${expiryText}* (${alert.label})`
+  }
+
+  if (alert.type === 'today') {
+    return `- *${partLabel}* expires TODAY (*${expiryText}*)`
+  }
+
+  return `- *${partLabel}* expired on *${expiryText}* (${alert.label})`
+}
+
+const buildNationalPermitMessage = ({ partAlerts, vehicleNo }) => {
+  const lines = partAlerts.map(getNationalPermitPartLine).join('\n')
+
+  if (partAlerts.length > 1) {
+    return `Dear Customer,\n\nYour *NP* for vehicle *${vehicleNo}* is going to expire for both *Part A* and *Part B*:\n${lines}\n\nPlease renew it soon to avoid penalties.\n\n- RTO Services`
+  }
+
+  const part = partAlerts[0]
+  const serviceName = `NP ${part.partLabel}`
+  return buildMessage({
+    alert: part.alert,
+    serviceName,
+    vehicleNo,
+    expiryDate: part.expiryText
+  })
 }
 
 const checkUserAndQueueAlerts = async (specificUserId = null) => {
@@ -162,6 +199,97 @@ const checkUserAndQueueAlerts = async (specificUserId = null) => {
         queuedCount++
         console.log(`[WHATSAPP-CRON:${docUserId}] Queued: ${source.name} | ${vehicleNo} | ${mobileNumber} | ${alert.label}`)
       }
+    }
+
+    const nationalPermitQuery = {
+      isRenewed: false,
+      mobileNumber: { $exists: true, $nin: [null, '', undefined] }
+    }
+    if (specificUserId) nationalPermitQuery.userId = specificUserId
+
+    const nationalPermits = await NationalPermit.find(nationalPermitQuery).lean()
+    console.log(`[WHATSAPP-CRON] NP: checking ${nationalPermits.length} docs with mobile numbers`)
+
+    for (const doc of nationalPermits) {
+      if (!doc.userId) continue
+
+      const docUserId = doc.userId.toString()
+      const setting = await getSettingForUser(docUserId)
+      const rule = setting.alertRules.nationalPermit
+
+      if (!rule || rule.enabled === false) continue
+
+      const partAlerts = nationalPermitParts
+        .map((part) => {
+          const expiryDate = parseDocDate(doc[part.dateField])
+          if (!expiryDate) return null
+
+          const diffDays = Math.round((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+          const alert = getAlertForDay(diffDays, rule)
+          if (!alert) return null
+
+          return {
+            ...part,
+            alert,
+            alertKey: `${part.partKey}-${alert.key}`,
+            expiryText: doc[part.dateField]
+          }
+        })
+        .filter(Boolean)
+
+      if (!partAlerts.length) continue
+
+      const missingPartAlerts = []
+
+      for (const partAlert of partAlerts) {
+        const alreadyQueued = await MessageLog.findOne({
+          userId: docUserId,
+          documentId: doc._id,
+          documentType: 'NationalPermit',
+          status: { $in: ['pending', 'sent'] },
+          alertKey: { $regex: `(^|__)${escapeRegExp(partAlert.alertKey)}($|__)` }
+        })
+
+        if (!alreadyQueued) {
+          missingPartAlerts.push(partAlert)
+        }
+      }
+
+      if (!missingPartAlerts.length) continue
+
+      const alertKey = missingPartAlerts.map((partAlert) => partAlert.alertKey).join('__')
+      const alreadyQueuedCombined = await MessageLog.findOne({
+        userId: docUserId,
+        documentId: doc._id,
+        documentType: 'NationalPermit',
+        status: { $in: ['pending', 'sent'] },
+        alertKey
+      })
+
+      if (alreadyQueuedCombined) continue
+
+      const vehicleNo = doc.vehicleNumber || 'your vehicle'
+      const mobileNumber = String(doc.mobileNumber).trim()
+      const messageBody = buildNationalPermitMessage({
+        partAlerts: missingPartAlerts,
+        vehicleNo
+      })
+
+      await MessageLog.create({
+        userId: docUserId,
+        documentId: doc._id,
+        documentType: 'NationalPermit',
+        targetNumber: mobileNumber,
+        ownerName: doc.permitHolder || doc.ownerName || doc.partyName || 'Unknown Owner',
+        messageBody,
+        alertKey,
+        status: 'pending',
+        scheduledFor: new Date()
+      })
+
+      queuedCount++
+      const partLabels = missingPartAlerts.map((partAlert) => partAlert.partLabel).join(' + ')
+      console.log(`[WHATSAPP-CRON:${docUserId}] Queued: NP ${partLabels} | ${vehicleNo} | ${mobileNumber}`)
     }
 
     console.log(`[WHATSAPP-CRON] Scan complete: ${queuedCount} new alerts queued`)
