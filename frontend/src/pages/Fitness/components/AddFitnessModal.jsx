@@ -5,6 +5,7 @@ import { validateVehicleNumberRealtime } from '../../../utils/vehicleNoCheck';
 import { handlePaymentCalculation } from '../../../utils/paymentValidation';
 import { handleSmartDateInput, normalizeAIExtractedDate } from '../../../utils/dateFormatter';
 import DocumentScannerPreview from '../../../components/DocumentScannerPreview';
+import ImageViewer from '../../../components/ImageViewer';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -38,6 +39,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [scanningFile, setScanningFile] = useState(null);
   const [isExtractingFitness, setIsExtractingFitness] = useState(false);
+  const [fitnessDocumentBase64, setFitnessDocumentBase64] = useState('');
+  const [fitnessDocumentName, setFitnessDocumentName] = useState('');
+  const [showDocumentPreview, setShowDocumentPreview] = useState(false);
   const isOcrUpdate = useRef(false);
 
   // Reset form when modal closes or when prefilled values change
@@ -70,6 +74,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
       setSelectedDropdownIndex(0);
       setScanningFile(null);
       setIsExtractingFitness(false);
+      setFitnessDocumentBase64('');
+      setFitnessDocumentName('');
+      setShowDocumentPreview(false);
     }
   }, [isOpen, prefilledVehicleNumber, prefilledOwnerName, prefilledMobileNumber]);
 
@@ -482,6 +489,8 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
       reader.onloadend = async () => {
         try {
           const base64String = reader.result;
+          setFitnessDocumentBase64(base64String);
+          setFitnessDocumentName(fileToProcess.name || '');
           const response = await axios.post(
             `${API_URL}/api/ocr/fitness`,
             { imageBase64: base64String },
@@ -581,7 +590,9 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
       totalFee: parseFloat(formData.totalFee),
       paid: parseFloat(formData.paid),
       balance: parseFloat(formData.balance),
-      feeBreakup: filteredFeeBreakup
+      feeBreakup: filteredFeeBreakup,
+      fitnessDocumentBase64: fitnessDocumentBase64 || undefined,
+      fitnessDocumentName: fitnessDocumentName || undefined
     };
 
     // Make API call
@@ -629,10 +640,15 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
     });
     setVehicleValidation({ isValid: false, message: '' });
     setPaidExceedsTotal(false);
+    setFitnessDocumentBase64('');
+    setFitnessDocumentName('');
     onClose();
   };
 
   if (!isOpen) return null;
+
+  const hasUploadedDocument = Boolean(fitnessDocumentBase64);
+  const isPdfDocument = fitnessDocumentBase64.startsWith('data:application/pdf');
 
   return (
     <div className='fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2 md:p-4'>
@@ -992,6 +1008,62 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
                 ))}
               </div>
             </div>
+
+            {hasUploadedDocument && (
+              <div className='mt-5 pt-5 border-t border-purple-200'>
+                <h4 className='text-sm md:text-base font-bold text-gray-800 mb-4'>Uploaded Fitness Document Preview</h4>
+                <div className='bg-gradient-to-r from-sky-50 to-blue-50 rounded-xl border-2 border-sky-200 p-4'>
+                  <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+                    <div className='flex items-center gap-3'>
+                      {isPdfDocument ? (
+                        <div className='flex h-20 w-20 items-center justify-center rounded-lg border-2 border-red-200 bg-red-50'>
+                          <svg className='h-10 w-10 text-red-500' fill='currentColor' viewBox='0 0 20 20'>
+                            <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
+                          </svg>
+                        </div>
+                      ) : (
+                        <button
+                          type='button'
+                          onClick={() => setShowDocumentPreview(true)}
+                          className='overflow-hidden rounded-lg border-2 border-sky-200 bg-white shadow-sm transition hover:shadow-md'
+                        >
+                          <img
+                            src={fitnessDocumentBase64}
+                            alt='Fitness document preview'
+                            className='h-20 w-20 object-cover'
+                          />
+                        </button>
+                      )}
+                      <div>
+                        <p className='text-xs font-semibold uppercase tracking-wide text-sky-600'>
+                          {isPdfDocument ? 'Uploaded PDF' : 'Uploaded Image'}
+                        </p>
+                        <p className='mt-1 text-sm font-bold text-sky-900'>
+                          {fitnessDocumentName || (isPdfDocument ? 'Fitness Document PDF' : 'Fitness Document Image')}
+                        </p>
+                        <p className='mt-1 text-xs text-gray-600'>
+                          {isPdfDocument ? 'PDF preview is hidden here. Use View to open it.' : 'Click the preview or View to open the full image.'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type='button'
+                      onClick={() => {
+                        if (isPdfDocument) {
+                          window.open(fitnessDocumentBase64, '_blank', 'noopener,noreferrer');
+                          return;
+                        }
+                        setShowDocumentPreview(true);
+                      }}
+                      className='px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 transition-all duration-200'
+                    >
+                      View
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           </div>
 
@@ -1043,6 +1115,12 @@ const AddFitnessModal = ({ isOpen, onClose, onSubmit, prefilledVehicleNumber = '
           onConfirm={handleScannerConfirm}
         />
       )}
+      <ImageViewer
+        isOpen={showDocumentPreview}
+        onClose={() => setShowDocumentPreview(false)}
+        imageUrl={fitnessDocumentBase64}
+        title='Fitness Document Preview'
+      />
     </div>
   );
 };

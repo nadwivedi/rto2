@@ -1,6 +1,57 @@
 const Fitness = require('../models/Fitness')
 const VehicleRegistration = require('../models/VehicleRegistration')
 const mongoose = require('mongoose')
+const fs = require('fs')
+const path = require('path')
+
+const fitnessUploadsDir = path.join(__dirname, '..', 'uploads', 'fitness-documents')
+
+if (!fs.existsSync(fitnessUploadsDir)) {
+  fs.mkdirSync(fitnessUploadsDir, { recursive: true })
+}
+
+const saveFitnessDocument = ({ imageBase64, vehicleNumber, userId, originalName }) => {
+  if (!imageBase64 || typeof imageBase64 !== 'string') return null
+
+  const match = imageBase64.match(/^data:(image\/[a-zA-Z0-9.+-]+|application\/pdf);base64,(.+)$/)
+  if (!match) return null
+
+  const mimeType = match[1]
+  const base64Data = match[2]
+  const buffer = Buffer.from(base64Data, 'base64')
+  const safeVehicleNumber = String(vehicleNumber || 'fitness').replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || 'FITNESS'
+
+  let extension = 'bin'
+  if (mimeType === 'application/pdf') extension = 'pdf'
+  else if (mimeType.includes('png')) extension = 'png'
+  else if (mimeType.includes('webp')) extension = 'webp'
+  else if (mimeType.includes('gif')) extension = 'gif'
+  else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) extension = 'jpg'
+
+  const filename = `fitness-${safeVehicleNumber}-${userId}-${Date.now()}.${extension}`
+  const filePath = path.join(fitnessUploadsDir, filename)
+  fs.writeFileSync(filePath, buffer)
+
+  return {
+    relativePath: `/uploads/fitness-documents/${filename}`,
+    mimeType,
+    originalName: originalName || filename
+  }
+}
+
+const deleteFitnessDocument = (documentPath) => {
+  if (!documentPath) return
+
+  try {
+    const filename = path.basename(documentPath)
+    const filePath = path.join(fitnessUploadsDir, filename)
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath)
+    }
+  } catch (error) {
+    console.error('Error deleting fitness document:', error)
+  }
+}
 
 // helper function to calculate status
 const getFitnessStatus = (validTo) => {
@@ -325,7 +376,20 @@ exports.getFitnessById = async (req, res) => {
 // Create new fitness record
 exports.createFitness = async (req, res) => {
   try {
-    const { ownerName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, feeBreakup, partyId: reqPartyId } = req.body
+    const {
+      ownerName,
+      vehicleNumber,
+      mobileNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      feeBreakup,
+      partyId: reqPartyId,
+      fitnessDocumentBase64,
+      fitnessDocumentName
+    } = req.body
 
     // Validate required fields
     if (!vehicleNumber ) {
@@ -384,6 +448,13 @@ exports.createFitness = async (req, res) => {
       }
     )
 
+    const uploadedDocument = saveFitnessDocument({
+      imageBase64: fitnessDocumentBase64,
+      vehicleNumber,
+      userId: req.user.id,
+      originalName: fitnessDocumentName
+    })
+
     // Create new fitness record
     const fitness = new Fitness({
       ownerName,
@@ -397,7 +468,10 @@ exports.createFitness = async (req, res) => {
       feeBreakup,
       status,
       userId: req.user.id,
-      partyId
+      partyId,
+      fitnessDocument: uploadedDocument?.relativePath || '',
+      fitnessDocumentType: uploadedDocument?.mimeType || '',
+      fitnessDocumentName: uploadedDocument?.originalName || ''
     })
 
     await fitness.save()
@@ -420,7 +494,20 @@ exports.createFitness = async (req, res) => {
 // Update fitness record
 exports.updateFitness = async (req, res) => {
   try {
-    const { ownerName, vehicleNumber, mobileNumber, validFrom, validTo, totalFee, paid, balance, feeBreakup, partyId } = req.body
+    const {
+      ownerName,
+      vehicleNumber,
+      mobileNumber,
+      validFrom,
+      validTo,
+      totalFee,
+      paid,
+      balance,
+      feeBreakup,
+      partyId,
+      fitnessDocumentBase64,
+      fitnessDocumentName
+    } = req.body
 
     const fitness = await Fitness.findOne({ _id: req.params.id, userId: req.user.id })
 
@@ -467,6 +554,18 @@ exports.updateFitness = async (req, res) => {
     if (balance !== undefined) fitness.balance = balance
     if (feeBreakup !== undefined) fitness.feeBreakup = feeBreakup
     if (partyId !== undefined) fitness.partyId = partyId
+    if (fitnessDocumentBase64) {
+      deleteFitnessDocument(fitness.fitnessDocument)
+      const uploadedDocument = saveFitnessDocument({
+        imageBase64: fitnessDocumentBase64,
+        vehicleNumber: vehicleNumber || fitness.vehicleNumber,
+        userId: req.user.id,
+        originalName: fitnessDocumentName
+      })
+      fitness.fitnessDocument = uploadedDocument?.relativePath || ''
+      fitness.fitnessDocumentType = uploadedDocument?.mimeType || ''
+      fitness.fitnessDocumentName = uploadedDocument?.originalName || ''
+    }
 
     await fitness.save()
 
@@ -497,6 +596,7 @@ exports.deleteFitness = async (req, res) => {
       })
     }
 
+    deleteFitnessDocument(fitness.fitnessDocument)
     await fitness.deleteOne()
 
     res.json({

@@ -27,6 +27,18 @@ const fitnessSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  fitnessDocument: {
+    type: String,
+    trim: true
+  },
+  fitnessDocumentType: {
+    type: String,
+    trim: true
+  },
+  fitnessDocumentName: {
+    type: String,
+    trim: true
+  },
   validFrom: {
     type: String,
     required: true

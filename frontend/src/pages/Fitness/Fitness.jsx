@@ -103,6 +103,9 @@ const Fitness = () => {
           paid: record.paid || 0,
           balance: record.balance || 0,
           feeBreakup: record.feeBreakup || [],
+          fitnessDocument: record.fitnessDocument || '',
+          fitnessDocumentType: record.fitnessDocumentType || '',
+          fitnessDocumentName: record.fitnessDocumentName || '',
           status: record.status,
           isRenewed: record.isRenewed || false, // Include isRenewed field
           whatsappMessageCount: record.whatsappMessageCount || 0, // WhatsApp message count

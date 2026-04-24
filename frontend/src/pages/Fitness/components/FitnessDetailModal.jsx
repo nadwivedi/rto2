@@ -1,6 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { toast } from 'react-toastify'
+import ImageViewer from '../../../components/ImageViewer'
+
+const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
 const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
+  const [showImageViewer, setShowImageViewer] = useState(false)
+
   useEffect(() => {
     if (!isOpen) return
 
@@ -14,12 +20,75 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose])
 
+  const documentUrl = useMemo(() => {
+    if (!fitness?.fitnessDocument) return ''
+    return fitness.fitnessDocument.startsWith('data:')
+      ? fitness.fitnessDocument
+      : `${API_URL}${fitness.fitnessDocument}`
+  }, [fitness?.fitnessDocument])
+
+  const isPdfDocument = useMemo(() => {
+    if (!documentUrl) return false
+    return documentUrl.toLowerCase().includes('.pdf') || (fitness?.fitnessDocumentType || '').includes('pdf')
+  }, [documentUrl, fitness?.fitnessDocumentType])
+
   if (!isOpen || !fitness) return null
+
+  const handleViewDocument = () => {
+    if (!documentUrl) return
+
+    if (isPdfDocument) {
+      window.open(documentUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+
+    setShowImageViewer(true)
+  }
+
+  const handleShareDocument = async () => {
+    if (!documentUrl) return
+
+    try {
+      const response = await fetch(documentUrl, { credentials: 'include' })
+      const blob = await response.blob()
+      const fallbackName = fitness.fitnessDocumentName || `${fitness.vehicleNumber || 'fitness-document'}${isPdfDocument ? '.pdf' : '.jpg'}`
+      const file = new File([blob], fallbackName, {
+        type: blob.type || (isPdfDocument ? 'application/pdf' : 'image/jpeg')
+      })
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: `Fitness Document - ${fitness.vehicleNumber}`,
+          text: `Fitness document for ${fitness.vehicleNumber}`,
+          files: [file]
+        })
+        return
+      }
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `Fitness Document - ${fitness.vehicleNumber}`,
+            text: `Fitness document for ${fitness.vehicleNumber}`,
+            files: [file]
+          })
+          return
+        } catch (shareError) {
+          if (shareError.name === 'AbortError') return
+        }
+      }
+
+      const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Fitness document for ${fitness.vehicleNumber}: ${documentUrl}`)}`
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+    } catch (error) {
+      console.error('Error sharing fitness document:', error)
+      toast.error('Unable to share document right now.')
+    }
+  }
 
   return (
     <div className='fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-2 md:p-4'>
       <div className='bg-white rounded-xl md:rounded-2xl shadow-2xl w-full md:w-[90%] lg:w-[85%] xl:w-[80%] max-h-[95vh] overflow-hidden flex flex-col'>
-        {/* Header */}
         <div className='bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 p-3 md:p-4 text-white shadow-lg'>
           <div className='flex justify-between items-center gap-2'>
             <div className='flex items-center gap-3'>
@@ -44,10 +113,64 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
           </div>
         </div>
 
-        {/* Content */}
         <div className='flex-1 overflow-y-auto p-4 md:p-5'>
           <div className='space-y-4'>
-            {/* Vehicle & Certificate Details */}
+            {documentUrl && (
+              <div className='bg-gradient-to-r from-sky-50 to-blue-50 rounded-lg p-4 border-l-4 border-sky-500'>
+                <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+                  <div className='flex items-center gap-3'>
+                    {isPdfDocument ? (
+                      <div className='flex h-20 w-20 items-center justify-center rounded-lg border-2 border-red-200 bg-red-50'>
+                        <svg className='h-10 w-10 text-red-500' fill='currentColor' viewBox='0 0 20 20'>
+                          <path fillRule='evenodd' d='M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z' clipRule='evenodd' />
+                        </svg>
+                      </div>
+                    ) : (
+                      <button
+                        type='button'
+                        onClick={handleViewDocument}
+                        className='overflow-hidden rounded-lg border-2 border-sky-200 bg-white shadow-sm transition hover:shadow-md'
+                      >
+                        <img
+                          src={documentUrl}
+                          alt='Fitness document preview'
+                          className='h-20 w-20 object-cover'
+                        />
+                      </button>
+                    )}
+                    <div>
+                      <p className='text-xs font-semibold uppercase tracking-wide text-sky-600'>
+                        {isPdfDocument ? 'Uploaded PDF' : 'Uploaded Image'}
+                      </p>
+                      <p className='mt-1 text-sm font-bold text-sky-900'>
+                        {fitness.fitnessDocumentName || (isPdfDocument ? 'Fitness Document PDF' : 'Fitness Document Image')}
+                      </p>
+                      <p className='mt-1 text-xs text-gray-600'>
+                        {isPdfDocument ? 'PDF preview is hidden here. Use View to open it.' : 'Click the preview or View to open the full image.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className='flex flex-wrap items-center gap-2'>
+                    <button
+                      type='button'
+                      onClick={handleViewDocument}
+                      className='px-4 py-2 rounded-lg bg-sky-600 text-white text-sm font-bold hover:bg-sky-700 transition-all duration-200'
+                    >
+                      View
+                    </button>
+                    <button
+                      type='button'
+                      onClick={handleShareDocument}
+                      className='px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-bold hover:bg-green-700 transition-all duration-200'
+                    >
+                      Share
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className='bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border-l-4 border-green-500'>
               <h3 className='text-sm md:text-base font-bold text-green-900 mb-3 flex items-center gap-2'>
                 <svg className='w-4 h-4 md:w-5 md:h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -86,8 +209,8 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
                     fitness.status === 'active'
                       ? 'bg-green-100 text-green-700 border border-green-300'
                       : fitness.status === 'expiring_soon'
-                      ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                      : 'bg-red-100 text-red-700 border border-red-300'
+                        ? 'bg-amber-100 text-amber-700 border border-amber-300'
+                        : 'bg-red-100 text-red-700 border border-red-300'
                   }`}>
                     {fitness.status === 'active' ? 'Active' : fitness.status === 'expiring_soon' ? 'Expiring Soon' : 'Expired'}
                   </span>
@@ -105,9 +228,7 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
               </div>
             </div>
 
-            {/* Payment Information */}
             <div className='bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4 border-l-4 border-purple-500 relative'>
-              {/* PAID Stamp - Show only when balance is 0 */}
               {fitness.balance === 0 && (
                 <div className='absolute top-2 right-2 md:top-3 md:right-3'>
                   <div className='text-2xl md:text-4xl font-black text-green-600 opacity-20 transform -rotate-12 border-4 border-green-600 rounded-lg px-2 py-1'>
@@ -151,9 +272,7 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
                 </div>
               </div>
 
-              {/* Fee Breakup - Show only if exists and has values */}
               {(() => {
-                // Filter to only show items with actual amounts
                 const validFeeItems = fitness.feeBreakup?.filter(item => {
                   if (!item || !item.name) return false
                   const amount = parseFloat(item.amount)
@@ -192,6 +311,12 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
           </div>
         </div>
       </div>
+      <ImageViewer
+        isOpen={showImageViewer}
+        onClose={() => setShowImageViewer(false)}
+        imageUrl={documentUrl}
+        title='Fitness Document'
+      />
     </div>
   )
 }
