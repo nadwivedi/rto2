@@ -624,19 +624,6 @@ const CgPermit = () => {
               ),
             },
             {
-              title: 'Mark as Paid',
-              condition: (permit) => (permit.balance || 0) > 0,
-              onClick: handleMarkAsPaid,
-              bgColor: 'bg-green-100',
-              textColor: 'text-green-600',
-              hoverBgColor: 'bg-green-200',
-              icon: (
-                <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                </svg>
-              ),
-            },
-            {
               title: 'Edit',
               onClick: handleEditPermit,
               bgColor: 'bg-amber-100',
@@ -816,18 +803,6 @@ const CgPermit = () => {
                     </td>
                     <td className='px-4 2xl:px-6 py-3 2xl:py-5'>
                       <div className='flex items-center justify-end gap-1'>
-                        {/* Mark as Paid Button */}
-                        {(permit.balance || 0) > 0 && (
-                          <button
-                            onClick={() => handleMarkAsPaid(permit)}
-                            className='p-1.5 2xl:p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all duration-200 cursor-pointer'
-                            title='Mark as Paid'
-                          >
-                            <svg className='w-4 h-4 2xl:w-5 2xl:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' />
-                            </svg>
-                          </button>
-                        )}
                         <button
                           onClick={() => handleEditPermit(permit)}
 
