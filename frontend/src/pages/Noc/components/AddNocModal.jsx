@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation, validatePaidAmount } from '../../../utils/paymentValidation'
 
@@ -29,6 +30,22 @@ const AddNocModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [error, setError] = useState('')
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleEscapeKey)
+
+    return () => {
+      window.removeEventListener('keydown', handleEscapeKey)
+    }
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (!isOpen) return
@@ -163,6 +180,9 @@ const AddNocModal = ({ isOpen, onClose, onSuccess, editData }) => {
         : await axios.post(url, payload, { withCredentials: true })
 
       if (response.data.success) {
+        toast.success(editData ? 'NOC updated successfully' : 'NOC added successfully', {
+          autoClose: 1200
+        })
         onSuccess()
         onClose()
       } else {

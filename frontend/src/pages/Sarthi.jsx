@@ -50,9 +50,14 @@ const quickButtons = [
 
 const Sarthi = () => {
   const [activeModal, setActiveModal] = useState(null)
+  const [dashboardRefreshKey, setDashboardRefreshKey] = useState(0)
 
   const openModal = (title) => setActiveModal(title)
   const closeModal = () => setActiveModal(null)
+  const handleVehicleTransferSuccess = () => {
+    setDashboardRefreshKey(prev => prev + 1)
+    closeModal()
+  }
 
   const handleDlSubmit = async (formData) => {
     try {
@@ -154,7 +159,7 @@ const Sarthi = () => {
 
           <main className='flex-1 lg:ml-60 xl:ml-64 2xl:ml-[19rem]'>
             <div className='bg-white rounded-2xl shadow-lg border border-gray-200 min-h-[calc(100vh-6rem)]'>
-              <SarthiDashboard />
+              <SarthiDashboard refreshKey={dashboardRefreshKey} />
             </div>
           </main>
         </div>
@@ -172,7 +177,7 @@ const Sarthi = () => {
         <AddVehicleTransferModal
           isOpen={true}
           onClose={closeModal}
-          onSuccess={closeModal}
+          onSuccess={handleVehicleTransferSuccess}
         />
       )}
 

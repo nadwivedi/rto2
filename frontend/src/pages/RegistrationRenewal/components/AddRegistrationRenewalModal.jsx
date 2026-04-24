@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
@@ -30,6 +31,22 @@ const AddRegistrationRenewalModal = ({ isOpen, onClose, onSuccess, editData }) =
   const [error, setError] = useState('')
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleEscapeKey)
+
+    return () => {
+      window.removeEventListener('keydown', handleEscapeKey)
+    }
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (editData) {
@@ -173,6 +190,9 @@ const AddRegistrationRenewalModal = ({ isOpen, onClose, onSuccess, editData }) =
       const data = response.data
 
       if (data.success) {
+        toast.success(editData ? 'RC renewal updated successfully' : 'RC renewal added successfully', {
+          autoClose: 1200
+        })
         onSuccess()
         onClose()
       } else {
@@ -183,14 +203,6 @@ const AddRegistrationRenewalModal = ({ isOpen, onClose, onSuccess, editData }) =
       console.error('Error:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      onClose()
-    } else if (e.key === 'Enter' && e.ctrlKey) {
-      handleSubmit(e)
     }
   }
 

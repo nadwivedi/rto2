@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
-const SarthiDashboard = () => {
+const SarthiDashboard = ({ refreshKey = 0 }) => {
   const [stats, setStats] = useState({
     dl: 0,
     transfer: 0,
@@ -15,7 +15,7 @@ const SarthiDashboard = () => {
 
   useEffect(() => {
     fetchStats()
-  }, [])
+  }, [refreshKey])
 
   const fetchStats = async () => {
     try {
@@ -24,7 +24,7 @@ const SarthiDashboard = () => {
       // In a real scenario, you'd have an API that returns these counts
       const [dlRes, transferRes, nocRes, renewalRes] = await Promise.all([
         axios.get(`${BACKEND_URL}/api/driving-licence`, { withCredentials: true }),
-        axios.get(`${BACKEND_URL}/api/vehicle-transfer`, { withCredentials: true }),
+        axios.get(`${BACKEND_URL}/api/vehicle-transfers`, { withCredentials: true }),
         axios.get(`${BACKEND_URL}/api/noc`, { withCredentials: true }),
         axios.get(`${BACKEND_URL}/api/registration-renewal`, { withCredentials: true })
       ])

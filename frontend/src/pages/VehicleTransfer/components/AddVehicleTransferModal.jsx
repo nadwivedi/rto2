@@ -1,39 +1,59 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { toast } from 'react-toastify'
 import { validateVehicleNumberRealtime, enforceVehicleNumberFormat } from '../../../utils/vehicleNoCheck'
 import { handlePaymentCalculation } from '../../../utils/paymentValidation'
 import { handleSmartDateInput } from '../../../utils/dateFormatter'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080'
 
+const getDefaultFormData = () => ({
+  vehicleNumber: '',
+  transferDate: '',
+  currentOwnerName: '',
+  currentOwnerFatherName: '',
+  currentOwnerAddress: '',
+  currentOwnerMobile: '',
+  newOwnerName: '',
+  newOwnerFatherName: '',
+  newOwnerAddress: '',
+  newOwnerMobile: '',
+  byName: '',
+  byMobile: '',
+  totalFee: '',
+  paid: '',
+  balance: '0',
+  feeBreakup: [
+    { name: 'Transfer', amount: '' },
+    { name: 'PUC', amount: '' },
+    { name: 'Insurance', amount: '' },
+    { name: 'Tax 1%', amount: '' }
+  ]
+})
+
 const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
-  const [formData, setFormData] = useState({
-    vehicleNumber: '',
-    transferDate: '',
-    currentOwnerName: '',
-    currentOwnerFatherName: '',
-    currentOwnerAddress: '',
-    currentOwnerMobile: '',
-    newOwnerName: '',
-    newOwnerFatherName: '',
-    newOwnerAddress: '',
-    newOwnerMobile: '',
-    byName: '',
-    byMobile: '',
-    totalFee: '',
-    paid: '',
-    feeBreakup: [
-      { name: 'Transfer', amount: '' },
-      { name: 'PUC', amount: '' },
-      { name: 'Insurance', amount: '' },
-      { name: 'Tax 1%', amount: '' }
-    ]
-  })
+  const [formData, setFormData] = useState(getDefaultFormData())
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [paidExceedsTotal, setPaidExceedsTotal] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+
+    const handleEscapeKey = (event) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleEscapeKey)
+
+    return () => {
+      window.removeEventListener('keydown', handleEscapeKey)
+    }
+  }, [isOpen, onClose])
 
   useEffect(() => {
     if (editData) {
@@ -50,7 +70,9 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
         : defaultFeeBreakup
 
       setFormData({
+        ...getDefaultFormData(),
         ...editData,
+        balance: editData.balance?.toString() ?? `${(parseFloat(editData.totalFee) || 0) - (parseFloat(editData.paid) || 0)}`,
         feeBreakup
       })
       // Validate vehicle number if editing
@@ -59,28 +81,7 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
         setVehicleValidation(validation)
       }
     } else {
-      setFormData({
-        vehicleNumber: '',
-        transferDate: '',
-        currentOwnerName: '',
-        currentOwnerFatherName: '',
-        currentOwnerAddress: '',
-        currentOwnerMobile: '',
-        newOwnerName: '',
-        newOwnerFatherName: '',
-        newOwnerAddress: '',
-        newOwnerMobile: '',
-        byName: '',
-        byMobile: '',
-        totalFee: '',
-        paid: '',
-        feeBreakup: [
-          { name: 'Transfer', amount: '' },
-          { name: 'PUC', amount: '' },
-          { name: 'Insurance', amount: '' },
-          { name: 'Tax 1%', amount: '' }
-        ]
-      })
+      setFormData(getDefaultFormData())
       setVehicleValidation({ isValid: false, message: '' })
     }
     setError('')
@@ -199,24 +200,19 @@ const AddVehicleTransferModal = ({ isOpen, onClose, onSuccess, editData }) => {
       const data = response.data
 
       if (data.success) {
-        onSuccess()
+        toast.success(editData ? 'Vehicle transfer updated successfully' : 'Vehicle transfer added successfully', {
+          autoClose: 1200
+        })
+        onSuccess?.(data.data)
         onClose()
       } else {
         setError(data.message || 'Failed to save vehicle transfer')
       }
     } catch (error) {
-      setError('Error saving vehicle transfer. Please try again.')
+      setError(error.response?.data?.message || 'Error saving vehicle transfer. Please try again.')
       console.error('Error:', error)
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      onClose()
-    } else if (e.key === 'Enter' && e.ctrlKey) {
-      handleSubmit(e)
     }
   }
 
