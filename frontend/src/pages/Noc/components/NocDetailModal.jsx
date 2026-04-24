@@ -1,4 +1,19 @@
+import { useEffect } from 'react'
+
 const NocDetailModal = ({ isOpen, onClose, record }) => {
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   if (!isOpen || !record) return null
 
   const validFeeItems = record.feeBreakup?.filter((item) => item.amount && Number(item.amount) > 0) || []

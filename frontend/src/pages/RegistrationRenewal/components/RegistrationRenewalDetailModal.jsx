@@ -1,8 +1,22 @@
+import { useEffect } from 'react'
 import { getVehicleNumberParts } from '../../../utils/vehicleNoCheck'
 import { getVehicleNumberDesign } from '../../../context/ThemeContext'
 
 const RegistrationRenewalDetailModal = ({ isOpen, onClose, renewal }) => {
   const vehicleDesign = getVehicleNumberDesign()
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
 
   if (!isOpen || !renewal) return null
 
