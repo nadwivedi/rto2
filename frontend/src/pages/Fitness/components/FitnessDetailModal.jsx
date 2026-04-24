@@ -191,16 +191,6 @@ const FitnessDetailModal = ({ isOpen, onClose, fitness }) => {
             </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className='border-t border-gray-200 px-4 py-3 md:px-5 md:py-4 bg-gray-50 flex justify-end'>
-          <button
-            onClick={onClose}
-            className='px-5 py-2 md:px-6 md:py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-bold text-sm shadow-md hover:shadow-lg'
-          >
-            Close
-          </button>
-        </div>
       </div>
     </div>
   )
