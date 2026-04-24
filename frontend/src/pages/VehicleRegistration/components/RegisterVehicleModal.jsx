@@ -8,6 +8,14 @@ import DocumentScannerPreview from '../../../components/DocumentScannerPreview'
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
 
+const createEmptyNewParty = () => ({
+  partyName: '',
+  sonWifeDaughterOf: '',
+  mobile: '',
+  email: '',
+  address: ''
+})
+
 const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [vehicleValidation, setVehicleValidation] = useState({ isValid: false, message: '' })
   const [showImageViewer, setShowImageViewer] = useState(false)
@@ -54,13 +62,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const [highlightedIndex, setHighlightedIndex] = useState(-1)
   const [showAddPartyModal, setShowAddPartyModal] = useState(false)
   const [selectedPartyName, setSelectedPartyName] = useState('')
-  const [newParty, setNewParty] = useState({
-    partyName: '',
-    sonWifeDaughterOf: '',
-    mobile: '',
-    email: '',
-    address: ''
-  })
+  const [newParty, setNewParty] = useState(createEmptyNewParty())
   const [savingParty, setSavingParty] = useState(false)
 
   const registrationNumberRef = useRef(null)
@@ -361,6 +363,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       setAadharImagePreview(null)
       setPanImagePreview(null)
       setSpeedGovernorImagePreview(null)
+      setNewParty(createEmptyNewParty())
     }
     setError('')
     setVehicleAlreadyExists(false)
@@ -473,11 +476,44 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     }))
   }
 
+  const clearPartyControlledFields = (ownerName = '') => {
+    setFormData(prev => ({
+      ...prev,
+      ownerName,
+      sonWifeDaughterOf: '',
+      address: '',
+      mobileNumber: '',
+      email: '',
+      partyId: ''
+    }))
+    setSelectedPartyName('')
+  }
+
+  const setPendingPartyDraft = (draft = {}) => {
+    setNewParty(prev => ({
+      partyName: draft.partyName !== undefined ? String(draft.partyName).trim().toUpperCase() : prev.partyName,
+      sonWifeDaughterOf: draft.sonWifeDaughterOf !== undefined ? String(draft.sonWifeDaughterOf).trim().toUpperCase() : prev.sonWifeDaughterOf,
+      mobile: draft.mobile !== undefined ? String(draft.mobile).trim() : prev.mobile,
+      email: draft.email !== undefined ? String(draft.email).trim() : prev.email,
+      address: draft.address !== undefined ? String(draft.address).trim().toUpperCase() : prev.address
+    }))
+  }
+
   // Handle owner name change with party suggestions
   const handleOwnerNameChange = (e) => {
     const value = e.target.value.toUpperCase()
-    setFormData(prev => ({ ...prev, ownerName: value, partyId: '' }))
-    setSelectedPartyName('')
+    const exactParty = findMatchingParty(value)
+
+    if (exactParty) {
+      handlePartySelect(exactParty)
+      setFilteredParties([])
+      setShowPartySuggestions(false)
+      setHighlightedIndex(-1)
+      return
+    }
+
+    clearPartyControlledFields(value)
+    setPendingPartyDraft({ partyName: value })
 
     // Filter parties based on input (start from 1 character)
     if (value.length >= 1) {
@@ -501,10 +537,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   }
 
   const openAddPartyModal = () => {
-    setNewParty(prev => ({
-      ...prev,
-      partyName: selectedPartyName || formData.ownerName || prev.partyName
-    }))
+    if (!formData.partyId) {
+      setPendingPartyDraft({
+        partyName: formData.ownerName || newParty.partyName
+      })
+    }
     setShowPartySuggestions(false)
     setShowAddPartyModal(true)
   }
@@ -521,6 +558,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       partyId: party._id
     }))
     setSelectedPartyName(party.partyName)
+    setNewParty(createEmptyNewParty())
     setShowPartySuggestions(false)
     setHighlightedIndex(-1)
   }
@@ -562,6 +600,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       updated.address = matchedParty.address || ''
       updated.partyId = matchedParty._id
     } else if (extractedData.ownerName) {
+      updated.ownerName = ''
+      updated.sonWifeDaughterOf = ''
+      updated.mobileNumber = ''
+      updated.email = ''
+      updated.address = ''
       updated.partyId = ''
     }
 
@@ -570,16 +613,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
 
   // Clear party selection
   const clearPartySelection = () => {
-    setFormData(prev => ({
-      ...prev,
-      ownerName: '',
-      sonWifeDaughterOf: '',
-      mobileNumber: '',
-      email: '',
-      address: '',
-      partyId: ''
-    }))
-    setSelectedPartyName('')
+    clearPartyControlledFields('')
     setFilteredParties([])
     setShowPartySuggestions(false)
     setHighlightedIndex(-1)
@@ -597,6 +631,11 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
   const handleSaveParty = async () => {
     if (!newParty.partyName.trim()) {
       toast.error('Party name is required', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
+    if (!newParty.mobile.trim()) {
+      toast.error('Mobile number is required', { position: 'top-right', autoClose: 3000 })
       return
     }
 
@@ -619,13 +658,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         handlePartySelect(savedParty)
         // Close modal and reset form
         setShowAddPartyModal(false)
-        setNewParty({
-          partyName: '',
-          sonWifeDaughterOf: '',
-          mobile: '',
-          email: '',
-          address: ''
-        })
+        setNewParty(createEmptyNewParty())
         toast.success('Party added successfully!', { position: 'top-right', autoClose: 2000 })
       }
     } catch (error) {
@@ -1241,6 +1274,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                 setSelectedPartyName(matchedParty.partyName);
               } else if (resultData.ownerName) {
                 setSelectedPartyName('');
+                setPendingPartyDraft({
+                  partyName: resultData.ownerName,
+                  sonWifeDaughterOf: resultData.sonWifeDaughterOf,
+                  mobile: resultData.mobileNumber,
+                  email: resultData.email,
+                  address: resultData.address
+                });
               }
               setFormData(prev => {
                 const updated = mergeExtractedRcData(prev, resultData, { matchedParty });
@@ -1314,6 +1354,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               setSelectedPartyName(matchedParty.partyName);
             } else if (resultData.ownerName) {
               setSelectedPartyName('');
+              setPendingPartyDraft({
+                partyName: resultData.ownerName,
+                sonWifeDaughterOf: resultData.sonWifeDaughterOf,
+                mobile: resultData.mobileNumber,
+                email: resultData.email,
+                address: resultData.address
+              });
             }
             setFormData(prev => {
               const updated = mergeExtractedRcData(prev, resultData, { matchedParty });
@@ -1414,6 +1461,13 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
           setSelectedPartyName(matchedParty.partyName);
         } else if (resultData.ownerName) {
           setSelectedPartyName('');
+          setPendingPartyDraft({
+            partyName: resultData.ownerName,
+            sonWifeDaughterOf: resultData.sonWifeDaughterOf,
+            mobile: resultData.mobileNumber,
+            email: resultData.email,
+            address: resultData.address
+          });
         }
         if (!backUploadSaved && resultData.registrationNumber) {
           try {
@@ -2944,7 +2998,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
               {/* Mobile */}
               <div>
                 <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                  Mobile
+                  Mobile <span className='text-red-500'>*</span>
                 </label>
                 <input
                   type='tel'
@@ -3020,7 +3074,7 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                     handleSaveParty()
                   }
                 }}
-                disabled={savingParty || !newParty.partyName.trim()}
+                disabled={savingParty}
                 className='flex-1 px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
               >
                 {savingParty ? (

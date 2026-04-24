@@ -233,6 +233,13 @@ exports.createParty = async (req, res) => {
       })
     }
 
+    if (!mobile || !String(mobile).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mobile number is required'
+      })
+    }
+
     const normalizedPartyName = partyName.trim().toUpperCase().replace(/\s+/g, ' ')
     const existingParty = await Party.findOne({
       userId: req.user.id,
@@ -250,7 +257,7 @@ exports.createParty = async (req, res) => {
       userId: req.user.id,
       partyName: normalizedPartyName,
       sonWifeDaughterOf: sonWifeDaughterOf ? sonWifeDaughterOf.trim().toUpperCase() : '',
-      mobile,
+      mobile: String(mobile).trim(),
       email,
       address: address ? address.trim().toUpperCase() : ''
     }

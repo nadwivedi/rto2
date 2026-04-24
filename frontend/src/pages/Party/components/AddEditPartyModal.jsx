@@ -76,6 +76,11 @@ const AddEditPartyModal = ({ isOpen, onClose, onSuccess, editData }) => {
       return
     }
 
+    if (!editData && !formData.mobile.trim()) {
+      toast.error('Mobile number is required', { position: 'top-right', autoClose: 3000 })
+      return
+    }
+
     setLoading(true)
     try {
       let response
@@ -169,7 +174,7 @@ const AddEditPartyModal = ({ isOpen, onClose, onSuccess, editData }) => {
             {/* Mobile Number */}
             <div>
               <label className='block text-sm font-semibold text-gray-700 mb-1'>
-                Mobile
+                Mobile {!editData && <span className='text-red-500'>*</span>}
               </label>
               <input
                 type='tel'
@@ -238,7 +243,7 @@ const AddEditPartyModal = ({ isOpen, onClose, onSuccess, editData }) => {
             <button
               type='submit'
               ref={saveButtonRef}
-              disabled={loading || !formData.partyName.trim()}
+              disabled={loading}
               className='flex-1 px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2'
             >
               {loading ? (
