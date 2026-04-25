@@ -13,6 +13,7 @@ const allowedOrigins = [
   'https://adm.rtosarthi.com',
   'https://rtosarthi.com',
   'https://www.rtosarthi.com',
+  'https://app.rtosarthi.com',
   'http://localhost:5173',
   'http://localhost:5174',
   'http://localhost:5175'
