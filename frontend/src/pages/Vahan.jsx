@@ -125,9 +125,41 @@ const PermitTypeSelectModal = ({ onClose, openModal }) => {
 
 const Vahan = () => {
   const [activeModal, setActiveModal] = useState(null)
+  const [focusedIndex, setFocusedIndex] = useState(0)
 
   const openModal = (title) => setActiveModal(title)
-  const closeModal = () => setActiveModal(null)
+  const closeModal = () => {
+    setActiveModal(null)
+    // Return keyboard focus to the sidebar after modal closes
+    setFocusedIndex(prev => prev ?? 0)
+  }
+
+  // Global arrow-key navigation for sidebar — disabled while a modal is open
+  useEffect(() => {
+    if (activeModal) return
+    const handleKeyDown = (e) => {
+      if (['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
+        e.preventDefault()
+      }
+      if (e.key === 'ArrowDown') {
+        setFocusedIndex(prev => {
+          const next = (prev === null ? 0 : prev + 1)
+          return next >= vahanOptions.length ? 0 : next
+        })
+      } else if (e.key === 'ArrowUp') {
+        setFocusedIndex(prev => {
+          const next = (prev === null ? vahanOptions.length - 1 : prev - 1)
+          return next < 0 ? vahanOptions.length - 1 : next
+        })
+      } else if (e.key === 'Enter') {
+        if (focusedIndex !== null) {
+          openModal(vahanOptions[focusedIndex].title)
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [activeModal, focusedIndex])
 
   return (
     <>
@@ -166,37 +198,65 @@ const Vahan = () => {
         <div className='flex w-full flex-col gap-6 lg:flex-row'>
           <aside className='lg:fixed lg:left-0 lg:top-[4.75rem] lg:h-[calc(100vh-4.75rem)] lg:w-60 xl:w-64 2xl:w-[19rem] lg:overflow-y-auto'>
             <div className='overflow-hidden rounded-[28px] bg-slate-900 text-white shadow-2xl'>
+              {/* Keyboard hint bar */}
+              <div className='px-4 pt-3 pb-1 flex items-center gap-2 border-b border-white/10'>
+                <span className='text-[10px] text-slate-400 font-medium tracking-wide flex items-center gap-1'>
+                  <kbd className='bg-white/10 text-slate-300 px-1 py-0.5 rounded text-[10px] font-mono'>↑↓</kbd>
+                  Navigate
+                  <kbd className='bg-white/10 text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-mono ml-1'>↵</kbd>
+                  Open
+                </span>
+                {focusedIndex !== null && (
+                  <span className='ml-auto text-[10px] font-semibold text-amber-300 bg-amber-900/40 px-2 py-0.5 rounded-full truncate max-w-[100px]'>
+                    {vahanOptions[focusedIndex]?.title}
+                  </span>
+                )}
+              </div>
               <div className='space-y-2 p-4'>
-                {vahanOptions.map((option, index) => (
-                  <button
-                    key={option.title}
-                    type='button'
-                    onClick={() => openModal(option.title)}
-                    className={
-                      option.image
-                        ? 'block w-full transition duration-200 hover:opacity-95'
-                        : 'block w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition duration-200 hover:bg-white/10 hover:shadow-lg'
-                    }
-                  >
-                    {option.image ? (
-                      <img
-                        src={option.image}
-                        alt={option.title}
-                        className='mx-auto h-auto w-[92%] object-contain'
-                      />
-                    ) : (
-                      <div className='flex items-start gap-3'>
-                        <span className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold text-cyan-200'>
-                          {index + 1}
-                        </span>
-                        <div>
-                          <h2 className='text-sm font-bold text-white'>{option.title}</h2>
-                          <p className='mt-1 text-xs leading-5 text-slate-300'>{option.note}</p>
+                {vahanOptions.map((option, index) => {
+                  const isFocused = focusedIndex === index
+                  return (
+                    <button
+                      key={option.title}
+                      type='button'
+                      onClick={() => { setFocusedIndex(index); openModal(option.title) }}
+                      onMouseEnter={() => setFocusedIndex(index)}
+                      className={
+                        option.image
+                          ? `block w-full transition duration-200 rounded-xl ${
+                              isFocused
+                                ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-900 opacity-100 scale-[1.02] shadow-lg shadow-amber-500/30'
+                                : 'hover:opacity-95'
+                            }`
+                          : `block w-full rounded-2xl border px-4 py-3 text-left transition duration-200 ${
+                              isFocused
+                                ? 'border-amber-400 bg-amber-500/20 shadow-lg shadow-amber-500/20 scale-[1.02]'
+                                : 'border-white/10 bg-white/5 hover:bg-white/10 hover:shadow-lg'
+                            }`
+                      }
+                    >
+                      {option.image ? (
+                        <img
+                          src={option.image}
+                          alt={option.title}
+                          className='mx-auto h-auto w-[92%] object-contain'
+                        />
+                      ) : (
+                        <div className='flex items-start gap-3'>
+                          <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                            isFocused ? 'bg-amber-400 text-slate-900' : 'bg-white/10 text-amber-200'
+                          }`}>
+                            {index + 1}
+                          </span>
+                          <div>
+                            <h2 className={`text-sm font-bold ${isFocused ? 'text-amber-300' : 'text-white'}`}>{option.title}</h2>
+                            <p className='mt-1 text-xs leading-5 text-slate-300'>{option.note}</p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </button>
-                ))}
+                      )}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </aside>
