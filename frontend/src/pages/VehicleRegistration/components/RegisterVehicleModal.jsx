@@ -172,19 +172,23 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
       }
     }
 
-    if (currentFieldName === 'partySearch' && e.key === 'Enter' && !formData.partyId) {
-      e.preventDefault()
-      const exactParty = findMatchingParty(formData.ownerName)
+    if (currentFieldName === 'partySearch' && e.key === 'Enter') {
+      if (!formData.partyId) {
+        e.preventDefault()
+        const exactParty = findMatchingParty(formData.ownerName)
 
-      if (exactParty) {
-        handlePartySelect(exactParty)
-      } else if (formData.ownerName.trim()) {
-        toast.error('Party is required. Choose an existing party or create a new party with Alt+N.', { position: 'top-right', autoClose: 3000 })
-        setNewParty(prev => ({ ...prev, partyName: formData.ownerName }))
-      } else {
-        toast.error('Please choose a party from dropdown or create a new party.', { position: 'top-right', autoClose: 3000 })
+        if (exactParty) {
+          handlePartySelect(exactParty)
+          // Don't return here, let it fall through to navigation logic
+        } else if (formData.ownerName.trim()) {
+          toast.error('Party is required. Choose an existing party or create a new party with Alt+N.', { position: 'top-right', autoClose: 3000 })
+          setNewParty(prev => ({ ...prev, partyName: formData.ownerName }))
+          return
+        } else {
+          toast.error('Please choose a party from dropdown or create a new party.', { position: 'top-right', autoClose: 3000 })
+          return
+        }
       }
-      return
     }
 
     if (e.key === 'Enter') {
@@ -211,6 +215,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
         'bodyType',
         'wheelBase',
         'partySearch',
+        'sonWifeDaughterOf',
+        'address',
+        'mobileNumber',
+        'email',
         'subPartyName',
         'subPartyMobile'
       ]
@@ -669,8 +677,8 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
     }
   }
 
-  const partyDetailInputClass = 'w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-gray-100 border-2 border-gray-200 rounded-lg md:rounded-xl font-semibold text-gray-700 placeholder-gray-400 cursor-not-allowed uppercase'
-  const partyDetailInputClassNormalCase = 'w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-gray-100 border-2 border-gray-200 rounded-lg md:rounded-xl font-semibold text-gray-700 placeholder-gray-400 cursor-not-allowed'
+  const partyDetailInputClass = 'w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-purple-200 rounded-lg md:rounded-xl font-semibold text-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 placeholder-gray-400 uppercase'
+  const partyDetailInputClassNormalCase = 'w-full pl-9 md:pl-12 pr-2.5 md:pr-4 py-1.5 md:py-2 text-xs md:text-sm bg-white border-2 border-purple-200 rounded-lg md:rounded-xl font-semibold text-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 placeholder-gray-400'
 
   const handleDateChange = (e) => {
     const { name, value } = e.target
@@ -2383,9 +2391,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='text'
                         name='sonWifeDaughterOf'
                         value={formData.sonWifeDaughterOf}
-                        readOnly
-                        tabIndex={-1}
-                        placeholder='Selected party detail'
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder='Enter son/wife/daughter of'
                         className={partyDetailInputClass}
                       />
                     </div>
@@ -2415,9 +2423,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='text'
                         name='address'
                         value={formData.address}
-                        readOnly
-                        tabIndex={-1}
-                        placeholder='Selected party address'
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder='Enter full address'
                         className={partyDetailInputClass}
                       />
                     </div>
@@ -2438,10 +2446,10 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='tel'
                         name='mobileNumber'
                         value={formData.mobileNumber}
-                        readOnly
-                        tabIndex={-1}
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
                         maxLength='10'
-                        placeholder='Selected party mobile'
+                        placeholder='Enter mobile number'
                         className={partyDetailInputClassNormalCase}
                       />
                     </div>
@@ -2462,9 +2470,9 @@ const RegisterVehicleModal = ({ isOpen, onClose, onSuccess, editData }) => {
                         type='email'
                         name='email'
                         value={formData.email}
-                        readOnly
-                        tabIndex={-1}
-                        placeholder='Selected party email'
+                        onChange={handleChange}
+                        onKeyDown={handleKeyDown}
+                        placeholder='Enter email address'
                         className={partyDetailInputClassNormalCase}
                       />
                     </div>
